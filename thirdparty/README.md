@@ -11,6 +11,9 @@ The files were adapted to Godot by removing the dependency on b2Math (replacing
 it by b2Glue.h) and commenting out some verbose printf calls.
 Upstream code has not changed in 10 years, no need to keep track of changes.
 
+Important: Some files have Godot-made changes.
+They are marked with `// -- GODOT start --` and `// -- GODOT end --`
+comments.
 
 ## bullet
 
@@ -69,6 +72,9 @@ Files extracted from upstream source:
 - all .cpp and .h files in EtcLib/
 - README.md, LICENSE, AUTHORS
 
+Important: Some files have Godot-made changes.
+They are marked with `// -- GODOT start --` and `// -- GODOT end --`
+comments.
 
 ## fonts
 
@@ -165,6 +171,9 @@ Files extracted from upstream source:
 
 TODO.
 
+Important: Some files have Godot-made changes.
+They are marked with `// -- GODOT start --` and `// -- GODOT end --`
+comments.
 
 ## libtheora
 
@@ -229,13 +238,13 @@ changes are marked with `// -- GODOT --` comments.
 - License: LGPLv2.1 + static linking exception
 
 File extracted from upstream source:
-- Everything in `lib/` except `http2/`, `event-libs/`.
+- Everything in `lib/` except `minilex.c`, `http2/`, `event-libs/`.
   - From `misc/` exclude `lws-genhash.c`, `lws-ring.c`, `romfs.{c,h}`, `smtp.c`.
   - From `plat/` exclude `lws-plat-{esp*,optee}.c`.
   - From `server/` exclude `access-log.c`, `cgi.c`, `daemonize.c`, `lws-spa.c`, 
 `peer-limits.c`, `rewrite.c`
 - Also copy `win32helpers/` from `win32port/`
-- `mbedtls_wrapper/include/platform/ssl_port.h` has a small change to check for OSX (missing `malloc.h`).
+- `mbedtls_wrapper/include/platform/ssl_port.h` has a small change to check for OSX and FreeBSD (missing `malloc.h`).
   The bug is fixed in upstream master via `LWS_HAVE_MALLOC_H`, but not in the 2.4.1 branch (as the file structure has changed).
 
 Important: `lws_config.h` and `lws_config_private.h` contains custom 

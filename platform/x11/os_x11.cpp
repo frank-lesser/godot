@@ -29,6 +29,7 @@
 /*************************************************************************/
 
 #include "os_x11.h"
+#include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "errno.h"
 #include "key_mapping_x11.h"
@@ -77,14 +78,23 @@
 #include <X11/XKBlib.h>
 
 int OS_X11::get_video_driver_count() const {
-	return 1;
+
+	return 2;
 }
 
 const char *OS_X11::get_video_driver_name(int p_driver) const {
-	return "GLES3";
+
+	switch (p_driver) {
+		case VIDEO_DRIVER_GLES2:
+			return "GLES2";
+		case VIDEO_DRIVER_GLES3:
+		default:
+			return "GLES3";
+	}
 }
 
 int OS_X11::get_audio_driver_count() const {
+
 	return AudioDriverManager::get_driver_count();
 }
 
@@ -283,12 +293,25 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 //print_line("def videomode "+itos(current_videomode.width)+","+itos(current_videomode.height));
 #if defined(OPENGL_ENABLED)
 
-	context_gl = memnew(ContextGL_X11(x11_display, x11_window, current_videomode, true));
+	ContextGL_X11::ContextType opengl_api_type = ContextGL_X11::GLES_3_0_COMPATIBLE;
+
+	if (p_video_driver == VIDEO_DRIVER_GLES2) {
+		opengl_api_type = ContextGL_X11::GLES_2_0_COMPATIBLE;
+	}
+
+	context_gl = memnew(ContextGL_X11(x11_display, x11_window, current_videomode, opengl_api_type));
 	context_gl->initialize();
 
-	RasterizerGLES3::register_config();
-
-	RasterizerGLES3::make_current();
+	switch (opengl_api_type) {
+		case ContextGL_X11::GLES_2_0_COMPATIBLE: {
+			RasterizerGLES2::register_config();
+			RasterizerGLES2::make_current();
+		} break;
+		case ContextGL_X11::GLES_3_0_COMPATIBLE: {
+			RasterizerGLES3::register_config();
+			RasterizerGLES3::make_current();
+		} break;
+	}
 
 	context_gl->set_use_vsync(current_videomode.use_vsync);
 
@@ -1193,6 +1216,7 @@ bool OS_X11::is_window_maximized() const {
 	unsigned long len;
 	unsigned long remaining;
 	unsigned char *data = NULL;
+	bool retval = false;
 
 	int result = XGetWindowProperty(
 			x11_display,
@@ -1221,13 +1245,15 @@ bool OS_X11::is_window_maximized() const {
 			if (atoms[i] == wm_max_vert)
 				found_wm_max_vert = true;
 
-			if (found_wm_max_horz && found_wm_max_vert)
-				return true;
+			if (found_wm_max_horz && found_wm_max_vert) {
+				retval = true;
+				break;
+			}
 		}
-		XFree(atoms);
 	}
 
-	return false;
+	XFree(data);
+	return retval;
 }
 
 void OS_X11::set_window_always_on_top(bool p_enabled) {

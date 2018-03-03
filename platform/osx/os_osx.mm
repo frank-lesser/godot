@@ -31,6 +31,7 @@
 #include "os_osx.h"
 
 #include "dir_access_osx.h"
+#include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/gles3/rasterizer_gles3.h"
 #include "main/main.h"
 #include "os/keyboard.h"
@@ -149,9 +150,43 @@ static Vector2 get_mouse_pos(NSEvent *event) {
 @end
 
 @interface GodotApplicationDelegate : NSObject
+- (void)forceUnbundledWindowActivationHackStep1;
+- (void)forceUnbundledWindowActivationHackStep2;
+- (void)forceUnbundledWindowActivationHackStep3;
 @end
 
 @implementation GodotApplicationDelegate
+
+- (void)forceUnbundledWindowActivationHackStep1 {
+	// Step1: Switch focus to macOS Dock.
+	// Required to perform step 2, TransformProcessType will fail if app is already the in focus.
+	for (NSRunningApplication *app in [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.apple.dock"]) {
+		[app activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+		break;
+	}
+	[self performSelector:@selector(forceUnbundledWindowActivationHackStep2) withObject:nil afterDelay:0.02];
+}
+
+- (void)forceUnbundledWindowActivationHackStep2 {
+	// Step 2: Register app as foreground process.
+	ProcessSerialNumber psn = { 0, kCurrentProcess };
+	(void)TransformProcessType(&psn, kProcessTransformToForegroundApplication);
+
+	[self performSelector:@selector(forceUnbundledWindowActivationHackStep3) withObject:nil afterDelay:0.02];
+}
+
+- (void)forceUnbundledWindowActivationHackStep3 {
+	// Step 3: Switch focus back to app window.
+	[[NSRunningApplication currentApplication] activateWithOptions:NSApplicationActivateIgnoringOtherApps];
+}
+
+- (void)applicationDidFinishLaunching:(NSNotification *)notice {
+	NSString *nsappname = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
+	if (nsappname == nil) {
+		// If executable is not a bundled, macOS WindowServer won't register and activate app window correctly (menu and title bar are grayed out and input ignored).
+		[self performSelector:@selector(forceUnbundledWindowActivationHackStep1) withObject:nil afterDelay:0.02];
+	}
+}
 
 - (BOOL)application:(NSApplication *)sender openFile:(NSString *)filename {
 	// Note: called before main loop init!
@@ -992,12 +1027,19 @@ void OS_OSX::set_ime_position(const Point2 &p_pos) {
 }
 
 int OS_OSX::get_video_driver_count() const {
-	return 1;
+
+	return 2;
 }
 
 const char *OS_OSX::get_video_driver_name(int p_driver) const {
 
-	return "GLES3";
+	switch (p_driver) {
+		case VIDEO_DRIVER_GLES2:
+			return "GLES2";
+		case VIDEO_DRIVER_GLES3:
+		default:
+			return "GLES3";
+	}
 }
 
 void OS_OSX::initialize_core() {
@@ -1111,8 +1153,12 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 	ADD_ATTR(NSOpenGLPFADoubleBuffer);
 	ADD_ATTR(NSOpenGLPFAClosestPolicy);
 
-	//we now need OpenGL 3 or better, maybe even change this to 3_3Core ?
-	ADD_ATTR2(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core);
+	if (p_video_driver == VIDEO_DRIVER_GLES2) {
+		ADD_ATTR2(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersionLegacy);
+	} else {
+		//we now need OpenGL 3 or better, maybe even change this to 3_3Core ?
+		ADD_ATTR2(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core);
+	}
 
 	ADD_ATTR2(NSOpenGLPFAColorSize, colorBits);
 
@@ -1169,13 +1215,16 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 
 	/*** END OSX INITIALIZATION ***/
 
-	bool use_gl2 = p_video_driver != 1;
-
 	AudioDriverManager::add_driver(&audio_driver);
 
 	// only opengl support here...
-	RasterizerGLES3::register_config();
-	RasterizerGLES3::make_current();
+	if (p_video_driver == VIDEO_DRIVER_GLES2) {
+		RasterizerGLES2::register_config();
+		RasterizerGLES2::make_current();
+	} else {
+		RasterizerGLES3::register_config();
+		RasterizerGLES3::make_current();
+	}
 
 	visual_server = memnew(VisualServerRaster);
 	if (get_render_thread_mode() != RENDER_THREAD_UNSAFE) {
@@ -2325,7 +2374,7 @@ OS_OSX::OS_OSX() {
 	NSMenuItem *menu_item;
 	NSString *title;
 
-	NSString *nsappname = [[[NSBundle mainBundle] performSelector:@selector(localizedInfoDictionary)] objectForKey:@"CFBundleName"];
+	NSString *nsappname = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
 	if (nsappname == nil)
 		nsappname = [[NSProcessInfo processInfo] processName];
 
