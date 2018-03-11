@@ -1615,10 +1615,10 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 
 	if (drag_type == DRAG_NONE) {
 		if (b.is_valid() &&
-				((b->get_button_index() == BUTTON_LEFT && b->get_alt() && tool == TOOL_SELECT) ||
+				((b->get_button_index() == BUTTON_RIGHT && b->get_alt() && tool == TOOL_SELECT) ||
 						(b->get_button_index() == BUTTON_LEFT && tool == TOOL_LIST_SELECT))) {
 			// Popup the selection menu list
-			Point2 click = transform.xform(b->get_position());
+			Point2 click = transform.affine_inverse().xform(b->get_position());
 
 			Node *scene = editor->get_edited_scene();
 
@@ -1681,7 +1681,22 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 			// Find the item to select
 			CanvasItem *canvas_item = NULL;
 			Vector<_SelectResult> selection;
-			_find_canvas_items_at_pos(click, scene, selection, 1);
+			_find_canvas_items_at_pos(click, scene, selection, editor_selection->get_selection().empty() ? 1 : 0);
+
+			for (int i = 0; i < selection.size(); i++) {
+				if (editor_selection->is_selected(selection[i].item)) {
+					// Drag the node(s) if requested
+					List<CanvasItem *> selection = _get_edited_canvas_items();
+
+					drag_type = DRAG_ALL;
+					drag_selection = selection;
+					drag_from = click;
+					_save_canvas_item_state(drag_selection);
+
+					return true;
+				}
+			}
+
 			if (!selection.empty())
 				canvas_item = selection[0].item;
 
