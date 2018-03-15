@@ -290,6 +290,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["interface/editor/main_font_size"] = PropertyInfo(Variant::INT, "interface/editor/main_font_size", PROPERTY_HINT_RANGE, "10,40,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	_initial_set("interface/editor/code_font_size", 14);
 	hints["interface/editor/code_font_size"] = PropertyInfo(Variant::INT, "interface/editor/code_font_size", PROPERTY_HINT_RANGE, "8,96,1", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	_initial_set("interface/editor/main_font_hinting", 2);
+	hints["interface/editor/main_font_hinting"] = PropertyInfo(Variant::INT, "interface/editor/main_font_hinting", PROPERTY_HINT_ENUM, "None,Light,Normal", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
+	_initial_set("interface/editor/code_font_hinting", 2);
+	hints["interface/editor/code_font_hinting"] = PropertyInfo(Variant::INT, "interface/editor/code_font_hinting", PROPERTY_HINT_ENUM, "None,Light,Normal", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	_initial_set("interface/editor/main_font", "");
 	hints["interface/editor/main_font"] = PropertyInfo(Variant::STRING, "interface/editor/main_font", PROPERTY_HINT_GLOBAL_FILE, "*.ttf,*.otf", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 	_initial_set("interface/editor/code_font", "");
@@ -959,11 +963,8 @@ void EditorSettings::save() {
 	Error err = ResourceSaver::save(singleton->config_file_path, singleton);
 
 	if (err != OK) {
-		ERR_PRINT("Can't Save!");
-		return;
-	}
-
-	if (OS::get_singleton()->is_stdout_verbose()) {
+		ERR_PRINTS("Error saving editor settings to " + singleton->config_file_path);
+	} else if (OS::get_singleton()->is_stdout_verbose()) {
 		print_line("EditorSettings Save OK!");
 	}
 }
