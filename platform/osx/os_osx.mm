@@ -263,6 +263,7 @@ static Vector2 get_mouse_pos(NSEvent *event) {
 	NSWindow *window = (NSWindow *)[notification object];
 	CGFloat newBackingScaleFactor = [window backingScaleFactor];
 	CGFloat oldBackingScaleFactor = [[[notification userInfo] objectForKey:@"NSBackingPropertyOldScaleFactorKey"] doubleValue];
+	[OS_OSX::singleton->window_view setWantsBestResolutionOpenGLSurface:YES];
 
 	if (newBackingScaleFactor != oldBackingScaleFactor) {
 		//Set new display scale and window size
@@ -2320,6 +2321,7 @@ OS_OSX *OS_OSX::singleton = NULL;
 
 OS_OSX::OS_OSX() {
 
+	memset(cursors, 0, sizeof(cursors));
 	key_event_pos = 0;
 	mouse_mode = OS::MOUSE_MODE_VISIBLE;
 	main_loop = NULL;

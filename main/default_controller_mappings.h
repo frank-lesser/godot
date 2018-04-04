@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  power_javascript.cpp                                                 */
+/*  default_controller_mappings.h                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,46 +28,12 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "power_javascript.h"
-#include "error_macros.h"
+#ifndef DEFAULT_CONTROLLER_MAPPINGS_H
+#define DEFAULT_CONTROLLER_MAPPINGS_H
 
-bool PowerJavascript::UpdatePowerInfo() {
-	// TODO Javascript implementation
-	return false;
-}
+class DefaultControllerMappings {
+public:
+	static const char *mappings[];
+};
 
-OS::PowerState PowerJavascript::get_power_state() {
-	if (UpdatePowerInfo()) {
-		return power_state;
-	} else {
-		WARN_PRINT("Power management is not implemented on this platform, defaulting to POWERSTATE_UNKNOWN");
-		return OS::POWERSTATE_UNKNOWN;
-	}
-}
-
-int PowerJavascript::get_power_seconds_left() {
-	if (UpdatePowerInfo()) {
-		return nsecs_left;
-	} else {
-		WARN_PRINT("Power management is not implemented on this platform, defaulting to -1");
-		return -1;
-	}
-}
-
-int PowerJavascript::get_power_percent_left() {
-	if (UpdatePowerInfo()) {
-		return percent_left;
-	} else {
-		WARN_PRINT("Power management is not implemented on this platform, defaulting to -1");
-		return -1;
-	}
-}
-
-PowerJavascript::PowerJavascript() :
-		nsecs_left(-1),
-		percent_left(-1),
-		power_state(OS::POWERSTATE_UNKNOWN) {
-}
-
-PowerJavascript::~PowerJavascript() {
-}
+#endif // DEFAULT_CONTROLLER_MAPPINGS_H

@@ -59,7 +59,7 @@ Password for remote filesystem.
 Audio driver ('PulseAudio', 'ALSA').
 .TP
 \fB\-\-video\-driver\fR <driver>
-Video driver ('GLES3').
+Video driver ('GLES3', 'GLES2').
 .SS "Display options:"
 .TP
 \fB\-f\fR, \fB\-\-fullscreen\fR
@@ -119,6 +119,9 @@ Disable crash handler when supported by the platform code.
 .TP
 \fB\-\-fixed\-fps\fR <fps>
 Force a fixed number of frames per second. This setting disables real\-time synchronization.
+.TP
+\fB\-\-print\-fps\fR
+Print the frames per second to the stdout.
 .SS "Standalone tools:"
 .TP
 \fB\-s\fR, \fB\-\-script\fR <script>

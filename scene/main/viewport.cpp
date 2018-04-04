@@ -1934,6 +1934,8 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 	Ref<InputEventGesture> gesture_event = p_event;
 	if (gesture_event.is_valid()) {
 
+		gui.key_event_accepted = false;
+
 		_gui_cancel_tooltip();
 
 		Size2 pos = gesture_event->get_position();
@@ -2026,6 +2028,9 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				top->notification(Control::NOTIFICATION_MODAL_CLOSE);
 				top->_modal_stack_remove();
 				top->hide();
+				// Close modal, set input as handled
+				get_tree()->set_input_as_handled();
+				return;
 			}
 		}
 

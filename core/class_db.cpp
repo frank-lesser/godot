@@ -33,17 +33,8 @@
 #include "os/mutex.h"
 #include "version.h"
 
-#ifdef NO_THREADS
-
-#define OBJTYPE_RLOCK
-#define OBJTYPE_WLOCK
-
-#else
-
 #define OBJTYPE_RLOCK RWLockRead _rw_lockr_(lock);
 #define OBJTYPE_WLOCK RWLockWrite _rw_lockw_(lock);
-
-#endif
 
 #ifdef DEBUG_METHODS_ENABLED
 
@@ -660,7 +651,6 @@ void ClassDB::bind_integer_constant(const StringName &p_class, const StringName 
 	}
 
 	type->constant_map[p_name] = p_constant;
-#ifdef DEBUG_METHODS_ENABLED
 
 	String enum_name = p_enum;
 	if (enum_name != String()) {
@@ -679,6 +669,7 @@ void ClassDB::bind_integer_constant(const StringName &p_class, const StringName 
 		}
 	}
 
+#ifdef DEBUG_METHODS_ENABLED
 	type->constant_order.push_back(p_name);
 #endif
 }
@@ -734,7 +725,6 @@ int ClassDB::get_integer_constant(const StringName &p_class, const StringName &p
 	return 0;
 }
 
-#ifdef DEBUG_METHODS_ENABLED
 StringName ClassDB::get_integer_constant_enum(const StringName &p_class, const StringName &p_name, bool p_no_inheritance) {
 
 	OBJTYPE_RLOCK;
@@ -803,7 +793,6 @@ void ClassDB::get_enum_constants(const StringName &p_class, const StringName &p_
 		type = type->inherits_ptr;
 	}
 }
-#endif
 
 void ClassDB::add_signal(StringName p_class, const MethodInfo &p_signal) {
 
@@ -895,15 +884,9 @@ void ClassDB::add_property_group(StringName p_class, const String &p_name, const
 
 void ClassDB::add_property(StringName p_class, const PropertyInfo &p_pinfo, const StringName &p_setter, const StringName &p_getter, int p_index) {
 
-#ifndef NO_THREADS
 	lock->read_lock();
-#endif
-
 	ClassInfo *type = classes.getptr(p_class);
-
-#ifndef NO_THREADS
 	lock->read_unlock();
-#endif
 
 	ERR_FAIL_COND(!type);
 
@@ -1380,10 +1363,7 @@ RWLock *ClassDB::lock = NULL;
 
 void ClassDB::init() {
 
-#ifndef NO_THREADS
-
 	lock = RWLock::create();
-#endif
 }
 
 void ClassDB::cleanup() {
@@ -1406,10 +1386,7 @@ void ClassDB::cleanup() {
 	resource_base_extensions.clear();
 	compat_classes.clear();
 
-#ifndef NO_THREADS
-
 	memdelete(lock);
-#endif
 }
 
 //
