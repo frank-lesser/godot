@@ -1299,7 +1299,9 @@ void OS_Windows::set_mouse_mode(MouseMode p_mode) {
 	if (p_mode == MOUSE_MODE_CAPTURED || p_mode == MOUSE_MODE_HIDDEN) {
 		hCursor = SetCursor(NULL);
 	} else {
-		SetCursor(hCursor);
+		CursorShape c = cursor_shape;
+		cursor_shape = CURSOR_MAX;
+		set_cursor_shape(c);
 	}
 }
 
@@ -1863,6 +1865,11 @@ void OS_Windows::set_cursor_shape(CursorShape p_shape) {
 	if (cursor_shape == p_shape)
 		return;
 
+	if (mouse_mode != MOUSE_MODE_VISIBLE) {
+		cursor_shape = p_shape;
+		return;
+	}
+
 	static const LPCTSTR win_cursors[CURSOR_MAX] = {
 		IDC_ARROW,
 		IDC_IBEAM,
@@ -1888,6 +1895,7 @@ void OS_Windows::set_cursor_shape(CursorShape p_shape) {
 	} else {
 		SetCursor(LoadCursor(hInstance, win_cursors[p_shape]));
 	}
+
 	cursor_shape = p_shape;
 }
 
@@ -1896,26 +1904,25 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 		Ref<Texture> texture = p_cursor;
 		Ref<Image> image = texture->get_data();
 
-		UINT image_size = 32 * 32;
+		UINT image_size = texture->get_width() * texture->get_height();
 		UINT size = sizeof(UINT) * image_size;
 
-		ERR_FAIL_COND(texture->get_width() != 32 || texture->get_height() != 32);
+		ERR_FAIL_COND(texture->get_width() > 256 || texture->get_height() > 256);
 
 		// Create the BITMAP with alpha channel
 		COLORREF *buffer = (COLORREF *)malloc(sizeof(COLORREF) * image_size);
 
 		image->lock();
 		for (UINT index = 0; index < image_size; index++) {
-			int column_index = floor(index / 32);
-			int row_index = index % 32;
+			int row_index = floor(index / texture->get_width());
+			int column_index = index % texture->get_width();
 
-			Color pcColor = image->get_pixel(row_index, column_index);
-			*(buffer + index) = image->get_pixel(row_index, column_index).to_argb32();
+			*(buffer + index) = image->get_pixel(column_index, row_index).to_argb32();
 		}
 		image->unlock();
 
 		// Using 4 channels, so 4 * 8 bits
-		HBITMAP bitmap = CreateBitmap(32, 32, 1, 4 * 8, buffer);
+		HBITMAP bitmap = CreateBitmap(texture->get_width(), texture->get_height(), 1, 4 * 8, buffer);
 		COLORREF clrTransparent = -1;
 
 		// Create the AND and XOR masks for the bitmap

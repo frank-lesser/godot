@@ -470,24 +470,28 @@ void EditorNode::_fs_changed() {
 		}
 		if (preset.is_null()) {
 			String err = "Unknown export preset: " + export_defer.preset;
-			ERR_PRINT(err.utf8().get_data());
+			ERR_PRINTS(err);
 		} else {
 			Ref<EditorExportPlatform> platform = preset->get_platform();
 			if (platform.is_null()) {
 				String err = "Preset \"" + export_defer.preset + "\" doesn't have a platform.";
-				ERR_PRINT(err.utf8().get_data());
+				ERR_PRINTS(err);
 			} else {
 				// ensures export_project does not loop infinitely, because notifications may
 				// come during the export
 				export_defer.preset = "";
+				Error err;
 				if (!preset->is_runnable() && (export_defer.path.ends_with(".pck") || export_defer.path.ends_with(".zip"))) {
 					if (export_defer.path.ends_with(".zip")) {
-						platform->save_zip(preset, export_defer.path);
+						err = platform->save_zip(preset, export_defer.path);
 					} else if (export_defer.path.ends_with(".pck")) {
-						platform->save_pack(preset, export_defer.path);
+						err = platform->save_pack(preset, export_defer.path);
 					}
 				} else {
-					platform->export_project(preset, export_defer.debug, export_defer.path, /*p_flags*/ 0);
+					err = platform->export_project(preset, export_defer.debug, export_defer.path, /*p_flags*/ 0);
+				}
+				if (err != OK) {
+					ERR_PRINTS(vformat(TTR("Project export failed with error code %d."), (int)err));
 				}
 			}
 		}
@@ -1230,29 +1234,25 @@ void EditorNode::_dialog_action(String p_file) {
 		} break;
 		case FILE_EXPORT_TILESET: {
 
-			Ref<TileSet> ml;
-			if (FileAccess::exists(p_file)) {
-				ml = ResourceLoader::load(p_file, "TileSet");
+			Ref<TileSet> tileset;
+			if (FileAccess::exists(p_file) && file_export_lib_merge->is_pressed()) {
+				tileset = ResourceLoader::load(p_file, "TileSet");
 
-				if (ml.is_null()) {
-					if (file_export_lib_merge->is_pressed()) {
-						current_option = -1;
-						accept->get_ok()->set_text(TTR("I see.."));
-						accept->set_text(TTR("Can't load TileSet for merging!"));
-						accept->popup_centered_minsize();
-						return;
-					}
-				} else if (!file_export_lib_merge->is_pressed()) {
-					ml->clear();
+				if (tileset.is_null()) {
+					current_option = -1;
+					accept->get_ok()->set_text(TTR("I see.."));
+					accept->set_text(TTR("Can't load TileSet for merging!"));
+					accept->popup_centered_minsize();
+					return;
 				}
 
 			} else {
-				ml = Ref<TileSet>(memnew(TileSet));
+				tileset = Ref<TileSet>(memnew(TileSet));
 			}
 
-			TileSetEditor::update_library_file(editor_data.get_edited_scene_root(), ml, true);
+			TileSetEditor::update_library_file(editor_data.get_edited_scene_root(), tileset, true);
 
-			Error err = ResourceSaver::save(p_file, ml);
+			Error err = ResourceSaver::save(p_file, tileset);
 			if (err) {
 
 				current_option = -1;
@@ -3892,6 +3892,53 @@ void EditorNode::_update_dock_slots_visibility() {
 	}
 }
 
+void EditorNode::_dock_tab_changed(int p_tab) {
+
+	// update visibility but dont set current tab
+	VSplitContainer *splits[DOCK_SLOT_MAX / 2] = {
+		left_l_vsplit,
+		left_r_vsplit,
+		right_l_vsplit,
+		right_r_vsplit,
+	};
+
+	if (!docks_visible) {
+
+		for (int i = 0; i < DOCK_SLOT_MAX; i++) {
+			dock_slot[i]->hide();
+		}
+
+		for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
+			splits[i]->hide();
+		}
+
+		right_hsplit->hide();
+		bottom_panel->hide();
+	} else {
+		for (int i = 0; i < DOCK_SLOT_MAX; i++) {
+
+			if (dock_slot[i]->get_tab_count())
+				dock_slot[i]->show();
+			else
+				dock_slot[i]->hide();
+		}
+
+		for (int i = 0; i < DOCK_SLOT_MAX / 2; i++) {
+			bool in_use = dock_slot[i * 2 + 0]->get_tab_count() || dock_slot[i * 2 + 1]->get_tab_count();
+			if (in_use)
+				splits[i]->show();
+			else
+				splits[i]->hide();
+		}
+		bottom_panel->show();
+
+		if (right_l_vsplit->is_visible() || right_r_vsplit->is_visible())
+			right_hsplit->show();
+		else
+			right_hsplit->hide();
+	}
+}
+
 void EditorNode::_load_docks_from_config(Ref<ConfigFile> p_layout, const String &p_section) {
 
 	for (int i = 0; i < DOCK_SLOT_MAX; i++) {
@@ -4762,6 +4809,7 @@ void EditorNode::_bind_methods() {
 	ClassDB::bind_method("_dock_popup_exit", &EditorNode::_dock_popup_exit);
 	ClassDB::bind_method("_dock_move_left", &EditorNode::_dock_move_left);
 	ClassDB::bind_method("_dock_move_right", &EditorNode::_dock_move_right);
+	ClassDB::bind_method("_dock_tab_changed", &EditorNode::_dock_tab_changed);
 
 	ClassDB::bind_method("_layout_menu_option", &EditorNode::_layout_menu_option);
 
@@ -5121,6 +5169,9 @@ EditorNode::EditorNode() {
 		dock_slot[i]->set_popup(dock_select_popup);
 		dock_slot[i]->connect("pre_popup_pressed", this, "_dock_pre_popup", varray(i));
 		dock_slot[i]->set_tab_align(TabContainer::ALIGN_LEFT);
+		dock_slot[i]->set_drag_to_rearrange_enabled(true);
+		dock_slot[i]->set_tabs_rearrange_group(1);
+		dock_slot[i]->connect("tab_changed", this, "_dock_tab_changed");
 	}
 
 	dock_drag_timer = memnew(Timer);
@@ -5158,6 +5209,7 @@ EditorNode::EditorNode() {
 	scene_tabs->set_tab_align(Tabs::ALIGN_LEFT);
 	scene_tabs->set_tab_close_display_policy((bool(EDITOR_DEF("interface/scene_tabs/always_show_close_button", false)) ? Tabs::CLOSE_BUTTON_SHOW_ALWAYS : Tabs::CLOSE_BUTTON_SHOW_ACTIVE_ONLY));
 	scene_tabs->set_min_width(int(EDITOR_DEF("interface/scene_tabs/minimum_width", 50)) * EDSCALE);
+	scene_tabs->set_drag_to_rearrange_enabled(true);
 	scene_tabs->connect("tab_changed", this, "_scene_tab_changed");
 	scene_tabs->connect("right_button_pressed", this, "_scene_tab_script_edited");
 	scene_tabs->connect("tab_close", this, "_scene_tab_closed");

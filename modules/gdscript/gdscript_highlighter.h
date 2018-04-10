@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  audio_driver_coreaudio.h                                             */
+/*  gdscript_highlighter.h                                               */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,71 +28,29 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifdef COREAUDIO_ENABLED
+#ifndef GDSCRIPT_HIGHLIGHTER_H
+#define GDSCRIPT_HIGHLIGHTER_H
 
-#ifndef AUDIO_DRIVER_COREAUDIO_H
-#define AUDIO_DRIVER_COREAUDIO_H
+#include "scene/gui/text_edit.h"
 
-#include "servers/audio_server.h"
-
-#include <AudioUnit/AudioUnit.h>
-#ifdef OSX_ENABLED
-#include <CoreAudio/AudioHardware.h>
-#endif
-
-class AudioDriverCoreAudio : public AudioDriver {
-
-	AudioComponentInstance audio_unit;
-
-	bool active;
-	Mutex *mutex;
-
-	String device_name;
-
-	int mix_rate;
-	unsigned int channels;
-	unsigned int buffer_frames;
-	unsigned int buffer_size;
-
-	Vector<int32_t> samples_in;
-
-	static OSStatus output_device_address_cb(AudioObjectID inObjectID,
-			UInt32 inNumberAddresses, const AudioObjectPropertyAddress *inAddresses,
-			void *inClientData);
-
-	static OSStatus output_callback(void *inRefCon,
-			AudioUnitRenderActionFlags *ioActionFlags,
-			const AudioTimeStamp *inTimeStamp,
-			UInt32 inBusNumber, UInt32 inNumberFrames,
-			AudioBufferList *ioData);
-
-	Error init_device();
-	Error finish_device();
+class GDScriptSyntaxHighlighter : public SyntaxHighlighter {
+private:
+	// colours
+	Color font_color;
+	Color symbol_color;
+	Color function_color;
+	Color built_in_type_color;
+	Color number_color;
+	Color member_color;
 
 public:
-	const char *get_name() const {
-		return "CoreAudio";
-	};
+	static SyntaxHighlighter *create();
 
-	virtual Error init();
-	virtual void start();
-	virtual int get_mix_rate() const;
-	virtual SpeakerMode get_speaker_mode() const;
-#ifdef OSX_ENABLED
-	virtual Array get_device_list();
-	virtual String get_device();
-	virtual void set_device(String device);
-#endif
-	virtual void lock();
-	virtual void unlock();
-	virtual void finish();
+	virtual void _update_cache();
+	virtual Map<int, TextEdit::HighlighterInfo> _get_line_syntax_highlighting(int p_line);
 
-	bool try_lock();
-
-	AudioDriverCoreAudio();
-	~AudioDriverCoreAudio();
+	virtual String get_name();
+	virtual List<String> get_supported_languages();
 };
 
-#endif
-
-#endif
+#endif // GDSCRIPT_HIGHLIGHTER_H

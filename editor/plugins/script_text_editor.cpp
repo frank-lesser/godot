@@ -529,6 +529,14 @@ void ScriptTextEditor::goto_line(int p_line, bool p_with_error) {
 	tx->call_deferred("cursor_set_line", p_line);
 }
 
+void ScriptTextEditor::goto_line_selection(int p_line, int p_begin, int p_end) {
+	TextEdit *tx = code_editor->get_text_edit();
+	tx->unfold_line(p_line);
+	tx->call_deferred("cursor_set_line", p_line);
+	tx->call_deferred("cursor_set_column", p_begin);
+	tx->select(p_line, p_begin, p_line, p_end);
+}
+
 void ScriptTextEditor::ensure_focus() {
 
 	code_editor->get_text_edit()->grab_focus();
@@ -573,6 +581,7 @@ void ScriptTextEditor::set_edited_script(const Ref<Script> &p_script) {
 	ERR_FAIL_COND(!script.is_null());
 
 	script = p_script;
+	_set_theme_for_script();
 
 	code_editor->get_text_edit()->set_text(script->get_source_code());
 	code_editor->get_text_edit()->clear_undo_history();
@@ -580,8 +589,6 @@ void ScriptTextEditor::set_edited_script(const Ref<Script> &p_script) {
 
 	emit_signal("name_changed");
 	code_editor->update_line_and_column();
-
-	_set_theme_for_script();
 }
 
 void ScriptTextEditor::_validate_script() {
@@ -1174,6 +1181,15 @@ void ScriptTextEditor::_edit_option(int p_op) {
 
 			code_editor->get_find_replace_bar()->popup_replace();
 		} break;
+		case SEARCH_IN_FILES: {
+
+			String selected_text = code_editor->get_text_edit()->get_selection_text();
+
+			// Yep, because it doesn't make sense to instance this dialog for every single script open...
+			// So this will be delegated to the ScriptEditor
+			emit_signal("search_in_files_requested", selected_text);
+
+		} break;
 		case SEARCH_LOCATE_FUNCTION: {
 
 			quick_open->popup(get_functions());
@@ -1265,11 +1281,26 @@ void ScriptTextEditor::_edit_option(int p_op) {
 	}
 }
 
+void ScriptTextEditor::add_syntax_highlighter(SyntaxHighlighter *p_highlighter) {
+	highlighters[p_highlighter->get_name()] = p_highlighter;
+	highlighter_menu->get_popup()->add_item(p_highlighter->get_name());
+}
+
+void ScriptTextEditor::set_syntax_highlighter(SyntaxHighlighter *p_highlighter) {
+	TextEdit *te = code_editor->get_text_edit();
+	te->_set_syntax_highlighting(p_highlighter);
+}
+
+void ScriptTextEditor::_change_syntax_highlighter(int p_idx) {
+	set_syntax_highlighter(highlighters[highlighter_menu->get_popup()->get_item_text(p_idx)]);
+}
+
 void ScriptTextEditor::_bind_methods() {
 
 	ClassDB::bind_method("_validate_script", &ScriptTextEditor::_validate_script);
 	ClassDB::bind_method("_load_theme_settings", &ScriptTextEditor::_load_theme_settings);
 	ClassDB::bind_method("_breakpoint_toggled", &ScriptTextEditor::_breakpoint_toggled);
+	ClassDB::bind_method("_change_syntax_highlighter", &ScriptTextEditor::_change_syntax_highlighter);
 	ClassDB::bind_method("_edit_option", &ScriptTextEditor::_edit_option);
 	ClassDB::bind_method("_goto_line", &ScriptTextEditor::_goto_line);
 	ClassDB::bind_method("_lookup_symbol", &ScriptTextEditor::_lookup_symbol);
@@ -1646,6 +1677,8 @@ ScriptTextEditor::ScriptTextEditor() {
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/find_previous"), SEARCH_FIND_PREV);
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/replace"), SEARCH_REPLACE);
 	search_menu->get_popup()->add_separator();
+	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/find_in_files"), SEARCH_IN_FILES);
+	search_menu->get_popup()->add_separator();
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_function"), SEARCH_LOCATE_FUNCTION);
 	search_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("script_text_editor/goto_line"), SEARCH_GOTO_LINE);
 	search_menu->get_popup()->add_separator();
@@ -1654,6 +1687,14 @@ ScriptTextEditor::ScriptTextEditor() {
 	search_menu->get_popup()->connect("id_pressed", this, "_edit_option");
 
 	edit_hb->add_child(edit_menu);
+
+	highlighters["Standard"] = NULL;
+
+	highlighter_menu = memnew(MenuButton);
+	highlighter_menu->set_text(TTR("Syntax Highlighter"));
+	highlighter_menu->get_popup()->add_item("Standard");
+	highlighter_menu->get_popup()->connect("id_pressed", this, "_change_syntax_highlighter");
+	edit_hb->add_child(highlighter_menu);
 
 	quick_open = memnew(ScriptEditorQuickOpen);
 	add_child(quick_open);
@@ -1717,7 +1758,9 @@ void ScriptTextEditor::register_editor() {
 	ED_SHORTCUT("script_text_editor/find_previous", TTR("Find Previous"), KEY_MASK_SHIFT | KEY_F3);
 	ED_SHORTCUT("script_text_editor/replace", TTR("Replace.."), KEY_MASK_CMD | KEY_R);
 
-	ED_SHORTCUT("script_text_editor/goto_function", TTR("Goto Function.."), KEY_MASK_SHIFT | KEY_MASK_CMD | KEY_F);
+	ED_SHORTCUT("script_text_editor/find_in_files", TTR("Find in files..."), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_F);
+
+	ED_SHORTCUT("script_text_editor/goto_function", TTR("Goto Function.."), KEY_MASK_ALT | KEY_MASK_CMD | KEY_F);
 	ED_SHORTCUT("script_text_editor/goto_line", TTR("Goto Line.."), KEY_MASK_CMD | KEY_L);
 
 	ED_SHORTCUT("script_text_editor/contextual_help", TTR("Contextual Help"), KEY_MASK_SHIFT | KEY_F1);
