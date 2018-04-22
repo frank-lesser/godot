@@ -678,7 +678,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 
 			search_string = ""; //any mousepress cancels
 
-			if (current % current_columns != (current_columns - 1)) {
+			if (current % current_columns != (current_columns - 1) && current + 1 < items.size()) {
 				set_current(current + 1);
 				ensure_current_is_visible();
 				if (select_mode == SELECT_SINGLE) {
@@ -1434,7 +1434,7 @@ void ItemList::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_selected", "idx"), &ItemList::is_selected);
 	ClassDB::bind_method(D_METHOD("get_selected_items"), &ItemList::get_selected_items);
 
-	ClassDB::bind_method(D_METHOD("move_item", "p_from_idx", "p_to_idx"), &ItemList::move_item);
+	ClassDB::bind_method(D_METHOD("move_item", "from_idx", "to_idx"), &ItemList::move_item);
 
 	ClassDB::bind_method(D_METHOD("get_item_count"), &ItemList::get_item_count);
 	ClassDB::bind_method(D_METHOD("remove_item", "idx"), &ItemList::remove_item);

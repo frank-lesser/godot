@@ -245,6 +245,14 @@ CanvasItemMaterial::~CanvasItemMaterial() {
 
 ///////////////////////////////////////////////////////////////////
 
+bool CanvasItem::_edit_is_selected_on_click(const Point2 &p_point, double p_tolerance) const {
+	if (_edit_use_rect()) {
+		return _edit_get_rect().has_point(p_point);
+	} else {
+		return p_point.length() < p_tolerance;
+	}
+}
+
 bool CanvasItem::is_visible_in_tree() const {
 
 	if (!is_inside_tree())
@@ -263,7 +271,8 @@ bool CanvasItem::is_visible_in_tree() const {
 
 void CanvasItem::_propagate_visibility_changed(bool p_visible) {
 
-	notification(NOTIFICATION_VISIBILITY_CHANGED);
+	if (!first_draw)
+		notification(NOTIFICATION_VISIBILITY_CHANGED);
 
 	if (p_visible)
 		update(); //todo optimize
@@ -980,7 +989,8 @@ void CanvasItem::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_edit_set_position", "position"), &CanvasItem::_edit_set_position);
 	ClassDB::bind_method(D_METHOD("_edit_get_position"), &CanvasItem::_edit_get_position);
-	ClassDB::bind_method(D_METHOD("_edit_use_position"), &CanvasItem::_edit_use_position);
+	ClassDB::bind_method(D_METHOD("_edit_set_scale", "scale"), &CanvasItem::_edit_set_scale);
+	ClassDB::bind_method(D_METHOD("_edit_get_scale"), &CanvasItem::_edit_get_scale);
 	ClassDB::bind_method(D_METHOD("_edit_set_rect", "rect"), &CanvasItem::_edit_set_rect);
 	ClassDB::bind_method(D_METHOD("_edit_get_rect"), &CanvasItem::_edit_get_rect);
 	ClassDB::bind_method(D_METHOD("_edit_use_rect"), &CanvasItem::_edit_use_rect);

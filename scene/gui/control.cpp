@@ -94,6 +94,14 @@ Point2 Control::_edit_get_position() const {
 	return get_position();
 };
 
+void Control::_edit_set_scale(const Size2 &p_scale) {
+	set_scale(p_scale);
+}
+
+Size2 Control::_edit_get_scale() const {
+	return data.scale;
+}
+
 void Control::_edit_set_rect(const Rect2 &p_edit_rect) {
 	set_position((get_position() + get_transform().basis_xform(p_edit_rect.position)).snapped(Vector2(1, 1)));
 	set_size(p_edit_rect.size.snapped(Vector2(1, 1)));
@@ -2888,6 +2896,8 @@ void Control::_bind_methods() {
 	BIND_CONSTANT(NOTIFICATION_FOCUS_EXIT);
 	BIND_CONSTANT(NOTIFICATION_THEME_CHANGED);
 	BIND_CONSTANT(NOTIFICATION_MODAL_CLOSE);
+	BIND_CONSTANT(NOTIFICATION_SCROLL_BEGIN);
+	BIND_CONSTANT(NOTIFICATION_SCROLL_END);
 
 	BIND_ENUM_CONSTANT(CURSOR_ARROW);
 	BIND_ENUM_CONSTANT(CURSOR_IBEAM);

@@ -539,7 +539,7 @@ void TextEdit::_notification(int p_what) {
 			draw_caret = false;
 			update();
 		} break;
-		case NOTIFICATION_PHYSICS_PROCESS: {
+		case NOTIFICATION_INTERNAL_PHYSICS_PROCESS: {
 			if (scrolling && v_scroll->get_value() != target_v_scroll) {
 				double target_y = target_v_scroll - v_scroll->get_value();
 				double dist = sqrt(target_y * target_y);
@@ -548,13 +548,13 @@ void TextEdit::_notification(int p_what) {
 				if (Math::abs(vel) >= dist) {
 					v_scroll->set_value(target_v_scroll);
 					scrolling = false;
-					set_physics_process(false);
+					set_physics_process_internal(false);
 				} else {
 					v_scroll->set_value(v_scroll->get_value() + vel);
 				}
 			} else {
 				scrolling = false;
-				set_physics_process(false);
+				set_physics_process_internal(false);
 			}
 		} break;
 		case NOTIFICATION_DRAW: {
@@ -3027,7 +3027,7 @@ void TextEdit::_scroll_up(real_t p_delta) {
 			v_scroll->set_value(target_v_scroll);
 		} else {
 			scrolling = true;
-			set_physics_process(true);
+			set_physics_process_internal(true);
 		}
 	} else {
 		v_scroll->set_value(target_v_scroll);
@@ -3060,7 +3060,7 @@ void TextEdit::_scroll_down(real_t p_delta) {
 			v_scroll->set_value(target_v_scroll);
 		} else {
 			scrolling = true;
-			set_physics_process(true);
+			set_physics_process_internal(true);
 		}
 	} else {
 		v_scroll->set_value(target_v_scroll);
@@ -4023,6 +4023,9 @@ int TextEdit::_is_line_in_region(int p_line) {
 
 	// calculate up to line we need and update the cache along the way.
 	int in_region = color_region_cache[previous_line];
+	if (previous_line == -1) {
+		in_region = -1;
+	}
 	for (int i = previous_line; i < p_line; i++) {
 		const Map<int, Text::ColorRegionInfo> &cri_map = _get_line_color_region_info(i);
 		for (const Map<int, Text::ColorRegionInfo>::Element *E = cri_map.front(); E; E = E->next()) {
@@ -5686,7 +5689,7 @@ TextEdit::TextEdit() {
 	indent_size = 4;
 	text.set_indent_size(indent_size);
 	text.clear();
-	//text.insert(1,"Mongolia..");
+	//text.insert(1,"Mongolia...");
 	//text.insert(2,"PAIS GENEROSO!!");
 	text.set_color_regions(&color_regions);
 
@@ -5776,14 +5779,14 @@ TextEdit::TextEdit() {
 	context_menu_enabled = true;
 	menu = memnew(PopupMenu);
 	add_child(menu);
-	menu->add_item(TTR("Cut"), MENU_CUT, KEY_MASK_CMD | KEY_X);
-	menu->add_item(TTR("Copy"), MENU_COPY, KEY_MASK_CMD | KEY_C);
-	menu->add_item(TTR("Paste"), MENU_PASTE, KEY_MASK_CMD | KEY_V);
+	menu->add_item(RTR("Cut"), MENU_CUT, KEY_MASK_CMD | KEY_X);
+	menu->add_item(RTR("Copy"), MENU_COPY, KEY_MASK_CMD | KEY_C);
+	menu->add_item(RTR("Paste"), MENU_PASTE, KEY_MASK_CMD | KEY_V);
 	menu->add_separator();
-	menu->add_item(TTR("Select All"), MENU_SELECT_ALL, KEY_MASK_CMD | KEY_A);
-	menu->add_item(TTR("Clear"), MENU_CLEAR);
+	menu->add_item(RTR("Select All"), MENU_SELECT_ALL, KEY_MASK_CMD | KEY_A);
+	menu->add_item(RTR("Clear"), MENU_CLEAR);
 	menu->add_separator();
-	menu->add_item(TTR("Undo"), MENU_UNDO, KEY_MASK_CMD | KEY_Z);
+	menu->add_item(RTR("Undo"), MENU_UNDO, KEY_MASK_CMD | KEY_Z);
 	menu->connect("id_pressed", this, "menu_option");
 }
 
