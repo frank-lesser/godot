@@ -517,6 +517,10 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 
 	power_manager = memnew(PowerX11);
 
+	if (p_desired.layered_splash) {
+		set_window_per_pixel_transparency_enabled(true);
+	}
+
 	XEvent xevent;
 	while (XPending(x11_display) > 0) {
 		XNextEvent(x11_display, &xevent);
@@ -705,6 +709,25 @@ int OS_X11::get_mouse_button_state() const {
 
 Point2 OS_X11::get_mouse_position() const {
 	return last_mouse_pos;
+}
+
+bool OS_X11::get_window_per_pixel_transparency_enabled() const {
+
+	if (!is_layered_allowed()) return false;
+	return layered_window;
+}
+
+void OS_X11::set_window_per_pixel_transparency_enabled(bool p_enabled) {
+
+	if (!is_layered_allowed()) return;
+	if (layered_window != p_enabled) {
+		if (p_enabled) {
+			set_borderless_window(true);
+			layered_window = true;
+		} else {
+			layered_window = false;
+		}
+	}
 }
 
 void OS_X11::set_window_title(const String &p_title) {
@@ -1006,8 +1029,12 @@ void OS_X11::set_window_size(const Size2 p_size) {
 }
 
 void OS_X11::set_window_fullscreen(bool p_enabled) {
+
 	if (current_videomode.fullscreen == p_enabled)
 		return;
+
+	if (layered_window)
+		set_window_per_pixel_transparency_enabled(false);
 
 	if (p_enabled && current_videomode.always_on_top) {
 		// Fullscreen + Always-on-top requires a maximized window on some window managers (Metacity)
@@ -1253,6 +1280,9 @@ void OS_X11::set_borderless_window(bool p_borderless) {
 
 	if (current_videomode.borderless_window == p_borderless)
 		return;
+
+	if (!p_borderless && layered_window)
+		set_window_per_pixel_transparency_enabled(false);
 
 	current_videomode.borderless_window = p_borderless;
 
@@ -1690,6 +1720,11 @@ void OS_X11::process_xevents() {
 							if (touch.state.has(index)) // Defensive
 								break;
 							touch.state[index] = pos;
+							if (touch.state.size() == 1) {
+								// X11 may send a motion event when a touch gesture begins, that would result
+								// in a spurious mouse motion event being sent to Godot; remember it to be able to filter it out
+								touch.mouse_pos_to_filter = pos;
+							}
 							input->parse_input_event(st);
 						} else {
 							if (!touch.state.has(index)) // Defensive
@@ -1895,6 +1930,18 @@ void OS_X11::process_xevents() {
 				// A little hack is in order
 				// to be able to send relative motion events.
 				Point2i pos(event.xmotion.x, event.xmotion.y);
+
+				// Avoidance of spurious mouse motion (see handling of touch)
+				bool filter = false;
+				// Adding some tolerance to match better Point2i to Vector2
+				if (touch.state.size() && Vector2(pos).distance_squared_to(touch.mouse_pos_to_filter) < 2) {
+					filter = true;
+				}
+				// Invalidate to avoid filtering a possible legitimate similar event coming later
+				touch.mouse_pos_to_filter = Vector2(1e10, 1e10);
+				if (filter) {
+					break;
+				}
 
 				if (mouse_mode == MOUSE_MODE_CAPTURED) {
 
@@ -2373,13 +2420,38 @@ void OS_X11::set_cursor_shape(CursorShape p_shape) {
 void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, const Vector2 &p_hotspot) {
 	if (p_cursor.is_valid()) {
 		Ref<Texture> texture = p_cursor;
-		Ref<Image> image = texture->get_data();
+		Ref<AtlasTexture> atlas_texture = p_cursor;
+		Ref<Image> image;
+		Size2 texture_size;
+		Rect2 atlas_rect;
 
-		ERR_FAIL_COND(texture->get_width() > 256 || texture->get_height() > 256);
+		if (texture.is_valid()) {
+			image = texture->get_data();
+		}
+
+		if (!image.is_valid() && atlas_texture.is_valid()) {
+			texture = atlas_texture->get_atlas();
+
+			atlas_rect.size.width = texture->get_width();
+			atlas_rect.size.height = texture->get_height();
+			atlas_rect.position.x = atlas_texture->get_region().position.x;
+			atlas_rect.position.y = atlas_texture->get_region().position.y;
+
+			texture_size.width = atlas_texture->get_region().size.x;
+			texture_size.height = atlas_texture->get_region().size.y;
+		} else if (image.is_valid()) {
+			texture_size.width = texture->get_width();
+			texture_size.height = texture->get_height();
+		}
+
+		ERR_FAIL_COND(!texture.is_valid());
+		ERR_FAIL_COND(texture_size.width > 256 || texture_size.height > 256);
+
+		image = texture->get_data();
 
 		// Create the cursor structure
-		XcursorImage *cursor_image = XcursorImageCreate(texture->get_width(), texture->get_height());
-		XcursorUInt image_size = texture->get_width() * texture->get_height();
+		XcursorImage *cursor_image = XcursorImageCreate(texture_size.width, texture_size.height);
+		XcursorUInt image_size = texture_size.width * texture_size.height;
 		XcursorDim size = sizeof(XcursorPixel) * image_size;
 
 		cursor_image->version = 1;
@@ -2393,8 +2465,13 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		image->lock();
 
 		for (XcursorPixel index = 0; index < image_size; index++) {
-			int row_index = floor(index / texture->get_width());
-			int column_index = index % texture->get_width();
+			int row_index = floor(index / texture_size.width) + atlas_rect.position.y;
+			int column_index = (index % int(texture_size.width)) + atlas_rect.position.x;
+
+			if (atlas_texture.is_valid()) {
+				column_index = MIN(column_index, atlas_rect.size.width - 1);
+				row_index = MIN(row_index, atlas_rect.size.height - 1);
+			}
 
 			*(cursor_image->pixels + index) = image->get_pixel(column_index, row_index).to_argb32();
 		}
@@ -2409,6 +2486,14 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		if (p_shape == CURSOR_ARROW) {
 			XDefineCursor(x11_display, x11_window, cursors[p_shape]);
 		}
+	} else {
+		// Reset to default system cursor
+		if (img[p_shape]) {
+			cursors[p_shape] = XcursorImageLoadCursor(x11_display, img[p_shape]);
+		}
+
+		current_cursor = CURSOR_MAX;
+		set_cursor_shape(p_shape);
 	}
 }
 
@@ -2698,6 +2783,7 @@ OS_X11::OS_X11() {
 	AudioDriverManager::add_driver(&driver_alsa);
 #endif
 
+	layered_window = false;
 	minimized = false;
 	xim_style = 0L;
 	mouse_mode = MOUSE_MODE_VISIBLE;

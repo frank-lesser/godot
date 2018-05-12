@@ -194,7 +194,8 @@ class CanvasItemEditor : public VBoxContainer {
 		DRAG_V_GUIDE,
 		DRAG_H_GUIDE,
 		DRAG_DOUBLE_GUIDE,
-		DRAG_KEY_MOVE
+		DRAG_KEY_MOVE,
+		DRAG_PAN
 	};
 
 	EditorSelection *editor_selection;
@@ -263,12 +264,24 @@ class CanvasItemEditor : public VBoxContainer {
 	struct BoneList {
 
 		Transform2D xform;
-		Vector2 from;
-		Vector2 to;
+		float length;
 		uint64_t last_pass;
 	};
+
 	uint64_t bone_last_frame;
-	Map<ObjectID, BoneList> bone_list;
+
+	struct BoneKey {
+		ObjectID from;
+		ObjectID to;
+		_FORCE_INLINE_ bool operator<(const BoneKey &p_key) const {
+			if (from == p_key.from)
+				return to < p_key.to;
+			else
+				return from < p_key.from;
+		}
+	};
+
+	Map<BoneKey, BoneList> bone_list;
 
 	struct PoseClipboard {
 		Vector2 pos;
@@ -336,7 +349,9 @@ class CanvasItemEditor : public VBoxContainer {
 	Ref<ShortCut> multiply_grid_step_shortcut;
 	Ref<ShortCut> divide_grid_step_shortcut;
 
-	void _find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, Vector<_SelectResult> &r_items, int limit = 0, const Transform2D &p_parent_xform = Transform2D(), const Transform2D &p_canvas_xform = Transform2D());
+	void _find_canvas_items_at_pos(const Point2 &p_pos, Node *p_node, Vector<_SelectResult> &r_items, int p_limit = 0, const Transform2D &p_parent_xform = Transform2D(), const Transform2D &p_canvas_xform = Transform2D());
+	void _get_canvas_items_at_pos(const Point2 &p_pos, Vector<_SelectResult> &r_items, int p_limit = 0);
+
 	void _find_canvas_items_in_rect(const Rect2 &p_rect, Node *p_node, List<CanvasItem *> *r_items, const Transform2D &p_parent_xform = Transform2D(), const Transform2D &p_canvas_xform = Transform2D());
 	bool _select_click_on_item(CanvasItem *item, Point2 p_click_pos, bool p_append);
 
@@ -363,7 +378,7 @@ class CanvasItemEditor : public VBoxContainer {
 	void _selection_menu_hide();
 
 	UndoRedo *undo_redo;
-	void _build_bones_list(Node *p_node);
+	bool _build_bones_list(Node *p_node);
 
 	List<CanvasItem *> _get_edited_canvas_items(bool retreive_locked = false, bool remove_canvas_item_if_parent_in_selection = true);
 	Rect2 _get_encompassing_rect_from_list(List<CanvasItem *> p_list);
@@ -429,6 +444,11 @@ class CanvasItemEditor : public VBoxContainer {
 
 	HSplitContainer *palette_split;
 	VSplitContainer *bottom_split;
+
+	bool bone_list_dirty;
+	void _queue_update_bone_list();
+	void _update_bone_list();
+	void _tree_changed(Node *);
 
 	friend class CanvasItemEditorPlugin;
 

@@ -180,6 +180,9 @@ public:
 	virtual void set_borderless_window(bool p_borderless);
 	virtual bool get_borderless_window() const;
 
+	virtual bool get_window_per_pixel_transparency_enabled() const;
+	virtual void set_window_per_pixel_transparency_enabled(bool p_enabled);
+
 	virtual void set_ime_position(const Point2 &p_pos);
 
 	Error native_video_play(String p_path, float p_volume, String p_audio_track, String p_subtitle_track);
@@ -358,6 +361,7 @@ public:
 	PoolVector<Plane> build_cylinder_planes(float p_radius, float p_height, int p_sides, Vector3::Axis p_axis = Vector3::AXIS_Z);
 	PoolVector<Plane> build_capsule_planes(float p_radius, float p_height, int p_sides, int p_lats, Vector3::Axis p_axis = Vector3::AXIS_Z);
 	Variant segment_intersects_segment_2d(const Vector2 &p_from_a, const Vector2 &p_to_a, const Vector2 &p_from_b, const Vector2 &p_to_b);
+	Variant line_intersects_line_2d(const Vector2 &p_from_a, const Vector2 &p_dir_a, const Vector2 &p_from_b, const Vector2 &p_dir_b);
 	PoolVector<Vector2> get_closest_points_between_segments_2d(const Vector2 &p1, const Vector2 &q1, const Vector2 &p2, const Vector2 &q2);
 	PoolVector<Vector3> get_closest_points_between_segments(const Vector3 &p1, const Vector3 &p2, const Vector3 &q1, const Vector3 &q2);
 	Vector2 get_closest_point_to_segment_2d(const Vector2 &p_point, const Vector2 &p_a, const Vector2 &p_b);
@@ -668,6 +672,9 @@ public:
 	static _Engine *get_singleton() { return singleton; }
 	void set_iterations_per_second(int p_ips);
 	int get_iterations_per_second() const;
+
+	void set_physics_jitter_fix(float p_threshold);
+	float get_physics_jitter_fix() const;
 
 	void set_target_fps(int p_fps);
 	int get_target_fps() const;

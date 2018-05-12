@@ -58,6 +58,7 @@
 #include "scene/2d/ray_cast_2d.h"
 #include "scene/2d/remote_transform_2d.h"
 #include "scene/2d/screen_button.h"
+#include "scene/2d/skeleton_2d.h"
 #include "scene/2d/sprite.h"
 #include "scene/2d/tile_map.h"
 #include "scene/2d/visibility_notifier_2d.h"
@@ -389,6 +390,7 @@ void register_scene_types() {
 	ClassDB::register_class<RigidBody>();
 	ClassDB::register_class<KinematicCollision>();
 	ClassDB::register_class<KinematicBody>();
+	ClassDB::register_class<PhysicalBone>();
 
 	ClassDB::register_class<VehicleBody>();
 	ClassDB::register_class<VehicleWheel>();
@@ -449,6 +451,8 @@ void register_scene_types() {
 	ClassDB::register_class<VisibilityNotifier2D>();
 	ClassDB::register_class<VisibilityEnabler2D>();
 	ClassDB::register_class<Polygon2D>();
+	ClassDB::register_class<Skeleton2D>();
+	ClassDB::register_class<Bone2D>();
 	ClassDB::register_class<Light2D>();
 	ClassDB::register_class<LightOccluder2D>();
 	ClassDB::register_class<OccluderPolygon2D>();

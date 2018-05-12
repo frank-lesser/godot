@@ -1323,6 +1323,8 @@ public:
 
 	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags = 0) {
 
+		ExportNotifier notifier(*this, p_preset, p_debug, p_path, p_flags);
+
 		String src_apk;
 
 		EditorProgress ep("export", "Exporting for Android", 105);
@@ -1641,9 +1643,9 @@ public:
 
 			List<String> args;
 			args.push_back("-digestalg");
-			args.push_back("SHA1");
+			args.push_back("SHA-256");
 			args.push_back("-sigalg");
-			args.push_back("MD5withRSA");
+			args.push_back("SHA256withRSA");
 			String tsa_url = EditorSettings::get_singleton()->get("export/android/timestamping_authority_url");
 			if (tsa_url != "") {
 				args.push_back("-tsa");

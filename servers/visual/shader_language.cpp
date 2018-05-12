@@ -2207,6 +2207,37 @@ ShaderLanguage::DataType ShaderLanguage::get_scalar_type(DataType p_type) {
 	return scalar_types[p_type];
 }
 
+int ShaderLanguage::get_cardinality(DataType p_type) {
+	static const int cardinality_table[] = {
+		0,
+		1,
+		2,
+		3,
+		4,
+		1,
+		2,
+		3,
+		4,
+		1,
+		2,
+		3,
+		4,
+		1,
+		2,
+		3,
+		4,
+		2,
+		3,
+		4,
+		1,
+		1,
+		1,
+		1,
+	};
+
+	return cardinality_table[p_type];
+}
+
 bool ShaderLanguage::_get_completable_identifier(BlockNode *p_block, CompletionType p_type, StringName &identifier) {
 
 	identifier = StringName();
@@ -2677,7 +2708,6 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 					return NULL;
 				}
 
-				bool index_valid = false;
 				DataType member_type = TYPE_VOID;
 
 				switch (expr->get_datatype()) {
@@ -2696,7 +2726,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							_set_error("Only integer constants are allowed as index at the moment");
 							return NULL;
 						}
-						index_valid = true;
+
 						switch (expr->get_datatype()) {
 							case TYPE_BVEC2: member_type = TYPE_BOOL; break;
 							case TYPE_VEC2: member_type = TYPE_FLOAT; break;
@@ -2721,7 +2751,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							_set_error("Only integer constants are allowed as index at the moment");
 							return NULL;
 						}
-						index_valid = true;
+
 						switch (expr->get_datatype()) {
 							case TYPE_BVEC3: member_type = TYPE_BOOL; break;
 							case TYPE_VEC3: member_type = TYPE_FLOAT; break;
@@ -2745,7 +2775,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							_set_error("Only integer constants are allowed as index at the moment");
 							return NULL;
 						}
-						index_valid = true;
+
 						switch (expr->get_datatype()) {
 							case TYPE_BVEC4: member_type = TYPE_BOOL; break;
 							case TYPE_VEC4: member_type = TYPE_FLOAT; break;
@@ -2758,11 +2788,6 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 						_set_error("Object of type '" + get_datatype_name(expr->get_datatype()) + "' can't be indexed");
 						return NULL;
 					}
-				}
-
-				if (!index_valid) {
-					_set_error("Invalid index");
-					return NULL;
 				}
 
 				OperatorNode *op = alloc_node<OperatorNode>();
@@ -3117,9 +3142,18 @@ ShaderLanguage::Node *ShaderLanguage::_reduce_expression(BlockNode *p_block, Sha
 
 				if (get_scalar_type(cn->datatype) == base) {
 
-					for (int j = 0; j < cn->values.size(); j++) {
-						values.push_back(cn->values[j]);
-					}
+					int cardinality = get_cardinality(op->arguments[i]->get_datatype());
+					if (cn->values.size() == cardinality) {
+
+						for (int j = 0; j < cn->values.size(); j++) {
+							values.push_back(cn->values[j]);
+						}
+					} else if (cn->values.size() == 1) {
+
+						for (int j = 0; j < cardinality; j++) {
+							values.push_back(cn->values[0]);
+						}
+					} // else: should be filtered by the parser as it's an invalid constructor
 				} else if (get_scalar_type(cn->datatype) == cn->datatype) {
 
 					ConstantNode::Value v;
@@ -3662,7 +3696,8 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 					_set_error("void datatype not allowed here");
 					return ERR_PARSE_ERROR;
 				}
-				if (!uniform && type < TYPE_FLOAT && type > TYPE_VEC4) { // FIXME: always false! should it be || instead?
+
+				if (!uniform && (type < TYPE_FLOAT || type > TYPE_VEC4)) {
 					_set_error("Invalid type for varying, only float,vec2,vec3,vec4 allowed.");
 					return ERR_PARSE_ERROR;
 				}

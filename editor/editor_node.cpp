@@ -93,6 +93,7 @@
 #include "editor/plugins/particles_editor_plugin.h"
 #include "editor/plugins/path_2d_editor_plugin.h"
 #include "editor/plugins/path_editor_plugin.h"
+#include "editor/plugins/physical_bone_plugin.h"
 #include "editor/plugins/polygon_2d_editor_plugin.h"
 #include "editor/plugins/resource_preloader_editor_plugin.h"
 #include "editor/plugins/script_editor_plugin.h"
@@ -100,6 +101,7 @@
 #include "editor/plugins/shader_editor_plugin.h"
 #include "editor/plugins/shader_graph_editor_plugin.h"
 #include "editor/plugins/skeleton_2d_editor_plugin.h"
+#include "editor/plugins/skeleton_editor_plugin.h"
 #include "editor/plugins/spatial_editor_plugin.h"
 #include "editor/plugins/sprite_editor_plugin.h"
 #include "editor/plugins/sprite_frames_editor_plugin.h"
@@ -469,26 +471,26 @@ void EditorNode::_fs_changed() {
 			preset.unref();
 		}
 		if (preset.is_null()) {
-			String err = "Unknown export preset: " + export_defer.preset;
-			ERR_PRINTS(err);
+			String errstr = "Unknown export preset: " + export_defer.preset;
+			ERR_PRINTS(errstr);
 		} else {
 			Ref<EditorExportPlatform> platform = preset->get_platform();
 			if (platform.is_null()) {
-				String err = "Preset \"" + export_defer.preset + "\" doesn't have a platform.";
-				ERR_PRINTS(err);
+				String errstr = "Preset \"" + export_defer.preset + "\" doesn't have a platform.";
+				ERR_PRINTS(errstr);
 			} else {
 				// ensures export_project does not loop infinitely, because notifications may
 				// come during the export
 				export_defer.preset = "";
-				Error err;
-				if (!preset->is_runnable() && (export_defer.path.ends_with(".pck") || export_defer.path.ends_with(".zip"))) {
+				Error err = OK;
+				if (export_defer.path.ends_with(".pck") || export_defer.path.ends_with(".zip")) {
 					if (export_defer.path.ends_with(".zip")) {
-						err = platform->save_zip(preset, export_defer.path);
+						err = platform->export_zip(preset, export_defer.debug, export_defer.path);
 					} else if (export_defer.path.ends_with(".pck")) {
-						err = platform->save_pack(preset, export_defer.path);
+						err = platform->export_pack(preset, export_defer.debug, export_defer.path);
 					}
 				} else {
-					err = platform->export_project(preset, export_defer.debug, export_defer.path, /*p_flags*/ 0);
+					err = platform->export_project(preset, export_defer.debug, export_defer.path);
 				}
 				if (err != OK) {
 					ERR_PRINTS(vformat(TTR("Project export failed with error code %d."), (int)err));
@@ -631,6 +633,7 @@ void EditorNode::save_resource_in_path(const Ref<Resource> &p_resource, const St
 
 	((Resource *)p_resource.ptr())->set_path(path);
 	emit_signal("resource_saved", p_resource);
+	editor_data.notify_resource_saved(p_resource);
 }
 
 void EditorNode::save_resource(const Ref<Resource> &p_resource) {
@@ -4886,7 +4889,7 @@ EditorNode::EditorNode() {
 
 		if (!OS::get_singleton()->has_touchscreen_ui_hint() && Input::get_singleton()) {
 			//only if no touchscreen ui hint, set emulation
-			id->set_emulate_touch(false); //just disable just in case
+			id->set_emulate_touch_from_mouse(false); //just disable just in case
 		}
 		id->set_custom_mouse_cursor(RES());
 	}
@@ -5858,7 +5861,7 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(ParticlesEditorPlugin(this)));
 	add_editor_plugin(memnew(ResourcePreloaderEditorPlugin(this)));
 	add_editor_plugin(memnew(ItemListEditorPlugin(this)));
-	add_editor_plugin(memnew(CollisionPolygonEditorPlugin(this)));
+	add_editor_plugin(memnew(Polygon3DEditorPlugin(this)));
 	add_editor_plugin(memnew(CollisionPolygon2DEditorPlugin(this)));
 	add_editor_plugin(memnew(TileSetEditorPlugin(this)));
 	add_editor_plugin(memnew(TileMapEditorPlugin(this)));
@@ -5880,6 +5883,8 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(AudioBusesEditorPlugin(audio_bus_editor)));
 	add_editor_plugin(memnew(AudioBusesEditorPlugin(audio_bus_editor)));
 	add_editor_plugin(memnew(NavigationMeshEditorPlugin(this)));
+	add_editor_plugin(memnew(SkeletonEditorPlugin(this)));
+	add_editor_plugin(memnew(PhysicalBonePlugin(this)));
 
 	// FIXME: Disabled as (according to reduz) users were complaining that it gets in the way
 	// Waiting for PropertyEditor rewrite (planned for 3.1) to be refactored.

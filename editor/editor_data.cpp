@@ -364,6 +364,14 @@ void EditorData::notify_edited_scene_changed() {
 	}
 }
 
+void EditorData::notify_resource_saved(const Ref<Resource> &p_resource) {
+
+	for (int i = 0; i < editor_plugins.size(); i++) {
+
+		editor_plugins[i]->notify_resource_saved(p_resource);
+	}
+}
+
 void EditorData::clear_editor_states() {
 
 	for (int i = 0; i < editor_plugins.size(); i++) {
@@ -587,8 +595,6 @@ bool EditorData::check_and_update_scene(int p_idx) {
 	Set<String> checked_scenes;
 
 	bool must_reload = _find_updated_instances(edited_scene[p_idx].root, edited_scene[p_idx].root, checked_scenes);
-
-	print_line("MUST RELOAD? " + itos(must_reload));
 
 	if (must_reload) {
 		Ref<PackedScene> pscene;
@@ -892,7 +898,7 @@ Array EditorSelection::_get_transformable_selected_nodes() {
 	return ret;
 }
 
-Array EditorSelection::_get_selected_nodes() {
+Array EditorSelection::get_selected_nodes() {
 
 	Array ret;
 
@@ -910,7 +916,7 @@ void EditorSelection::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear"), &EditorSelection::clear);
 	ClassDB::bind_method(D_METHOD("add_node", "node"), &EditorSelection::add_node);
 	ClassDB::bind_method(D_METHOD("remove_node", "node"), &EditorSelection::remove_node);
-	ClassDB::bind_method(D_METHOD("get_selected_nodes"), &EditorSelection::_get_selected_nodes);
+	ClassDB::bind_method(D_METHOD("get_selected_nodes"), &EditorSelection::get_selected_nodes);
 	ClassDB::bind_method(D_METHOD("get_transformable_selected_nodes"), &EditorSelection::_get_transformable_selected_nodes);
 	ClassDB::bind_method(D_METHOD("_emit_change"), &EditorSelection::_emit_change);
 	ADD_SIGNAL(MethodInfo("selection_changed"));

@@ -336,6 +336,14 @@ void _OS::set_borderless_window(bool p_borderless) {
 	OS::get_singleton()->set_borderless_window(p_borderless);
 }
 
+bool _OS::get_window_per_pixel_transparency_enabled() const {
+	return OS::get_singleton()->get_window_per_pixel_transparency_enabled();
+}
+
+void _OS::set_window_per_pixel_transparency_enabled(bool p_enabled) {
+	OS::get_singleton()->set_window_per_pixel_transparency_enabled(p_enabled);
+}
+
 bool _OS::get_borderless_window() const {
 	return OS::get_singleton()->get_borderless_window();
 }
@@ -1068,6 +1076,9 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_borderless_window", "borderless"), &_OS::set_borderless_window);
 	ClassDB::bind_method(D_METHOD("get_borderless_window"), &_OS::get_borderless_window);
 
+	ClassDB::bind_method(D_METHOD("get_window_per_pixel_transparency_enabled"), &_OS::get_window_per_pixel_transparency_enabled);
+	ClassDB::bind_method(D_METHOD("set_window_per_pixel_transparency_enabled", "enabled"), &_OS::set_window_per_pixel_transparency_enabled);
+
 	ClassDB::bind_method(D_METHOD("set_ime_position", "position"), &_OS::set_ime_position);
 
 	ClassDB::bind_method(D_METHOD("set_screen_orientation", "orientation"), &_OS::set_screen_orientation);
@@ -1185,6 +1196,7 @@ void _OS::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "screen_orientation", PROPERTY_HINT_ENUM, "Landscape,Portrait,Reverse Landscape,Reverse Portrait,Sensor Landscape,Sensor Portrait,Sensor"), "set_screen_orientation", "get_screen_orientation");
 	ADD_GROUP("Window", "window_");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "window_borderless"), "set_borderless_window", "get_borderless_window");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "window_per_pixel_transparency_enabled"), "set_window_per_pixel_transparency_enabled", "get_window_per_pixel_transparency_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "window_fullscreen"), "set_window_fullscreen", "is_window_fullscreen");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "window_maximized"), "set_window_maximized", "is_window_maximized");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "window_minimized"), "set_window_minimized", "is_window_minimized");
@@ -1280,6 +1292,16 @@ Variant _Geometry::segment_intersects_segment_2d(const Vector2 &p_from_a, const 
 		return Variant();
 	};
 };
+
+Variant _Geometry::line_intersects_line_2d(const Vector2 &p_from_a, const Vector2 &p_dir_a, const Vector2 &p_from_b, const Vector2 &p_dir_b) {
+
+	Vector2 result;
+	if (Geometry::line_intersects_line_2d(p_from_a, p_dir_a, p_from_b, p_dir_b, result)) {
+		return result;
+	} else {
+		return Variant();
+	}
+}
 
 PoolVector<Vector2> _Geometry::get_closest_points_between_segments_2d(const Vector2 &p1, const Vector2 &q1, const Vector2 &p2, const Vector2 &q2) {
 
@@ -1436,6 +1458,7 @@ void _Geometry::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("build_capsule_planes", "radius", "height", "sides", "lats", "axis"), &_Geometry::build_capsule_planes, DEFVAL(Vector3::AXIS_Z));
 	ClassDB::bind_method(D_METHOD("segment_intersects_circle", "segment_from", "segment_to", "circle_position", "circle_radius"), &_Geometry::segment_intersects_circle);
 	ClassDB::bind_method(D_METHOD("segment_intersects_segment_2d", "from_a", "to_a", "from_b", "to_b"), &_Geometry::segment_intersects_segment_2d);
+	ClassDB::bind_method(D_METHOD("line_intersects_line_2d", "from_a", "dir_a", "from_b", "dir_b"), &_Geometry::line_intersects_line_2d);
 
 	ClassDB::bind_method(D_METHOD("get_closest_points_between_segments_2d", "p1", "q1", "p2", "q2"), &_Geometry::get_closest_points_between_segments_2d);
 	ClassDB::bind_method(D_METHOD("get_closest_points_between_segments", "p1", "p2", "q1", "q2"), &_Geometry::get_closest_points_between_segments);
@@ -2641,6 +2664,14 @@ int _Engine::get_iterations_per_second() const {
 	return Engine::get_singleton()->get_iterations_per_second();
 }
 
+void _Engine::set_physics_jitter_fix(float p_threshold) {
+	Engine::get_singleton()->set_physics_jitter_fix(p_threshold);
+}
+
+float _Engine::get_physics_jitter_fix() const {
+	return Engine::get_singleton()->get_physics_jitter_fix();
+}
+
 void _Engine::set_target_fps(int p_fps) {
 	Engine::get_singleton()->set_target_fps(p_fps);
 }
@@ -2707,6 +2738,8 @@ void _Engine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_iterations_per_second", "iterations_per_second"), &_Engine::set_iterations_per_second);
 	ClassDB::bind_method(D_METHOD("get_iterations_per_second"), &_Engine::get_iterations_per_second);
+	ClassDB::bind_method(D_METHOD("set_physics_jitter_fix", "physics_jitter_fix"), &_Engine::set_physics_jitter_fix);
+	ClassDB::bind_method(D_METHOD("get_physics_jitter_fix"), &_Engine::get_physics_jitter_fix);
 	ClassDB::bind_method(D_METHOD("set_target_fps", "target_fps"), &_Engine::set_target_fps);
 	ClassDB::bind_method(D_METHOD("get_target_fps"), &_Engine::get_target_fps);
 
@@ -2732,6 +2765,7 @@ void _Engine::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "iterations_per_second"), "set_iterations_per_second", "get_iterations_per_second");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "target_fps"), "set_target_fps", "get_target_fps");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "time_scale"), "set_time_scale", "get_time_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "physics_jitter_fix"), "set_physics_jitter_fix", "get_physics_jitter_fix");
 }
 
 _Engine *_Engine::singleton = NULL;

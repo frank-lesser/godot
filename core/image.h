@@ -217,7 +217,7 @@ public:
 	/**
 	 * Generate a mipmap to an image (creates an image 1/4 the size, with averaging of 4->1)
 	 */
-	Error generate_mipmaps();
+	Error generate_mipmaps(bool p_renormalize = false);
 
 	void clear_mipmaps();
 
@@ -321,7 +321,9 @@ public:
 
 	DetectChannels get_detected_channels();
 
+	Color get_pixelv(const Point2 &p_src) const;
 	Color get_pixel(int p_x, int p_y) const;
+	void set_pixelv(const Point2 &p_dest, const Color &p_color);
 	void set_pixel(int p_x, int p_y, const Color &p_color);
 
 	void copy_internals_from(const Ref<Image> &p_image) {

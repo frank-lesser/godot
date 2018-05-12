@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  gdscript_highlighter.h                                               */
+/*  register_types.cpp                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,29 +28,32 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef GDSCRIPT_HIGHLIGHTER_H
-#define GDSCRIPT_HIGHLIGHTER_H
+#include "register_types.h"
 
-#include "scene/gui/text_edit.h"
+#include "csg_shape.h"
+#include "csg_gizmos.h"
 
-class GDScriptSyntaxHighlighter : public SyntaxHighlighter {
-private:
-	// colours
-	Color font_color;
-	Color symbol_color;
-	Color function_color;
-	Color built_in_type_color;
-	Color number_color;
-	Color member_color;
+void register_csg_types() {
 
-public:
-	static SyntaxHighlighter *create();
+#ifndef _3D_DISABLED
 
-	virtual void _update_cache();
-	virtual Map<int, TextEdit::HighlighterInfo> _get_line_syntax_highlighting(int p_line);
+	ClassDB::register_virtual_class<CSGShape>();
+	ClassDB::register_virtual_class<CSGPrimitive>();
+	ClassDB::register_class<CSGMesh>();
+	ClassDB::register_class<CSGSphere>();
+	ClassDB::register_class<CSGBox>();
+	ClassDB::register_class<CSGCylinder>();
+	ClassDB::register_class<CSGTorus>();
+	ClassDB::register_class<CSGPolygon>();
+	ClassDB::register_class<CSGCombiner>();
 
-	virtual String get_name();
-	virtual List<String> get_supported_languages();
-};
+#ifdef TOOLS_ENABLED
+	EditorPlugins::add_by_type<EditorPluginCSG>();
+#endif
+#endif
 
-#endif // GDSCRIPT_HIGHLIGHTER_H
+}
+
+void unregister_csg_types() {
+
+}

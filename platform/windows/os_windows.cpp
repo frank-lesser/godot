@@ -152,6 +152,25 @@ void RedirectIOToConsole() {
 	// point to console as well
 }
 
+BOOL WINAPI HandlerRoutine(_In_ DWORD dwCtrlType) {
+	if (ScriptDebugger::get_singleton() == NULL)
+		return FALSE;
+
+	switch (dwCtrlType) {
+		case CTRL_C_EVENT:
+			ScriptDebugger::get_singleton()->set_depth(-1);
+			ScriptDebugger::get_singleton()->set_lines_left(1);
+			return TRUE;
+		default:
+			return FALSE;
+	}
+}
+
+void OS_Windows::initialize_debugging() {
+
+	SetConsoleCtrlHandler(HandlerRoutine, TRUE);
+}
+
 void OS_Windows::initialize_core() {
 
 	crash_handler.initialize();
@@ -187,6 +206,10 @@ void OS_Windows::initialize_core() {
 	// the start of the computer when we call GetGameTime()
 	ticks_start = 0;
 	ticks_start = get_ticks_usec();
+
+	// set minimum resolution for periodic timers, otherwise Sleep(n) may wait at least as
+	//  long as the windows scheduler resolution (~16-30ms) even for calls like Sleep(1)
+	timeBeginPeriod(1);
 
 	process_map = memnew((Map<ProcessID, ProcessInfo>));
 
@@ -342,6 +365,14 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		} break;
 		case WM_MOUSEMOVE: {
 
+			if (input->is_emulating_mouse_from_touch()) {
+				// Universal translation enabled; ignore OS translation
+				LPARAM extra = GetMessageExtraInfo();
+				if (IsPenEvent(extra)) {
+					break;
+				}
+			}
+
 			if (outside) {
 				//mouse enter
 
@@ -367,18 +398,6 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			// Don't calculate relative mouse movement if we don't have focus in CAPTURED mode.
 			if (!window_has_focus && mouse_mode == MOUSE_MODE_CAPTURED)
 				break;
-			/*
-			LPARAM extra = GetMessageExtraInfo();
-			if (IsPenEvent(extra)) {
-
-				int idx = extra & 0x7f;
-				_drag_event(idx, uMsg, wParam, lParam);
-				if (idx != 0) {
-					return 0;
-				};
-				// fallthrough for mouse event
-			};
-			*/
 
 			Ref<InputEventMouseMotion> mm;
 			mm.instance();
@@ -448,18 +467,13 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 			/*case WM_XBUTTONDOWN:
 		case WM_XBUTTONUP: */ {
 
-				/*
-			LPARAM extra = GetMessageExtraInfo();
-			if (IsPenEvent(extra)) {
-
-				int idx = extra & 0x7f;
-				_touch_event(idx, uMsg, wParam, lParam);
-				if (idx != 0) {
-					return 0;
-				};
-				// fallthrough for mouse event
-			};
-			*/
+				if (input->is_emulating_mouse_from_touch()) {
+					// Universal translation enabled; ignore OS translation
+					LPARAM extra = GetMessageExtraInfo();
+					if (IsPenEvent(extra)) {
+						break;
+					}
+				}
 
 				Ref<InputEventMouseButton> mb;
 				mb.instance();
@@ -623,6 +637,28 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				maximized = false;
 				minimized = false;
 			}
+			if (is_layered_allowed() && layered_window) {
+				DeleteObject(hBitmap);
+
+				RECT r;
+				GetWindowRect(hWnd, &r);
+				dib_size = Size2(r.right - r.left, r.bottom - r.top);
+
+				BITMAPINFO bmi;
+				ZeroMemory(&bmi, sizeof(BITMAPINFO));
+				bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+				bmi.bmiHeader.biWidth = dib_size.x;
+				bmi.bmiHeader.biHeight = dib_size.y;
+				bmi.bmiHeader.biPlanes = 1;
+				bmi.bmiHeader.biBitCount = 32;
+				bmi.bmiHeader.biCompression = BI_RGB;
+				bmi.bmiHeader.biSizeImage = dib_size.x, dib_size.y * 4;
+				hBitmap = CreateDIBSection(hDC_dib, &bmi, DIB_RGB_COLORS, (void **)&dib_data, NULL, 0x0);
+				SelectObject(hDC_dib, hBitmap);
+
+				ZeroMemory(dib_data, dib_size.x * dib_size.y * 4);
+			}
+			//return 0;								// Jump Back
 		} break;
 
 		case WM_ENTERSIZEMOVE: {
@@ -1137,6 +1173,9 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 		SetFocus(hWnd); // Sets Keyboard Focus To
 	}
 
+	if (p_desired.layered_splash) {
+		set_window_per_pixel_transparency_enabled(true);
+	}
 	return OK;
 }
 
@@ -1260,6 +1299,8 @@ void OS_Windows::finalize() {
 }
 
 void OS_Windows::finalize_core() {
+
+	timeEndPeriod(1);
 
 	memdelete(process_map);
 
@@ -1526,6 +1567,9 @@ void OS_Windows::set_window_fullscreen(bool p_enabled) {
 	if (video_mode.fullscreen == p_enabled)
 		return;
 
+	if (layered_window)
+		set_window_per_pixel_transparency_enabled(false);
+
 	if (p_enabled) {
 
 		if (pre_fs_valid) {
@@ -1630,9 +1674,96 @@ bool OS_Windows::is_window_always_on_top() const {
 	return video_mode.always_on_top;
 }
 
+bool OS_Windows::get_window_per_pixel_transparency_enabled() const {
+
+	if (!is_layered_allowed()) return false;
+	return layered_window;
+}
+
+void OS_Windows::set_window_per_pixel_transparency_enabled(bool p_enabled) {
+
+	if (!is_layered_allowed()) return;
+	if (layered_window != p_enabled) {
+		if (p_enabled) {
+			set_borderless_window(true);
+			//enable per-pixel alpha
+			hDC_dib = CreateCompatibleDC(GetDC(hWnd));
+
+			SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) | WS_EX_LAYERED);
+
+			RECT r;
+			GetWindowRect(hWnd, &r);
+			dib_size = Size2(r.right - r.left, r.bottom - r.top);
+
+			BITMAPINFO bmi;
+			ZeroMemory(&bmi, sizeof(BITMAPINFO));
+			bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+			bmi.bmiHeader.biWidth = dib_size.x;
+			bmi.bmiHeader.biHeight = dib_size.y;
+			bmi.bmiHeader.biPlanes = 1;
+			bmi.bmiHeader.biBitCount = 32;
+			bmi.bmiHeader.biCompression = BI_RGB;
+			bmi.bmiHeader.biSizeImage = dib_size.x * dib_size.y * 4;
+			hBitmap = CreateDIBSection(hDC_dib, &bmi, DIB_RGB_COLORS, (void **)&dib_data, NULL, 0x0);
+			SelectObject(hDC_dib, hBitmap);
+
+			ZeroMemory(dib_data, dib_size.x * dib_size.y * 4);
+
+			layered_window = true;
+		} else {
+			//disable per-pixel alpha
+			layered_window = false;
+
+			SetWindowLong(hWnd, GWL_EXSTYLE, GetWindowLong(hWnd, GWL_EXSTYLE) & ~WS_EX_LAYERED);
+
+			//cleanup
+			DeleteObject(hBitmap);
+			DeleteDC(hDC_dib);
+		}
+	}
+}
+
+uint8_t *OS_Windows::get_layered_buffer_data() {
+
+	return (is_layered_allowed() && layered_window) ? dib_data : NULL;
+}
+
+Size2 OS_Windows::get_layered_buffer_size() {
+
+	return (is_layered_allowed() && layered_window) ? dib_size : Size2();
+}
+
+void OS_Windows::swap_layered_buffer() {
+
+	if (is_layered_allowed() && layered_window) {
+
+		//premultiply alpha
+		for (int y = 0; y < dib_size.y; y++) {
+			for (int x = 0; x < dib_size.x; x++) {
+				float alpha = (float)dib_data[y * (int)dib_size.x * 4 + x * 4 + 3] / (float)0xFF;
+				dib_data[y * (int)dib_size.x * 4 + x * 4 + 0] *= alpha;
+				dib_data[y * (int)dib_size.x * 4 + x * 4 + 1] *= alpha;
+				dib_data[y * (int)dib_size.x * 4 + x * 4 + 2] *= alpha;
+			}
+		}
+		//swap layered window buffer
+		POINT ptSrc = { 0, 0 };
+		SIZE sizeWnd = { (long)dib_size.x, (long)dib_size.y };
+		BLENDFUNCTION bf;
+		bf.BlendOp = AC_SRC_OVER;
+		bf.BlendFlags = 0;
+		bf.AlphaFormat = AC_SRC_ALPHA;
+		bf.SourceConstantAlpha = 0xFF;
+		UpdateLayeredWindow(hWnd, NULL, NULL, &sizeWnd, hDC_dib, &ptSrc, 0, &bf, ULW_ALPHA);
+	}
+}
+
 void OS_Windows::set_borderless_window(bool p_borderless) {
 	if (video_mode.borderless_window == p_borderless)
 		return;
+
+	if (!p_borderless && layered_window)
+		set_window_per_pixel_transparency_enabled(false);
 
 	video_mode.borderless_window = p_borderless;
 
@@ -1902,27 +2033,57 @@ void OS_Windows::set_cursor_shape(CursorShape p_shape) {
 void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, const Vector2 &p_hotspot) {
 	if (p_cursor.is_valid()) {
 		Ref<Texture> texture = p_cursor;
-		Ref<Image> image = texture->get_data();
+		Ref<AtlasTexture> atlas_texture = p_cursor;
+		Ref<Image> image;
+		Size2 texture_size;
+		Rect2 atlas_rect;
 
-		UINT image_size = texture->get_width() * texture->get_height();
+		if (texture.is_valid()) {
+			image = texture->get_data();
+		}
+
+		if (!image.is_valid() && atlas_texture.is_valid()) {
+			texture = atlas_texture->get_atlas();
+
+			atlas_rect.size.width = texture->get_width();
+			atlas_rect.size.height = texture->get_height();
+			atlas_rect.position.x = atlas_texture->get_region().position.x;
+			atlas_rect.position.y = atlas_texture->get_region().position.y;
+
+			texture_size.width = atlas_texture->get_region().size.x;
+			texture_size.height = atlas_texture->get_region().size.y;
+		} else if (image.is_valid()) {
+			texture_size.width = texture->get_width();
+			texture_size.height = texture->get_height();
+		}
+
+		ERR_FAIL_COND(!texture.is_valid());
+		ERR_FAIL_COND(texture_size.width > 256 || texture_size.height > 256);
+
+		image = texture->get_data();
+
+		UINT image_size = texture_size.width * texture_size.height;
 		UINT size = sizeof(UINT) * image_size;
-
-		ERR_FAIL_COND(texture->get_width() > 256 || texture->get_height() > 256);
 
 		// Create the BITMAP with alpha channel
 		COLORREF *buffer = (COLORREF *)malloc(sizeof(COLORREF) * image_size);
 
 		image->lock();
 		for (UINT index = 0; index < image_size; index++) {
-			int row_index = floor(index / texture->get_width());
-			int column_index = index % texture->get_width();
+			int row_index = floor(index / texture_size.width) + atlas_rect.position.y;
+			int column_index = (index % int(texture_size.width)) + atlas_rect.position.x;
+
+			if (atlas_texture.is_valid()) {
+				column_index = MIN(column_index, atlas_rect.size.width - 1);
+				row_index = MIN(row_index, atlas_rect.size.height - 1);
+			}
 
 			*(buffer + index) = image->get_pixel(column_index, row_index).to_argb32();
 		}
 		image->unlock();
 
 		// Using 4 channels, so 4 * 8 bits
-		HBITMAP bitmap = CreateBitmap(texture->get_width(), texture->get_height(), 1, 4 * 8, buffer);
+		HBITMAP bitmap = CreateBitmap(texture_size.width, texture_size.height, 1, 4 * 8, buffer);
 		COLORREF clrTransparent = -1;
 
 		// Create the AND and XOR masks for the bitmap
@@ -1956,6 +2117,11 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 		if (hXorMask != NULL) {
 			DeleteObject(hXorMask);
 		}
+	} else {
+		// Reset to default system cursor
+		cursors[p_shape] = NULL;
+		cursor_shape = CURSOR_MAX;
+		set_cursor_shape(p_shape);
 	}
 }
 
@@ -2566,6 +2732,8 @@ Error OS_Windows::move_to_trash(const String &p_path) {
 OS_Windows::OS_Windows(HINSTANCE _hInstance) {
 
 	key_event_pos = 0;
+	layered_window = false;
+	hBitmap = NULL;
 	force_quit = false;
 	alt_mem = false;
 	gr_mem = false;
@@ -2599,6 +2767,10 @@ OS_Windows::OS_Windows(HINSTANCE _hInstance) {
 }
 
 OS_Windows::~OS_Windows() {
+	if (is_layered_allowed() && layered_window) {
+		DeleteObject(hBitmap);
+		DeleteDC(hDC_dib);
+	}
 #ifdef STDOUT_FILE
 	fclose(stdo);
 #endif
