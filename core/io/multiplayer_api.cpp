@@ -1,3 +1,33 @@
+/*************************************************************************/
+/*  multiplayer_api.cpp                                                  */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                      https://godotengine.org                          */
+/*************************************************************************/
+/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
+
 #include "core/io/multiplayer_api.h"
 #include "core/io/marshalls.h"
 #include "scene/main/node.h"
@@ -76,7 +106,7 @@ Ref<NetworkedMultiplayerPeer> MultiplayerAPI::get_network_peer() const {
 void MultiplayerAPI::_process_packet(int p_from, const uint8_t *p_packet, int p_packet_len) {
 
 	ERR_FAIL_COND(root_node == NULL);
-	ERR_FAIL_COND(p_packet_len < 5);
+	ERR_FAIL_COND(p_packet_len < 1);
 
 	uint8_t packet_type = p_packet[0];
 
@@ -122,6 +152,11 @@ void MultiplayerAPI::_process_packet(int p_from, const uint8_t *p_packet, int p_
 				_process_rset(node, name, p_from, p_packet, p_packet_len, len_end + 1);
 			}
 
+		} break;
+
+		case NETWORK_COMMAND_RAW: {
+
+			_process_raw(p_from, p_packet, p_packet_len);
 		} break;
 	}
 }
@@ -258,6 +293,8 @@ void MultiplayerAPI::_process_simplify_path(int p_from, const uint8_t *p_packet,
 }
 
 void MultiplayerAPI::_process_confirm_path(int p_from, const uint8_t *p_packet, int p_packet_len) {
+
+	ERR_FAIL_COND(p_packet_len < 2);
 
 	String paths;
 	paths.parse_utf8((const char *)&p_packet[1], p_packet_len - 1);
@@ -648,6 +685,34 @@ void MultiplayerAPI::rsetp(Node *p_node, int p_peer_id, bool p_unreliable, const
 	_send_rpc(p_node, p_peer_id, p_unreliable, true, p_property, &vptr, 1);
 }
 
+Error MultiplayerAPI::send_bytes(PoolVector<uint8_t> p_data, int p_to) {
+
+	ERR_FAIL_COND_V(p_data.size() < 1, ERR_INVALID_DATA);
+	ERR_FAIL_COND_V(!network_peer.is_valid(), ERR_UNCONFIGURED);
+	ERR_FAIL_COND_V(network_peer->get_connection_status() != NetworkedMultiplayerPeer::CONNECTION_CONNECTED, ERR_UNCONFIGURED);
+
+	MAKE_ROOM(p_data.size() + 1);
+	PoolVector<uint8_t>::Read r = p_data.read();
+	packet_cache[0] = NETWORK_COMMAND_RAW;
+	memcpy(&packet_cache[1], &r[0], p_data.size());
+	network_peer->set_target_peer(p_to);
+	return network_peer->put_packet(packet_cache.ptr(), p_data.size() + 1);
+}
+
+void MultiplayerAPI::_process_raw(int p_from, const uint8_t *p_packet, int p_packet_len) {
+
+	ERR_FAIL_COND(p_packet_len < 2);
+
+	PoolVector<uint8_t> out;
+	int len = p_packet_len - 1;
+	out.resize(len);
+	{
+		PoolVector<uint8_t>::Write w = out.write();
+		memcpy(&w[0], &p_packet[1], len);
+	}
+	emit_signal("network_peer_packet", p_from, out);
+}
+
 int MultiplayerAPI::get_network_unique_id() const {
 
 	ERR_FAIL_COND_V(!network_peer.is_valid(), 0);
@@ -686,6 +751,7 @@ Vector<int> MultiplayerAPI::get_network_connected_peers() const {
 
 void MultiplayerAPI::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_root_node", "node"), &MultiplayerAPI::set_root_node);
+	ClassDB::bind_method(D_METHOD("send_bytes", "bytes", "id"), &MultiplayerAPI::send_bytes, DEFVAL(NetworkedMultiplayerPeer::TARGET_PEER_BROADCAST));
 	ClassDB::bind_method(D_METHOD("has_network_peer"), &MultiplayerAPI::has_network_peer);
 	ClassDB::bind_method(D_METHOD("get_network_peer"), &MultiplayerAPI::get_network_peer);
 	ClassDB::bind_method(D_METHOD("get_network_unique_id"), &MultiplayerAPI::get_network_unique_id);
@@ -708,6 +774,7 @@ void MultiplayerAPI::_bind_methods() {
 
 	ADD_SIGNAL(MethodInfo("network_peer_connected", PropertyInfo(Variant::INT, "id")));
 	ADD_SIGNAL(MethodInfo("network_peer_disconnected", PropertyInfo(Variant::INT, "id")));
+	ADD_SIGNAL(MethodInfo("network_peer_packet", PropertyInfo(Variant::INT, "id"), PropertyInfo(Variant::POOL_BYTE_ARRAY, "packet")));
 	ADD_SIGNAL(MethodInfo("connected_to_server"));
 	ADD_SIGNAL(MethodInfo("connection_failed"));
 	ADD_SIGNAL(MethodInfo("server_disconnected"));
