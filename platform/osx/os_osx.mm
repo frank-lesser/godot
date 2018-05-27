@@ -913,7 +913,7 @@ static int remapKey(unsigned int key) {
 
 	CFDataRef layoutData = (CFDataRef)TISGetInputSourceProperty(currentKeyboard, kTISPropertyUnicodeKeyLayoutData);
 	if (!layoutData)
-		return nil;
+		return 0;
 
 	const UCKeyboardLayout *keyboardLayout = (const UCKeyboardLayout *)CFDataGetBytePtr(layoutData);
 
@@ -1184,6 +1184,7 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 	if (p_desired.borderless_window) {
 		styleMask = NSWindowStyleMaskBorderless;
 	} else {
+		resizable = p_desired.resizable;
 		styleMask = NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | (p_desired.resizable ? NSWindowStyleMaskResizable : 0);
 	}
 
@@ -1480,7 +1481,7 @@ void OS_OSX::set_cursor_shape(CursorShape p_shape) {
 	if (cursor_shape == p_shape)
 		return;
 
-	if (mouse_mode != MOUSE_MODE_VISIBLE) {
+	if (mouse_mode != MOUSE_MODE_VISIBLE && mouse_mode != MOUSE_MODE_CONFINED) {
 		cursor_shape = p_shape;
 		return;
 	}
@@ -1740,7 +1741,8 @@ String OS_OSX::get_godot_dir_name() const {
 
 String OS_OSX::get_system_dir(SystemDir p_dir) const {
 
-	NSSearchPathDirectory id = 0;
+	NSSearchPathDirectory id;
+	bool found = true;
 
 	switch (p_dir) {
 		case SYSTEM_DIR_DESKTOP: {
@@ -1761,10 +1763,13 @@ String OS_OSX::get_system_dir(SystemDir p_dir) const {
 		case SYSTEM_DIR_PICTURES: {
 			id = NSPicturesDirectory;
 		} break;
+		default: {
+			found = false;
+		}
 	}
 
 	String ret;
-	if (id) {
+	if (found) {
 
 		NSArray *paths = NSSearchPathForDirectoriesInDomains(id, NSUserDomainMask, YES);
 		if (paths && [paths count] >= 1) {
@@ -2110,6 +2115,8 @@ void OS_OSX::set_window_resizable(bool p_enabled) {
 		[window_object setStyleMask:[window_object styleMask] | NSWindowStyleMaskResizable];
 	else
 		[window_object setStyleMask:[window_object styleMask] & ~NSWindowStyleMaskResizable];
+
+	resizable = p_enabled;
 };
 
 bool OS_OSX::is_window_resizable() const {
@@ -2219,7 +2226,7 @@ void OS_OSX::set_borderless_window(bool p_borderless) {
 		if (layered_window)
 			set_window_per_pixel_transparency_enabled(false);
 
-		[window_object setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | NSWindowStyleMaskResizable];
+		[window_object setStyleMask:NSWindowStyleMaskTitled | NSWindowStyleMaskClosable | NSWindowStyleMaskMiniaturizable | (resizable ? NSWindowStyleMaskResizable : 0)];
 
 		// Force update of the window styles
 		NSRect frameRect = [window_object frame];
@@ -2615,6 +2622,7 @@ OS_OSX::OS_OSX() {
 	minimized = false;
 	window_size = Vector2(1024, 600);
 	zoomed = false;
+	resizable = false;
 
 	Vector<Logger *> loggers;
 	loggers.push_back(memnew(OSXTerminalLogger));

@@ -1444,7 +1444,7 @@ bool Main::start() {
 		}
 #endif
 
-		if (!project_manager) { // game or editor
+		if (!project_manager && !editor) { // game
 			if (game_path != "" || script != "") {
 				//autoload
 				List<PropertyInfo> props;
@@ -1465,24 +1465,13 @@ bool Main::start() {
 
 					if (global_var) {
 						for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-#ifdef TOOLS_ENABLED
-							if (editor) {
-								ScriptServer::get_language(i)->add_named_global_constant(name, Variant());
-							} else {
-								ScriptServer::get_language(i)->add_global_constant(name, Variant());
-							}
-#else
 							ScriptServer::get_language(i)->add_global_constant(name, Variant());
-#endif
 						}
 					}
 				}
 
 				//second pass, load into global constants
 				List<Node *> to_add;
-#ifdef TOOLS_ENABLED
-				ResourceLoader::set_timestamp_on_load(editor); // Avoid problems when editing
-#endif
 				for (List<PropertyInfo>::Element *E = props.front(); E; E = E->next()) {
 
 					String s = E->get().name;
@@ -1528,22 +1517,10 @@ bool Main::start() {
 
 					if (global_var) {
 						for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-#ifdef TOOLS_ENABLED
-							if (editor) {
-								ScriptServer::get_language(i)->add_named_global_constant(name, n);
-							} else {
-								ScriptServer::get_language(i)->add_global_constant(name, n);
-							}
-#else
 							ScriptServer::get_language(i)->add_global_constant(name, n);
-#endif
 						}
 					}
 				}
-
-#ifdef TOOLS_ENABLED
-				ResourceLoader::set_timestamp_on_load(false);
-#endif
 
 				for (List<Node *>::Element *E = to_add.front(); E; E = E->next()) {
 
@@ -1729,7 +1706,7 @@ bool Main::start() {
 
 uint64_t Main::last_ticks = 0;
 uint64_t Main::target_ticks = 0;
-uint32_t Main::frames = 0;
+Array Main::frame_times = Array();
 uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
 
@@ -1848,10 +1825,19 @@ bool Main::iteration() {
 		script_debugger->idle_poll();
 	}
 
-	frames++;
 	Engine::get_singleton()->_idle_frames++;
 
-	if (frame > 1000000) {
+	// FPS counter
+	frame_times.push_back(ticks);
+	int frames = frame_times.size();
+
+	while (frame_times.size() > 0 && (int)frame_times.get(0) <= ticks - 1000000) {
+		frame_times.pop_front();
+	}
+
+	int update_frequency = MAX(1, (int)GLOBAL_GET("debug/settings/performance/update_frequency_msec"));
+
+	if (frame > update_frequency * 1000) {
 
 		if (editor || project_manager) {
 			if (print_fps) {
@@ -1867,8 +1853,7 @@ bool Main::iteration() {
 		idle_process_max = 0;
 		physics_process_max = 0;
 
-		frame %= 1000000;
-		frames = 0;
+		frame %= update_frequency * 1000;
 	}
 
 	if (fixed_fps != -1)

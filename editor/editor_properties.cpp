@@ -500,7 +500,7 @@ public:
 
 	virtual String get_tooltip(const Point2 &p_pos) const {
 		for (int i = 0; i < flag_rects.size(); i++) {
-			if (flag_rects[i].has_point(p_pos) && i < names.size()) {
+			if (i < names.size() && flag_rects[i].has_point(p_pos)) {
 				return names[i];
 			}
 		}
@@ -1522,7 +1522,8 @@ EditorPropertyColor::EditorPropertyColor() {
 
 void EditorPropertyNodePath::_node_selected(const NodePath &p_path) {
 
-	emit_signal("property_changed", get_edited_property(), p_path);
+	Node *base_node = Object::cast_to<Node>(get_edited_object());
+	emit_signal("property_changed", get_edited_property(), base_node->get_path().rel_path_to(p_path));
 	update_property();
 }
 

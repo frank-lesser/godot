@@ -1292,6 +1292,9 @@ void OS_X11::set_borderless_window(bool p_borderless) {
 	hints.decorations = current_videomode.borderless_window ? 0 : 1;
 	property = XInternAtom(x11_display, "_MOTIF_WM_HINTS", True);
 	XChangeProperty(x11_display, x11_window, property, property, 32, PropModeReplace, (unsigned char *)&hints, 5);
+
+	// Preserve window size
+	set_window_size(Size2(current_videomode.width, current_videomode.height));
 }
 
 bool OS_X11::get_borderless_window() {
@@ -2407,7 +2410,7 @@ void OS_X11::set_cursor_shape(CursorShape p_shape) {
 
 	if (p_shape == current_cursor)
 		return;
-	if (mouse_mode == MOUSE_MODE_VISIBLE) {
+	if (mouse_mode == MOUSE_MODE_VISIBLE && mouse_mode != MOUSE_MODE_CONFINED) {
 		if (cursors[p_shape] != None)
 			XDefineCursor(x11_display, x11_window, cursors[p_shape]);
 		else if (cursors[CURSOR_ARROW] != None)
