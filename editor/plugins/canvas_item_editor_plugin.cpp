@@ -30,7 +30,6 @@
 
 #include "canvas_item_editor_plugin.h"
 
-#include "editor/animation_editor.h"
 #include "editor/editor_node.h"
 #include "editor/editor_settings.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
@@ -365,7 +364,7 @@ Object *CanvasItemEditor::_get_editor_data(Object *p_what) {
 
 void CanvasItemEditor::_keying_changed() {
 
-	if (AnimationPlayerEditor::singleton->get_key_editor()->is_visible_in_tree())
+	if (AnimationPlayerEditor::singleton->get_track_editor()->is_visible_in_tree())
 		animation_hb->show();
 	else
 		animation_hb->hide();
@@ -1984,32 +1983,53 @@ bool CanvasItemEditor::_gui_input_hover(const Ref<InputEvent> &p_event) {
 
 	Ref<InputEventMouseMotion> m = p_event;
 	if (m.is_valid()) {
-		if (drag_type == DRAG_NONE && tool == TOOL_SELECT) {
-			Point2 click = transform.affine_inverse().xform(m->get_position());
+		Point2 click = transform.affine_inverse().xform(m->get_position());
 
-			//Checks if the hovered items changed, update the viewport if so
-			Vector<_SelectResult> hovering_results_tmp;
-			_get_canvas_items_at_pos(click, hovering_results_tmp);
-			hovering_results_tmp.sort();
-			bool changed = false;
-			if (hovering_results.size() == hovering_results_tmp.size()) {
-				for (int i = 0; i < hovering_results.size(); i++) {
-					if (hovering_results[i].item != hovering_results_tmp[i].item) {
-						changed = true;
-						break;
-					}
-				}
-			} else {
-				changed = true;
-			}
+		// Checks if the hovered items changed, update the viewport if so
+		Vector<_SelectResult> hovering_results_items;
+		_get_canvas_items_at_pos(click, hovering_results_items);
+		hovering_results_items.sort();
 
-			if (changed) {
-				hovering_results = hovering_results_tmp;
-				viewport->update();
-			}
+		// Compute the nodes names and icon position
+		Vector<_HoverResult> hovering_results_tmp;
+		for (int i = 0; i < hovering_results_items.size(); i++) {
+			CanvasItem *canvas_item = hovering_results_items[i].item;
 
-			return true;
+			if (canvas_item->_edit_use_rect())
+				continue;
+
+			_HoverResult hover_result;
+			hover_result.position = canvas_item->get_global_transform_with_canvas().get_origin();
+			if (has_icon(canvas_item->get_class(), "EditorIcons"))
+				hover_result.icon = get_icon(canvas_item->get_class(), "EditorIcons");
+			else
+				hover_result.icon = get_icon("Object", "EditorIcons");
+			hover_result.name = canvas_item->get_name();
+
+			hovering_results_tmp.push_back(hover_result);
 		}
+
+		// Check if changed, if so, update.
+		bool changed = false;
+		if (hovering_results_tmp.size() == hovering_results.size()) {
+			for (int i = 0; i < hovering_results_tmp.size(); i++) {
+				_HoverResult a = hovering_results_tmp[i];
+				_HoverResult b = hovering_results[i];
+				if (a.icon != b.icon || a.name != b.name || a.position != b.position) {
+					changed = true;
+					break;
+				}
+			}
+		} else {
+			changed = true;
+		}
+
+		if (changed) {
+			hovering_results = hovering_results_tmp;
+			viewport->update();
+		}
+
+		return true;
 	}
 
 	return false;
@@ -2770,26 +2790,15 @@ void CanvasItemEditor::_draw_hover() {
 	List<Rect2> previous_rects;
 
 	for (int i = 0; i < hovering_results.size(); i++) {
-		// Draw the node's name and icon
-		CanvasItem *canvas_item = hovering_results[i].item;
 
-		if (canvas_item->_edit_use_rect())
-			continue;
+		Ref<Texture> node_icon = hovering_results[i].icon;
+		String node_name = hovering_results[i].name;
 
-		Transform2D xform = transform * canvas_item->get_global_transform_with_canvas();
-
-		// Get the resources
-		Ref<Texture> node_icon;
-		if (has_icon(canvas_item->get_class(), "EditorIcons"))
-			node_icon = get_icon(canvas_item->get_class(), "EditorIcons");
-		else
-			node_icon = get_icon("Object", "EditorIcons");
 		Ref<Font> font = get_font("font", "Label");
-		String node_name = canvas_item->get_name();
 		Size2 node_name_size = font->get_string_size(node_name);
 		Size2 item_size = Size2(node_icon->get_size().x + 4 + node_name_size.x, MAX(node_icon->get_size().y, node_name_size.y - 3));
 
-		Point2 pos = xform.get_origin() - Point2(0, item_size.y) + (Point2(node_icon->get_size().x, -node_icon->get_size().y) / 4);
+		Point2 pos = transform.xform(hovering_results[i].position) - Point2(0, item_size.y) + (Point2(node_icon->get_size().x, -node_icon->get_size().y) / 4);
 		// Rectify the position to avoid overlaping items
 		for (List<Rect2>::Element *E = previous_rects.front(); E; E = E->next()) {
 			if (E->get().intersects(Rect2(pos, item_size))) {
@@ -2799,8 +2808,10 @@ void CanvasItemEditor::_draw_hover() {
 
 		previous_rects.push_back(Rect2(pos, item_size));
 
-		// Draw the node icon and name
+		// Draw icon
 		viewport->draw_texture(node_icon, pos, Color(1.0, 1.0, 1.0, 0.5));
+
+		// Draw name
 		viewport->draw_string(font, pos + Point2(node_icon->get_size().x + 4, item_size.y - 3), node_name, Color(1.0, 1.0, 1.0, 0.5));
 	}
 }
@@ -3080,7 +3091,7 @@ void CanvasItemEditor::_notification(int p_what) {
 			select_sb->set_default_margin(Margin(i), 4);
 		}
 
-		AnimationPlayerEditor::singleton->get_key_editor()->connect("visibility_changed", this, "_keying_changed");
+		AnimationPlayerEditor::singleton->get_track_editor()->connect("visibility_changed", this, "_keying_changed");
 		_keying_changed();
 		get_tree()->connect("node_added", this, "_tree_changed", varray());
 		get_tree()->connect("node_removed", this, "_tree_changed", varray());
@@ -3692,11 +3703,11 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 					Node2D *n2d = Object::cast_to<Node2D>(canvas_item);
 
 					if (key_pos)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(n2d, "position", n2d->get_position(), existing);
+						AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(n2d, "position", n2d->get_position(), existing);
 					if (key_rot)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(n2d, "rotation_degrees", Math::rad2deg(n2d->get_rotation()), existing);
+						AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(n2d, "rotation_degrees", Math::rad2deg(n2d->get_rotation()), existing);
 					if (key_scale)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(n2d, "scale", n2d->get_scale(), existing);
+						AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(n2d, "scale", n2d->get_scale(), existing);
 
 					if (n2d->has_meta("_edit_bone_") && n2d->get_parent_item()) {
 						//look for an IK chain
@@ -3723,11 +3734,11 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 							for (List<Node2D *>::Element *F = ik_chain.front(); F; F = F->next()) {
 
 								if (key_pos)
-									AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(F->get(), "position", F->get()->get_position(), existing);
+									AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(F->get(), "position", F->get()->get_position(), existing);
 								if (key_rot)
-									AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(F->get(), "rotation_degrees", Math::rad2deg(F->get()->get_rotation()), existing);
+									AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(F->get(), "rotation_degrees", Math::rad2deg(F->get()->get_rotation()), existing);
 								if (key_scale)
-									AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(F->get(), "scale", F->get()->get_scale(), existing);
+									AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(F->get(), "scale", F->get()->get_scale(), existing);
 							}
 						}
 					}
@@ -3737,11 +3748,11 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 					Control *ctrl = Object::cast_to<Control>(canvas_item);
 
 					if (key_pos)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl, "rect_position", ctrl->get_position(), existing);
+						AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(ctrl, "rect_position", ctrl->get_position(), existing);
 					if (key_rot)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl, "rect_rotation", ctrl->get_rotation_degrees(), existing);
+						AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(ctrl, "rect_rotation", ctrl->get_rotation_degrees(), existing);
 					if (key_scale)
-						AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl, "rect_size", ctrl->get_size(), existing);
+						AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(ctrl, "rect_size", ctrl->get_size(), existing);
 				}
 			}
 
@@ -3837,7 +3848,7 @@ void CanvasItemEditor::_popup_callback(int p_op) {
 						ctrl->set_position(Point2());
 					/*
                                    if (key_scale)
-                                   AnimationPlayerEditor::singleton->get_key_editor()->insert_node_value_key(ctrl,"rect/size",ctrl->get_size());
+				   AnimationPlayerEditor::singleton->get_track_editor()->insert_node_value_key(ctrl,"rect/size",ctrl->get_size());
                                    */
 				}
 			}

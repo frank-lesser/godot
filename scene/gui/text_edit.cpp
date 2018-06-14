@@ -447,7 +447,7 @@ void TextEdit::_click_selection_held() {
 }
 
 void TextEdit::_update_selection_mode_pointer() {
-	Point2 mp = Input::get_singleton()->get_mouse_position() - get_global_position();
+	Point2 mp = get_local_mouse_position();
 
 	int row, col;
 	_get_mouse_pos(Point2i(mp.x, mp.y), row, col);
@@ -462,7 +462,7 @@ void TextEdit::_update_selection_mode_pointer() {
 }
 
 void TextEdit::_update_selection_mode_word() {
-	Point2 mp = Input::get_singleton()->get_mouse_position() - get_global_position();
+	Point2 mp = get_local_mouse_position();
 
 	int row, col;
 	_get_mouse_pos(Point2i(mp.x, mp.y), row, col);
@@ -515,7 +515,7 @@ void TextEdit::_update_selection_mode_word() {
 }
 
 void TextEdit::_update_selection_mode_line() {
-	Point2 mp = Input::get_singleton()->get_mouse_position() - get_global_position();
+	Point2 mp = get_local_mouse_position();
 
 	int row, col;
 	_get_mouse_pos(Point2i(mp.x, mp.y), row, col);
@@ -1388,6 +1388,7 @@ void TextEdit::_notification(int p_what) {
 			}
 
 			if (has_focus()) {
+				OS::get_singleton()->set_ime_active(true);
 				OS::get_singleton()->set_ime_position(get_global_position() + cursor_pos + Point2(0, get_row_height()));
 				OS::get_singleton()->set_ime_intermediate_text_callback(_ime_text_callback, this);
 			}
@@ -1399,6 +1400,7 @@ void TextEdit::_notification(int p_what) {
 				draw_caret = true;
 			}
 
+			OS::get_singleton()->set_ime_active(true);
 			Point2 cursor_pos = Point2(cursor_get_column(), cursor_get_line()) * get_row_height();
 			OS::get_singleton()->set_ime_position(get_global_position() + cursor_pos);
 			OS::get_singleton()->set_ime_intermediate_text_callback(_ime_text_callback, this);
@@ -1413,6 +1415,7 @@ void TextEdit::_notification(int p_what) {
 
 			OS::get_singleton()->set_ime_position(Point2());
 			OS::get_singleton()->set_ime_intermediate_text_callback(NULL, NULL);
+			OS::get_singleton()->set_ime_active(false);
 			ime_text = "";
 			ime_selection = Point2();
 

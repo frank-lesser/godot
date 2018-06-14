@@ -32,6 +32,7 @@
 #define EDITOR_NODE_H
 
 #include "core/print_string.h"
+#include "editor/audio_stream_preview.h"
 #include "editor/connections_dialog.h"
 #include "editor/create_dialog.h"
 #include "editor/editor_about.h"
@@ -81,6 +82,7 @@
 #include "scene/gui/tool_button.h"
 #include "scene/gui/tree.h"
 #include "scene/gui/viewport_container.h"
+
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
@@ -169,7 +171,7 @@ private:
 		SETTINGS_LAYOUT_DEFAULT,
 		SETTINGS_MANAGE_EXPORT_TEMPLATES,
 		SETTINGS_PICK_MAIN_SCENE,
-		SETTINGS_TOGGLE_FULLSCREN,
+		SETTINGS_TOGGLE_FULLSCREEN,
 		SETTINGS_HELP,
 		SCENE_TAB_CLOSE,
 
@@ -298,6 +300,7 @@ private:
 	Vector<ToolButton *> main_editor_buttons;
 	Vector<EditorPlugin *> editor_table;
 
+	AudioStreamPreviewGenerator *preview_gen;
 	ProgressDialog *progress_dialog;
 	BackgroundProgress *progress_hb;
 

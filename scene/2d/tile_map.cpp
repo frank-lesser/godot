@@ -466,9 +466,11 @@ void TileMap::_update_dirty_quadrants() {
 						Transform2D xform;
 						xform.set_origin(offset.floor());
 
-						Vector2 shape_ofs = tile_set->tile_get_shape_offset(c.id, i);
+						Vector2 shape_ofs = shapes[i].shape_transform.get_origin();
 
 						_fix_cell_transform(xform, c, shape_ofs + center_ofs, s);
+
+						xform *= shapes[i].shape_transform.untranslated();
 
 						if (debug_canvas_item.is_valid()) {
 							vs->canvas_item_add_set_transform(debug_canvas_item, xform);
@@ -977,6 +979,14 @@ void TileMap::set_cell_autotile_coord(int p_x, int p_y, const Vector2 &p_coord) 
 	c.autotile_coord_x = p_coord.x;
 	c.autotile_coord_y = p_coord.y;
 	tile_map[pk] = c;
+
+	PosKey qk(p_x / _get_quadrant_size(), p_y / _get_quadrant_size());
+	Map<PosKey, Quadrant>::Element *Q = quadrant_map.find(qk);
+
+	if (!Q)
+		return;
+
+	_make_quadrant_dirty(Q);
 }
 
 Vector2 TileMap::get_cell_autotile_coord(int p_x, int p_y) const {
