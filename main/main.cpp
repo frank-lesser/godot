@@ -539,6 +539,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		} else if (I->get() == "--build-solutions") { // Build the scripting solution such C#
 
 			auto_build_solutions = true;
+			editor = true;
 #endif
 		} else if (I->get() == "--no-window") { // disable window creation, Windows only
 
@@ -1814,9 +1815,6 @@ bool Main::iteration() {
 			force_redraw_requested = false;
 		}
 	}
-
-	if (AudioServer::get_singleton())
-		AudioServer::get_singleton()->update();
 
 	idle_process_ticks = OS::get_singleton()->get_ticks_usec() - idle_begin;
 	idle_process_max = MAX(idle_process_ticks, idle_process_max);

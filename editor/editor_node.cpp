@@ -66,6 +66,8 @@
 #include "editor/import/resource_importer_scene.h"
 #include "editor/import/resource_importer_texture.h"
 #include "editor/import/resource_importer_wav.h"
+#include "editor/plugins/animation_blend_space_editor.h"
+#include "editor/plugins/animation_blend_tree_editor_plugin.h"
 #include "editor/plugins/animation_player_editor_plugin.h"
 #include "editor/plugins/animation_tree_editor_plugin.h"
 #include "editor/plugins/asset_library_editor_plugin.h"
@@ -1300,7 +1302,31 @@ void EditorNode::_dialog_action(String p_file) {
 	}
 }
 
-void EditorNode::push_item(Object *p_object, const String &p_property) {
+bool EditorNode::item_has_editor(Object *p_object) {
+
+	return editor_data.get_subeditors(p_object).size() > 0;
+}
+
+void EditorNode::edit_item(Object *p_object) {
+
+	Vector<EditorPlugin *> sub_plugins;
+
+	if (p_object) {
+		sub_plugins = editor_data.get_subeditors(p_object);
+	}
+
+	if (!sub_plugins.empty()) {
+		_display_top_editors(false);
+
+		_set_top_editors(sub_plugins);
+		_set_editing_top_editors(p_object);
+		_display_top_editors(true);
+	} else {
+		_hide_top_editors();
+	}
+}
+
+void EditorNode::push_item(Object *p_object, const String &p_property, bool p_inspector_only) {
 
 	if (!p_object) {
 		get_inspector()->edit(NULL);
@@ -1312,7 +1338,9 @@ void EditorNode::push_item(Object *p_object, const String &p_property) {
 	uint32_t id = p_object->get_instance_id();
 	if (id != editor_history.get_current()) {
 
-		if (p_property == "")
+		if (p_inspector_only) {
+			editor_history.add_object_inspector_only(id);
+		} else if (p_property == "")
 			editor_history.add_object(id);
 		else
 			editor_history.add_object(id, p_property);
@@ -1366,6 +1394,7 @@ void EditorNode::_edit_current() {
 
 	uint32_t current = editor_history.get_current();
 	Object *current_obj = current > 0 ? ObjectDB::get_instance(current) : NULL;
+	bool inspector_only = editor_history.is_current_inspector_only();
 
 	this->current = current_obj;
 
@@ -1381,7 +1410,8 @@ void EditorNode::_edit_current() {
 		return;
 	}
 
-	bool capitalize = bool(EDITOR_DEF("interface/editor/capitalize_properties", true));
+	bool capitalize = bool(EDITOR_GET("interface/inspector/capitalize_properties"));
+	bool disable_folding = bool(EDITOR_GET("interface/inspector/disable_folding"));
 	bool is_resource = current_obj->is_class("Resource");
 	bool is_node = current_obj->is_class("Node");
 
@@ -1437,6 +1467,7 @@ void EditorNode::_edit_current() {
 		if (current_obj->is_class("ScriptEditorDebuggerInspectedObject")) {
 			editable_warning = TTR("This is a remote object so changes to it will not be kept.\nPlease read the documentation relevant to debugging to better understand this workflow.");
 			capitalize = false;
+			disable_folding = true;
 		}
 
 		get_inspector()->edit(current_obj);
@@ -1449,59 +1480,66 @@ void EditorNode::_edit_current() {
 		get_inspector()->set_enable_capitalize_paths(capitalize);
 	}
 
-	/* Take care of PLUGIN EDITOR */
-
-	EditorPlugin *main_plugin = editor_data.get_editor(current_obj);
-
-	if (main_plugin) {
-
-		// special case if use of external editor is true
-		if (main_plugin->get_name() == "Script" && (bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor")) || overrides_external_editor(current_obj))) {
-			if (!changing_scene)
-				main_plugin->edit(current_obj);
-		}
-
-		else if (main_plugin != editor_plugin_screen && (!ScriptEditor::get_singleton() || !ScriptEditor::get_singleton()->is_visible_in_tree() || ScriptEditor::get_singleton()->can_take_away_focus())) {
-			// update screen main_plugin
-
-			if (!changing_scene) {
-
-				if (editor_plugin_screen)
-					editor_plugin_screen->make_visible(false);
-				editor_plugin_screen = main_plugin;
-				editor_plugin_screen->edit(current_obj);
-
-				editor_plugin_screen->make_visible(true);
-
-				int plugin_count = editor_data.get_editor_plugin_count();
-				for (int i = 0; i < plugin_count; i++) {
-					editor_data.get_editor_plugin(i)->notify_main_screen_changed(editor_plugin_screen->get_name());
-				}
-
-				for (int i = 0; i < editor_table.size(); i++) {
-
-					main_editor_buttons[i]->set_pressed(editor_table[i] == main_plugin);
-				}
-			}
-
-		} else {
-
-			editor_plugin_screen->edit(current_obj);
-		}
+	if (get_inspector()->is_using_folding() == disable_folding) {
+		get_inspector()->set_use_folding(!disable_folding);
 	}
 
-	Vector<EditorPlugin *> sub_plugins = editor_data.get_subeditors(current_obj);
+	/* Take care of PLUGIN EDITOR */
 
-	if (!sub_plugins.empty()) {
-		_display_top_editors(false);
+	if (!inspector_only) {
 
-		_set_top_editors(sub_plugins);
-		_set_editing_top_editors(current_obj);
-		_display_top_editors(true);
+		EditorPlugin *main_plugin = editor_data.get_editor(current_obj);
 
-	} else if (!editor_plugins_over->get_plugins_list().empty()) {
+		if (main_plugin) {
 
-		_hide_top_editors();
+			// special case if use of external editor is true
+			if (main_plugin->get_name() == "Script" && (bool(EditorSettings::get_singleton()->get("text_editor/external/use_external_editor")) || overrides_external_editor(current_obj))) {
+				if (!changing_scene)
+					main_plugin->edit(current_obj);
+			}
+
+			else if (main_plugin != editor_plugin_screen && (!ScriptEditor::get_singleton() || !ScriptEditor::get_singleton()->is_visible_in_tree() || ScriptEditor::get_singleton()->can_take_away_focus())) {
+				// update screen main_plugin
+
+				if (!changing_scene) {
+
+					if (editor_plugin_screen)
+						editor_plugin_screen->make_visible(false);
+					editor_plugin_screen = main_plugin;
+					editor_plugin_screen->edit(current_obj);
+
+					editor_plugin_screen->make_visible(true);
+
+					int plugin_count = editor_data.get_editor_plugin_count();
+					for (int i = 0; i < plugin_count; i++) {
+						editor_data.get_editor_plugin(i)->notify_main_screen_changed(editor_plugin_screen->get_name());
+					}
+
+					for (int i = 0; i < editor_table.size(); i++) {
+
+						main_editor_buttons[i]->set_pressed(editor_table[i] == main_plugin);
+					}
+				}
+
+			} else {
+
+				editor_plugin_screen->edit(current_obj);
+			}
+		}
+
+		Vector<EditorPlugin *> sub_plugins = editor_data.get_subeditors(current_obj);
+
+		if (!sub_plugins.empty()) {
+			_display_top_editors(false);
+
+			_set_top_editors(sub_plugins);
+			_set_editing_top_editors(current_obj);
+			_display_top_editors(true);
+
+		} else if (!editor_plugins_over->get_plugins_list().empty()) {
+
+			_hide_top_editors();
+		}
 	}
 
 	inspector_dock->update(current_obj);
@@ -4637,6 +4675,7 @@ EditorNode::EditorNode() {
 	EDITOR_DEF("interface/scene_tabs/restore_scenes_on_load", false);
 	EDITOR_DEF("interface/scene_tabs/show_thumbnail_on_hover", true);
 	EDITOR_DEF("interface/inspector/capitalize_properties", true);
+	EDITOR_DEF("interface/inspector/disable_folding", false);
 	EDITOR_DEF("interface/inspector/open_resources_in_new_inspector", false);
 	EDITOR_DEF("run/auto_save/save_before_running", true);
 
@@ -5360,6 +5399,8 @@ EditorNode::EditorNode() {
 	add_editor_plugin(memnew(ShaderEditorPlugin(this)));
 	// FIXME: Disabled for Godot 3.0 as made incompatible, it needs to be ported to the new API.
 	//add_editor_plugin(memnew(ShaderGraphEditorPlugin(this)));
+	add_editor_plugin(memnew(AnimationNodeBlendTreeEditorPlugin(this)));
+	add_editor_plugin(memnew(AnimationNodeBlendSpaceEditorPlugin(this)));
 
 	add_editor_plugin(memnew(CameraEditorPlugin(this)));
 	add_editor_plugin(memnew(ThemeEditorPlugin(this)));

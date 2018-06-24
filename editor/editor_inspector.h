@@ -257,6 +257,7 @@ class EditorInspector : public ScrollContainer {
 	void _edit_set(const String &p_name, const Variant &p_value, bool p_refresh_all, const String &p_changed_field);
 
 	void _property_changed(const String &p_path, const Variant &p_value);
+	void _property_changed_update_all(const String &p_path, const Variant &p_value);
 	void _multiple_properties_changed(Vector<String> p_paths, Array p_values);
 	void _property_keyed(const String &p_path);
 	void _property_keyed_with_value(const String &p_path, const Variant &p_value);
@@ -314,6 +315,7 @@ public:
 	void set_property_selectable(bool p_selectable);
 
 	void set_use_folding(bool p_enable);
+	bool is_using_folding();
 
 	void collapse_all_folding();
 	void expand_all_folding();
