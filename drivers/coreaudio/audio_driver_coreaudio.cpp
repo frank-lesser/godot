@@ -52,7 +52,9 @@ OSStatus AudioDriverCoreAudio::output_device_address_cb(AudioObjectID inObjectID
 }
 #endif
 
-Error AudioDriverCoreAudio::init_device() {
+Error AudioDriverCoreAudio::init() {
+	mutex = Mutex::create();
+
 	AudioComponentDescription desc;
 	zeromem(&desc, sizeof(desc));
 	desc.componentType = kAudioUnitType_Output;
@@ -68,6 +70,16 @@ Error AudioDriverCoreAudio::init_device() {
 
 	OSStatus result = AudioComponentInstanceNew(comp, &audio_unit);
 	ERR_FAIL_COND_V(result != noErr, FAILED);
+
+#ifdef OSX_ENABLED
+	AudioObjectPropertyAddress prop;
+	prop.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
+	prop.mScope = kAudioObjectPropertyScopeGlobal;
+	prop.mElement = kAudioObjectPropertyElementMaster;
+
+	result = AudioObjectAddPropertyListener(kAudioObjectSystemObject, &prop, &output_device_address_cb, this);
+	ERR_FAIL_COND_V(result != noErr, FAILED);
+#endif
 
 	AudioStreamBasicDescription strdesc;
 
@@ -90,7 +102,7 @@ Error AudioDriverCoreAudio::init_device() {
 			break;
 	}
 
-	mix_rate = GLOBAL_DEF("audio/mix_rate", DEFAULT_MIX_RATE);
+	mix_rate = GLOBAL_DEF_RST("audio/mix_rate", DEFAULT_MIX_RATE);
 
 	zeromem(&strdesc, sizeof(strdesc));
 	strdesc.mFormatID = kAudioFormatLinearPCM;
@@ -105,7 +117,7 @@ Error AudioDriverCoreAudio::init_device() {
 	result = AudioUnitSetProperty(audio_unit, kAudioUnitProperty_StreamFormat, kAudioUnitScope_Input, kOutputBus, &strdesc, sizeof(strdesc));
 	ERR_FAIL_COND_V(result != noErr, FAILED);
 
-	int latency = GLOBAL_DEF("audio/output_latency", DEFAULT_OUTPUT_LATENCY);
+	int latency = GLOBAL_DEF_RST("audio/output_latency", DEFAULT_OUTPUT_LATENCY);
 	// Sample rate is independent of channels (ref: https://stackoverflow.com/questions/11048825/audio-sample-frequency-rely-on-channels)
 	buffer_frames = closest_power_of_2(latency * mix_rate / 1000);
 
@@ -135,42 +147,6 @@ Error AudioDriverCoreAudio::init_device() {
 	return OK;
 }
 
-Error AudioDriverCoreAudio::finish_device() {
-	OSStatus result;
-
-	if (active) {
-		result = AudioOutputUnitStop(audio_unit);
-		ERR_FAIL_COND_V(result != noErr, FAILED);
-
-		active = false;
-	}
-
-	result = AudioUnitUninitialize(audio_unit);
-	ERR_FAIL_COND_V(result != noErr, FAILED);
-
-	return OK;
-}
-
-Error AudioDriverCoreAudio::init() {
-	OSStatus result;
-
-	mutex = Mutex::create();
-	active = false;
-	channels = 2;
-
-#ifdef OSX_ENABLED
-	AudioObjectPropertyAddress prop;
-	prop.mSelector = kAudioHardwarePropertyDefaultOutputDevice;
-	prop.mScope = kAudioObjectPropertyScopeGlobal;
-	prop.mElement = kAudioObjectPropertyElementMaster;
-
-	result = AudioObjectAddPropertyListener(kAudioObjectSystemObject, &prop, &output_device_address_cb, this);
-	ERR_FAIL_COND_V(result != noErr, FAILED);
-#endif
-
-	return init_device();
-};
-
 OSStatus AudioDriverCoreAudio::output_callback(void *inRefCon,
 		AudioUnitRenderActionFlags *ioActionFlags,
 		const AudioTimeStamp *inTimeStamp,
@@ -186,6 +162,8 @@ OSStatus AudioDriverCoreAudio::output_callback(void *inRefCon,
 		};
 		return 0;
 	};
+
+	ad->start_counting_ticks();
 
 	for (unsigned int i = 0; i < ioData->mNumberBuffers; i++) {
 
@@ -208,6 +186,7 @@ OSStatus AudioDriverCoreAudio::output_callback(void *inRefCon,
 		};
 	};
 
+	ad->stop_counting_ticks();
 	ad->unlock();
 
 	return 0;
@@ -370,6 +349,7 @@ void AudioDriverCoreAudio::set_device(String device) {
 	}
 
 	if (!found) {
+		// If we haven't found the desired device get the system default one
 		UInt32 size = sizeof(AudioDeviceID);
 		AudioObjectPropertyAddress property = { kAudioHardwarePropertyDefaultOutputDevice, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster };
 
@@ -406,7 +386,28 @@ bool AudioDriverCoreAudio::try_lock() {
 void AudioDriverCoreAudio::finish() {
 	OSStatus result;
 
-	finish_device();
+	lock();
+
+	AURenderCallbackStruct callback;
+	zeromem(&callback, sizeof(AURenderCallbackStruct));
+	result = AudioUnitSetProperty(audio_unit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, kOutputBus, &callback, sizeof(callback));
+	if (result != noErr) {
+		ERR_PRINT("AudioUnitSetProperty failed");
+	}
+
+	if (active) {
+		result = AudioOutputUnitStop(audio_unit);
+		if (result != noErr) {
+			ERR_PRINT("AudioOutputUnitStop failed");
+		}
+
+		active = false;
+	}
+
+	result = AudioUnitUninitialize(audio_unit);
+	if (result != noErr) {
+		ERR_PRINT("AudioUnitUninitialize failed");
+	}
 
 #ifdef OSX_ENABLED
 	AudioObjectPropertyAddress prop;
@@ -420,12 +421,12 @@ void AudioDriverCoreAudio::finish() {
 	}
 #endif
 
-	AURenderCallbackStruct callback;
-	zeromem(&callback, sizeof(AURenderCallbackStruct));
-	result = AudioUnitSetProperty(audio_unit, kAudioUnitProperty_SetRenderCallback, kAudioUnitScope_Input, kOutputBus, &callback, sizeof(callback));
+	result = AudioComponentInstanceDispose(audio_unit);
 	if (result != noErr) {
-		ERR_PRINT("AudioUnitSetProperty failed");
+		ERR_PRINT("AudioComponentInstanceDispose failed");
 	}
+
+	unlock();
 
 	if (mutex) {
 		memdelete(mutex);

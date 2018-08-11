@@ -154,6 +154,7 @@ private:
 		RUN_PLAY_CUSTOM_SCENE,
 		RUN_SCENE_SETTINGS,
 		RUN_SETTINGS,
+		RUN_PROJECT_DATA_FOLDER,
 		RUN_PROJECT_MANAGER,
 		RUN_FILE_SERVER,
 		RUN_LIVE_DEBUG,
@@ -164,11 +165,12 @@ private:
 		SETTINGS_UPDATE_ALWAYS,
 		SETTINGS_UPDATE_CHANGES,
 		SETTINGS_UPDATE_SPINNER_HIDE,
-		SETTINGS_EXPORT_PREFERENCES,
 		SETTINGS_PREFERENCES,
 		SETTINGS_LAYOUT_SAVE,
 		SETTINGS_LAYOUT_DELETE,
 		SETTINGS_LAYOUT_DEFAULT,
+		SETTINGS_EDITOR_DATA_FOLDER,
+		SETTINGS_EDITOR_CONFIG_FOLDER,
 		SETTINGS_MANAGE_EXPORT_TEMPLATES,
 		SETTINGS_PICK_MAIN_SCENE,
 		SETTINGS_TOGGLE_FULLSCREEN,
@@ -183,6 +185,8 @@ private:
 		HELP_COMMUNITY,
 		HELP_ABOUT,
 
+		SET_VIDEO_DRIVER_SAVE_AND_RESTART,
+
 		IMPORT_PLUGIN_BASE = 100,
 
 		TOOL_MENU_BASE = 1000
@@ -195,6 +199,13 @@ private:
 	Control *gui_base;
 	VBoxContainer *main_vbox;
 	PanelContainer *play_button_panel;
+	OptionButton *video_driver;
+
+	ConfirmationDialog *video_restart_dialog;
+
+	int video_driver_current;
+	String video_driver_request;
+	void _video_driver_selected(int);
 
 	//split
 
@@ -212,6 +223,7 @@ private:
 	//main tabs
 
 	Tabs *scene_tabs;
+	PopupMenu *scene_tabs_context_menu;
 	Panel *tab_preview_panel;
 	TextureRect *tab_preview;
 	int tab_closing;
@@ -377,7 +389,11 @@ private:
 
 	PanelContainer *bottom_panel;
 	HBoxContainer *bottom_panel_hb;
+	HBoxContainer *bottom_panel_hb_editors;
 	VBoxContainer *bottom_panel_vb;
+	ToolButton *bottom_panel_raise;
+
+	void _bottom_panel_raise_toggled(bool);
 
 	EditorInterface *editor_interface;
 
@@ -598,6 +614,7 @@ public:
 	EditorPluginList *get_editor_plugins_force_input_forwarding() { return editor_plugins_force_input_forwarding; }
 	EditorInspector *get_inspector() { return inspector_dock->get_inspector(); }
 	Container *get_inspector_dock_addon_area() { return inspector_dock->get_addon_area(); }
+	ScriptCreateDialog *get_script_create_dialog() { return scene_tree_dock->get_script_create_dialog(); }
 
 	ProjectSettingsEditor *get_project_settings() { return project_settings; }
 
@@ -685,6 +702,7 @@ public:
 
 	Ref<Theme> get_editor_theme() const { return theme; }
 
+	void show_accept(const String &p_text, const String &p_title);
 	void show_warning(const String &p_text, const String &p_title = "Warning!");
 
 	Error export_preset(const String &p_preset, const String &p_path, bool p_debug, const String &p_password, bool p_quit_after = false);
@@ -739,6 +757,8 @@ public:
 	void add_tool_menu_item(const String &p_name, Object *p_handler, const String &p_callback, const Variant &p_ud = Variant());
 	void add_tool_submenu_item(const String &p_name, PopupMenu *p_submenu);
 	void remove_tool_menu_item(const String &p_name);
+
+	void save_all_scenes_and_restart();
 
 	void dim_editor(bool p_dimming);
 

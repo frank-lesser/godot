@@ -23,9 +23,11 @@ matrix:
       addons:
         apt:
           sources:
-            - llvm-toolchain-trusty-5.0
+            - llvm-toolchain-trusty-6.0
+            - ubuntu-toolchain-r-test
           packages:
-            - clang-format-5.0
+            - clang-format-6.0
+            - libstdc++6 # >= 4.9 needed for clang-format-6.0
 
         coverity_scan:
           project:
@@ -61,12 +63,10 @@ matrix:
 
     - env: GODOT_TARGET=osx TOOLS=yes CACHE_NAME=${GODOT_TARGET}-tools-clang
       os: osx
-      osx_image: xcode9.3
       compiler: clang
 
     - env: GODOT_TARGET=iphone TOOLS=no CACHE_NAME=${GODOT_TARGET}-clang
       os: osx
-      osx_image: xcode9.3
       compiler: clang
 
     - env: GODOT_TARGET=server TOOLS=yes CACHE_NAME=${GODOT_TARGET}-tools-gcc

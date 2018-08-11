@@ -74,10 +74,7 @@ void Camera::_update_camera() {
 	if (!is_inside_tree())
 		return;
 
-	Transform tr = get_camera_transform();
-	tr.origin += tr.basis.get_axis(1) * v_offset;
-	tr.origin += tr.basis.get_axis(0) * h_offset;
-	VisualServer::get_singleton()->camera_set_transform(camera, tr);
+	VisualServer::get_singleton()->camera_set_transform(camera, get_camera_transform());
 
 	// here goes listener stuff
 	/*
@@ -143,7 +140,10 @@ void Camera::_notification(int p_what) {
 
 Transform Camera::get_camera_transform() const {
 
-	return get_global_transform().orthonormalized();
+	Transform tr = get_global_transform().orthonormalized();
+	tr.origin += tr.basis.get_axis(1) * v_offset;
+	tr.origin += tr.basis.get_axis(0) * h_offset;
+	return tr;
 }
 
 void Camera::set_perspective(float p_fovy_degrees, float p_z_near, float p_z_far) {
@@ -468,6 +468,10 @@ void Camera::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_keep_aspect_mode"), &Camera::get_keep_aspect_mode);
 	ClassDB::bind_method(D_METHOD("set_doppler_tracking", "mode"), &Camera::set_doppler_tracking);
 	ClassDB::bind_method(D_METHOD("get_doppler_tracking"), &Camera::get_doppler_tracking);
+
+	ClassDB::bind_method(D_METHOD("set_cull_mask_bit", "layer", "enable"), &Camera::set_cull_mask_bit);
+	ClassDB::bind_method(D_METHOD("get_cull_mask_bit", "layer"), &Camera::get_cull_mask_bit);
+
 	//ClassDB::bind_method(D_METHOD("_camera_make_current"),&Camera::_camera_make_current );
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "keep_aspect", PROPERTY_HINT_ENUM, "Keep Width,Keep Height"), "set_keep_aspect_mode", "get_keep_aspect_mode");
@@ -550,6 +554,20 @@ uint32_t Camera::get_cull_mask() const {
 	return layers;
 }
 
+void Camera::set_cull_mask_bit(int p_layer, bool p_enable) {
+	ERR_FAIL_INDEX(p_layer, 32);
+	if (p_enable) {
+		set_cull_mask(layers | (1 << p_layer));
+	} else {
+		set_cull_mask(layers & (~(1 << p_layer)));
+	}
+}
+
+bool Camera::get_cull_mask_bit(int p_layer) const {
+	ERR_FAIL_INDEX_V(p_layer, 32, false);
+	return (layers & (1 << p_layer));
+}
+
 Vector<Plane> Camera::get_frustum() const {
 
 	ERR_FAIL_COND_V(!is_inside_world(), Vector<Plane>());
@@ -613,6 +631,7 @@ Camera::Camera() {
 	velocity_tracker.instance();
 	doppler_tracking = DOPPLER_TRACKING_DISABLED;
 	set_notify_transform(true);
+	set_disable_scale(true);
 }
 
 Camera::~Camera() {

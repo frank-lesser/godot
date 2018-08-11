@@ -476,6 +476,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("symbol_color", "TextEdit", control_font_color_hover);
 	theme->set_color("brace_mismatch_color", "TextEdit", Color(1, 0.2, 0.2));
 	theme->set_color("line_number_color", "TextEdit", Color::html("66aaaaaa"));
+	theme->set_color("safe_line_number_color", "TextEdit", Color::html("99aac8aa"));
 	theme->set_color("function_color", "TextEdit", Color::html("66a2ce"));
 	theme->set_color("member_variable_color", "TextEdit", Color::html("e64e59"));
 	theme->set_color("number_color", "TextEdit", Color::html("EB9532"));
@@ -585,6 +586,8 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_stylebox("panel_disabled", "PopupMenu", make_stylebox(popup_bg_disabled_png, 4, 4, 4, 4));
 	theme->set_stylebox("hover", "PopupMenu", selected);
 	theme->set_stylebox("separator", "PopupMenu", make_stylebox(vseparator_png, 3, 3, 3, 3));
+	theme->set_stylebox("labeled_separator_left", "PopupMenu", make_stylebox(vseparator_png, 0, 0, 0, 0));
+	theme->set_stylebox("labeled_separator_right", "PopupMenu", make_stylebox(vseparator_png, 0, 0, 0, 0));
 
 	theme->set_icon("checked", "PopupMenu", make_icon(checked_png));
 	theme->set_icon("unchecked", "PopupMenu", make_icon(unchecked_png));
@@ -844,7 +847,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 
 	theme->set_constant("separation", "HBoxContainer", 4 * scale);
 	theme->set_constant("separation", "VBoxContainer", 4 * scale);
-	theme->set_constant("margin_left", "MarginContainer", 8 * scale);
+	theme->set_constant("margin_left", "MarginContainer", 0 * scale);
 	theme->set_constant("margin_top", "MarginContainer", 0 * scale);
 	theme->set_constant("margin_right", "MarginContainer", 0 * scale);
 	theme->set_constant("margin_bottom", "MarginContainer", 0 * scale);
@@ -879,6 +882,10 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("bezier_len_neg", "GraphEdit", 160 * scale);
 
 	theme->set_icon("logo", "Icons", make_icon(logo_png));
+
+	// Visual Node Ports
+	theme->set_constant("port_grab_distance_horizontal", "GraphEdit", 48 * scale);
+	theme->set_constant("port_grab_distance_vertical", "GraphEdit", 6 * scale);
 
 	// Theme
 

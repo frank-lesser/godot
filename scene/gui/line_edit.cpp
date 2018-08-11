@@ -35,7 +35,9 @@
 #include "os/os.h"
 #include "print_string.h"
 #include "translation.h"
+
 #ifdef TOOLS_ENABLED
+#include "editor/editor_scale.h"
 #include "editor/editor_settings.h"
 #endif
 
@@ -640,7 +642,7 @@ void LineEdit::_notification(int p_what) {
 			int char_ofs = window_pos;
 
 			int y_area = height - style->get_minimum_size().height;
-			int y_ofs = style->get_offset().y;
+			int y_ofs = style->get_offset().y + (y_area - font->get_height()) / 2;
 
 			int font_ascent = font->get_ascent();
 
@@ -711,11 +713,16 @@ void LineEdit::_notification(int p_what) {
 				if (selected)
 					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(x_ofs, y_ofs), Size2(char_width, caret_height)), selection_color);
 
-				drawer.draw_char(ci, Point2(x_ofs, y_ofs + font_ascent), cchar, next, selected ? font_color_selected : font_color);
+				int yofs = y_ofs + (caret_height - font->get_height()) / 2;
+				drawer.draw_char(ci, Point2(x_ofs, yofs + font_ascent), cchar, next, selected ? font_color_selected : font_color);
 
 				if (char_ofs == cursor_pos && draw_caret) {
 					if (ime_text.length() == 0) {
+#ifdef TOOLS_ENABLED
+						VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(x_ofs, y_ofs), Size2(Math::round(EDSCALE), caret_height)), cursor_color);
+#else
 						VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(x_ofs, y_ofs), Size2(1, caret_height)), cursor_color);
+#endif
 					}
 				}
 
@@ -754,7 +761,11 @@ void LineEdit::_notification(int p_what) {
 
 			if (char_ofs == cursor_pos && draw_caret) { //may be at the end
 				if (ime_text.length() == 0) {
+#ifdef TOOLS_ENABLED
+					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(x_ofs, y_ofs), Size2(Math::round(EDSCALE), caret_height)), cursor_color);
+#else
 					VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(Point2(x_ofs, y_ofs), Size2(1, caret_height)), cursor_color);
+#endif
 				}
 			}
 

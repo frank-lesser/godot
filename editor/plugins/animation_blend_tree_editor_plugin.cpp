@@ -169,7 +169,7 @@ void AnimationNodeBlendTreeEditor::_update_graph() {
 
 			ProgressBar *pb = memnew(ProgressBar);
 
-			AnimationGraphPlayer *player = anim->get_graph_player();
+			AnimationTree *player = anim->get_tree();
 			if (player->has_node(player->get_animation_player())) {
 				AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(player->get_node(player->get_animation_player()));
 				if (ap) {
@@ -246,7 +246,7 @@ void AnimationNodeBlendTreeEditor::_add_node(int p_idx) {
 
 	Point2 instance_pos = graph->get_scroll_ofs() + graph->get_size() * 0.5;
 
-	anode->set_position(instance_pos);
+	anode->set_position(instance_pos / EDSCALE);
 
 	String base_name = add_options[p_idx].name;
 	int base = 1;
@@ -417,14 +417,14 @@ bool AnimationNodeBlendTreeEditor::_update_filters(const Ref<AnimationNode> &ano
 	if (updating || _filter_edit != anode)
 		return false;
 
-	NodePath player_path = anode->get_graph_player()->get_animation_player();
+	NodePath player_path = anode->get_tree()->get_animation_player();
 
-	if (!anode->get_graph_player()->has_node(player_path)) {
+	if (!anode->get_tree()->has_node(player_path)) {
 		EditorNode::get_singleton()->show_warning(TTR("No animation player set, so unable to retrieve track names."));
 		return false;
 	}
 
-	AnimationPlayer *player = Object::cast_to<AnimationPlayer>(anode->get_graph_player()->get_node(player_path));
+	AnimationPlayer *player = Object::cast_to<AnimationPlayer>(anode->get_tree()->get_node(player_path));
 	if (!player) {
 		EditorNode::get_singleton()->show_warning(TTR("Player path set is invalid, so unable to retrieve track names."));
 		return false;
@@ -603,12 +603,12 @@ void AnimationNodeBlendTreeEditor::_notification(int p_what) {
 
 		String error;
 
-		if (!blend_tree->get_graph_player()) {
-			error = TTR("BlendTree does not belong to an AnimationGraphPlayer node.");
-		} else if (!blend_tree->get_graph_player()->is_active()) {
-			error = TTR("AnimationGraphPlayer is inactive.\nActivate to enable playback, check node warnings if activation fails.");
-		} else if (blend_tree->get_graph_player()->is_state_invalid()) {
-			error = blend_tree->get_graph_player()->get_invalid_state_reason();
+		if (!blend_tree->get_tree()) {
+			error = TTR("BlendTree does not belong to an AnimationTree node.");
+		} else if (!blend_tree->get_tree()->is_active()) {
+			error = TTR("AnimationTree is inactive.\nActivate to enable playback, check node warnings if activation fails.");
+		} else if (blend_tree->get_tree()->is_state_invalid()) {
+			error = blend_tree->get_tree()->get_invalid_state_reason();
 		}
 
 		if (error != error_label->get_text()) {
@@ -624,13 +624,13 @@ void AnimationNodeBlendTreeEditor::_notification(int p_what) {
 		blend_tree->get_node_connections(&conns);
 		for (List<AnimationNodeBlendTree::NodeConnection>::Element *E = conns.front(); E; E = E->next()) {
 			float activity = 0;
-			if (blend_tree->get_graph_player() && !blend_tree->get_graph_player()->is_state_invalid()) {
+			if (blend_tree->get_tree() && !blend_tree->get_tree()->is_state_invalid()) {
 				activity = blend_tree->get_connection_activity(E->get().input_node, E->get().input_index);
 			}
 			graph->set_connection_activity(E->get().output_node, 0, E->get().input_node, E->get().input_index, activity);
 		}
 
-		AnimationGraphPlayer *graph_player = blend_tree->get_graph_player();
+		AnimationTree *graph_player = blend_tree->get_tree();
 		AnimationPlayer *player = NULL;
 		if (graph_player->has_node(graph_player->get_animation_player())) {
 			player = Object::cast_to<AnimationPlayer>(graph_player->get_node(graph_player->get_animation_player()));
@@ -767,14 +767,17 @@ AnimationNodeBlendTreeEditor::AnimationNodeBlendTreeEditor() {
 
 	add_options.push_back(AddOption("Animation", "AnimationNodeAnimation"));
 	add_options.push_back(AddOption("OneShot", "AnimationNodeOneShot"));
-	add_options.push_back(AddOption("Add", "AnimationNodeAdd"));
+	add_options.push_back(AddOption("Add2", "AnimationNodeAdd2"));
+	add_options.push_back(AddOption("Add3", "AnimationNodeAdd3"));
 	add_options.push_back(AddOption("Blend2", "AnimationNodeBlend2"));
 	add_options.push_back(AddOption("Blend3", "AnimationNodeBlend3"));
 	add_options.push_back(AddOption("Seek", "AnimationNodeTimeSeek"));
 	add_options.push_back(AddOption("TimeScale", "AnimationNodeTimeScale"));
 	add_options.push_back(AddOption("Transition", "AnimationNodeTransition"));
 	add_options.push_back(AddOption("BlendTree", "AnimationNodeBlendTree"));
-	add_options.push_back(AddOption("BlendSpace", "AnimationNodeBlendSpace"));
+	add_options.push_back(AddOption("BlendSpace1D", "AnimationNodeBlendSpace1D"));
+	add_options.push_back(AddOption("BlendSpace2D", "AnimationNodeBlendSpace2D"));
+	add_options.push_back(AddOption("StateMachine", "AnimationNodeStateMachine"));
 	_update_options_menu();
 
 	error_panel = memnew(PanelContainer);

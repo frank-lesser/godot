@@ -233,7 +233,7 @@ void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim) {
 
 	for (int i = 0; i < a->get_track_count(); i++) {
 
-		p_anim->node_cache[i] = NULL;
+		p_anim->node_cache.write[i] = NULL;
 		RES resource;
 		Vector<StringName> leftover_path;
 		Node *child = parent->get_node_and_resource(a->track_get_path(i), resource, leftover_path);
@@ -265,12 +265,12 @@ void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim) {
 
 		if (node_cache_map.has(key)) {
 
-			p_anim->node_cache[i] = &node_cache_map[key];
+			p_anim->node_cache.write[i] = &node_cache_map[key];
 		} else {
 
 			node_cache_map[key] = TrackNodeCache();
 
-			p_anim->node_cache[i] = &node_cache_map[key];
+			p_anim->node_cache.write[i] = &node_cache_map[key];
 			p_anim->node_cache[i]->path = a->track_get_path(i);
 			p_anim->node_cache[i]->node = child;
 			p_anim->node_cache[i]->resource = resource;
@@ -331,11 +331,7 @@ void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim) {
 			if (!p_anim->node_cache[i]->bezier_anim.has(a->track_get_path(i).get_concatenated_subnames())) {
 
 				TrackNodeCache::BezierAnim ba;
-				String path = leftover_path[leftover_path.size() - 1];
-				Vector<String> index = path.split(".");
-				for (int j = 0; j < index.size(); j++) {
-					ba.bezier_property.push_back(index[j]);
-				}
+				ba.bezier_property = leftover_path;
 				ba.object = resource.is_valid() ? (Object *)resource.ptr() : (Object *)child;
 				ba.owner = p_anim->node_cache[i];
 
@@ -419,14 +415,26 @@ void AnimationPlayer::_animation_process_animation(AnimationData *p_anim, float 
 						pa->capture = pa->object->get_indexed(pa->subpath);
 					}
 
-					if (a->track_get_key_count(i) == 0)
+					int key_count = a->track_get_key_count(i);
+					if (key_count == 0)
 						continue; //eeh not worth it
 
 					float first_key_time = a->track_get_key_time(i, 0);
+					float transition = 1.0;
+					int first_key = 0;
+
+					if (first_key_time == 0.0) {
+						//ignore, use for transition
+						if (key_count == 1)
+							continue; //with one key we cant do anything
+						transition = a->track_get_key_transition(i, 0);
+						first_key_time = a->track_get_key_time(i, 1);
+						first_key = 1;
+					}
 
 					if (p_time < first_key_time) {
-						float c = p_time / first_key_time;
-						Variant first_value = a->track_get_key_value(i, 0);
+						float c = Math::ease(p_time / first_key_time, transition);
+						Variant first_value = a->track_get_key_value(i, first_key);
 						Variant interp_value;
 						Variant::interpolate(pa->capture, first_value, c, interp_value);
 
@@ -537,6 +545,12 @@ void AnimationPlayer::_animation_process_animation(AnimationData *p_anim, float 
 					int s = params.size();
 
 					ERR_CONTINUE(s > VARIANT_ARG_MAX);
+#ifdef DEBUG_ENABLED
+					if (!nc->node->has_method(method)) {
+						ERR_PRINTS("Invalid method call '" + method + "'. '" + a->get_name() + "' at node '" + get_path() + "'.");
+					}
+#endif
+
 					if (can_call) {
 						MessageQueue::get_singleton()->push_call(
 								nc->node,
@@ -648,7 +662,22 @@ void AnimationPlayer::_animation_process_animation(AnimationData *p_anim, float 
 							nc->audio_start = p_time;
 						}
 					} else if (nc->audio_playing) {
-						if (nc->audio_start > p_time || (nc->audio_len > 0 && p_time - nc->audio_start < nc->audio_len)) {
+
+						bool loop = a->has_loop();
+
+						bool stop = false;
+
+						if (!loop && p_time < nc->audio_start) {
+							stop = true;
+						} else if (nc->audio_len > 0) {
+							float len = nc->audio_start > p_time ? (a->get_length() - nc->audio_start) + p_time : p_time - nc->audio_start;
+
+							if (len > nc->audio_len) {
+								stop = true;
+							}
+						}
+
+						if (stop) {
 							//time to stop
 							nc->node->call("stop");
 							nc->audio_playing = false;

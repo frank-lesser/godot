@@ -31,6 +31,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include "hash_map.h"
 #include "list.h"
 #include "map.h"
 #include "os/rw_lock.h"
@@ -85,6 +86,7 @@ enum PropertyHint {
 	PROPERTY_HINT_PROPERTY_OF_INSTANCE, ///< a property of an instance
 	PROPERTY_HINT_PROPERTY_OF_SCRIPT, ///< a property of a script & base
 	PROPERTY_HINT_OBJECT_TOO_BIG, ///< object is too big to send
+	PROPERTY_HINT_NODE_PATH_VALID_TYPES,
 	PROPERTY_HINT_MAX,
 	// When updating PropertyHint, also sync the hardcoded list in VisualScriptEditorVariableEdit
 };
@@ -450,7 +452,7 @@ private:
 		Signal() { lock = 0; }
 	};
 
-	HashMap<StringName, Signal, StringNameHasher> signal_map;
+	HashMap<StringName, Signal> signal_map;
 	List<Connection> connections;
 #ifdef DEBUG_ENABLED
 	SafeRefCount _lock_index;

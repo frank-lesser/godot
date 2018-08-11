@@ -16,7 +16,7 @@ float AnimationNodeAnimation::get_playback_time() const {
 void AnimationNodeAnimation::_validate_property(PropertyInfo &property) const {
 
 	if (property.name == "animation") {
-		AnimationGraphPlayer *gp = get_graph_player();
+		AnimationTree *gp = get_tree();
 		if (gp && gp->has_node(gp->get_animation_player())) {
 			AnimationPlayer *ap = Object::cast_to<AnimationPlayer>(gp->get_node(gp->get_animation_player()));
 			if (ap) {
@@ -288,8 +288,8 @@ void AnimationNodeOneShot::_bind_methods() {
 	ADD_GROUP("", "");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sync"), "set_use_sync", "is_using_sync");
 
-	BIND_CONSTANT(MIX_MODE_BLEND)
-	BIND_CONSTANT(MIX_MODE_ADD)
+	BIND_ENUM_CONSTANT(MIX_MODE_BLEND)
+	BIND_ENUM_CONSTANT(MIX_MODE_ADD)
 }
 
 AnimationNodeOneShot::AnimationNodeOneShot() {
@@ -311,33 +311,33 @@ AnimationNodeOneShot::AnimationNodeOneShot() {
 
 ////////////////////////////////////////////////
 
-void AnimationNodeAdd::set_amount(float p_amount) {
+void AnimationNodeAdd2::set_amount(float p_amount) {
 	amount = p_amount;
 }
 
-float AnimationNodeAdd::get_amount() const {
+float AnimationNodeAdd2::get_amount() const {
 	return amount;
 }
 
-String AnimationNodeAdd::get_caption() const {
-	return "Add";
+String AnimationNodeAdd2::get_caption() const {
+	return "Add2";
 }
-void AnimationNodeAdd::set_use_sync(bool p_sync) {
+void AnimationNodeAdd2::set_use_sync(bool p_sync) {
 
 	sync = p_sync;
 }
 
-bool AnimationNodeAdd::is_using_sync() const {
+bool AnimationNodeAdd2::is_using_sync() const {
 
 	return sync;
 }
 
-bool AnimationNodeAdd::has_filter() const {
+bool AnimationNodeAdd2::has_filter() const {
 
 	return true;
 }
 
-float AnimationNodeAdd::process(float p_time, bool p_seek) {
+float AnimationNodeAdd2::process(float p_time, bool p_seek) {
 
 	float rem0 = blend_input(0, p_time, p_seek, 1.0, FILTER_IGNORE, !sync);
 	blend_input(1, p_time, p_seek, amount, FILTER_PASS, !sync);
@@ -345,19 +345,19 @@ float AnimationNodeAdd::process(float p_time, bool p_seek) {
 	return rem0;
 }
 
-void AnimationNodeAdd::_bind_methods() {
+void AnimationNodeAdd2::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("set_amount", "amount"), &AnimationNodeAdd::set_amount);
-	ClassDB::bind_method(D_METHOD("get_amount"), &AnimationNodeAdd::get_amount);
+	ClassDB::bind_method(D_METHOD("set_amount", "amount"), &AnimationNodeAdd2::set_amount);
+	ClassDB::bind_method(D_METHOD("get_amount"), &AnimationNodeAdd2::get_amount);
 
-	ClassDB::bind_method(D_METHOD("set_use_sync", "enable"), &AnimationNodeAdd::set_use_sync);
-	ClassDB::bind_method(D_METHOD("is_using_sync"), &AnimationNodeAdd::is_using_sync);
+	ClassDB::bind_method(D_METHOD("set_use_sync", "enable"), &AnimationNodeAdd2::set_use_sync);
+	ClassDB::bind_method(D_METHOD("is_using_sync"), &AnimationNodeAdd2::is_using_sync);
 
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "amount", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_amount", "get_amount");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sync"), "set_use_sync", "is_using_sync");
 }
 
-AnimationNodeAdd::AnimationNodeAdd() {
+AnimationNodeAdd2::AnimationNodeAdd2() {
 
 	add_input("in");
 	add_input("add");
@@ -365,6 +365,63 @@ AnimationNodeAdd::AnimationNodeAdd() {
 	sync = false;
 }
 
+////////////////////////////////////////////////
+
+void AnimationNodeAdd3::set_amount(float p_amount) {
+	amount = p_amount;
+}
+
+float AnimationNodeAdd3::get_amount() const {
+	return amount;
+}
+
+String AnimationNodeAdd3::get_caption() const {
+	return "Add3";
+}
+void AnimationNodeAdd3::set_use_sync(bool p_sync) {
+
+	sync = p_sync;
+}
+
+bool AnimationNodeAdd3::is_using_sync() const {
+
+	return sync;
+}
+
+bool AnimationNodeAdd3::has_filter() const {
+
+	return true;
+}
+
+float AnimationNodeAdd3::process(float p_time, bool p_seek) {
+
+	blend_input(0, p_time, p_seek, MAX(0, -amount), FILTER_PASS, !sync);
+	float rem0 = blend_input(1, p_time, p_seek, 1.0, FILTER_IGNORE, !sync);
+	blend_input(2, p_time, p_seek, MAX(0, amount), FILTER_PASS, !sync);
+
+	return rem0;
+}
+
+void AnimationNodeAdd3::_bind_methods() {
+
+	ClassDB::bind_method(D_METHOD("set_amount", "amount"), &AnimationNodeAdd3::set_amount);
+	ClassDB::bind_method(D_METHOD("get_amount"), &AnimationNodeAdd3::get_amount);
+
+	ClassDB::bind_method(D_METHOD("set_use_sync", "enable"), &AnimationNodeAdd3::set_use_sync);
+	ClassDB::bind_method(D_METHOD("is_using_sync"), &AnimationNodeAdd3::is_using_sync);
+
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "amount", PROPERTY_HINT_RANGE, "-1,1,0.01"), "set_amount", "get_amount");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "sync"), "set_use_sync", "is_using_sync");
+}
+
+AnimationNodeAdd3::AnimationNodeAdd3() {
+
+	add_input("-add");
+	add_input("in");
+	add_input("+add");
+	amount = 0;
+	sync = false;
+}
 /////////////////////////////////////////////
 
 void AnimationNodeBlend2::set_amount(float p_amount) {
@@ -762,13 +819,13 @@ void AnimationNodeBlendTree::add_node(const StringName &p_name, Ref<AnimationNod
 	ERR_FAIL_COND(nodes.has(p_name));
 	ERR_FAIL_COND(p_node.is_null());
 	ERR_FAIL_COND(p_node->get_parent().is_valid());
-	ERR_FAIL_COND(p_node->get_graph_player() != NULL);
+	ERR_FAIL_COND(p_node->get_tree() != NULL);
 	ERR_FAIL_COND(p_name == SceneStringNames::get_singleton()->output);
 	ERR_FAIL_COND(String(p_name).find("/") != -1);
 	nodes[p_name] = p_node;
 
 	p_node->set_parent(this);
-	p_node->set_graph_player(get_graph_player());
+	p_node->set_tree(get_tree());
 
 	emit_changed();
 }
@@ -804,7 +861,7 @@ void AnimationNodeBlendTree::remove_node(const StringName &p_name) {
 			node->set_input_connection(i, StringName());
 		}
 		node->set_parent(NULL);
-		node->set_graph_player(NULL);
+		node->set_tree(NULL);
 	}
 
 	nodes.erase(p_name);
@@ -965,13 +1022,13 @@ Vector2 AnimationNodeBlendTree::get_graph_offset() const {
 	return graph_offset;
 }
 
-void AnimationNodeBlendTree::set_graph_player(AnimationGraphPlayer *p_player) {
+void AnimationNodeBlendTree::set_tree(AnimationTree *p_player) {
 
-	AnimationNode::set_graph_player(p_player);
+	AnimationNode::set_tree(p_player);
 
 	for (Map<StringName, Ref<AnimationNode> >::Element *E = nodes.front(); E; E = E->next()) {
 		Ref<AnimationNode> node = E->get();
-		node->set_graph_player(p_player);
+		node->set_tree(p_player);
 	}
 }
 
@@ -979,6 +1036,7 @@ bool AnimationNodeBlendTree::_set(const StringName &p_name, const Variant &p_val
 
 	String name = p_name;
 	if (name.begins_with("nodes/")) {
+
 		String node_name = name.get_slicec('/', 1);
 		String what = name.get_slicec('/', 2);
 
@@ -1107,6 +1165,6 @@ AnimationNodeBlendTree::~AnimationNodeBlendTree() {
 
 	for (Map<StringName, Ref<AnimationNode> >::Element *E = nodes.front(); E; E = E->next()) {
 		E->get()->set_parent(NULL);
-		E->get()->set_graph_player(NULL);
+		E->get()->set_tree(NULL);
 	}
 }

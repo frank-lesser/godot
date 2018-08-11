@@ -36,6 +36,7 @@
 #include "constraint_bullet.h"
 #include "godot_collision_configuration.h"
 #include "godot_collision_dispatcher.h"
+#include "project_settings.h"
 #include "rigid_body_bullet.h"
 #include "servers/physics_server.h"
 #include "soft_body_bullet.h"
@@ -325,7 +326,7 @@ Vector3 BulletPhysicsDirectSpaceState::get_closest_point_to_object_volume(RID p_
 	}
 }
 
-SpaceBullet::SpaceBullet(bool p_create_soft_world) :
+SpaceBullet::SpaceBullet() :
 		broadphase(NULL),
 		dispatcher(NULL),
 		solver(NULL),
@@ -338,7 +339,7 @@ SpaceBullet::SpaceBullet(bool p_create_soft_world) :
 		gravityMagnitude(10),
 		contactDebugCount(0) {
 
-	create_empty_world(p_create_soft_world);
+	create_empty_world(GLOBAL_DEF("physics/3d/active_soft_world", true));
 	direct_access = memnew(BulletPhysicsDirectSpaceState(this));
 }
 
@@ -355,6 +356,7 @@ void SpaceBullet::flush_queries() {
 }
 
 void SpaceBullet::step(real_t p_delta_time) {
+	delta_time = p_delta_time;
 	dynamicsWorld->stepSimulation(p_delta_time, 0, 0);
 }
 
@@ -483,6 +485,7 @@ void SpaceBullet::reload_collision_filters(RigidBodyBullet *p_body) {
 void SpaceBullet::add_soft_body(SoftBodyBullet *p_body) {
 	if (is_using_soft_world()) {
 		if (p_body->get_bt_soft_body()) {
+			p_body->get_bt_soft_body()->m_worldInfo = get_soft_body_world_info();
 			static_cast<btSoftRigidDynamicsWorld *>(dynamicsWorld)->addSoftBody(p_body->get_bt_soft_body(), p_body->get_collision_layer(), p_body->get_collision_mask());
 		}
 	} else {
@@ -494,6 +497,7 @@ void SpaceBullet::remove_soft_body(SoftBodyBullet *p_body) {
 	if (is_using_soft_world()) {
 		if (p_body->get_bt_soft_body()) {
 			static_cast<btSoftRigidDynamicsWorld *>(dynamicsWorld)->removeSoftBody(p_body->get_bt_soft_body());
+			p_body->get_bt_soft_body()->m_worldInfo = NULL;
 		}
 	}
 }
@@ -549,7 +553,13 @@ BulletPhysicsDirectSpaceState *SpaceBullet::get_direct_state() {
 }
 
 btScalar calculateGodotCombinedRestitution(const btCollisionObject *body0, const btCollisionObject *body1) {
-	return MAX(body0->getRestitution(), body1->getRestitution());
+
+	return CLAMP(body0->getRestitution() + body1->getRestitution(), 0, 1);
+}
+
+btScalar calculateGodotCombinedFriction(const btCollisionObject *body0, const btCollisionObject *body1) {
+
+	return ABS(MIN(body0->getFriction(), body1->getFriction()));
 }
 
 void SpaceBullet::create_empty_world(bool p_create_soft_world) {
@@ -585,6 +595,7 @@ void SpaceBullet::create_empty_world(bool p_create_soft_world) {
 	ghostPairCallback = bulletnew(btGhostPairCallback);
 	godotFilterCallback = bulletnew(GodotFilterCallback);
 	gCalculateCombinedRestitutionCallback = &calculateGodotCombinedRestitution;
+	gCalculateCombinedFrictionCallback = &calculateGodotCombinedFriction;
 
 	dynamicsWorld->setWorldUserInfo(this);
 
@@ -645,7 +656,7 @@ void SpaceBullet::check_ghost_overlaps() {
 
 		/// 1. Reset all states
 		for (i = area->overlappingObjects.size() - 1; 0 <= i; --i) {
-			AreaBullet::OverlappingObjectData &otherObj = area->overlappingObjects[i];
+			AreaBullet::OverlappingObjectData &otherObj = area->overlappingObjects.write[i];
 			// This check prevent the overwrite of ENTER state
 			// if this function is called more times before dispatchCallbacks
 			if (otherObj.state != AreaBullet::OVERLAP_STATE_ENTER) {
@@ -754,19 +765,20 @@ void SpaceBullet::check_body_collision() {
 				Vector3 collisionWorldPosition;
 				Vector3 collisionLocalPosition;
 				Vector3 normalOnB;
+				float appliedImpulse = pt.m_appliedImpulse;
 				B_TO_G(pt.m_normalWorldOnB, normalOnB);
 
 				if (bodyA->can_add_collision()) {
 					B_TO_G(pt.getPositionWorldOnB(), collisionWorldPosition);
 					/// pt.m_localPointB Doesn't report the exact point in local space
 					B_TO_G(pt.getPositionWorldOnB() - contactManifold->getBody1()->getWorldTransform().getOrigin(), collisionLocalPosition);
-					bodyA->add_collision_object(bodyB, collisionWorldPosition, collisionLocalPosition, normalOnB, pt.m_index1, pt.m_index0);
+					bodyA->add_collision_object(bodyB, collisionWorldPosition, collisionLocalPosition, normalOnB, appliedImpulse, pt.m_index1, pt.m_index0);
 				}
 				if (bodyB->can_add_collision()) {
 					B_TO_G(pt.getPositionWorldOnA(), collisionWorldPosition);
 					/// pt.m_localPointA Doesn't report the exact point in local space
 					B_TO_G(pt.getPositionWorldOnA() - contactManifold->getBody0()->getWorldTransform().getOrigin(), collisionLocalPosition);
-					bodyB->add_collision_object(bodyA, collisionWorldPosition, collisionLocalPosition, normalOnB * -1, pt.m_index0, pt.m_index1);
+					bodyB->add_collision_object(bodyA, collisionWorldPosition, collisionLocalPosition, normalOnB * -1, appliedImpulse * -1, pt.m_index0, pt.m_index1);
 				}
 
 #ifdef DEBUG_ENABLED

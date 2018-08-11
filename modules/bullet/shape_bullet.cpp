@@ -113,6 +113,10 @@ btCapsuleShapeZ *ShapeBullet::create_shape_capsule(btScalar radius, btScalar hei
 	return bulletnew(btCapsuleShapeZ(radius, height));
 }
 
+btCylinderShape *ShapeBullet::create_shape_cylinder(btScalar radius, btScalar height) {
+	return bulletnew(btCylinderShape(btVector3(radius, height / 2.0, radius)));
+}
+
 btConvexPointCloudShape *ShapeBullet::create_shape_convex(btAlignedObjectArray<btVector3> &p_vertices, const btVector3 &p_local_scaling) {
 	return bulletnew(btConvexPointCloudShape(&p_vertices[0], p_vertices.size(), p_local_scaling));
 }
@@ -254,6 +258,39 @@ btCollisionShape *CapsuleShapeBullet::create_bt_shape(const btVector3 &p_implici
 	return prepare(ShapeBullet::create_shape_capsule(radius * p_implicit_scale[0] + p_margin, height * p_implicit_scale[1] + p_margin));
 }
 
+/* Cylinder */
+
+CylinderShapeBullet::CylinderShapeBullet() :
+		ShapeBullet() {}
+
+void CylinderShapeBullet::set_data(const Variant &p_data) {
+	Dictionary d = p_data;
+	ERR_FAIL_COND(!d.has("radius"));
+	ERR_FAIL_COND(!d.has("height"));
+	setup(d["height"], d["radius"]);
+}
+
+Variant CylinderShapeBullet::get_data() const {
+	Dictionary d;
+	d["radius"] = radius;
+	d["height"] = height;
+	return d;
+}
+
+PhysicsServer::ShapeType CylinderShapeBullet::get_type() const {
+	return PhysicsServer::SHAPE_CYLINDER;
+}
+
+void CylinderShapeBullet::setup(real_t p_height, real_t p_radius) {
+	radius = p_radius;
+	height = p_height;
+	notifyShapeChanged();
+}
+
+btCollisionShape *CylinderShapeBullet::create_bt_shape(const btVector3 &p_implicit_scale, real_t p_margin) {
+	return prepare(ShapeBullet::create_shape_cylinder(radius * p_implicit_scale[0] + p_margin, height * p_implicit_scale[1] + p_margin));
+}
+
 /* Convex polygon */
 
 ConvexPolygonShapeBullet::ConvexPolygonShapeBullet() :
@@ -267,7 +304,7 @@ void ConvexPolygonShapeBullet::get_vertices(Vector<Vector3> &out_vertices) {
 	const int n_of_vertices = vertices.size();
 	out_vertices.resize(n_of_vertices);
 	for (int i = n_of_vertices - 1; 0 <= i; --i) {
-		B_TO_G(vertices[i], out_vertices[i]);
+		B_TO_G(vertices[i], out_vertices.write[i]);
 	}
 }
 

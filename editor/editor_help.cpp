@@ -1214,6 +1214,18 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 
 				constant_line[constants[i].name] = class_desc->get_line_count() - 2;
 				class_desc->push_font(doc_code_font);
+
+				if (constants[i].value.begins_with("Color(") && constants[i].value.ends_with(")")) {
+					String stripped = constants[i].value.replace(" ", "").replace("Color(", "").replace(")", "");
+					Vector<float> color = stripped.split_floats(",");
+					if (color.size() >= 3) {
+						class_desc->push_color(Color(color[0], color[1], color[2]));
+						static const CharType prefix[3] = { 0x25CF /* filled circle */, ' ', 0 };
+						class_desc->add_text(String(prefix));
+						class_desc->pop();
+					}
+				}
+
 				class_desc->push_color(headline_color);
 				_add_text(constants[i].name);
 				class_desc->pop();
@@ -1223,6 +1235,7 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 				class_desc->push_color(value_color);
 				_add_text(constants[i].value);
 				class_desc->pop();
+
 				class_desc->pop();
 				if (constants[i].description != "") {
 					class_desc->push_font(doc_font);
@@ -1900,6 +1913,7 @@ void EditorHelpBit::_meta_clicked(String p_select) {
 void EditorHelpBit::_bind_methods() {
 
 	ClassDB::bind_method("_meta_clicked", &EditorHelpBit::_meta_clicked);
+	ClassDB::bind_method(D_METHOD("set_text", "text"), &EditorHelpBit::set_text);
 	ADD_SIGNAL(MethodInfo("request_hide"));
 }
 
@@ -1925,7 +1939,7 @@ EditorHelpBit::EditorHelpBit() {
 
 	rich_text = memnew(RichTextLabel);
 	add_child(rich_text);
-	rich_text->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	//rich_text->set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	rich_text->connect("meta_clicked", this, "_meta_clicked");
 	rich_text->add_color_override("selection_color", get_color("text_editor/theme/selection_color", "Editor"));
 	rich_text->set_override_selected_font_color(false);

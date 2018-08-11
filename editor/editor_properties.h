@@ -119,6 +119,25 @@ public:
 	EditorPropertyPath();
 };
 
+class EditorPropertyClassName : public EditorProperty {
+	GDCLASS(EditorPropertyClassName, EditorProperty)
+private:
+	CreateDialog *dialog;
+	Button *property;
+	String selected_type;
+	String base_type;
+	void _property_selected();
+	void _dialog_created();
+
+protected:
+	static void _bind_methods();
+
+public:
+	void setup(const String &p_base_type, const String &p_selected_type);
+	virtual void update_property();
+	EditorPropertyClassName();
+};
+
 class EditorPropertyMember : public EditorProperty {
 	GDCLASS(EditorPropertyMember, EditorProperty)
 public:
@@ -178,6 +197,7 @@ protected:
 public:
 	void setup(const Vector<String> &p_options);
 	virtual void update_property();
+	void set_option_button_clip(bool p_enable);
 	EditorPropertyEnum();
 };
 
@@ -277,16 +297,26 @@ public:
 class EditorPropertyEasing : public EditorProperty {
 	GDCLASS(EditorPropertyEasing, EditorProperty)
 	Control *easing_draw;
-	ToolButton *button_out, *button_in, *button_linear, *button_constant;
-	ToolButton *button_in_out, *button_out_in;
-	VBoxContainer *vb;
+	PopupMenu *preset;
+	bool full;
+
+	enum {
+		EASING_ZERO,
+		EASING_LINEAR,
+		EASING_IN,
+		EASING_OUT,
+		EASING_IN_OUT,
+		EASING_OUT_IN,
+		EASING_MAX
+
+	};
 
 	bool flip;
 
 	void _drag_easing(const Ref<InputEvent> &p_ev);
 	void _draw_easing();
 	void _notification(int p_what);
-	void _set_preset(float p_val);
+	void _set_preset(int);
 
 protected:
 	static void _bind_methods();
@@ -304,6 +334,7 @@ class EditorPropertyVector2 : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -319,6 +350,7 @@ class EditorPropertyRect2 : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -334,6 +366,7 @@ class EditorPropertyVector3 : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -349,6 +382,7 @@ class EditorPropertyPlane : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -364,6 +398,7 @@ class EditorPropertyQuat : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -379,6 +414,7 @@ class EditorPropertyAABB : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -394,6 +430,7 @@ class EditorPropertyTransform2D : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -409,6 +446,7 @@ class EditorPropertyBasis : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -424,6 +462,7 @@ class EditorPropertyTransform : public EditorProperty {
 	void _value_changed(double p_val);
 
 protected:
+	void _notification(int p_what);
 	static void _bind_methods();
 
 public:
@@ -453,6 +492,7 @@ class EditorPropertyNodePath : public EditorProperty {
 	SceneTreeDialog *scene_tree;
 	NodePath base_hint;
 
+	Vector<StringName> valid_types;
 	void _node_selected(const NodePath &p_path);
 	void _node_assign();
 	void _node_clear();
@@ -463,7 +503,7 @@ protected:
 
 public:
 	virtual void update_property();
-	void setup(const NodePath &p_base_hint);
+	void setup(const NodePath &p_base_hint, Vector<StringName> p_valid_types);
 	EditorPropertyNodePath();
 };
 
@@ -486,6 +526,7 @@ class EditorPropertyResource : public EditorProperty {
 	};
 
 	Button *assign;
+	TextureRect *preview;
 	Button *edit;
 	PopupMenu *menu;
 	EditorFileDialog *file;
@@ -529,6 +570,8 @@ public:
 
 	void collapse_all_folding();
 	void expand_all_folding();
+
+	void set_use_sub_inspector(bool p_enable);
 
 	EditorPropertyResource();
 };

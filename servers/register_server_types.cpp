@@ -48,6 +48,7 @@
 #include "audio/effects/audio_effect_panner.h"
 #include "audio/effects/audio_effect_phaser.h"
 #include "audio/effects/audio_effect_pitch_shift.h"
+#include "audio/effects/audio_effect_record.h"
 #include "audio/effects/audio_effect_reverb.h"
 #include "audio/effects/audio_effect_stereo_enhance.h"
 #include "audio_server.h"
@@ -72,7 +73,7 @@ static void _debugger_get_resource_usage(List<ScriptDebuggerRemote::ResourceUsag
 		usage.vram = E->get().bytes;
 		usage.id = E->get().texture;
 		usage.type = "Texture";
-		usage.format = itos(E->get().size.width) + "x" + itos(E->get().size.height) + " " + Image::get_format_name(E->get().format);
+		usage.format = itos(E->get().width) + "x" + itos(E->get().height) + " " + Image::get_format_name(E->get().format);
 		r_usage->push_back(usage);
 	}
 }
@@ -138,6 +139,7 @@ void register_server_types() {
 		ClassDB::register_class<AudioEffectLimiter>();
 		ClassDB::register_class<AudioEffectPitchShift>();
 		ClassDB::register_class<AudioEffectPhaser>();
+		ClassDB::register_class<AudioEffectRecord>();
 	}
 
 	ClassDB::register_virtual_class<Physics2DDirectBodyState>();

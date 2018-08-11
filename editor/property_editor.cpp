@@ -90,7 +90,7 @@ bool EditorResourceConversionPlugin::handles(const Ref<Resource> &p_resource) co
 	return false;
 }
 
-Ref<Resource> EditorResourceConversionPlugin::convert(const Ref<Resource> &p_resource) {
+Ref<Resource> EditorResourceConversionPlugin::convert(const Ref<Resource> &p_resource) const {
 
 	if (get_script_instance())
 		return get_script_instance()->call("_convert", p_resource);
@@ -847,6 +847,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 			if (!color_picker) {
 				//late init for performance
 				color_picker = memnew(ColorPicker);
+				color_picker->set_deferred_mode(true);
 				add_child(color_picker);
 				color_picker->hide();
 				color_picker->connect("color_changed", this, "_color_changed");
@@ -4393,7 +4394,7 @@ PropertyEditor::PropertyEditor() {
 	use_filter = false;
 	subsection_selectable = false;
 	property_selectable = false;
-	show_type_icons = EDITOR_DEF("interface/editor/show_type_icons", false);
+	show_type_icons = false; // TODO: need to reimplement it to work with the new inspector
 }
 
 PropertyEditor::~PropertyEditor() {

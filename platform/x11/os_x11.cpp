@@ -84,6 +84,10 @@ void OS_X11::initialize_core() {
 	OS_Unix::initialize_core();
 }
 
+int OS_X11::get_current_video_driver() const {
+	return video_driver_index;
+}
+
 Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver) {
 
 	long im_event_mask = 0;
@@ -285,6 +289,8 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 		} break;
 	}
 
+	video_driver_index = p_video_driver; // FIXME TODO - FIX IF DRIVER DETECTION HAPPENS AND GLES2 MUST BE USED
+
 	context_gl->set_use_vsync(current_videomode.use_vsync);
 
 #endif
@@ -335,6 +341,10 @@ Error OS_X11::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 	}
 
 	AudioDriverManager::initialize(p_audio_driver);
+
+#ifdef ALSAMIDI_ENABLED
+	driver_alsamidi.open();
+#endif
 
 	ERR_FAIL_COND_V(!visual_server, ERR_UNAVAILABLE);
 	ERR_FAIL_COND_V(x11_window == 0, ERR_UNAVAILABLE);
@@ -600,6 +610,9 @@ void OS_X11::finalize() {
 		memdelete(debugger_connection_console);
 	}
 	*/
+#ifdef ALSAMIDI_ENABLED
+	driver_alsamidi.close();
+#endif
 
 #ifdef JOYDEV_ENABLED
 	memdelete(joypad);
@@ -1825,8 +1838,8 @@ void OS_X11::process_xevents() {
 							GrabModeAsync, GrabModeAsync, x11_window, None, CurrentTime);
 				}
 #ifdef TOUCH_ENABLED
-					// Grab touch devices to avoid OS gesture interference
-					/*for (int i = 0; i < touch.devices.size(); ++i) {
+				// Grab touch devices to avoid OS gesture interference
+				/*for (int i = 0; i < touch.devices.size(); ++i) {
 					XIGrabDevice(x11_display, touch.devices[i], x11_window, CurrentTime, None, XIGrabModeAsync, XIGrabModeAsync, False, &touch.event_mask);
 				}*/
 #endif
@@ -1954,6 +1967,7 @@ void OS_X11::process_xevents() {
 				// to be able to send relative motion events.
 				Point2i pos(event.xmotion.x, event.xmotion.y);
 
+#ifdef TOUCH_ENABLED
 				// Avoidance of spurious mouse motion (see handling of touch)
 				bool filter = false;
 				// Adding some tolerance to match better Point2i to Vector2
@@ -1965,6 +1979,7 @@ void OS_X11::process_xevents() {
 				if (filter) {
 					break;
 				}
+#endif
 
 				if (mouse_mode == MOUSE_MODE_CAPTURED) {
 
@@ -2090,7 +2105,7 @@ void OS_X11::process_xevents() {
 
 					Vector<String> files = String((char *)p.data).split("\n", false);
 					for (int i = 0; i < files.size(); i++) {
-						files[i] = files[i].replace("file://", "").replace("%20", " ").strip_escapes();
+						files.write[i] = files[i].replace("file://", "").replace("%20", " ").strip_escapes();
 					}
 					main_loop->drop_files(files);
 
@@ -2527,17 +2542,23 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 
 void OS_X11::release_rendering_thread() {
 
+#if defined(OPENGL_ENABLED)
 	context_gl->release_current();
+#endif
 }
 
 void OS_X11::make_rendering_thread() {
 
+#if defined(OPENGL_ENABLED)
 	context_gl->make_current();
+#endif
 }
 
 void OS_X11::swap_buffers() {
 
+#if defined(OPENGL_ENABLED)
 	context_gl->swap_buffers();
+#endif
 }
 
 void OS_X11::alert(const String &p_alert, const String &p_title) {
@@ -2566,12 +2587,12 @@ void OS_X11::set_icon(const Ref<Image> &p_icon) {
 
 		pd.resize(2 + w * h);
 
-		pd[0] = w;
-		pd[1] = h;
+		pd.write[0] = w;
+		pd.write[1] = h;
 
 		PoolVector<uint8_t>::Read r = img->get_data().read();
 
-		long *wr = &pd[2];
+		long *wr = &pd.write[2];
 		uint8_t const *pr = r.ptr();
 
 		for (int i = 0; i < w * h; i++) {
@@ -2631,8 +2652,10 @@ String OS_X11::get_joy_guid(int p_device) const {
 }
 
 void OS_X11::_set_use_vsync(bool p_enable) {
+#if defined(OPENGL_ENABLED)
 	if (context_gl)
-		return context_gl->set_use_vsync(p_enable);
+		context_gl->set_use_vsync(p_enable);
+#endif
 }
 /*
 bool OS_X11::is_vsync_enabled() const {
