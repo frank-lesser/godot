@@ -31,6 +31,8 @@
 #ifndef SKELETON_IK_H
 #define SKELETON_IK_H
 
+#ifndef _3D_DISABLED
+
 /**
  * @author AndreaCatania
  */
@@ -121,7 +123,7 @@ public:
 
 private:
 	/// Init a chain that starts from the root to tip
-	static void build_chain(Task *p_task, bool p_force_simple_chain = true);
+	static bool build_chain(Task *p_task, bool p_force_simple_chain = true);
 
 	static void update_chain(const Skeleton *p_sk, ChainItem *p_chain_item);
 
@@ -208,5 +210,7 @@ private:
 	void reload_goal();
 	void _solve_chain();
 };
+
+#endif // _3D_DISABLED
 
 #endif // SKELETON_IK_H

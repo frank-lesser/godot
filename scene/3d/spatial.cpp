@@ -185,10 +185,8 @@ void Spatial::_notification(int p_what) {
 
 					if (data.gizmo.is_valid()) {
 						data.gizmo->create();
-						if (data.gizmo->can_draw()) {
-							if (is_visible_in_tree()) {
-								data.gizmo->redraw();
-							}
+						if (is_visible_in_tree()) {
+							data.gizmo->redraw();
 						}
 						data.gizmo->transform();
 					}
@@ -423,10 +421,8 @@ void Spatial::set_gizmo(const Ref<SpatialGizmo> &p_gizmo) {
 	if (data.gizmo.is_valid() && is_inside_world()) {
 
 		data.gizmo->create();
-		if (data.gizmo->can_draw()) {
-			if (is_visible_in_tree()) {
-				data.gizmo->redraw();
-			}
+		if (is_visible_in_tree()) {
+			data.gizmo->redraw();
 		}
 		data.gizmo->transform();
 	}
@@ -452,12 +448,10 @@ void Spatial::_update_gizmo() {
 		return;
 	data.gizmo_dirty = false;
 	if (data.gizmo.is_valid()) {
-		if (data.gizmo->can_draw()) {
-			if (is_visible_in_tree())
-				data.gizmo->redraw();
-			else
-				data.gizmo->clear();
-		}
+		if (is_visible_in_tree())
+			data.gizmo->redraw();
+		else
+			data.gizmo->clear();
 	}
 #endif
 }
@@ -727,6 +721,16 @@ bool Spatial::is_local_transform_notification_enabled() const {
 	return data.notify_local_transform;
 }
 
+void Spatial::force_update_transform() {
+	ERR_FAIL_COND(!is_inside_tree());
+	if (!xform_change.in_list()) {
+		return; //nothing to update
+	}
+	get_tree()->xform_change_list.remove(&xform_change);
+
+	notification(NOTIFICATION_TRANSFORM_CHANGED);
+}
+
 void Spatial::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_transform", "local"), &Spatial::set_transform);
@@ -748,6 +752,8 @@ void Spatial::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_disable_scale", "disable"), &Spatial::set_disable_scale);
 	ClassDB::bind_method(D_METHOD("is_scale_disabled"), &Spatial::is_scale_disabled);
 	ClassDB::bind_method(D_METHOD("get_world"), &Spatial::get_world);
+
+	ClassDB::bind_method(D_METHOD("force_update_transform"), &Spatial::force_update_transform);
 
 	ClassDB::bind_method(D_METHOD("_update_gizmo"), &Spatial::_update_gizmo);
 

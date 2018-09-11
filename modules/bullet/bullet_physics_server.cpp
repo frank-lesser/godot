@@ -163,6 +163,18 @@ Variant BulletPhysicsServer::shape_get_data(RID p_shape) const {
 	return shape->get_data();
 }
 
+void BulletPhysicsServer::shape_set_margin(RID p_shape, real_t p_margin) {
+	ShapeBullet *shape = shape_owner.get(p_shape);
+	ERR_FAIL_COND(!shape);
+	shape->set_margin(p_margin);
+}
+
+real_t BulletPhysicsServer::shape_get_margin(RID p_shape) const {
+	ShapeBullet *shape = shape_owner.get(p_shape);
+	ERR_FAIL_COND_V(!shape, 0.0);
+	return shape->get_margin();
+}
+
 real_t BulletPhysicsServer::shape_get_custom_solver_bias(RID p_shape) const {
 	//WARN_PRINT("Bias not supported by Bullet physics engine");
 	return 0.;
@@ -861,12 +873,20 @@ PhysicsDirectBodyState *BulletPhysicsServer::body_get_direct_state(RID p_body) {
 	return BulletPhysicsDirectBodyState::get_singleton(body);
 }
 
-bool BulletPhysicsServer::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, MotionResult *r_result) {
+bool BulletPhysicsServer::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, MotionResult *r_result, bool p_exclude_raycast_shapes) {
 	RigidBodyBullet *body = rigid_body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body, false);
 	ERR_FAIL_COND_V(!body->get_space(), false);
 
-	return body->get_space()->test_body_motion(body, p_from, p_motion, p_infinite_inertia, r_result);
+	return body->get_space()->test_body_motion(body, p_from, p_motion, p_infinite_inertia, r_result, p_exclude_raycast_shapes);
+}
+
+int BulletPhysicsServer::body_test_ray_separation(RID p_body, const Transform &p_transform, bool p_infinite_inertia, Vector3 &r_recover_motion, SeparationResult *r_results, int p_result_max, float p_margin) {
+	RigidBodyBullet *body = rigid_body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body, 0);
+	ERR_FAIL_COND_V(!body->get_space(), 0);
+
+	return body->get_space()->test_ray_separation(body, p_transform, p_infinite_inertia, r_recover_motion, r_results, p_result_max, p_margin);
 }
 
 RID BulletPhysicsServer::soft_body_create(bool p_init_sleeping) {
@@ -981,11 +1001,13 @@ void BulletPhysicsServer::soft_body_get_collision_exceptions(RID p_body, List<RI
 }
 
 void BulletPhysicsServer::soft_body_set_state(RID p_body, BodyState p_state, const Variant &p_variant) {
-	print_line("TODO MUST BE IMPLEMENTED");
+	// FIXME: Must be implemented.
+	WARN_PRINT("soft_body_state is not implemented yet in Bullet backend.");
 }
 
 Variant BulletPhysicsServer::soft_body_get_state(RID p_body, BodyState p_state) const {
-	print_line("TODO MUST BE IMPLEMENTED");
+	// FIXME: Must be implemented.
+	WARN_PRINT("soft_body_state is not implemented yet in Bullet backend.");
 	return Variant();
 }
 
@@ -1419,7 +1441,7 @@ RID BulletPhysicsServer::joint_create_generic_6dof(RID p_body_A, const Transform
 
 	ERR_FAIL_COND_V(body_A == body_B, RID());
 
-	JointBullet *joint = bulletnew(Generic6DOFJointBullet(body_A, body_B, p_local_frame_A, p_local_frame_B, true));
+	JointBullet *joint = bulletnew(Generic6DOFJointBullet(body_A, body_B, p_local_frame_A, p_local_frame_B));
 	AddJointToSpace(body_A, joint);
 
 	CreateThenReturnRID(joint_owner, joint);

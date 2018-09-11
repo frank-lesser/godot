@@ -1192,7 +1192,7 @@ Variant::operator int64_t() const {
 		case BOOL: return _data._bool ? 1 : 0;
 		case INT: return _data._int;
 		case REAL: return _data._real;
-		case STRING: return operator String().to_int();
+		case STRING: return operator String().to_int64();
 		default: {
 
 			return 0;
@@ -1460,7 +1460,7 @@ Variant::operator String() const {
 
 			const Dictionary &d = *reinterpret_cast<const Dictionary *>(_data._mem);
 			//const String *K=NULL;
-			String str;
+			String str("{");
 			List<Variant> keys;
 			d.get_key_list(&keys);
 
@@ -1479,8 +1479,9 @@ Variant::operator String() const {
 			for (int i = 0; i < pairs.size(); i++) {
 				if (i > 0)
 					str += ", ";
-				str += "(" + pairs[i].key + ":" + pairs[i].value + ")";
+				str += pairs[i].key + ":" + pairs[i].value;
 			}
+			str += "}";
 
 			return str;
 		} break;

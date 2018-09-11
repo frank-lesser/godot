@@ -172,6 +172,7 @@ def configure_msvc(env, manual_msvc_config):
             env.Append(CCFLAGS=['/O1'])
         env.Append(LINKFLAGS=['/SUBSYSTEM:WINDOWS'])
         env.Append(LINKFLAGS=['/ENTRY:mainCRTStartup'])
+        env.Append(LINKFLAGS=['/OPT:REF'])
 
     elif (env["target"] == "release_debug"):
         if (env["optimize"] == "speed"): #optimize for speed (default)
@@ -180,12 +181,7 @@ def configure_msvc(env, manual_msvc_config):
             env.Append(CCFLAGS=['/O1'])
         env.AppendUnique(CPPDEFINES = ['DEBUG_ENABLED'])
         env.Append(LINKFLAGS=['/SUBSYSTEM:CONSOLE'])
-
-    elif (env["target"] == "debug_release"):
-        env.Append(CCFLAGS=['/Z7', '/Od'])
-        env.Append(LINKFLAGS=['/DEBUG'])
-        env.Append(LINKFLAGS=['/SUBSYSTEM:WINDOWS'])
-        env.Append(LINKFLAGS=['/ENTRY:mainCRTStartup'])
+        env.Append(LINKFLAGS=['/OPT:REF'])
 
     elif (env["target"] == "debug"):
         env.AppendUnique(CCFLAGS=['/Z7', '/Od', '/EHsc'])
@@ -193,6 +189,10 @@ def configure_msvc(env, manual_msvc_config):
                                        'D3D_DEBUG_INFO'])
         env.Append(LINKFLAGS=['/SUBSYSTEM:CONSOLE'])
         env.Append(LINKFLAGS=['/DEBUG'])
+
+    if (env["debug_symbols"] == "full" or env["debug_symbols"] == "yes"):
+        env.AppendUnique(CCFLAGS=['/Z7'])
+        env.AppendUnique(LINKFLAGS=['/DEBUG'])
 
     ## Compile/link flags
 
@@ -210,6 +210,7 @@ def configure_msvc(env, manual_msvc_config):
                                    'WIN32', 'MSVC',
                                    {'WINVER' : '$target_win_version',
                                     '_WIN32_WINNT': '$target_win_version'}])
+    env.AppendUnique(CPPDEFINES=['NOMINMAX']) # disable bogus min/max WinDef.h macros
     if env["bits"] == "64":
         env.AppendUnique(CPPDEFINES=['_WIN64'])
 

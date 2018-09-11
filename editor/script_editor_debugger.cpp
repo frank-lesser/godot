@@ -734,7 +734,10 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 
 		error_list->set_item_metadata(error_list->get_item_count() - 1, stack);
 
-		error_count++;
+		if (warning)
+			warning_count++;
+		else
+			error_count++;
 
 	} else if (p_msg == "profile_sig") {
 		//cache a signature
@@ -1011,20 +1014,26 @@ void ScriptEditorDebugger::_notification(int p_what) {
 				}
 			}
 
-			if (error_count != last_error_count) {
+			if (error_count != last_error_count || warning_count != last_warning_count) {
 
-				if (error_count == 0) {
+				if (error_count == 0 && warning_count == 0) {
 					error_split->set_name(TTR("Errors"));
 					debugger_button->set_text(TTR("Debugger"));
 					debugger_button->set_icon(Ref<Texture>());
 					tabs->set_tab_icon(error_split->get_index(), Ref<Texture>());
 				} else {
-					error_split->set_name(TTR("Errors") + " (" + itos(error_count) + ")");
-					debugger_button->set_text(TTR("Debugger") + " (" + itos(error_count) + ")");
-					debugger_button->set_icon(get_icon("Error", "EditorIcons"));
-					tabs->set_tab_icon(error_split->get_index(), get_icon("Error", "EditorIcons"));
+					error_split->set_name(TTR("Errors") + " (" + itos(error_count + warning_count) + ")");
+					debugger_button->set_text(TTR("Debugger") + " (" + itos(error_count + warning_count) + ")");
+					if (error_count == 0) {
+						debugger_button->set_icon(get_icon("Warning", "EditorIcons"));
+						tabs->set_tab_icon(error_split->get_index(), get_icon("Warning", "EditorIcons"));
+					} else {
+						debugger_button->set_icon(get_icon("Error", "EditorIcons"));
+						tabs->set_tab_icon(error_split->get_index(), get_icon("Error", "EditorIcons"));
+					}
 				}
 				last_error_count = error_count;
+				last_warning_count = warning_count;
 			}
 
 			if (connection.is_null()) {
@@ -1054,6 +1063,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 					error_list->clear();
 					error_stack->clear();
 					error_count = 0;
+					warning_count = 0;
 					profiler_signature.clear();
 					//live_edit_root->set_text("/root");
 
@@ -1123,7 +1133,6 @@ void ScriptEditorDebugger::_notification(int p_what) {
 						}
 
 						message_type = cmd;
-						//print_line("GOT: "+message_type);
 
 						ret = ppeer->get_var(cmd);
 						if (ret != OK) {
@@ -1198,7 +1207,7 @@ void ScriptEditorDebugger::start() {
 
 	int remote_port = (int)EditorSettings::get_singleton()->get("network/debug/remote_port");
 	if (server->listen(remote_port) != OK) {
-		EditorNode::get_log()->add_message(String("Error listening on port ") + itos(remote_port), true);
+		EditorNode::get_log()->add_message(String("Error listening on port ") + itos(remote_port), EditorLog::MSG_TYPE_ERROR);
 		return;
 	}
 
@@ -1230,6 +1239,9 @@ void ScriptEditorDebugger::stop() {
 	if (connection.is_valid()) {
 		EditorNode::get_log()->add_message("** Debug Process Stopped **");
 		connection.unref();
+
+		reason->set_text("");
+		reason->set_tooltip("");
 	}
 
 	pending_in_queue = 0;
@@ -1272,15 +1284,13 @@ void ScriptEditorDebugger::_profiler_activate(bool p_enable) {
 		max_funcs = CLAMP(max_funcs, 16, 512);
 		msg.push_back(max_funcs);
 		ppeer->put_var(msg);
-
-		print_line("BEGIN PROFILING!");
+		print_verbose("Starting profiling.");
 
 	} else {
 		Array msg;
 		msg.push_back("stop_profiling");
 		ppeer->put_var(msg);
-
-		print_line("END PROFILING!");
+		print_verbose("Ending profiling.");
 	}
 }
 
@@ -1417,8 +1427,6 @@ void ScriptEditorDebugger::_method_changed(Object *p_base, const StringName &p_n
 
 		return;
 	}
-
-	//print_line("method");
 }
 
 void ScriptEditorDebugger::_property_changed(Object *p_base, const StringName &p_property, const Variant &p_value) {
@@ -1487,8 +1495,6 @@ void ScriptEditorDebugger::_property_changed(Object *p_base, const StringName &p
 
 		return;
 	}
-
-	//print_line("prop");
 }
 
 void ScriptEditorDebugger::_method_changeds(void *p_ud, Object *p_base, const StringName &p_name, VARIANT_ARG_DECLARE) {
@@ -1750,6 +1756,7 @@ void ScriptEditorDebugger::_clear_errors_list() {
 
 	error_list->clear();
 	error_count = 0;
+	warning_count = 0;
 	_notification(NOTIFICATION_PROCESS);
 }
 
@@ -2162,9 +2169,11 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 	live_debug = false;
 	last_path_id = false;
 	error_count = 0;
+	warning_count = 0;
 	hide_on_stop = true;
 	enable_external_editor = false;
 	last_error_count = 0;
+	last_warning_count = 0;
 
 	EditorNode::get_singleton()->get_pause_button()->connect("pressed", this, "_paused");
 }

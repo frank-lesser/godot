@@ -62,7 +62,6 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry::MeshData &r_me
 		Vector3 sp = p_points[i].snapped(Vector3(0.0001, 0.0001, 0.0001));
 		if (valid_cache.has(sp)) {
 			valid_points.write[i] = false;
-			//print_line("INVALIDATED: "+itos(i));
 		} else {
 			valid_points.write[i] = true;
 			valid_cache.insert(sp);
@@ -397,7 +396,6 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry::MeshData &r_me
 			Map<Edge, RetFaceConnect>::Element *F = ret_edges.find(e);
 
 			ERR_CONTINUE(!F);
-
 			List<Geometry::MeshData::Face>::Element *O = F->get().left == E ? F->get().right : F->get().left;
 			ERR_CONTINUE(O == E);
 			ERR_CONTINUE(O == NULL);
@@ -426,7 +424,6 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry::MeshData &r_me
 							Edge e2(idx, idxn);
 
 							Map<Edge, RetFaceConnect>::Element *F2 = ret_edges.find(e2);
-
 							ERR_CONTINUE(!F2);
 							//change faceconnect, point to this face instead
 							if (F2->get().left == O)
@@ -439,6 +436,15 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry::MeshData &r_me
 					}
 				}
 
+				// remove all edge connections to this face
+				for (Map<Edge, RetFaceConnect>::Element *E = ret_edges.front(); E; E = E->next()) {
+					if (E->get().left == O)
+						E->get().left = NULL;
+
+					if (E->get().right == O)
+						E->get().right = NULL;
+				}
+
 				ret_edges.erase(F); //remove the edge
 				ret_faces.erase(O); //remove the face
 			}
@@ -448,7 +454,6 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry::MeshData &r_me
 	//fill mesh
 	r_mesh.faces.clear();
 	r_mesh.faces.resize(ret_faces.size());
-	//print_line("FACECOUNT: "+itos(r_mesh.faces.size()));
 
 	int idx = 0;
 	for (List<Geometry::MeshData::Face>::Element *E = ret_faces.front(); E; E = E->next()) {
@@ -465,13 +470,6 @@ Error QuickHull::build(const Vector<Vector3> &p_points, Geometry::MeshData &r_me
 	}
 
 	r_mesh.vertices = p_points;
-
-	//r_mesh.optimize_vertices();
-	/*
-	print_line("FACES: "+itos(r_mesh.faces.size()));
-	print_line("EDGES: "+itos(r_mesh.edges.size()));
-	print_line("VERTICES: "+itos(r_mesh.vertices.size()));
-*/
 
 	return OK;
 }

@@ -434,8 +434,12 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("font_color_selected", "LineEdit", Color(0, 0, 0));
 	theme->set_color("cursor_color", "LineEdit", control_font_color_hover);
 	theme->set_color("selection_color", "LineEdit", font_color_selection);
+	theme->set_color("clear_button_color", "LineEdit", control_font_color);
+	theme->set_color("clear_button_color_pressed", "LineEdit", control_font_color_pressed);
 
 	theme->set_constant("minimum_spaces", "LineEdit", 12 * scale);
+
+	theme->set_icon("clear", "LineEdit", make_icon(line_edit_clear_png));
 
 	// ProgressBar
 
@@ -863,7 +867,6 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	Ref<StyleBoxTexture> ttnc = make_stylebox(full_panel_bg_png, 8, 8, 8, 8);
 	ttnc->set_draw_center(false);
 
-	theme->set_stylebox("border", "ReferenceRect", make_stylebox(reference_border_png, 4, 4, 4, 4));
 	theme->set_stylebox("panelnc", "Panel", ttnc);
 	theme->set_stylebox("panelf", "Panel", tc_sb);
 

@@ -219,6 +219,9 @@ void ScriptEditorQuickOpen::_notification(int p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 
 			connect("confirmed", this, "_confirmed");
+
+			search_box->set_right_icon(get_icon("Search", "EditorIcons"));
+			search_box->set_clear_button_enabled(true);
 		} break;
 	}
 }
@@ -501,6 +504,13 @@ void ScriptEditor::_open_recent_script(int p_idx) {
 			return;
 		}
 		// if it's a path then its most likely a deleted file not help
+	} else if (path.find("::") != -1) {
+		// built-in script
+		Ref<Script> script = ResourceLoader::load(path);
+		if (script.is_valid()) {
+			edit(script, true);
+			return;
+		}
 	} else if (!path.is_resource_file()) {
 		_help_class_open(path);
 		return;
@@ -839,6 +849,19 @@ bool ScriptEditor::_test_script_times_on_disk(RES p_for_script) {
 void ScriptEditor::_file_dialog_action(String p_file) {
 
 	switch (file_dialog_option) {
+		case FILE_NEW_TEXTFILE: {
+			Error err;
+			FileAccess *file = FileAccess::open(p_file, FileAccess::WRITE, &err);
+			if (err) {
+				memdelete(file);
+				editor->show_warning(TTR("Error writing TextFile:") + "\n" + p_file, TTR("Error!"));
+				break;
+			}
+			file->close();
+			memdelete(file);
+
+			// fallthrough to open the file.
+		}
 		case FILE_OPEN: {
 
 			List<String> extensions;
@@ -846,7 +869,7 @@ void ScriptEditor::_file_dialog_action(String p_file) {
 			if (extensions.find(p_file.get_extension())) {
 				Ref<Script> scr = ResourceLoader::load(p_file);
 				if (!scr.is_valid()) {
-					editor->show_warning(TTR("Error could not load file."), TTR("Error!"));
+					editor->show_warning(TTR("Error: could not load file."), TTR("Error!"));
 					file_dialog_option = -1;
 					return;
 				}
@@ -867,7 +890,7 @@ void ScriptEditor::_file_dialog_action(String p_file) {
 				file_dialog_option = -1;
 				return;
 			}
-		}
+		} break;
 		case FILE_SAVE_AS: {
 			ScriptEditorBase *current = _get_current_editor();
 
@@ -925,6 +948,15 @@ void ScriptEditor::_menu_option(int p_option) {
 		case FILE_NEW: {
 			script_create_dialog->config("Node", ".gd");
 			script_create_dialog->popup_centered(Size2(300, 300) * EDSCALE);
+		} break;
+		case FILE_NEW_TEXTFILE: {
+			file_dialog->set_mode(EditorFileDialog::MODE_SAVE_FILE);
+			file_dialog->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
+			file_dialog_option = FILE_NEW_TEXTFILE;
+
+			file_dialog->clear_filters();
+			file_dialog->popup_centered_ratio();
+			file_dialog->set_title(TTR("New TextFile..."));
 		} break;
 		case FILE_OPEN: {
 			file_dialog->set_mode(EditorFileDialog::MODE_OPEN_FILE);
@@ -1667,7 +1699,6 @@ void ScriptEditor::_update_script_names() {
 	if (restoring_layout)
 		return;
 
-	waiting_update_names = false;
 	Set<Ref<Script> > used;
 	Node *edited = EditorNode::get_singleton()->get_edited_scene();
 	if (edited) {
@@ -1791,8 +1822,12 @@ void ScriptEditor::_update_script_names() {
 		}
 	}
 
-	_update_members_overview();
-	_update_help_overview();
+	if (!waiting_update_names) {
+		_update_members_overview();
+		_update_help_overview();
+	} else {
+		waiting_update_names = false;
+	}
 	_update_members_overview_visibility();
 	_update_help_overview_visibility();
 	_update_script_colors();
@@ -1934,7 +1969,7 @@ bool ScriptEditor::edit(const RES &p_resource, int p_line, int p_col, bool p_gra
 		if (!se)
 			continue;
 
-		if (se->get_edited_resource() == p_resource) {
+		if ((script != NULL && se->get_edited_resource() == p_resource) || se->get_edited_resource()->get_path() == p_resource->get_path()) {
 
 			if (should_open) {
 				if (tab_container->get_current_tab() != i) {
@@ -2384,9 +2419,23 @@ void ScriptEditor::_unhandled_input(const Ref<InputEvent> &p_event) {
 void ScriptEditor::_script_list_gui_input(const Ref<InputEvent> &ev) {
 
 	Ref<InputEventMouseButton> mb = ev;
-	if (mb.is_valid() && mb->get_button_index() == BUTTON_RIGHT && mb->is_pressed()) {
+	if (mb.is_valid() && mb->is_pressed()) {
+		switch (mb->get_button_index()) {
 
-		_make_script_list_context_menu();
+			case BUTTON_MIDDLE: {
+				// Right-click selects automatically; middle-click does not.
+				int idx = script_list->get_item_at_position(mb->get_position(), true);
+				if (idx >= 0) {
+					script_list->select(idx);
+					_script_selected(idx);
+					_menu_option(FILE_CLOSE);
+				}
+			} break;
+
+			case BUTTON_RIGHT: {
+				_make_script_list_context_menu();
+			} break;
+		}
 	}
 }
 
@@ -2894,7 +2943,7 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	script_list->set_v_size_flags(SIZE_EXPAND_FILL);
 	script_split->set_split_offset(140);
 	_sort_list_on_update = true;
-	script_list->connect("gui_input", this, "_script_list_gui_input");
+	script_list->connect("gui_input", this, "_script_list_gui_input", varray(), CONNECT_DEFERRED);
 	script_list->set_allow_rmb_select(true);
 	script_list->set_drag_forwarding(this);
 
@@ -2957,7 +3006,8 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	menu_hb->add_child(file_menu);
 	file_menu->set_text(TTR("File"));
 	file_menu->get_popup()->set_hide_on_window_lose_focus(true);
-	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new", TTR("New")), FILE_NEW);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new", TTR("New Script")), FILE_NEW);
+	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new_textfile", TTR("New TextFile")), FILE_NEW_TEXTFILE);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/open", TTR("Open")), FILE_OPEN);
 	file_menu->get_popup()->add_submenu_item(TTR("Open Recent"), "RecentScripts", FILE_OPEN_RECENT);
 

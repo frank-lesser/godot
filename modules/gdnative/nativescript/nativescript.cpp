@@ -62,6 +62,11 @@ void NativeScript::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_library", "library"), &NativeScript::set_library);
 	ClassDB::bind_method(D_METHOD("get_library"), &NativeScript::get_library);
 
+	ClassDB::bind_method(D_METHOD("set_script_class_name", "class_name"), &NativeScript::set_script_class_name);
+	ClassDB::bind_method(D_METHOD("get_script_class_name"), &NativeScript::get_script_class_name);
+	ClassDB::bind_method(D_METHOD("set_script_class_icon_path", "icon_path"), &NativeScript::set_script_class_icon_path);
+	ClassDB::bind_method(D_METHOD("get_script_class_icon_path"), &NativeScript::get_script_class_icon_path);
+
 	ClassDB::bind_method(D_METHOD("get_class_documentation"), &NativeScript::get_class_documentation);
 	ClassDB::bind_method(D_METHOD("get_method_documentation", "method"), &NativeScript::get_method_documentation);
 	ClassDB::bind_method(D_METHOD("get_signal_documentation", "signal_name"), &NativeScript::get_signal_documentation);
@@ -69,6 +74,9 @@ void NativeScript::_bind_methods() {
 
 	ADD_PROPERTYNZ(PropertyInfo(Variant::STRING, "class_name"), "set_class_name", "get_class_name");
 	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "library", PROPERTY_HINT_RESOURCE_TYPE, "GDNativeLibrary"), "set_library", "get_library");
+	ADD_GROUP("Script Class", "script_class_");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::STRING, "script_class_name"), "set_script_class_name", "get_script_class_name");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::STRING, "script_class_icon_path", PROPERTY_HINT_FILE), "set_script_class_icon_path", "get_script_class_icon_path");
 
 	ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "new", &NativeScript::_new, MethodInfo(Variant::OBJECT, "new"));
 }
@@ -129,6 +137,22 @@ void NativeScript::set_library(Ref<GDNativeLibrary> p_library) {
 
 Ref<GDNativeLibrary> NativeScript::get_library() const {
 	return library;
+}
+
+void NativeScript::set_script_class_name(String p_type) {
+	script_class_name = p_type;
+}
+
+String NativeScript::get_script_class_name() const {
+	return script_class_name;
+}
+
+void NativeScript::set_script_class_icon_path(String p_icon_path) {
+	script_class_icon_path = p_icon_path;
+}
+
+String NativeScript::get_script_class_icon_path() const {
+	return script_class_icon_path;
 }
 
 bool NativeScript::can_instance() const {
@@ -986,6 +1010,10 @@ NativeScriptLanguage::NativeScriptLanguage() {
 	has_objects_to_register = false;
 	mutex = Mutex::create();
 #endif
+
+#ifdef DEBUG_ENABLED
+	profiling = false;
+#endif
 }
 
 NativeScriptLanguage::~NativeScriptLanguage() {
@@ -1128,17 +1156,105 @@ void NativeScriptLanguage::get_public_constants(List<Pair<String, Variant> > *p_
 }
 
 void NativeScriptLanguage::profiling_start() {
+#ifdef DEBUG_ENABLED
+#ifndef NO_THREADS
+	MutexLock lock(mutex);
+#endif
+
+	profile_data.clear();
+	profiling = true;
+#endif
 }
 
 void NativeScriptLanguage::profiling_stop() {
+#ifdef DEBUG_ENABLED
+#ifndef NO_THREADS
+	MutexLock lock(mutex);
+#endif
+
+	profiling = false;
+#endif
 }
 
 int NativeScriptLanguage::profiling_get_accumulated_data(ProfilingInfo *p_info_arr, int p_info_max) {
+#ifdef DEBUG_ENABLED
+#ifndef NO_THREADS
+	MutexLock lock(mutex);
+#endif
+	int current = 0;
+
+	for (Map<StringName, ProfileData>::Element *d = profile_data.front(); d; d = d->next()) {
+		if (current >= p_info_max)
+			break;
+
+		p_info_arr[current].call_count = d->get().call_count;
+		p_info_arr[current].self_time = d->get().self_time;
+		p_info_arr[current].total_time = d->get().total_time;
+		p_info_arr[current].signature = d->get().signature;
+		current++;
+	}
+
+	return current;
+#else
 	return 0;
+#endif
 }
 
 int NativeScriptLanguage::profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_info_max) {
+#ifdef DEBUG_ENABLED
+#ifndef NO_THREADS
+	MutexLock lock(mutex);
+#endif
+	int current = 0;
+
+	for (Map<StringName, ProfileData>::Element *d = profile_data.front(); d; d = d->next()) {
+		if (current >= p_info_max)
+			break;
+
+		if (d->get().last_frame_call_count) {
+			p_info_arr[current].call_count = d->get().last_frame_call_count;
+			p_info_arr[current].self_time = d->get().last_frame_self_time;
+			p_info_arr[current].total_time = d->get().last_frame_total_time;
+			p_info_arr[current].signature = d->get().signature;
+			current++;
+		}
+	}
+
+	return current;
+#else
 	return 0;
+#endif
+}
+
+void NativeScriptLanguage::profiling_add_data(StringName p_signature, uint64_t p_time) {
+#ifdef DEBUG_ENABLED
+#ifndef NO_THREADS
+	MutexLock lock(mutex);
+#endif
+
+	Map<StringName, ProfileData>::Element *d = profile_data.find(p_signature);
+	if (d) {
+		d->get().call_count += 1;
+		d->get().total_time += p_time;
+		d->get().frame_call_count += 1;
+		d->get().frame_total_time += p_time;
+	} else {
+		ProfileData data;
+
+		data.signature = p_signature;
+		data.call_count = 1;
+		data.self_time = 0;
+		data.total_time = p_time;
+		data.frame_call_count = 1;
+		data.frame_self_time = 0;
+		data.frame_total_time = p_time;
+		data.last_frame_call_count = 0;
+		data.last_frame_self_time = 0;
+		data.last_frame_total_time = 0;
+
+		profile_data.insert(p_signature, data);
+	}
+#endif
 }
 
 int NativeScriptLanguage::register_binding_functions(godot_instance_binding_functions p_binding_functions) {
@@ -1252,6 +1368,54 @@ void NativeScriptLanguage::free_instance_binding_data(void *p_data) {
 	binding_instances.erase(&binding_data);
 
 	delete &binding_data;
+}
+
+void NativeScriptLanguage::refcount_incremented_instance_binding(Object *p_object) {
+
+	void *data = p_object->get_script_instance_binding(lang_idx);
+
+	if (!data)
+		return;
+
+	Vector<void *> &binding_data = *(Vector<void *> *)data;
+
+	for (int i = 0; i < binding_data.size(); i++) {
+		if (!binding_data[i])
+			continue;
+
+		if (!binding_functions[i].first)
+			continue;
+
+		if (binding_functions[i].second.refcount_incremented_instance_binding) {
+			binding_functions[i].second.refcount_incremented_instance_binding(binding_data[i], p_object);
+		}
+	}
+}
+
+bool NativeScriptLanguage::refcount_decremented_instance_binding(Object *p_object) {
+
+	void *data = p_object->get_script_instance_binding(lang_idx);
+
+	if (!data)
+		return true;
+
+	Vector<void *> &binding_data = *(Vector<void *> *)data;
+
+	bool can_die = true;
+
+	for (int i = 0; i < binding_data.size(); i++) {
+		if (!binding_data[i])
+			continue;
+
+		if (!binding_functions[i].first)
+			continue;
+
+		if (binding_functions[i].second.refcount_decremented_instance_binding) {
+			can_die = can_die && binding_functions[i].second.refcount_decremented_instance_binding(binding_data[i], p_object);
+		}
+	}
+
+	return can_die;
 }
 
 void NativeScriptLanguage::set_global_type_tag(int p_idx, StringName p_class_name, const void *p_type_tag) {
@@ -1381,6 +1545,24 @@ void NativeScriptLanguage::frame() {
 		has_objects_to_register = false;
 	}
 #endif
+
+#ifdef DEBUG_ENABLED
+	{
+#ifndef NO_THREADS
+		MutexLock lock(mutex);
+#endif
+
+		for (Map<StringName, ProfileData>::Element *d = profile_data.front(); d; d = d->next()) {
+			d->get().last_frame_call_count = d->get().frame_call_count;
+			d->get().last_frame_self_time = d->get().frame_self_time;
+			d->get().last_frame_total_time = d->get().frame_total_time;
+			d->get().frame_call_count = 0;
+			d->get().frame_self_time = 0;
+			d->get().frame_total_time = 0;
+		}
+	}
+#endif
+
 	call_libraries_cb(_frame_call_name);
 }
 
@@ -1395,6 +1577,26 @@ void NativeScriptLanguage::thread_exit() {
 }
 
 #endif // NO_THREADS
+
+bool NativeScriptLanguage::handles_global_class_type(const String &p_type) const {
+	return p_type == "NativeScript";
+}
+
+String NativeScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
+	Ref<NativeScript> script = ResourceLoader::load(p_path, "NativeScript");
+	if (script.is_valid()) {
+		if (r_base_type)
+			*r_base_type = script->get_instance_base_type();
+		if (r_icon_path)
+			*r_icon_path = script->get_script_class_icon_path();
+		return script->get_script_class_name();
+	}
+	if (r_base_type)
+		*r_base_type = String();
+	if (r_icon_path)
+		*r_icon_path = String();
+	return String();
+}
 
 void NativeReloadNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_notification"), &NativeReloadNode::_notification);

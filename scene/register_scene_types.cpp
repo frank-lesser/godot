@@ -42,6 +42,7 @@
 #include "scene/2d/canvas_modulate.h"
 #include "scene/2d/collision_polygon_2d.h"
 #include "scene/2d/collision_shape_2d.h"
+#include "scene/2d/cpu_particles_2d.h"
 #include "scene/2d/joints_2d.h"
 #include "scene/2d/light_2d.h"
 #include "scene/2d/light_occluder_2d.h"
@@ -51,7 +52,6 @@
 #include "scene/2d/parallax_background.h"
 #include "scene/2d/parallax_layer.h"
 #include "scene/2d/particles_2d.h"
-
 #include "scene/2d/path_2d.h"
 #include "scene/2d/physics_body_2d.h"
 #include "scene/2d/polygon_2d.h"
@@ -144,6 +144,7 @@
 #include "scene/resources/mesh_data_tool.h"
 #include "scene/resources/mesh_library.h"
 #include "scene/resources/packed_scene.h"
+#include "scene/resources/particles_material.h"
 #include "scene/resources/plane_shape.h"
 #include "scene/resources/polygon_path_finder.h"
 #include "scene/resources/primitive_meshes.h"
@@ -151,7 +152,6 @@
 #include "scene/resources/rectangle_shape_2d.h"
 #include "scene/resources/scene_format_text.h"
 #include "scene/resources/segment_shape_2d.h"
-#include "scene/resources/shader_graph.h"
 #include "scene/resources/shape_line_2d.h"
 #include "scene/resources/sky_box.h"
 #include "scene/resources/sphere_shape.h"
@@ -166,8 +166,6 @@
 #include "scene/resources/world_2d.h"
 #include "scene/scene_string_names.h"
 
-#include "scene/3d/cpu_particles.h"
-#include "scene/3d/particles.h"
 #include "scene/3d/scenario_fx.h"
 #include "scene/3d/spatial.h"
 
@@ -180,6 +178,7 @@
 #include "scene/3d/camera.h"
 #include "scene/3d/collision_polygon.h"
 #include "scene/3d/collision_shape.h"
+#include "scene/3d/cpu_particles.h"
 #include "scene/3d/gi_probe.h"
 #include "scene/3d/immediate_geometry.h"
 #include "scene/3d/interpolated_camera.h"
@@ -189,6 +188,7 @@
 #include "scene/3d/multimesh_instance.h"
 #include "scene/3d/navigation.h"
 #include "scene/3d/navigation_mesh.h"
+#include "scene/3d/particles.h"
 #include "scene/3d/path.h"
 #include "scene/3d/physics_body.h"
 #include "scene/3d/physics_joint.h"
@@ -201,6 +201,7 @@
 #include "scene/3d/room_instance.h"
 #include "scene/3d/skeleton.h"
 #include "scene/3d/soft_body.h"
+#include "scene/3d/spring_arm.h"
 #include "scene/3d/sprite_3d.h"
 #include "scene/3d/vehicle_body.h"
 #include "scene/3d/visibility_notifier.h"
@@ -366,17 +367,16 @@ void register_scene_types() {
 	ClassDB::register_class<Spatial>();
 	ClassDB::register_virtual_class<SpatialGizmo>();
 	ClassDB::register_class<Skeleton>();
-	ClassDB::register_class<SkeletonIK>();
 	ClassDB::register_class<AnimationPlayer>();
 	ClassDB::register_class<Tween>();
 
 	OS::get_singleton()->yield(); //may take time to init
 
 #ifndef _3D_DISABLED
-	ClassDB::register_class<BoneAttachment>();
 	ClassDB::register_virtual_class<VisualInstance>();
 	ClassDB::register_virtual_class<GeometryInstance>();
 	ClassDB::register_class<Camera>();
+	ClassDB::register_class<ClippedCamera>();
 	ClassDB::register_class<Listener>();
 	ClassDB::register_class<ARVRCamera>();
 	ClassDB::register_class<ARVRController>();
@@ -415,6 +415,8 @@ void register_scene_types() {
 	ClassDB::register_class<AnimationNodeBlendSpace1D>();
 	ClassDB::register_class<AnimationNodeBlendSpace2D>();
 	ClassDB::register_class<AnimationNodeStateMachine>();
+	ClassDB::register_class<AnimationNodeStateMachinePlayback>();
+
 	ClassDB::register_class<AnimationNodeStateMachineTransition>();
 	ClassDB::register_class<AnimationNodeOutput>();
 	ClassDB::register_class<AnimationNodeOneShot>();
@@ -435,8 +437,13 @@ void register_scene_types() {
 	ClassDB::register_class<RigidBody>();
 	ClassDB::register_class<KinematicCollision>();
 	ClassDB::register_class<KinematicBody>();
+	ClassDB::register_class<SpringArm>();
+
 	ClassDB::register_class<PhysicalBone>();
 	ClassDB::register_class<SoftBody>();
+
+	ClassDB::register_class<SkeletonIK>();
+	ClassDB::register_class<BoneAttachment>();
 
 	ClassDB::register_class<VehicleBody>();
 	ClassDB::register_class<VehicleWheel>();
@@ -509,6 +516,7 @@ void register_scene_types() {
 	SceneTree::add_idle_callback(CanvasItemMaterial::flush_changes);
 	CanvasItemMaterial::init_shaders();
 	ClassDB::register_class<Node2D>();
+	ClassDB::register_class<CPUParticles2D>();
 	ClassDB::register_class<Particles2D>();
 	//ClassDB::register_class<ParticleAttractor2D>();
 	ClassDB::register_class<Sprite>();
@@ -558,6 +566,9 @@ void register_scene_types() {
 	/* REGISTER RESOURCES */
 
 	ClassDB::register_virtual_class<Shader>();
+	ClassDB::register_class<ParticlesMaterial>();
+	SceneTree::add_idle_callback(ParticlesMaterial::flush_changes);
+	ParticlesMaterial::init_shaders();
 
 #ifndef _3D_DISABLED
 	ClassDB::register_virtual_class<Mesh>();
@@ -574,10 +585,6 @@ void register_scene_types() {
 	ClassDB::register_class<SpatialMaterial>();
 	SceneTree::add_idle_callback(SpatialMaterial::flush_changes);
 	SpatialMaterial::init_shaders();
-
-	ClassDB::register_class<ParticlesMaterial>();
-	SceneTree::add_idle_callback(ParticlesMaterial::flush_changes);
-	ParticlesMaterial::init_shaders();
 
 	ClassDB::register_class<MultiMesh>();
 	ClassDB::register_class<MeshLibrary>();

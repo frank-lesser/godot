@@ -325,7 +325,7 @@ public:
 
 	mutable RID_Owner<Texture> texture_owner;
 
-	Ref<Image> _get_gl_image_and_format(const Ref<Image> &p_image, Image::Format p_format, uint32_t p_flags, GLenum &r_gl_format, GLenum &r_gl_internal_format, GLenum &r_gl_type, bool &r_compressed);
+	Ref<Image> _get_gl_image_and_format(const Ref<Image> &p_image, Image::Format p_format, uint32_t p_flags, Image::Format &r_real_format, GLenum &r_gl_format, GLenum &r_gl_internal_format, GLenum &r_gl_type, bool &r_compressed) const;
 
 	virtual RID texture_create();
 	virtual void texture_allocate(RID p_texture, int p_width, int p_height, int p_depth_3d, Image::Format p_format, VS::TextureType p_type, uint32_t p_flags = VS::TEXTURE_FLAGS_DEFAULT);
@@ -797,8 +797,40 @@ public:
 
 	/* IMMEDIATE API */
 
+	struct Immediate : public Geometry {
+
+		struct Chunk {
+			RID texture;
+			VS::PrimitiveType primitive;
+			Vector<Vector3> vertices;
+			Vector<Vector3> normals;
+			Vector<Plane> tangents;
+			Vector<Color> colors;
+			Vector<Vector2> uvs;
+			Vector<Vector2> uv2s;
+		};
+
+		List<Chunk> chunks;
+		bool building;
+		int mask;
+		AABB aabb;
+
+		Immediate() {
+			type = GEOMETRY_IMMEDIATE;
+			building = false;
+		}
+	};
+
+	Vector3 chunk_normal;
+	Plane chunk_tangent;
+	Color chunk_color;
+	Vector2 chunk_uv;
+	Vector2 chunk_uv2;
+
+	mutable RID_Owner<Immediate> immediate_owner;
+
 	virtual RID immediate_create();
-	virtual void immediate_begin(RID p_immediate, VS::PrimitiveType p_rimitive, RID p_texture = RID());
+	virtual void immediate_begin(RID p_immediate, VS::PrimitiveType p_primitive, RID p_texture = RID());
 	virtual void immediate_vertex(RID p_immediate, const Vector3 &p_vertex);
 	virtual void immediate_normal(RID p_immediate, const Vector3 &p_normal);
 	virtual void immediate_tangent(RID p_immediate, const Plane &p_tangent);

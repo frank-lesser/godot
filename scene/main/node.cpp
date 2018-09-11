@@ -238,9 +238,19 @@ void Node::_propagate_enter_tree() {
 	// enter groups
 }
 
+void Node::_propagate_after_exit_tree() {
+
+	data.blocked++;
+	for (int i = 0; i < data.children.size(); i++) {
+		data.children[i]->_propagate_after_exit_tree();
+	}
+	data.blocked--;
+	emit_signal(SceneStringNames::get_singleton()->tree_exited);
+}
+
 void Node::_propagate_exit_tree() {
 
-//block while removing children
+	//block while removing children
 
 #ifdef DEBUG_ENABLED
 
@@ -299,8 +309,6 @@ void Node::_propagate_exit_tree() {
 	data.ready_notified = false;
 	data.tree = NULL;
 	data.depth = -1;
-
-	emit_signal(SceneStringNames::get_singleton()->tree_exited);
 }
 
 void Node::move_child(Node *p_child, int p_pos) {
@@ -1207,6 +1215,10 @@ void Node::remove_child(Node *p_child) {
 
 	// validate owner
 	p_child->_propagate_validate_owner();
+
+	if (data.inside_tree) {
+		p_child->_propagate_after_exit_tree();
+	}
 }
 
 int Node::get_child_count() const {
@@ -2082,9 +2094,7 @@ void Node::_duplicate_and_reown(Node *p_new_parent, const Map<Node *, Node *> &p
 	} else {
 
 		Object *obj = ClassDB::instance(get_class());
-		if (!obj) {
-			print_line("could not duplicate: " + String(get_class()));
-		}
+		ERR_EXPLAIN("Node: Could not duplicate: " + String(get_class()));
 		ERR_FAIL_COND(!obj);
 		node = Object::cast_to<Node>(obj);
 		if (!node)
@@ -2179,9 +2189,7 @@ Node *Node::duplicate_and_reown(const Map<Node *, Node *> &p_reown_map) const {
 	Node *node = NULL;
 
 	Object *obj = ClassDB::instance(get_class());
-	if (!obj) {
-		print_line("could not duplicate: " + String(get_class()));
-	}
+	ERR_EXPLAIN("Node: Could not duplicate: " + String(get_class()));
 	ERR_FAIL_COND_V(!obj, NULL);
 	node = Object::cast_to<Node>(obj);
 	if (!node)
@@ -2472,7 +2480,7 @@ static void _Node_debug_sn(Object *p_obj) {
 		path = n->get_name();
 	else
 		path = String(p->get_name()) + "/" + p->get_path_to(n);
-	print_line(itos(p_obj->get_instance_id()) + "- Stray Node: " + path + " (Type: " + n->get_class() + ")");
+	print_line(itos(p_obj->get_instance_id()) + " - Stray Node: " + path + " (Type: " + n->get_class() + ")");
 }
 
 void Node::_print_stray_nodes() {
@@ -2555,6 +2563,9 @@ void Node::clear_internal_tree_resource_paths() {
 
 String Node::get_configuration_warning() const {
 
+	if (get_script_instance() && get_script_instance()->has_method("_get_configuration_warning")) {
+		return get_script_instance()->call("_get_configuration_warning");
+	}
 	return String();
 }
 
@@ -2763,6 +2774,7 @@ void Node::_bind_methods() {
 	BIND_VMETHOD(MethodInfo("_input", PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
 	BIND_VMETHOD(MethodInfo("_unhandled_input", PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
 	BIND_VMETHOD(MethodInfo("_unhandled_key_input", PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "InputEventKey")));
+	BIND_VMETHOD(MethodInfo(Variant::STRING, "_get_configuration_warning"));
 
 	//ClassDB::bind_method(D_METHOD("get_child",&Node::get_child,PH("index")));
 	//ClassDB::bind_method(D_METHOD("get_node",&Node::get_node,PH("path")));

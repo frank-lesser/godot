@@ -40,17 +40,6 @@
 #endif
 
 void PhysicsBody::_notification(int p_what) {
-
-	/*
-	switch(p_what) {
-
-		case NOTIFICATION_TRANSFORM_CHANGED: {
-
-			PhysicsServer::get_singleton()->body_set_state(get_rid(),PhysicsServer::BODY_STATE_TRANSFORM,get_global_transform());
-
-		} break;
-	}
-	*/
 }
 
 Vector3 PhysicsBody::get_linear_velocity() const {
@@ -182,7 +171,11 @@ PhysicsBody::PhysicsBody(PhysicsServer::BodyMode p_mode) :
 #ifndef DISABLE_DEPRECATED
 void StaticBody::set_friction(real_t p_friction) {
 
-	ERR_EXPLAIN("The method set_friction has been deprecated and will be removed in the future, use physical material")
+	if (p_friction == 1.0) { // default value, don't create an override for that
+		return;
+	}
+
+	ERR_EXPLAIN("The method set_friction has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
 
 	ERR_FAIL_COND(p_friction < 0 || p_friction > 1);
@@ -191,13 +184,12 @@ void StaticBody::set_friction(real_t p_friction) {
 		physics_material_override.instance();
 		set_physics_material_override(physics_material_override);
 	}
-
 	physics_material_override->set_friction(p_friction);
 }
 
 real_t StaticBody::get_friction() const {
 
-	ERR_EXPLAIN("The method get_friction has been deprecated and will be removed in the future, use physical material")
+	ERR_EXPLAIN("The method get_friction has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
 
 	if (physics_material_override.is_null()) {
@@ -209,7 +201,11 @@ real_t StaticBody::get_friction() const {
 
 void StaticBody::set_bounce(real_t p_bounce) {
 
-	ERR_EXPLAIN("The method set_bounce has been deprecated and will be removed in the future, use physical material")
+	if (p_bounce == 0.0) { // default value, don't create an override for that
+		return;
+	}
+
+	ERR_EXPLAIN("The method set_bounce has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
 
 	ERR_FAIL_COND(p_bounce < 0 || p_bounce > 1);
@@ -223,7 +219,7 @@ void StaticBody::set_bounce(real_t p_bounce) {
 
 real_t StaticBody::get_bounce() const {
 
-	ERR_EXPLAIN("The method get_bounce has been deprecated and will be removed in the future, use physical material")
+	ERR_EXPLAIN("The method get_bounce has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
 
 	if (physics_material_override.is_null()) {
@@ -297,10 +293,10 @@ void StaticBody::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_collision_exception_with", "body"), &PhysicsBody::remove_collision_exception_with);
 
 #ifndef DISABLE_DEPRECATED
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "friction", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_friction", "get_friction");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "bounce", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_bounce", "get_bounce");
+	ADD_PROPERTYNO(PropertyInfo(Variant::REAL, "friction", PROPERTY_HINT_RANGE, "0,1,0.01", 0), "set_friction", "get_friction");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL, "bounce", PROPERTY_HINT_RANGE, "0,1,0.01", 0), "set_bounce", "get_bounce");
 #endif // DISABLE_DEPRECATED
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "physics_material_override", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), "set_physics_material_override", "get_physics_material_override");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "physics_material_override", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), "set_physics_material_override", "get_physics_material_override");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "constant_linear_velocity"), "set_constant_linear_velocity", "get_constant_linear_velocity");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "constant_angular_velocity"), "set_constant_angular_velocity", "get_constant_angular_velocity");
 }
@@ -419,7 +415,7 @@ void RigidBody::_body_inout(int p_status, ObjectID p_instance, int p_body_shape,
 				node->disconnect(SceneStringNames::get_singleton()->tree_entered, this, SceneStringNames::get_singleton()->_body_enter_tree);
 				node->disconnect(SceneStringNames::get_singleton()->tree_exiting, this, SceneStringNames::get_singleton()->_body_exit_tree);
 				if (in_tree)
-					emit_signal(SceneStringNames::get_singleton()->body_exited, obj);
+					emit_signal(SceneStringNames::get_singleton()->body_exited, node);
 			}
 
 			contact_monitor->body_map.erase(E);
@@ -618,8 +614,13 @@ real_t RigidBody::get_weight() const {
 #ifndef DISABLE_DEPRECATED
 void RigidBody::set_friction(real_t p_friction) {
 
-	ERR_EXPLAIN("The method set_friction has been deprecated and will be removed in the future, use physical material")
+	if (p_friction == 1.0) { // default value, don't create an override for that
+		return;
+	}
+
+	ERR_EXPLAIN("The method set_friction has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
+
 	ERR_FAIL_COND(p_friction < 0 || p_friction > 1);
 
 	if (physics_material_override.is_null()) {
@@ -630,8 +631,9 @@ void RigidBody::set_friction(real_t p_friction) {
 }
 real_t RigidBody::get_friction() const {
 
-	ERR_EXPLAIN("The method get_friction has been deprecated and will be removed in the future, use physical material")
+	ERR_EXPLAIN("The method get_friction has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
+
 	if (physics_material_override.is_null()) {
 		return 1;
 	}
@@ -640,8 +642,14 @@ real_t RigidBody::get_friction() const {
 }
 
 void RigidBody::set_bounce(real_t p_bounce) {
-	ERR_EXPLAIN("The method set_bounce has been deprecated and will be removed in the future, use physical material")
+
+	if (p_bounce == 0.0) { // default value, don't create an override for that
+		return;
+	}
+
+	ERR_EXPLAIN("The method set_bounce has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
+
 	ERR_FAIL_COND(p_bounce < 0 || p_bounce > 1);
 
 	if (physics_material_override.is_null()) {
@@ -651,7 +659,7 @@ void RigidBody::set_bounce(real_t p_bounce) {
 	physics_material_override->set_bounce(p_bounce);
 }
 real_t RigidBody::get_bounce() const {
-	ERR_EXPLAIN("The method get_bounce has been deprecated and will be removed in the future, use physical material")
+	ERR_EXPLAIN("The method get_bounce has been deprecated and will be removed in the future, use physics material instead.")
 	WARN_DEPRECATED
 	if (physics_material_override.is_null()) {
 		return 0;
@@ -998,10 +1006,10 @@ void RigidBody::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "mass", PROPERTY_HINT_EXP_RANGE, "0.01,65535,0.01"), "set_mass", "get_mass");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "weight", PROPERTY_HINT_EXP_RANGE, "0.01,65535,0.01", PROPERTY_USAGE_EDITOR), "set_weight", "get_weight");
 #ifndef DISABLE_DEPRECATED
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "friction", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_friction", "get_friction");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "bounce", PROPERTY_HINT_RANGE, "0,1,0.01"), "set_bounce", "get_bounce");
+	ADD_PROPERTYNO(PropertyInfo(Variant::REAL, "friction", PROPERTY_HINT_RANGE, "0,1,0.01", 0), "set_friction", "get_friction");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::REAL, "bounce", PROPERTY_HINT_RANGE, "0,1,0.01", 0), "set_bounce", "get_bounce");
 #endif // DISABLE_DEPRECATED
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "physics_material_override", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), "set_physics_material_override", "get_physics_material_override");
+	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "physics_material_override", PROPERTY_HINT_RESOURCE_TYPE, "PhysicsMaterial"), "set_physics_material_override", "get_physics_material_override");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "gravity_scale", PROPERTY_HINT_RANGE, "-128,128,0.01"), "set_gravity_scale", "get_gravity_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "custom_integrator"), "set_use_custom_integrator", "is_using_custom_integrator");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "continuous_cd"), "set_use_continuous_collision_detection", "is_using_continuous_collision_detection");
@@ -1023,10 +1031,10 @@ void RigidBody::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "angular_velocity"), "set_angular_velocity", "get_angular_velocity");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "angular_damp", PROPERTY_HINT_RANGE, "-1,128,0.01"), "set_angular_damp", "get_angular_damp");
 
-	ADD_SIGNAL(MethodInfo("body_shape_entered", PropertyInfo(Variant::INT, "body_id"), PropertyInfo(Variant::OBJECT, "body"), PropertyInfo(Variant::INT, "body_shape"), PropertyInfo(Variant::INT, "local_shape")));
-	ADD_SIGNAL(MethodInfo("body_shape_exited", PropertyInfo(Variant::INT, "body_id"), PropertyInfo(Variant::OBJECT, "body"), PropertyInfo(Variant::INT, "body_shape"), PropertyInfo(Variant::INT, "local_shape")));
-	ADD_SIGNAL(MethodInfo("body_entered", PropertyInfo(Variant::OBJECT, "body")));
-	ADD_SIGNAL(MethodInfo("body_exited", PropertyInfo(Variant::OBJECT, "body")));
+	ADD_SIGNAL(MethodInfo("body_shape_entered", PropertyInfo(Variant::INT, "body_id"), PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node"), PropertyInfo(Variant::INT, "body_shape"), PropertyInfo(Variant::INT, "local_shape")));
+	ADD_SIGNAL(MethodInfo("body_shape_exited", PropertyInfo(Variant::INT, "body_id"), PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node"), PropertyInfo(Variant::INT, "body_shape"), PropertyInfo(Variant::INT, "local_shape")));
+	ADD_SIGNAL(MethodInfo("body_entered", PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
+	ADD_SIGNAL(MethodInfo("body_exited", PropertyInfo(Variant::OBJECT, "body", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 	ADD_SIGNAL(MethodInfo("sleeping_state_changed"));
 
 	BIND_ENUM_CONSTANT(MODE_RIGID);
@@ -1078,10 +1086,10 @@ void RigidBody::_reload_physics_characteristics() {
 //////////////////////////////////////////////////////
 //////////////////////////
 
-Ref<KinematicCollision> KinematicBody::_move(const Vector3 &p_motion, bool p_infinite_inertia) {
+Ref<KinematicCollision> KinematicBody::_move(const Vector3 &p_motion, bool p_infinite_inertia, bool p_test_only) {
 
 	Collision col;
-	if (move_and_collide(p_motion, p_infinite_inertia, col)) {
+	if (move_and_collide(p_motion, p_infinite_inertia, col, p_test_only)) {
 		if (motion_cache.is_null()) {
 			motion_cache.instance();
 			motion_cache->owner = this;
@@ -1095,7 +1103,7 @@ Ref<KinematicCollision> KinematicBody::_move(const Vector3 &p_motion, bool p_inf
 	return Ref<KinematicCollision>();
 }
 
-bool KinematicBody::move_and_collide(const Vector3 &p_motion, bool p_infinite_inertia, Collision &r_collision) {
+bool KinematicBody::move_and_collide(const Vector3 &p_motion, bool p_infinite_inertia, Collision &r_collision, bool p_test_only) {
 
 	Transform gt = get_global_transform();
 	PhysicsServer::MotionResult result;
@@ -1108,6 +1116,7 @@ bool KinematicBody::move_and_collide(const Vector3 &p_motion, bool p_infinite_in
 		r_collision.collision = result.collision_point;
 		r_collision.normal = result.collision_normal;
 		r_collision.collider = result.collider_id;
+		r_collision.collider_rid = result.collider;
 		r_collision.travel = result.motion;
 		r_collision.remainder = result.remainder;
 		r_collision.local_shape = result.collision_local_shape;
@@ -1119,8 +1128,10 @@ bool KinematicBody::move_and_collide(const Vector3 &p_motion, bool p_infinite_in
 		}
 	}
 
-	gt.origin += result.motion;
-	set_global_transform(gt);
+	if (!p_test_only) {
+		gt.origin += result.motion;
+		set_global_transform(gt);
+	}
 
 	return colliding;
 }
@@ -1128,7 +1139,7 @@ bool KinematicBody::move_and_collide(const Vector3 &p_motion, bool p_infinite_in
 //so, if you pass 45 as limit, avoid numerical precision erros when angle is 45.
 #define FLOOR_ANGLE_THRESHOLD 0.01
 
-Vector3 KinematicBody::move_and_slide(const Vector3 &p_linear_velocity, const Vector3 &p_floor_direction, float p_slope_stop_min_velocity, int p_max_slides, float p_floor_max_angle, bool p_infinite_inertia) {
+Vector3 KinematicBody::move_and_slide(const Vector3 &p_linear_velocity, const Vector3 &p_floor_direction, bool p_stop_on_slope, int p_max_slides, float p_floor_max_angle, bool p_infinite_inertia) {
 
 	Vector3 lv = p_linear_velocity;
 
@@ -1146,69 +1157,127 @@ Vector3 KinematicBody::move_and_slide(const Vector3 &p_linear_velocity, const Ve
 	colliders.clear();
 	floor_velocity = Vector3();
 
+	Vector3 lv_n = p_linear_velocity.normalized();
+
 	while (p_max_slides) {
 
 		Collision collision;
 
-		bool collided = move_and_collide(motion, p_infinite_inertia, collision);
+		bool found_collision = false;
 
-		if (collided) {
+		int test_type = 0;
 
-			motion = collision.remainder;
-
-			if (p_floor_direction == Vector3()) {
-				//all is a wall
-				on_wall = true;
+		do {
+			bool collided;
+			if (test_type == 0) { //collide
+				collided = move_and_collide(motion, p_infinite_inertia, collision);
+				if (!collided) {
+					motion = Vector3(); //clear because no collision happened and motion completed
+				}
 			} else {
-				if (collision.normal.dot(p_floor_direction) >= Math::cos(p_floor_max_angle + FLOOR_ANGLE_THRESHOLD)) { //floor
+				collided = separate_raycast_shapes(p_infinite_inertia, collision);
+				if (collided) {
+					collision.remainder = motion; //keep
+					collision.travel = Vector3();
+				}
+			}
 
-					on_floor = true;
-					floor_velocity = collision.collider_vel;
+			if (collided) {
+				found_collision = true;
+			}
 
-					Vector3 rel_v = lv - floor_velocity;
-					Vector3 hv = rel_v - p_floor_direction * p_floor_direction.dot(rel_v);
+			if (collided) {
 
-					if (collision.travel.length() < 0.05 && hv.length() < p_slope_stop_min_velocity) {
-						Transform gt = get_global_transform();
-						gt.origin -= collision.travel;
-						set_global_transform(gt);
-						return floor_velocity - p_floor_direction * p_floor_direction.dot(floor_velocity);
-					}
-				} else if (collision.normal.dot(-p_floor_direction) >= Math::cos(p_floor_max_angle + FLOOR_ANGLE_THRESHOLD)) { //ceiling
-					on_ceiling = true;
-				} else {
+				colliders.push_back(collision);
+				motion = collision.remainder;
+
+				bool is_on_slope = false;
+				if (p_floor_direction == Vector3()) {
+					//all is a wall
 					on_wall = true;
+				} else {
+					if (collision.normal.dot(p_floor_direction) >= Math::cos(p_floor_max_angle + FLOOR_ANGLE_THRESHOLD)) { //floor
+
+						on_floor = true;
+						on_floor_body = collision.collider_rid;
+						floor_velocity = collision.collider_vel;
+
+						if (p_stop_on_slope) {
+							if (Vector3() == lv_n + p_floor_direction) {
+								Transform gt = get_global_transform();
+								gt.origin -= collision.travel;
+								set_global_transform(gt);
+								return Vector3();
+							}
+						}
+
+						is_on_slope = true;
+
+					} else if (collision.normal.dot(-p_floor_direction) >= Math::cos(p_floor_max_angle + FLOOR_ANGLE_THRESHOLD)) { //ceiling
+						on_ceiling = true;
+					} else {
+						on_wall = true;
+					}
+				}
+
+				if (p_stop_on_slope && is_on_slope) {
+					motion = motion.slide(p_floor_direction);
+					lv = lv.slide(p_floor_direction);
+				} else {
+					Vector3 n = collision.normal;
+					motion = motion.slide(n);
+					lv = lv.slide(n);
+				}
+
+				for (int i = 0; i < 3; i++) {
+					if (locked_axis & (1 << i)) {
+						lv[i] = 0;
+					}
 				}
 			}
 
-			Vector3 n = collision.normal;
-			motion = motion.slide(n);
-			lv = lv.slide(n);
+			++test_type;
+		} while (!p_stop_on_slope && test_type < 2);
 
-			for (int i = 0; i < 3; i++) {
-				if (locked_axis & (1 << i)) {
-					lv[i] = 0;
-				}
-			}
-
-			colliders.push_back(collision);
-
-		} else {
+		if (!found_collision || motion == Vector3())
 			break;
-		}
 
-		p_max_slides--;
-		if (motion == Vector3())
-			break;
+		--p_max_slides;
 	}
 
 	return lv;
+}
+
+Vector3 KinematicBody::move_and_slide_with_snap(const Vector3 &p_linear_velocity, const Vector3 &p_snap, const Vector3 &p_floor_direction, bool p_infinite_inertia, bool p_stop_on_slope, int p_max_slides, float p_floor_max_angle) {
+
+	bool was_on_floor = on_floor;
+
+	Vector3 ret = move_and_slide(p_linear_velocity, p_floor_direction, p_stop_on_slope, p_max_slides, p_floor_max_angle, p_infinite_inertia);
+	if (!was_on_floor || p_snap == Vector3()) {
+		return ret;
+	}
+
+	Collision col;
+	Transform gt = get_global_transform();
+
+	if (move_and_collide(p_snap, p_infinite_inertia, col, true)) {
+		gt.origin += col.travel;
+		if (p_floor_direction != Vector3() && Math::acos(p_floor_direction.normalized().dot(col.normal)) < p_floor_max_angle) {
+			on_floor = true;
+			on_floor_body = col.collider_rid;
+			floor_velocity = col.collider_vel;
+		}
+		set_global_transform(gt);
+	}
+
+	return ret;
 }
 
 bool KinematicBody::is_on_floor() const {
 
 	return on_floor;
 }
+
 bool KinematicBody::is_on_wall() const {
 
 	return on_wall;
@@ -1228,6 +1297,43 @@ bool KinematicBody::test_move(const Transform &p_from, const Vector3 &p_motion, 
 	ERR_FAIL_COND_V(!is_inside_tree(), false);
 
 	return PhysicsServer::get_singleton()->body_test_motion(get_rid(), p_from, p_motion, p_infinite_inertia);
+}
+
+bool KinematicBody::separate_raycast_shapes(bool p_infinite_inertia, Collision &r_collision) {
+
+	PhysicsServer::SeparationResult sep_res[8]; //max 8 rays
+
+	Transform gt = get_global_transform();
+
+	Vector3 recover;
+	int hits = PhysicsServer::get_singleton()->body_test_ray_separation(get_rid(), gt, p_infinite_inertia, recover, sep_res, 8, margin);
+	int deepest = -1;
+	float deepest_depth;
+	for (int i = 0; i < hits; i++) {
+		if (deepest == -1 || sep_res[i].collision_depth > deepest_depth) {
+			deepest = i;
+			deepest_depth = sep_res[i].collision_depth;
+		}
+	}
+
+	gt.origin += recover;
+	set_global_transform(gt);
+
+	if (deepest != -1) {
+		r_collision.collider = sep_res[deepest].collider_id;
+		r_collision.collider_metadata = sep_res[deepest].collider_metadata;
+		r_collision.collider_shape = sep_res[deepest].collider_shape;
+		r_collision.collider_vel = sep_res[deepest].collider_velocity;
+		r_collision.collision = sep_res[deepest].collision_point;
+		r_collision.normal = sep_res[deepest].collision_normal;
+		r_collision.local_shape = sep_res[deepest].collision_local_shape;
+		r_collision.travel = recover;
+		r_collision.remainder = Vector3();
+
+		return true;
+	} else {
+		return false;
+	}
 }
 
 void KinematicBody::set_axis_lock(PhysicsServer::BodyAxis p_axis, bool p_lock) {
@@ -1276,8 +1382,9 @@ Ref<KinematicCollision> KinematicBody::_get_slide_collision(int p_bounce) {
 
 void KinematicBody::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("move_and_collide", "rel_vec", "infinite_inertia"), &KinematicBody::_move, DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("move_and_slide", "linear_velocity", "floor_normal", "slope_stop_min_velocity", "max_slides", "floor_max_angle", "infinite_inertia"), &KinematicBody::move_and_slide, DEFVAL(Vector3(0, 0, 0)), DEFVAL(0.05), DEFVAL(4), DEFVAL(Math::deg2rad((float)45)), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("move_and_collide", "rel_vec", "infinite_inertia", "test_only"), &KinematicBody::_move, DEFVAL(true), DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("move_and_slide", "linear_velocity", "floor_normal", "stop_on_slope", "max_slides", "floor_max_angle", "infinite_inertia"), &KinematicBody::move_and_slide, DEFVAL(Vector3(0, 0, 0)), DEFVAL(false), DEFVAL(4), DEFVAL(Math::deg2rad((float)45)), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("move_and_slide_with_snap", "linear_velocity", "snap", "floor_normal", "infinite_inertia", "stop_on_slope", "max_bounces", "floor_max_angle"), &KinematicBody::move_and_slide_with_snap, DEFVAL(Vector3(0, 0, 0)), DEFVAL(true), DEFVAL(false), DEFVAL(4), DEFVAL(Math::deg2rad((float)45)));
 
 	ClassDB::bind_method(D_METHOD("test_move", "from", "rel_vec", "infinite_inertia"), &KinematicBody::test_move);
 
@@ -1295,13 +1402,9 @@ void KinematicBody::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_slide_count"), &KinematicBody::get_slide_count);
 	ClassDB::bind_method(D_METHOD("get_slide_collision", "slide_idx"), &KinematicBody::_get_slide_collision);
 
-	ADD_GROUP("Axis Lock", "axis_lock_");
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "axis_lock_linear_x"), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_LINEAR_X);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "axis_lock_linear_y"), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_LINEAR_Y);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "axis_lock_linear_z"), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_LINEAR_Z);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "axis_lock_angular_x"), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_ANGULAR_X);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "axis_lock_angular_y"), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_ANGULAR_Y);
-	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "axis_lock_angular_z"), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_ANGULAR_Z);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "move_lock_x", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_LINEAR_X);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "move_lock_y", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_LINEAR_Y);
+	ADD_PROPERTYI(PropertyInfo(Variant::BOOL, "move_lock_z", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_axis_lock", "get_axis_lock", PhysicsServer::BODY_AXIS_LINEAR_Z);
 
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "collision/safe_margin", PROPERTY_HINT_RANGE, "0.001,256,0.001"), "set_safe_margin", "get_safe_margin");
 }
@@ -2041,6 +2144,8 @@ void PhysicalBone::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_simulate_physics"), &PhysicalBone::get_simulate_physics);
 
 	ClassDB::bind_method(D_METHOD("is_simulating_physics"), &PhysicalBone::is_simulating_physics);
+
+	ClassDB::bind_method(D_METHOD("get_bone_id"), &PhysicalBone::get_bone_id);
 
 	ClassDB::bind_method(D_METHOD("set_mass", "mass"), &PhysicalBone::set_mass);
 	ClassDB::bind_method(D_METHOD("get_mass"), &PhysicalBone::get_mass);

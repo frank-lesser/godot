@@ -139,6 +139,7 @@ public:
 	virtual bool can_instance() const;
 	virtual StringName get_instance_base_type() const;
 	virtual ScriptInstance *instance_create(Object *p_this);
+	virtual PlaceHolderScriptInstance *placeholder_instance_create(Object *p_this);
 	virtual bool instance_has(const Object *p_this) const;
 
 	virtual bool has_source_code() const;
@@ -345,6 +346,8 @@ public:
 	// Don't use these. I'm watching you
 	virtual void *alloc_instance_binding_data(Object *p_object);
 	virtual void free_instance_binding_data(void *p_data);
+	virtual void refcount_incremented_instance_binding(Object *p_object);
+	virtual bool refcount_decremented_instance_binding(Object *p_object);
 
 #ifdef DEBUG_ENABLED
 	Vector<StackInfo> stack_trace_get_info(MonoObject *p_stack_trace);

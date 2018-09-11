@@ -31,11 +31,11 @@
 #ifndef VIEWPORT_H
 #define VIEWPORT_H
 
-#include "math_2d.h"
 #include "scene/main/node.h"
 #include "scene/resources/texture.h"
 #include "scene/resources/world_2d.h"
 #include "servers/visual_server.h"
+#include "transform_2d.h"
 /**
 	@author Juan Linietsky <reduzio@gmail.com>
 */
@@ -274,6 +274,7 @@ private:
 		bool roots_order_dirty;
 		List<Control *> roots;
 		int canvas_sort_index; //for sorting items with canvas as root
+		bool dragging;
 
 		GUI();
 	} gui;
@@ -473,6 +474,8 @@ public:
 	bool is_snap_controls_to_pixels_enabled() const;
 
 	void _subwindow_visibility_changed();
+
+	bool gui_is_dragging() const;
 
 	Viewport();
 	~Viewport();

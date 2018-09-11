@@ -136,28 +136,21 @@ RasterizerScene *RasterizerGLES2::get_scene() {
 	return scene;
 }
 
-void RasterizerGLES2::initialize() {
-
-	if (OS::get_singleton()->is_stdout_verbose()) {
-		print_line("Using GLES2 video driver");
-	}
+Error RasterizerGLES2::is_viable() {
 
 #ifdef GLAD_ENABLED
 	if (!gladLoadGL()) {
 		ERR_PRINT("Error initializing GLAD");
+		return ERR_UNAVAILABLE;
 	}
 
 // GLVersion seems to be used for both GL and GL ES, so we need different version checks for them
 #ifdef OPENGL_ENABLED // OpenGL 2.1 Profile required
-	if (GLVersion.major < 2) {
-#else // OpenGL ES 3.0
+	if (GLVersion.major < 2 || (GLVersion.major == 2 && GLVersion.minor < 1)) {
+#else // OpenGL ES 2.0
 	if (GLVersion.major < 2) {
 #endif
-		ERR_PRINT("Your system's graphic drivers seem not to support OpenGL 2.1 / OpenGL ES 2.0, sorry :(\n"
-				  "Try a drivers update, buy a new GPU or try software rendering on Linux; Godot will now crash with a segmentation fault.");
-		OS::get_singleton()->alert("Your system's graphic drivers seem not to support OpenGL 2.1 / OpenGL ES 2.0, sorry :(\n"
-								   "Godot Engine will self-destruct as soon as you acknowledge this error message.",
-				"Fatal error: Insufficient OpenGL / GLES driver support");
+		return ERR_UNAVAILABLE;
 	}
 
 #ifdef GLES_OVER_GL
@@ -183,14 +176,21 @@ void RasterizerGLES2::initialize() {
 			glGetFramebufferAttachmentParameteriv = glGetFramebufferAttachmentParameterivEXT;
 			glGenerateMipmap = glGenerateMipmapEXT;
 		} else {
-			ERR_PRINT("Your system's graphic drivers seem not to support GL_ARB(EXT)_framebuffer_object OpenGL extension, sorry :(\n"
-					  "Try a drivers update, buy a new GPU or try software rendering on Linux; Godot will now crash with a segmentation fault.");
-			OS::get_singleton()->alert("Your system's graphic drivers seem not to support GL_ARB(EXT)_framebuffer_object OpenGL extension, sorry :(\n"
-									   "Godot Engine will self-destruct as soon as you acknowledge this error message.",
-					"Fatal error: Insufficient OpenGL / GLES driver support");
+			return ERR_UNAVAILABLE;
 		}
 	}
 #endif
+
+#endif // GLAD_ENABLED
+
+	return OK;
+}
+
+void RasterizerGLES2::initialize() {
+
+	print_verbose("Using GLES2 video driver");
+
+#ifdef GLAD_ENABLED
 	if (true || OS::get_singleton()->is_stdout_verbose()) {
 		if (GLAD_GL_ARB_debug_output) {
 			glEnable(_EXT_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
@@ -200,7 +200,6 @@ void RasterizerGLES2::initialize() {
 			print_line("OpenGL debugging not supported!");
 		}
 	}
-
 #endif // GLAD_ENABLED
 
 	// For debugging
@@ -322,12 +321,28 @@ void RasterizerGLES2::set_boot_image(const Ref<Image> &p_image, const Color &p_c
 
 	Rect2 imgrect(0, 0, p_image->get_width(), p_image->get_height());
 	Rect2 screenrect;
+	if (p_scale) {
 
-	screenrect = imgrect;
-	screenrect.position += ((Size2(window_w, window_h) - screenrect.size) / 2.0).floor();
+		if (window_w > window_h) {
+			//scale horizontally
+			screenrect.size.y = window_h;
+			screenrect.size.x = imgrect.size.x * window_h / imgrect.size.y;
+			screenrect.position.x = (window_w - screenrect.size.x) / 2;
+
+		} else {
+			//scale vertically
+			screenrect.size.x = window_w;
+			screenrect.size.y = imgrect.size.y * window_w / imgrect.size.x;
+			screenrect.position.y = (window_h - screenrect.size.y) / 2;
+		}
+	} else {
+
+		screenrect = imgrect;
+		screenrect.position += ((Size2(window_w, window_h) - screenrect.size) / 2.0).floor();
+	}
 
 	RasterizerStorageGLES2::Texture *t = storage->texture_owner.get(texture);
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + storage->config.max_texture_image_units - 1);
 	glBindTexture(GL_TEXTURE_2D, t->tex_id);
 	canvas->draw_generic_textured_rect(screenrect, Rect2(0, 0, 1, 1));
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -354,7 +369,7 @@ void RasterizerGLES2::blit_render_target_to_screen(RID p_render_target, const Re
 	canvas->canvas_begin();
 	glDisable(GL_BLEND);
 	glBindFramebuffer(GL_FRAMEBUFFER, RasterizerStorageGLES2::system_fbo);
-	glActiveTexture(GL_TEXTURE0);
+	glActiveTexture(GL_TEXTURE0 + storage->config.max_texture_image_units - 1);
 	glBindTexture(GL_TEXTURE_2D, rt->color);
 
 	// TODO normals

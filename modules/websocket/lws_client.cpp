@@ -48,12 +48,10 @@ Error LWSClient::connect_to_host(String p_host, String p_path, uint16_t p_port, 
 
 	ERR_FAIL_COND_V(!addr.is_valid(), ERR_INVALID_PARAMETER);
 
-	// prepare protocols
-	if (p_protocols.size() == 0) // default to binary protocol
-		p_protocols.append("binary");
+	// Prepare protocols
 	_lws_make_protocols(this, &LWSClient::_lws_gd_callback, p_protocols, &_lws_ref);
 
-	// init lws client
+	// Init lws client
 	struct lws_context_creation_info info;
 	struct lws_client_connect_info i;
 
@@ -87,7 +85,10 @@ Error LWSClient::connect_to_host(String p_host, String p_path, uint16_t p_port, 
 	strncpy(pbuf, p_path.utf8().get_data(), 2048);
 
 	i.context = context;
-	i.protocol = _lws_ref->lws_names;
+	if (p_protocols.size() > 0)
+		i.protocol = _lws_ref->lws_names;
+	else
+		i.protocol = NULL;
 	i.address = abuf;
 	i.host = hbuf;
 	i.path = pbuf;
@@ -127,11 +128,6 @@ int LWSClient::_handle_cb(struct lws *wsi, enum lws_callback_reasons reason, voi
 		case LWS_CALLBACK_CLIENT_ESTABLISHED:
 			peer->set_wsi(wsi);
 			peer_data->peer_id = 0;
-			peer_data->in_size = 0;
-			peer_data->in_count = 0;
-			peer_data->out_count = 0;
-			peer_data->rbw.resize(16);
-			peer_data->rbr.resize(16);
 			peer_data->force_close = false;
 			_on_connect(lws_get_protocol(wsi)->name);
 			break;
@@ -139,17 +135,13 @@ int LWSClient::_handle_cb(struct lws *wsi, enum lws_callback_reasons reason, voi
 		case LWS_CALLBACK_CLIENT_CONNECTION_ERROR:
 			_on_error();
 			destroy_context();
-			return -1; // we should close the connection (would probably happen anyway)
+			return -1; // We should close the connection (would probably happen anyway)
 
 		case LWS_CALLBACK_CLIENT_CLOSED:
-			peer_data->in_count = 0;
-			peer_data->out_count = 0;
-			peer_data->rbw.resize(0);
-			peer_data->rbr.resize(0);
 			peer->close();
 			destroy_context();
 			_on_disconnect();
-			return 0; // we can end here
+			return 0; // We can end here
 
 		case LWS_CALLBACK_CLIENT_RECEIVE:
 			peer->read_wsi(in, len);

@@ -29,8 +29,10 @@
 /*************************************************************************/
 
 #include "polygon_2d.h"
+
 #include "core/math/geometry.h"
 #include "skeleton_2d.h"
+
 Dictionary Polygon2D::_edit_get_state() const {
 	Dictionary state = Node2D::_edit_get_state();
 	state["offset"] = offset;
@@ -251,7 +253,6 @@ void Polygon2D::_notification(int p_what) {
 					//normalize
 					for (int j = 0; j < 4; j++) {
 						weightsw[i * 4 + j] /= tw;
-						//						print_line("point " + itos(i) + " idx " + itos(j) + " index: " + itos(bonesw[i * 4 + j]) + " weight: " + rtos(weightsw[i * 4 + j]));
 					}
 				}
 			}
@@ -342,8 +343,6 @@ void Polygon2D::_notification(int p_what) {
 						indices.write[from + j] = loop[sub_indices[j]];
 					}
 				}
-
-				//print_line("loops: " + itos(loops.size()) + " indices: " + itos(indices.size()));
 
 				VS::get_singleton()->canvas_item_add_triangle_array(get_canvas_item(), indices, points, colors, uvs, bones, weights, texture.is_valid() ? texture->get_rid() : RID());
 			}
@@ -646,7 +645,7 @@ void Polygon2D::_bind_methods() {
 	ADD_GROUP("Texture", "texture_");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "texture_offset"), "set_texture_offset", "get_texture_offset");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "texture_scale"), "set_texture_scale", "get_texture_scale");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "texture_rotation_degrees", PROPERTY_HINT_RANGE, "-1440,1440,0.1"), "set_texture_rotation_degrees", "get_texture_rotation_degrees");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "texture_rotation_degrees", PROPERTY_HINT_RANGE, "-1080,1080,0.1,or_lesser,or_greater"), "set_texture_rotation_degrees", "get_texture_rotation_degrees");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "texture_rotation", PROPERTY_HINT_NONE, "", 0), "set_texture_rotation", "get_texture_rotation");
 	ADD_GROUP("Skeleton", "");
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "skeleton", PROPERTY_HINT_NODE_PATH_VALID_TYPES, "Skeleton2D"), "set_skeleton", "get_skeleton");

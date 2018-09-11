@@ -4,7 +4,7 @@ using System.Collections;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Godot
+namespace Godot.Collections
 {
     class DictionarySafeHandle : SafeHandle
     {
@@ -396,6 +396,11 @@ namespace Godot
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        internal IntPtr GetPtr()
+        {
+            return objectDict.GetPtr();
         }
     }
 }

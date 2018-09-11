@@ -114,6 +114,7 @@ class EditorPlugin : public Node {
 	bool force_draw_over_forwarding_enabled;
 
 	String last_main_screen_name;
+	String _dir_cache;
 
 protected:
 	static void _bind_methods();
@@ -126,10 +127,12 @@ public:
 	enum CustomControlContainer {
 		CONTAINER_TOOLBAR,
 		CONTAINER_SPATIAL_EDITOR_MENU,
-		CONTAINER_SPATIAL_EDITOR_SIDE,
+		CONTAINER_SPATIAL_EDITOR_SIDE_LEFT,
+		CONTAINER_SPATIAL_EDITOR_SIDE_RIGHT,
 		CONTAINER_SPATIAL_EDITOR_BOTTOM,
 		CONTAINER_CANVAS_EDITOR_MENU,
-		CONTAINER_CANVAS_EDITOR_SIDE,
+		CONTAINER_CANVAS_EDITOR_SIDE_LEFT,
+		CONTAINER_CANVAS_EDITOR_SIDE_RIGHT,
 		CONTAINER_CANVAS_EDITOR_BOTTOM,
 		CONTAINER_PROPERTY_EDITOR_BOTTOM
 	};
@@ -220,6 +223,10 @@ public:
 
 	void add_autoload_singleton(const String &p_name, const String &p_path);
 	void remove_autoload_singleton(const String &p_name);
+
+	void set_dir_cache(const String &p_dir) { _dir_cache = p_dir; }
+	String get_dir_cache() { return _dir_cache; }
+	Ref<ConfigFile> get_config();
 
 	EditorPlugin();
 	virtual ~EditorPlugin();

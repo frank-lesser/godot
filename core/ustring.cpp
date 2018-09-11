@@ -148,7 +148,7 @@ void String::copy_from(const char *p_cstr) {
 	}
 }
 
-void String::copy_from(const CharType *p_cstr, int p_clip_to) {
+void String::copy_from(const CharType *p_cstr, const int p_clip_to) {
 
 	if (!p_cstr) {
 
@@ -158,11 +158,8 @@ void String::copy_from(const CharType *p_cstr, int p_clip_to) {
 
 	int len = 0;
 	const CharType *ptr = p_cstr;
-	while (*(ptr++) != 0)
+	while ((p_clip_to < 0 || len < p_clip_to) && *(ptr++) != 0)
 		len++;
-
-	if (p_clip_to >= 0 && len > p_clip_to)
-		len = p_clip_to;
 
 	if (len == 0) {
 
@@ -177,7 +174,7 @@ void String::copy_from(const CharType *p_cstr, int p_clip_to) {
 // p_char != NULL
 // p_length > 0
 // p_length <= p_char strlen
-void String::copy_from_unchecked(const CharType *p_char, int p_length) {
+void String::copy_from_unchecked(const CharType *p_char, const int p_length) {
 	resize(p_length + 1);
 	set(p_length, 0);
 
@@ -1343,7 +1340,7 @@ String String::utf8(const char *p_utf8, int p_len) {
 
 bool String::parse_utf8(const char *p_utf8, int p_len) {
 
-#define _UNICERROR(m_err) print_line("unicode error: " + String(m_err));
+#define _UNICERROR(m_err) print_line("Unicode error: " + String(m_err));
 
 	String aux;
 
@@ -2791,7 +2788,11 @@ String String::format(const Variant &values, String placeholder) const {
 					val = val.substr(1, val.length() - 2);
 				}
 
-				new_string = new_string.replace(placeholder.replace("_", i_as_str), val);
+				if (placeholder.find("_") > -1) {
+					new_string = new_string.replace(placeholder.replace("_", i_as_str), val);
+				} else {
+					new_string = new_string.replace_first(placeholder, val);
+				}
 			}
 		}
 	} else if (values.get_type() == Variant::DICTIONARY) {
@@ -3880,8 +3881,6 @@ String String::percent_decode() const {
 		}
 		pe += c;
 	}
-
-	pe += '0';
 
 	return String::utf8(pe.ptr());
 }

@@ -104,14 +104,12 @@ Vector<Ref<Texture> > EditorInterface::make_mesh_previews(const Vector<Ref<Mesh>
 			continue;
 		}
 		AABB aabb = mesh->get_aabb();
-		print_line("aabb: " + aabb);
 		Vector3 ofs = aabb.position + aabb.size * 0.5;
 		aabb.position -= ofs;
 		Transform xform;
 		xform.basis = Basis().rotated(Vector3(0, 1, 0), -Math_PI * 0.25);
 		xform.basis = Basis().rotated(Vector3(1, 0, 0), Math_PI * 0.25) * xform.basis;
 		AABB rot_aabb = xform.xform(aabb);
-		print_line("rot_aabb: " + rot_aabb);
 		float m = MAX(rot_aabb.size.x, rot_aabb.size.y) * 0.5;
 		if (m == 0) {
 			textures.push_back(Ref<Texture>());
@@ -119,7 +117,6 @@ Vector<Ref<Texture> > EditorInterface::make_mesh_previews(const Vector<Ref<Mesh>
 		}
 		m = 1.0 / m;
 		m *= 0.5;
-		print_line("scale: " + rtos(m));
 		xform.basis.scale(Vector3(m, m, m));
 		xform.origin = -xform.basis.xform(ofs); //-ofs*m;
 		xform.origin.z -= rot_aabb.size.z * 2;
@@ -133,7 +130,6 @@ Vector<Ref<Texture> > EditorInterface::make_mesh_previews(const Vector<Ref<Mesh>
 		Ref<ImageTexture> it(memnew(ImageTexture));
 		it->create_from_image(img);
 
-		//print_line("loaded image, size: "+rtos(m)+" dist: "+rtos(dist)+" empty?"+itos(img.empty())+" w: "+itos(it->get_width())+" h: "+itos(it->get_height()));
 		VS::get_singleton()->free(inst);
 
 		textures.push_back(it);
@@ -309,6 +305,12 @@ void EditorPlugin::remove_autoload_singleton(const String &p_name) {
 	EditorNode::get_singleton()->get_project_settings()->get_autoload_settings()->autoload_remove(p_name);
 }
 
+Ref<ConfigFile> EditorPlugin::get_config() {
+	Ref<ConfigFile> cf = memnew(ConfigFile);
+	cf->load(_dir_cache.plus_file("plugin.cfg"));
+	return cf;
+}
+
 ToolButton *EditorPlugin::add_control_to_bottom_panel(Control *p_control, const String &p_title) {
 	ERR_FAIL_NULL_V(p_control, NULL);
 	return EditorNode::get_singleton()->add_bottom_panel_item(p_title, p_control);
@@ -347,10 +349,16 @@ void EditorPlugin::add_control_to_container(CustomControlContainer p_location, C
 			SpatialEditor::get_singleton()->add_control_to_menu_panel(p_control);
 
 		} break;
-		case CONTAINER_SPATIAL_EDITOR_SIDE: {
+		case CONTAINER_SPATIAL_EDITOR_SIDE_LEFT: {
 
 			SpatialEditor::get_singleton()->get_palette_split()->add_child(p_control);
 			SpatialEditor::get_singleton()->get_palette_split()->move_child(p_control, 0);
+
+		} break;
+		case CONTAINER_SPATIAL_EDITOR_SIDE_RIGHT: {
+
+			SpatialEditor::get_singleton()->get_palette_split()->add_child(p_control);
+			SpatialEditor::get_singleton()->get_palette_split()->move_child(p_control, 1);
 
 		} break;
 		case CONTAINER_SPATIAL_EDITOR_BOTTOM: {
@@ -363,10 +371,16 @@ void EditorPlugin::add_control_to_container(CustomControlContainer p_location, C
 			CanvasItemEditor::get_singleton()->add_control_to_menu_panel(p_control);
 
 		} break;
-		case CONTAINER_CANVAS_EDITOR_SIDE: {
+		case CONTAINER_CANVAS_EDITOR_SIDE_LEFT: {
 
 			CanvasItemEditor::get_singleton()->get_palette_split()->add_child(p_control);
 			CanvasItemEditor::get_singleton()->get_palette_split()->move_child(p_control, 0);
+
+		} break;
+		case CONTAINER_CANVAS_EDITOR_SIDE_RIGHT: {
+
+			CanvasItemEditor::get_singleton()->get_palette_split()->add_child(p_control);
+			CanvasItemEditor::get_singleton()->get_palette_split()->move_child(p_control, 1);
 
 		} break;
 		case CONTAINER_CANVAS_EDITOR_BOTTOM: {
@@ -397,7 +411,8 @@ void EditorPlugin::remove_control_from_container(CustomControlContainer p_locati
 			SpatialEditor::get_singleton()->remove_control_from_menu_panel(p_control);
 
 		} break;
-		case CONTAINER_SPATIAL_EDITOR_SIDE: {
+		case CONTAINER_SPATIAL_EDITOR_SIDE_LEFT:
+		case CONTAINER_SPATIAL_EDITOR_SIDE_RIGHT: {
 
 			SpatialEditor::get_singleton()->get_palette_split()->remove_child(p_control);
 
@@ -412,7 +427,8 @@ void EditorPlugin::remove_control_from_container(CustomControlContainer p_locati
 			CanvasItemEditor::get_singleton()->remove_control_from_menu_panel(p_control);
 
 		} break;
-		case CONTAINER_CANVAS_EDITOR_SIDE: {
+		case CONTAINER_CANVAS_EDITOR_SIDE_LEFT:
+		case CONTAINER_CANVAS_EDITOR_SIDE_RIGHT: {
 
 			CanvasItemEditor::get_singleton()->get_palette_split()->remove_child(p_control);
 
@@ -779,10 +795,12 @@ void EditorPlugin::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(CONTAINER_TOOLBAR);
 	BIND_ENUM_CONSTANT(CONTAINER_SPATIAL_EDITOR_MENU);
-	BIND_ENUM_CONSTANT(CONTAINER_SPATIAL_EDITOR_SIDE);
+	BIND_ENUM_CONSTANT(CONTAINER_SPATIAL_EDITOR_SIDE_LEFT);
+	BIND_ENUM_CONSTANT(CONTAINER_SPATIAL_EDITOR_SIDE_RIGHT);
 	BIND_ENUM_CONSTANT(CONTAINER_SPATIAL_EDITOR_BOTTOM);
 	BIND_ENUM_CONSTANT(CONTAINER_CANVAS_EDITOR_MENU);
-	BIND_ENUM_CONSTANT(CONTAINER_CANVAS_EDITOR_SIDE);
+	BIND_ENUM_CONSTANT(CONTAINER_CANVAS_EDITOR_SIDE_LEFT);
+	BIND_ENUM_CONSTANT(CONTAINER_CANVAS_EDITOR_SIDE_RIGHT);
 	BIND_ENUM_CONSTANT(CONTAINER_CANVAS_EDITOR_BOTTOM);
 	BIND_ENUM_CONSTANT(CONTAINER_PROPERTY_EDITOR_BOTTOM);
 

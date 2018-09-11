@@ -33,7 +33,9 @@
 #include "gl_context/context_gl.h"
 #include "os/os.h"
 #include "project_settings.h"
+
 #include <string.h>
+
 RasterizerStorage *RasterizerGLES3::get_storage() {
 
 	return storage;
@@ -134,30 +136,32 @@ typedef void (*DEBUGPROCARB)(GLenum source,
 
 typedef void (*DebugMessageCallbackARB)(DEBUGPROCARB callback, const void *userParam);
 
-void RasterizerGLES3::initialize() {
-
-	if (OS::get_singleton()->is_stdout_verbose()) {
-		print_line("Using GLES3 video driver");
-	}
+Error RasterizerGLES3::is_viable() {
 
 #ifdef GLAD_ENABLED
 	if (!gladLoadGL()) {
 		ERR_PRINT("Error initializing GLAD");
+		return ERR_UNAVAILABLE;
 	}
 
 // GLVersion seems to be used for both GL and GL ES, so we need different version checks for them
 #ifdef OPENGL_ENABLED // OpenGL 3.3 Core Profile required
-	if (GLVersion.major < 3 && GLVersion.minor < 3) {
+	if (GLVersion.major < 3 || (GLVersion.major == 3 && GLVersion.minor < 3)) {
 #else // OpenGL ES 3.0
 	if (GLVersion.major < 3) {
 #endif
-		ERR_PRINT("Your system's graphic drivers seem not to support OpenGL 3.3 / OpenGL ES 3.0, sorry :(\n"
-				  "Try a drivers update, buy a new GPU or try software rendering on Linux; Godot will now crash with a segmentation fault.");
-		OS::get_singleton()->alert("Your system's graphic drivers seem not to support OpenGL 3.3 / OpenGL ES 3.0, sorry :(\n"
-								   "Godot Engine will self-destruct as soon as you acknowledge this error message.",
-				"Fatal error: Insufficient OpenGL / GLES driver support");
+		return ERR_UNAVAILABLE;
 	}
 
+#endif // GLAD_ENABLED
+	return OK;
+}
+
+void RasterizerGLES3::initialize() {
+
+	print_verbose("Using GLES3 video driver");
+
+#ifdef GLAD_ENABLED
 	if (OS::get_singleton()->is_stdout_verbose()) {
 		if (GLAD_GL_ARB_debug_output) {
 			glEnable(_EXT_DEBUG_OUTPUT_SYNCHRONOUS_ARB);
@@ -167,7 +171,6 @@ void RasterizerGLES3::initialize() {
 			print_line("OpenGL debugging not supported!");
 		}
 	}
-
 #endif // GLAD_ENABLED
 
 	/* // For debugging

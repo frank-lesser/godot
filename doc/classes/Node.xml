@@ -38,13 +38,19 @@
 				Corresponds to the NOTIFICATION_EXIT_TREE notification in [method Object._notification] and signal [signal tree_exiting]. To get notified when the node has already left the active tree, connect to the [signal tree_exited]
 			</description>
 		</method>
+		<method name="_get_configuration_warning" qualifiers="virtual">
+			<return type="String">
+			</return>
+			<description>
+			</description>
+		</method>
 		<method name="_input" qualifiers="virtual">
 			<return type="void">
 			</return>
 			<argument index="0" name="event" type="InputEvent">
 			</argument>
 			<description>
-				Called when there is an input event. The input event propagates through the node tree until a node consumes it.
+				Called when there is an input event. The input event propagates up through the node tree until a node consumes it.
 				It is only called if input processing is enabled, which is done automatically if this method is overridden, and can be toggled with [method set_process_input].
 				To consume the input event and stop it propagating further to other nodes, [method SceneTree.set_input_as_handled] can be called.
 				For gameplay input, [method _unhandled_input] and [method _unhandled_key_input] are usually a better fit as they allow the GUI to intercept the events first.
@@ -87,7 +93,7 @@
 			<argument index="0" name="event" type="InputEvent">
 			</argument>
 			<description>
-				Propagated to all nodes when the previous [InputEvent] is not consumed by any nodes.
+				Called when an [InputEvent] hasn't been consumed by [method _input] or any GUI. The input event propagates up through the node tree until a node consumes it.
 				It is only called if unhandled input processing is enabled, which is done automatically if this method is overridden, and can be toggled with [method set_process_unhandled_input].
 				To consume the input event and stop it propagating further to other nodes, [method SceneTree.set_input_as_handled] can be called.
 				For gameplay input, this and [method _unhandled_key_input] are usually a better fit than [method _input] as they allow the GUI to intercept the events first.
@@ -99,7 +105,7 @@
 			<argument index="0" name="event" type="InputEventKey">
 			</argument>
 			<description>
-				Propagated to all nodes when the previous [InputEventKey] is not consumed by any nodes.
+				Called when an [InputEventKey] hasn't been consumed by [method _input] or any GUI. The input event propagates up through the node tree until a node consumes it.
 				It is only called if unhandled key input processing is enabled, which is done automatically if this method is overridden, and can be toggled with [method set_process_unhandled_key_input].
 				To consume the input event and stop it propagating further to other nodes, [method SceneTree.set_input_as_handled] can be called.
 				For gameplay input, this and [method _unhandled_input] are usually a better fit than [method _input] as they allow the GUI to intercept the events first.
@@ -223,8 +229,8 @@
 			</argument>
 			<description>
 				Fetches a node. The [NodePath] can be either a relative path (from the current node) or an absolute path (in the scene tree) to a node. If the path does not exist, a [code]null instance[/code] is returned and attempts to access it will result in an "Attempt to call &lt;method&gt; on a null instance." error.
-				Note: fetching absolute paths only works when the node is inside the scene tree (see [method is_inside_tree]).
-				[i]Example:[/i] Assume your current node is Character and the following tree:
+				[b]Note:[/b] Fetching absolute paths only works when the node is inside the scene tree (see [method is_inside_tree]).
+				[b]Example:[/b] Assume your current node is Character and the following tree:
 				[codeblock]
 				/root
 				/root/Character

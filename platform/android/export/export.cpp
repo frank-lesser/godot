@@ -257,7 +257,6 @@ class EditorExportAndroid : public EditorExportPlatform {
 					if (dpos == -1)
 						continue;
 					d = d.substr(0, dpos).strip_edges();
-					//print_line("found device: "+d);
 					ldevices.push_back(d);
 				}
 
@@ -345,8 +344,6 @@ class EditorExportAndroid : public EditorExportPlatform {
 							}
 
 							d.name = vendor + " " + device;
-							//print_line("name: "+d.name);
-							//print_line("description: "+d.description);
 						}
 
 						ndevices.push_back(d);
@@ -671,18 +668,13 @@ class EditorExportAndroid : public EditorExportPlatform {
 							ucstring.write[len] = 0;
 							string_table.write[i] = ucstring.ptr();
 						}
-
-						//print_line("String "+itos(i)+": "+string_table[i]);
 					}
 
 					for (uint32_t i = string_end; i < (ofs + size); i++) {
 						stable_extra.push_back(p_manifest[i]);
 					}
 
-					//printf("stable extra: %i\n",int(stable_extra.size()));
 					string_table_ends = ofs + size;
-
-					//print_line("STABLE SIZE: "+itos(size)+" ACTUAL: "+itos(string_table_ends));
 
 				} break;
 				case CHUNK_XML_START_TAG: {
@@ -714,33 +706,23 @@ class EditorExportAndroid : public EditorExportPlatform {
 
 						//replace project information
 						if (tname == "manifest" && attrname == "package") {
-
-							print_line("FOUND package");
 							string_table.write[attr_value] = get_package_name(package_name);
 						}
 
-						if (tname == "manifest" && /*nspace=="android" &&*/ attrname == "versionCode") {
-
-							print_line("FOUND versionCode");
+						if (tname == "manifest" && attrname == "versionCode") {
 							encode_uint32(version_code, &p_manifest.write[iofs + 16]);
 						}
 
-						if (tname == "manifest" && /*nspace=="android" &&*/ attrname == "versionName") {
-
-							print_line("FOUND versionName");
+						if (tname == "manifest" && attrname == "versionName") {
 							if (attr_value == 0xFFFFFFFF) {
 								WARN_PRINT("Version name in a resource, should be plaintext")
 							} else
 								string_table.write[attr_value] = version_name;
 						}
 
-						if (tname == "activity" && /*nspace=="android" &&*/ attrname == "screenOrientation") {
+						if (tname == "activity" && attrname == "screenOrientation") {
 
 							encode_uint32(orientation == 0 ? 0 : 1, &p_manifest.write[iofs + 16]);
-						}
-
-						if (tname == "uses-feature" && /*nspace=="android" &&*/ attrname == "glEsVersion") {
-							print_line("version number: " + itos(decode_uint32(&p_manifest[iofs + 16])));
 						}
 
 						if (tname == "supports-screens") {
@@ -773,7 +755,6 @@ class EditorExportAndroid : public EditorExportPlatform {
 					String tname = string_table[name];
 
 					if (tname == "manifest") {
-						print_line("Found manifest end");
 
 						// save manifest ending so we can restore it
 						Vector<uint8_t> manifest_end;
@@ -913,8 +894,6 @@ class EditorExportAndroid : public EditorExportPlatform {
 		encode_uint32(string_table.size(), &ret.write[16]); //update new number of strings
 		encode_uint32(string_data_offset - 8, &ret.write[28]); //update new string data offset
 
-		//print_line("file size: "+itos(ret.size()));
-
 		p_manifest = ret;
 	}
 
@@ -956,7 +935,6 @@ class EditorExportAndroid : public EditorExportPlatform {
 	void _fix_resources(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_manifest) {
 
 		const int UTF8_FLAG = 0x00000100;
-		print_line("*******************GORRRGLE***********************");
 
 		uint32_t string_block_len = decode_uint32(&p_manifest[16]);
 		uint32_t string_count = decode_uint32(&p_manifest[20]);
@@ -1086,16 +1064,15 @@ public:
 
 	virtual void get_export_options(List<ExportOption> *r_options) {
 
-		/*r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "graphics/api", PROPERTY_HINT_ENUM, "OpenGL ES 2.0,OpenGL ES 3.0"), 1));*/
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "graphics/32_bits_framebuffer"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "one_click_deploy/clear_previous_install"), true));
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/debug", PROPERTY_HINT_GLOBAL_FILE, "apk"), ""));
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/release", PROPERTY_HINT_GLOBAL_FILE, "apk"), ""));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/debug", PROPERTY_HINT_GLOBAL_FILE, "*.apk"), ""));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/release", PROPERTY_HINT_GLOBAL_FILE, "*.apk"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "command_line/extra_args"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "version/code", PROPERTY_HINT_RANGE, "1,4096,1,or_greater"), 1));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "version/name"), "1.0"));
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "package/unique_name"), "org.godotengine.$genname"));
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "package/name"), ""));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "package/unique_name", PROPERTY_HINT_PLACEHOLDER_TEXT, "com.example.$genname"), ""));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "package/name", PROPERTY_HINT_PLACEHOLDER_TEXT, "Game Name"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "package/signed"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "screen/immersive_mode"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "screen/orientation", PROPERTY_HINT_ENUM, "Landscape,Portrait"), 0));
@@ -1105,10 +1082,10 @@ public:
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "screen/support_xlarge"), true));
 
 		for (int i = 0; i < sizeof(launcher_icons) / sizeof(launcher_icons[0]); ++i) {
-			r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, launcher_icons[i].option_id, PROPERTY_HINT_FILE, "png"), ""));
+			r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, launcher_icons[i].option_id, PROPERTY_HINT_FILE, "*.png"), ""));
 		}
 
-		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "keystore/release", PROPERTY_HINT_GLOBAL_FILE, "keystore"), ""));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "keystore/release", PROPERTY_HINT_GLOBAL_FILE, "*.keystore"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "keystore/release_user"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "keystore/release_password"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "apk_expansion/enable"), false));
@@ -1133,8 +1110,6 @@ public:
 
 			r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "user_permissions/" + itos(i)), false));
 		}
-
-		//r_options->push_back( PropertyInfo( Variant::INT, "resources/pack_mode", PROPERTY_HINT_ENUM,"Copy,Single Exec.,Pack (.pck),Bundles (Optical)"));
 	}
 
 	virtual String get_name() const {
@@ -1237,8 +1212,8 @@ public:
 			err = OS::get_singleton()->execute(adb, args, true, NULL, NULL, &rv);
 		}
 
-		print_line("Installing into device (please wait..): " + devices[p_device].name);
-		ep.step("Installing to Device (please wait..)..", 2);
+		print_line("Installing to device (please wait...): " + devices[p_device].name);
+		ep.step("Installing to device (please wait...)", 2);
 
 		args.clear();
 		args.push_back("-s");
@@ -1336,17 +1311,33 @@ public:
 
 	virtual bool can_export(const Ref<EditorExportPreset> &p_preset, String &r_error, bool &r_missing_templates) const {
 
+		String err;
 		r_missing_templates = find_export_template("android_debug.apk") == String() || find_export_template("android_release.apk") == String();
+
+		if (p_preset->get("custom_package/debug") != "") {
+			if (FileAccess::exists(p_preset->get("custom_package/debug"))) {
+				r_missing_templates = false;
+			} else {
+				err += "Custom debug package not found.\n";
+			}
+		}
+
+		if (p_preset->get("custom_package/release") != "") {
+			if (FileAccess::exists(p_preset->get("custom_package/release"))) {
+				r_missing_templates = false;
+			} else {
+				err += "Custom release package not found.\n";
+			}
+		}
 
 		bool valid = !r_missing_templates;
 
 		String adb = EditorSettings::get_singleton()->get("export/android/adb");
-		String err;
 
 		if (!FileAccess::exists(adb)) {
 
 			valid = false;
-			err += "ADB executable not configured in editor settings.\n";
+			err += "ADB executable not configured in the Editor Settings.\n";
 		}
 
 		String js = EditorSettings::get_singleton()->get("export/android/jarsigner");
@@ -1354,7 +1345,7 @@ public:
 		if (!FileAccess::exists(js)) {
 
 			valid = false;
-			err += "OpenJDK 6 jarsigner not configured in editor settings.\n";
+			err += "OpenJDK 8 jarsigner not configured in the Editor Settings.\n";
 		}
 
 		String dk = EditorSettings::get_singleton()->get("export/android/debug_keystore");
@@ -1362,7 +1353,7 @@ public:
 		if (!FileAccess::exists(dk)) {
 
 			valid = false;
-			err += "Debug Keystore not configured in editor settings.\n";
+			err += "Debug keystore not configured in the Editor Settings.\n";
 		}
 
 		bool apk_expansion = p_preset->get("apk_expansion/enable");
@@ -1381,7 +1372,7 @@ public:
 			if (apk_expansion_pkey == "") {
 				valid = false;
 
-				err += "Invalid public key for apk expansion.\n";
+				err += "Invalid public key for APK expansion.\n";
 			}
 		}
 
@@ -1600,8 +1591,11 @@ public:
 				String apkfname = "main." + itos(version_code) + "." + get_package_name(package_name) + ".obb";
 				String fullpath = p_path.get_base_dir().plus_file(apkfname);
 				err = save_pack(p_preset, fullpath);
+
 				if (err != OK) {
+					unzClose(pkg);
 					EditorNode::add_io_error("Could not write expansion package file: " + apkfname);
+
 					return OK;
 				}
 
@@ -1686,7 +1680,7 @@ public:
 
 			String jarsigner = EditorSettings::get_singleton()->get("export/android/jarsigner");
 			if (!FileAccess::exists(jarsigner)) {
-				EditorNode::add_io_error("'jarsigner' could not be found.\nPlease supply a path in the editor settings.\nResulting apk is unsigned.");
+				EditorNode::add_io_error("'jarsigner' could not be found.\nPlease supply a path in the Editor Settings.\nThe resulting APK is unsigned.");
 				return OK;
 			}
 
@@ -1698,14 +1692,14 @@ public:
 				password = EditorSettings::get_singleton()->get("export/android/debug_keystore_pass");
 				user = EditorSettings::get_singleton()->get("export/android/debug_keystore_user");
 
-				ep.step("Signing Debug APK...", 103);
+				ep.step("Signing debug APK...", 103);
 
 			} else {
 				keystore = release_keystore;
 				password = release_password;
 				user = release_username;
 
-				ep.step("Signing Release APK...", 103);
+				ep.step("Signing release APK...", 103);
 			}
 
 			if (!FileAccess::exists(keystore)) {
@@ -1748,7 +1742,7 @@ public:
 
 			OS::get_singleton()->execute(jarsigner, args, true, NULL, NULL, &retval);
 			if (retval) {
-				EditorNode::add_io_error("'jarsigner' verification of APK failed. Make sure to use jarsigner from Java 6.");
+				EditorNode::add_io_error("'jarsigner' verification of APK failed. Make sure to use a jarsigner from OpenJDK 8.");
 				return ERR_CANT_CREATE;
 			}
 		}
@@ -1847,6 +1841,9 @@ public:
 		r_features->push_back("Android");
 	}
 
+	virtual void resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, Set<String> &p_features) {
+	}
+
 	EditorExportAndroid() {
 
 		Ref<Image> img = memnew(Image(_android_logo));
@@ -1883,7 +1880,7 @@ void register_android_exporter() {
 	EDITOR_DEF("export/android/jarsigner", "");
 	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/jarsigner", PROPERTY_HINT_GLOBAL_FILE, exe_ext));
 	EDITOR_DEF("export/android/debug_keystore", "");
-	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/debug_keystore", PROPERTY_HINT_GLOBAL_FILE, "keystore"));
+	EditorSettings::get_singleton()->add_property_hint(PropertyInfo(Variant::STRING, "export/android/debug_keystore", PROPERTY_HINT_GLOBAL_FILE, "*.keystore"));
 	EDITOR_DEF("export/android/debug_keystore_user", "androiddebugkey");
 	EDITOR_DEF("export/android/debug_keystore_pass", "android");
 	EDITOR_DEF("export/android/force_system_user", false);

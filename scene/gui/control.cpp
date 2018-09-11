@@ -357,7 +357,7 @@ void Control::_get_property_list(List<PropertyInfo> *p_list) const {
 			if (data.shader_override.has(E->get()))
 				hint |= PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_CHECKED;
 
-			p_list->push_back(PropertyInfo(Variant::OBJECT, "custom_shaders/" + E->get(), PROPERTY_HINT_RESOURCE_TYPE, "CanvasItemShader,CanvasItemShaderGraph", hint));
+			p_list->push_back(PropertyInfo(Variant::OBJECT, "custom_shaders/" + E->get(), PROPERTY_HINT_RESOURCE_TYPE, "Shader,VisualShader", hint));
 		}
 	}
 	{
@@ -769,6 +769,7 @@ void Control::force_drag(const Variant &p_data, Control *p_control) {
 void Control::set_drag_preview(Control *p_control) {
 
 	ERR_FAIL_COND(!is_inside_tree());
+	ERR_FAIL_COND(get_viewport()->gui_is_dragging());
 	get_viewport()->_gui_set_drag_preview(this, p_control);
 }
 
@@ -2061,8 +2062,11 @@ void Control::grab_focus() {
 	if (!is_inside_tree()) {
 		ERR_FAIL_COND(!is_inside_tree());
 	}
-	if (data.focus_mode == FOCUS_NONE)
+
+	if (data.focus_mode == FOCUS_NONE) {
+		WARN_PRINT("This control can't grab focus. Use set_focus_mode() to allow a control to get focus.");
 		return;
+	}
 
 	get_viewport()->_gui_control_grab_focus(this);
 }
@@ -2955,7 +2959,7 @@ void Control::_bind_methods() {
 	BIND_ENUM_CONSTANT(ANCHOR_END);
 
 	ADD_SIGNAL(MethodInfo("resized"));
-	ADD_SIGNAL(MethodInfo("gui_input", PropertyInfo(Variant::OBJECT, "ev", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
+	ADD_SIGNAL(MethodInfo("gui_input", PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
 	ADD_SIGNAL(MethodInfo("mouse_entered"));
 	ADD_SIGNAL(MethodInfo("mouse_exited"));
 	ADD_SIGNAL(MethodInfo("focus_entered"));

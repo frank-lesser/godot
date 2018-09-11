@@ -717,7 +717,6 @@ void CodeTextEditor::_complete_request() {
 	if (code_complete_func) {
 		code_complete_func(code_complete_ud, ctext, &entries, forced);
 	}
-	// print_line("COMPLETE: "+p_request);
 	if (entries.size() == 0)
 		return;
 	Vector<String> strs;
@@ -745,7 +744,7 @@ bool CodeTextEditor::_add_font_size(int p_delta) {
 	if (font.is_valid()) {
 		int new_size = CLAMP(font->get_size() + p_delta, 8 * EDSCALE, 96 * EDSCALE);
 
-		zoom_nb->set_text(itos(100 * new_size / 14) + "%");
+		zoom_nb->set_text(itos(100 * new_size / (14 * EDSCALE)) + "%");
 
 		if (new_size != font->get_size()) {
 			EditorSettings::get_singleton()->set("interface/editor/code_font_size", new_size / EDSCALE);
@@ -1341,7 +1340,7 @@ CodeTextEditor::CodeTextEditor() {
 
 	font_resize_val = 0;
 	font_size = EditorSettings::get_singleton()->get("interface/editor/code_font_size");
-	zoom_nb->set_text(itos(100 * font_size / 14) + "%");
+	zoom_nb->set_text(itos(100 * font_size / (14 * EDSCALE)) + "%");
 	font_resize_timer = memnew(Timer);
 	add_child(font_resize_timer);
 	font_resize_timer->set_one_shot(true);

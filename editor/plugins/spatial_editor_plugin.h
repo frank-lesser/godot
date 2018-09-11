@@ -127,9 +127,7 @@ public:
 	virtual void redraw();
 	virtual void free();
 
-	//TODO remove (?)
 	virtual bool is_editable() const;
-	virtual bool can_draw() const;
 
 	void set_hidden(bool p_hidden);
 	void set_plugin(EditorSpatialGizmoPlugin *p_gizmo);
@@ -226,7 +224,7 @@ private:
 	void _compute_edit(const Point2 &p_point);
 	void _clear_selected();
 	void _select_clicked(bool p_append, bool p_single);
-	void _select(Spatial *p_node, bool p_append, bool p_single);
+	void _select(Node *p_node, bool p_append, bool p_single);
 	ObjectID _select_ray(const Point2 &p_pos, bool p_append, bool &r_includes_current, int *r_gizmo_handle = NULL, bool p_alt_select = false);
 	void _find_items_at_pos(const Point2 &p_pos, bool &r_includes_current, Vector<_RayResult> &results, bool p_alt_select = false);
 	Vector3 _get_ray_pos(const Vector2 &p_pos) const;
@@ -508,6 +506,7 @@ private:
 
 	RID origin;
 	RID origin_instance;
+	bool origin_enabled;
 	RID grid[3];
 	RID grid_instance[3];
 	bool grid_visible[3]; //currently visible
@@ -560,10 +559,10 @@ private:
 		MENU_VIEW_USE_4_VIEWPORTS,
 		MENU_VIEW_ORIGIN,
 		MENU_VIEW_GRID,
+		MENU_VIEW_GIZMOS_3D_ICONS,
 		MENU_VIEW_CAMERA_SETTINGS,
 		MENU_LOCK_SELECTED,
 		MENU_UNLOCK_SELECTED,
-		MENU_VISIBILITY_SKELETON,
 		MENU_SNAP_TO_FLOOR
 	};
 
@@ -571,7 +570,7 @@ private:
 	Button *tool_option_button[TOOL_OPT_MAX];
 
 	MenuButton *transform_menu;
-	MenuButton *gizmos_menu;
+	PopupMenu *gizmos_menu;
 	MenuButton *view_menu;
 
 	ToolButton *lock_button;
@@ -675,10 +674,8 @@ public:
 	Ref<ArrayMesh> get_scale_gizmo(int idx) const { return scale_gizmo[idx]; }
 	Ref<ArrayMesh> get_scale_plane_gizmo(int idx) const { return scale_plane_gizmo[idx]; }
 
-	int get_skeleton_visibility_state() const;
-
 	void update_transform_gizmo();
-	void update_all_gizmos();
+	void update_all_gizmos(Node *p_node = NULL);
 	void snap_selected_nodes_to_floor();
 	void select_gizmo_highlight_axis(int p_axis);
 	void set_custom_camera(Node *p_camera) { custom_camera = p_camera; }
@@ -743,6 +740,8 @@ public:
 	virtual void set_state(const Dictionary &p_state);
 	virtual void clear() { spatial_editor->clear(); }
 
+	virtual void edited_scene_changed();
+
 	SpatialEditorPlugin(EditorNode *p_node);
 	~SpatialEditorPlugin();
 };
@@ -751,7 +750,13 @@ class EditorSpatialGizmoPlugin : public Resource {
 
 	GDCLASS(EditorSpatialGizmoPlugin, Resource);
 
-	bool hidden;
+public:
+	static const int ON_TOP = 0;
+	static const int VISIBLE = 1;
+	static const int HIDDEN = 2;
+
+private:
+	int current_state;
 	List<EditorSpatialGizmo *> current_gizmos;
 	HashMap<String, Vector<Ref<SpatialMaterial> > > materials;
 
@@ -779,7 +784,7 @@ public:
 	virtual bool is_gizmo_handle_highlighted(const EditorSpatialGizmo *p_gizmo, int idx) const { return false; }
 
 	Ref<EditorSpatialGizmo> get_gizmo(Spatial *p_spatial);
-	void set_hidden(bool p_hidden);
+	void set_state(int p_state);
 	void unregister_gizmo(EditorSpatialGizmo *p_gizmo);
 
 	EditorSpatialGizmoPlugin();

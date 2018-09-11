@@ -1276,8 +1276,6 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 		ADD_ATTR2(NSOpenGLPFAOpenGLProfile, NSOpenGLProfileVersion3_2Core);
 	}
 
-	video_driver_index = p_video_driver;
-
 	ADD_ATTR2(NSOpenGLPFAColorSize, colorBits);
 
 	/*
@@ -1333,25 +1331,59 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 
 	/*** END OSX INITIALIZATION ***/
 
-	// only opengl support here...
+	bool gles3 = true;
 	if (p_video_driver == VIDEO_DRIVER_GLES2) {
-		RasterizerGLES2::register_config();
-		RasterizerGLES2::make_current();
-	} else {
-		RasterizerGLES3::register_config();
-		RasterizerGLES3::make_current();
+		gles3 = false;
 	}
+
+	bool editor = Engine::get_singleton()->is_editor_hint();
+	bool gl_initialization_error = false;
+
+	while (true) {
+		if (gles3) {
+			if (RasterizerGLES3::is_viable() == OK) {
+				RasterizerGLES3::register_config();
+				RasterizerGLES3::make_current();
+				break;
+			} else {
+				if (GLOBAL_GET("rendering/quality/driver/driver_fallback") == "Best" || editor) {
+					p_video_driver = VIDEO_DRIVER_GLES2;
+					gles3 = false;
+					continue;
+				} else {
+					gl_initialization_error = true;
+					break;
+				}
+			}
+		} else {
+			if (RasterizerGLES2::is_viable() == OK) {
+				RasterizerGLES2::register_config();
+				RasterizerGLES2::make_current();
+				break;
+			} else {
+				gl_initialization_error = true;
+				break;
+			}
+		}
+	}
+
+	if (gl_initialization_error) {
+		OS::get_singleton()->alert("Your video card driver does not support any of the supported OpenGL versions.\n"
+								   "Please update your drivers or if you have a very old or integrated GPU upgrade it.",
+				"Unable to initialize Video driver");
+		return ERR_UNAVAILABLE;
+	}
+
+	video_driver_index = p_video_driver;
 
 	visual_server = memnew(VisualServerRaster);
 	if (get_render_thread_mode() != RENDER_THREAD_UNSAFE) {
 
 		visual_server = memnew(VisualServerWrapMT(visual_server, get_render_thread_mode() == RENDER_SEPARATE_THREAD));
 	}
+
 	visual_server->init();
-
 	AudioDriverManager::initialize(p_audio_driver);
-
-	midi_driver.open();
 
 	input = memnew(InputDefault);
 	joypad_osx = memnew(JoypadOSX);
@@ -1369,6 +1401,8 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 }
 
 void OS_OSX::finalize() {
+
+	midi_driver.close();
 
 	CFNotificationCenterRemoveObserver(CFNotificationCenterGetDistributedCenter(), NULL, kTISNotifySelectedKeyboardInputSourceChanged, NULL);
 	CGDisplayRemoveReconfigurationCallback(displays_arrangement_changed, NULL);
@@ -1570,7 +1604,9 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		}
 
 		ERR_FAIL_COND(!texture.is_valid());
+		ERR_FAIL_COND(p_hotspot.x < 0 || p_hotspot.y < 0);
 		ERR_FAIL_COND(texture_size.width > 256 || texture_size.height > 256);
+		ERR_FAIL_COND(p_hotspot.x > texture_size.width || p_hotspot.y > texture_size.height);
 
 		image = texture->get_data();
 

@@ -124,6 +124,13 @@ Variant PhysicsServerSW::shape_get_data(RID p_shape) const {
 	return shape->get_data();
 };
 
+void PhysicsServerSW::shape_set_margin(RID p_shape, real_t p_margin) {
+}
+
+real_t PhysicsServerSW::shape_get_margin(RID p_shape) const {
+	return 0.0;
+}
+
 real_t PhysicsServerSW::shape_get_custom_solver_bias(RID p_shape) const {
 
 	const ShapeSW *shape = shape_owner.get(p_shape);
@@ -292,6 +299,7 @@ void PhysicsServerSW::area_set_shape(RID p_area, int p_shape_idx, RID p_shape) {
 
 	area->set_shape(p_shape_idx, shape);
 }
+
 void PhysicsServerSW::area_set_shape_transform(RID p_area, int p_shape_idx, const Transform &p_transform) {
 
 	AreaSW *area = area_owner.get(p_area);
@@ -941,7 +949,7 @@ bool PhysicsServerSW::body_is_ray_pickable(RID p_body) const {
 	return body->is_ray_pickable();
 }
 
-bool PhysicsServerSW::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, MotionResult *r_result) {
+bool PhysicsServerSW::body_test_motion(RID p_body, const Transform &p_from, const Vector3 &p_motion, bool p_infinite_inertia, MotionResult *r_result, bool p_exclude_raycast_shapes) {
 
 	BodySW *body = body_owner.get(p_body);
 	ERR_FAIL_COND_V(!body, false);
@@ -950,7 +958,19 @@ bool PhysicsServerSW::body_test_motion(RID p_body, const Transform &p_from, cons
 
 	_update_shapes();
 
-	return body->get_space()->test_body_motion(body, p_from, p_motion, p_infinite_inertia, body->get_kinematic_margin(), r_result);
+	return body->get_space()->test_body_motion(body, p_from, p_motion, p_infinite_inertia, body->get_kinematic_margin(), r_result, p_exclude_raycast_shapes);
+}
+
+int PhysicsServerSW::body_test_ray_separation(RID p_body, const Transform &p_transform, bool p_infinite_inertia, Vector3 &r_recover_motion, SeparationResult *r_results, int p_result_max, float p_margin) {
+
+	BodySW *body = body_owner.get(p_body);
+	ERR_FAIL_COND_V(!body, false);
+	ERR_FAIL_COND_V(!body->get_space(), false);
+	ERR_FAIL_COND_V(body->get_space()->is_locked(), false);
+
+	_update_shapes();
+
+	return body->get_space()->test_body_ray_separation(body, p_transform, p_infinite_inertia, r_recover_motion, r_results, p_result_max, p_margin);
 }
 
 PhysicsDirectBodyState *PhysicsServerSW::body_get_direct_state(RID p_body) {

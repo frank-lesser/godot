@@ -157,15 +157,18 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 			//Consider revision for engine version 3.0
 			compression_code = file->get_16();
 			if (compression_code != 1 && compression_code != 3) {
-				ERR_PRINT("Format not supported for WAVE file (not PCM). Save WAVE files as uncompressed PCM instead.");
-				break;
+				file->close();
+				memdelete(file);
+				ERR_EXPLAIN("Format not supported for WAVE file (not PCM). Save WAVE files as uncompressed PCM instead.");
+				ERR_FAIL_V(ERR_INVALID_DATA);
 			}
 
 			format_channels = file->get_16();
 			if (format_channels != 1 && format_channels != 2) {
-
-				ERR_PRINT("Format not supported for WAVE file (not stereo or mono)");
-				break;
+				file->close();
+				memdelete(file);
+				ERR_EXPLAIN("Format not supported for WAVE file (not stereo or mono).");
+				ERR_FAIL_V(ERR_INVALID_DATA);
 			}
 
 			format_freq = file->get_32(); //sampling rate
@@ -174,10 +177,11 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 			file->get_16(); // block align (unused)
 			format_bits = file->get_16(); // bits per sample
 
-			if (format_bits % 8) {
-
-				ERR_PRINT("Strange number of bits in sample (not 8,16,24,32)");
-				break;
+			if (format_bits % 8 || format_bits == 0) {
+				file->close();
+				memdelete(file);
+				ERR_EXPLAIN("Invalid amount of bits in the sample (should be one of 8, 16, 24 or 32).");
+				ERR_FAIL_V(ERR_INVALID_DATA);
 			}
 
 			/* Don't need anything else, continue */
@@ -185,7 +189,7 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 		}
 
 		if (chunkID[0] == 'd' && chunkID[1] == 'a' && chunkID[2] == 't' && chunkID[3] == 'a' && !data_found) {
-			/* IS FORMAT CHUNK */
+			/* IS DATA CHUNK */
 			data_found = true;
 
 			if (!format_found) {
@@ -201,7 +205,7 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 			/*print_line("chunksize: "+itos(chunksize));
 			print_line("channels: "+itos(format_channels));
 			print_line("bits: "+itos(format_bits));
-*/
+			*/
 
 			int len = frames;
 			if (format_channels == 2)
@@ -289,6 +293,7 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 	bool is16 = format_bits != 8;
 	int rate = format_freq;
 
+	/*
 	print_line("Input Sample: ");
 	print_line("\tframes: " + itos(frames));
 	print_line("\tformat_channels: " + itos(format_channels));
@@ -297,17 +302,15 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 	print_line("\tloop: " + itos(loop));
 	print_line("\tloop begin: " + itos(loop_begin));
 	print_line("\tloop end: " + itos(loop_end));
+	*/
 
 	//apply frequency limit
 
 	bool limit_rate = p_options["force/max_rate"];
 	int limit_rate_hz = p_options["force/max_rate_hz"];
 	if (limit_rate && rate > limit_rate_hz && rate > 0 && frames > 0) {
-		//resampleeee!!!
+		// resample!
 		int new_data_frames = (int)(frames * (float)limit_rate_hz / (float)rate);
-
-		print_line("\tresampling ratio: " + rtos((float)limit_rate_hz / (float)rate));
-		print_line("\tnew frames: " + itos(new_data_frames));
 
 		Vector<float> new_data;
 		new_data.resize(new_data_frames * format_channels);
@@ -487,8 +490,6 @@ Error ResourceImporterWAV::import(const String &p_source_file, const String &p_s
 				w[i * 2 + 1] = rr[i];
 			}
 		}
-
-		//print_line("compressing ima-adpcm, resulting buffersize is "+itos(dst_data.size())+" from "+itos(data.size()));
 
 	} else {
 

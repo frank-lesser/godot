@@ -598,6 +598,7 @@ void SceneTree::finish() {
 
 	if (root) {
 		root->_set_tree(NULL);
+		root->_propagate_after_exit_tree();
 		memdelete(root); //delete root
 	}
 }
@@ -1195,8 +1196,6 @@ void SceneTree::_update_root_rect() {
 		VisualServer::get_singleton()->black_bars_set_margins(0, 0, 0, 0);
 	}
 
-	//print_line("VP SIZE: "+viewport_size+" OFFSET: "+offset+" = "+(offset*2+viewport_size));
-	//print_line("SS: "+video_mode);
 	switch (stretch_mode) {
 		case STRETCH_MODE_2D: {
 
@@ -1864,10 +1863,10 @@ void SceneTree::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "multiplayer_poll"), "set_multiplayer_poll_enabled", "is_multiplayer_poll_enabled");
 
 	ADD_SIGNAL(MethodInfo("tree_changed"));
-	ADD_SIGNAL(MethodInfo("node_added", PropertyInfo(Variant::OBJECT, "node")));
-	ADD_SIGNAL(MethodInfo("node_removed", PropertyInfo(Variant::OBJECT, "node")));
+	ADD_SIGNAL(MethodInfo("node_added", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
+	ADD_SIGNAL(MethodInfo("node_removed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 	ADD_SIGNAL(MethodInfo("screen_resized"));
-	ADD_SIGNAL(MethodInfo("node_configuration_warning_changed", PropertyInfo(Variant::OBJECT, "node")));
+	ADD_SIGNAL(MethodInfo("node_configuration_warning_changed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 
 	ADD_SIGNAL(MethodInfo("idle_frame"));
 	ADD_SIGNAL(MethodInfo("physics_frame"));

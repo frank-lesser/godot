@@ -126,7 +126,10 @@ GDScriptInstance *GDScript::_create_instance(const Variant **p_args, int p_argco
 		GDScriptLanguage::singleton->lock->unlock();
 #endif
 
-		ERR_FAIL_COND_V(r_error.error != Variant::CallError::CALL_OK, NULL); //error constructing
+		if (r_error.error != Variant::CallError::CALL_OK) {
+			memdelete(instance);
+			ERR_FAIL_COND_V(r_error.error != Variant::CallError::CALL_OK, NULL); //error constructing
+		}
 	}
 
 	//@TODO make thread safe
@@ -181,7 +184,11 @@ Variant GDScript::_new(const Variant **p_args, int p_argcount, Variant::CallErro
 
 bool GDScript::can_instance() const {
 
-	return valid || (!tool && !ScriptServer::is_scripting_enabled());
+#ifdef TOOLS_ENABLED
+	return valid && (tool || ScriptServer::is_scripting_enabled());
+#else
+	return valid;
+#endif
 }
 
 Ref<Script> GDScript::get_base_script() const {
@@ -290,11 +297,6 @@ bool GDScript::get_property_default_value(const StringName &p_property, Variant 
 
 #ifdef TOOLS_ENABLED
 
-	/*
-	for (const Map<StringName,Variant>::Element *I=member_default_values.front();I;I=I->next()) {
-		print_line("\t"+String(String(I->key())+":"+String(I->get())));
-	}
-	*/
 	const Map<StringName, Variant>::Element *E = member_default_values_cache.find(p_property);
 	if (E) {
 		r_value = E->get();
@@ -309,27 +311,6 @@ bool GDScript::get_property_default_value(const StringName &p_property, Variant 
 }
 
 ScriptInstance *GDScript::instance_create(Object *p_this) {
-
-	if (!tool && !ScriptServer::is_scripting_enabled()) {
-
-#ifdef TOOLS_ENABLED
-
-		//instance a fake script for editing the values
-		//plist.invert();
-
-		/*print_line("CREATING PLACEHOLDER");
-		for(List<PropertyInfo>::Element *E=plist.front();E;E=E->next()) {
-			print_line(E->get().name);
-		}*/
-		PlaceHolderScriptInstance *si = memnew(PlaceHolderScriptInstance(GDScriptLanguage::get_singleton(), Ref<Script>(this), p_this));
-		placeholders.insert(si);
-		//_update_placeholder(si);
-		_update_exports();
-		return si;
-#else
-		return NULL;
-#endif
-	}
 
 	GDScript *top = this;
 	while (top->_base)
@@ -349,6 +330,18 @@ ScriptInstance *GDScript::instance_create(Object *p_this) {
 	Variant::CallError unchecked_error;
 	return _create_instance(NULL, 0, p_this, Object::cast_to<Reference>(p_this), unchecked_error);
 }
+
+PlaceHolderScriptInstance *GDScript::placeholder_instance_create(Object *p_this) {
+#ifdef TOOLS_ENABLED
+	PlaceHolderScriptInstance *si = memnew(PlaceHolderScriptInstance(GDScriptLanguage::get_singleton(), Ref<Script>(this), p_this));
+	placeholders.insert(si);
+	_update_exports();
+	return si;
+#else
+	return NULL;
+#endif
+}
+
 bool GDScript::instance_has(const Object *p_this) const {
 
 #ifndef NO_THREADS
@@ -405,7 +398,6 @@ bool GDScript::_update_exports() {
 	bool changed = false;
 
 	if (source_changed_cache) {
-		//print_line("updating source for "+get_path());
 		source_changed_cache = false;
 		changed = true;
 
@@ -452,11 +444,8 @@ bool GDScript::_update_exports() {
 
 					if (bf.is_valid()) {
 
-						//print_line("parent is: "+bf->get_path());
 						base_cache = bf;
 						bf->inheriters_cache.insert(get_instance_id());
-
-						//bf->_update_exports(p_instances,true,false);
 					}
 				} else {
 					ERR_PRINT(("Path extending itself in  " + path).utf8().get_data());
@@ -471,7 +460,6 @@ bool GDScript::_update_exports() {
 					continue;
 
 				members_cache.push_back(c->variables[i]._export);
-				//print_line("found "+c->variables[i]._export.name);
 				member_default_values_cache[c->variables[i].identifier] = c->variables[i].default_value;
 			}
 
@@ -480,9 +468,12 @@ bool GDScript::_update_exports() {
 			for (int i = 0; i < c->_signals.size(); i++) {
 				_signals[c->_signals[i].name] = c->_signals[i].arguments;
 			}
+		} else {
+			for (Set<PlaceHolderScriptInstance *>::Element *E = placeholders.front(); E; E = E->next()) {
+				E->get()->set_build_failed(true);
+			}
 		}
 	} else {
-		//print_line("unchanged is "+get_path());
 	}
 
 	if (base_cache.is_valid()) {
@@ -491,17 +482,15 @@ bool GDScript::_update_exports() {
 		}
 	}
 
-	if (/*changed &&*/ placeholders.size()) { //hm :(
+	if (placeholders.size()) { //hm :(
 
-		//print_line("updating placeholders for "+get_path());
-
-		//update placeholders if any
+		// update placeholders if any
 		Map<StringName, Variant> values;
 		List<PropertyInfo> propnames;
 		_update_exports_values(values, propnames);
 
 		for (Set<PlaceHolderScriptInstance *>::Element *E = placeholders.front(); E; E = E->next()) {
-
+			E->get()->set_build_failed(false);
 			E->get()->update(propnames, values);
 		}
 	}
@@ -521,7 +510,6 @@ void GDScript::update_exports() {
 
 	Set<ObjectID> copy = inheriters_cache; //might get modified
 
-	//print_line("update exports for "+get_path()+" ic: "+itos(copy.size()));
 	for (Set<ObjectID>::Element *E = copy.front(); E; E = E->next()) {
 		Object *id = ObjectDB::get_instance(E->get());
 		GDScript *s = Object::cast_to<GDScript>(id);
@@ -598,9 +586,11 @@ Error GDScript::reload(bool p_keep_state) {
 	}
 #if DEBUG_ENABLED
 	for (const List<GDScriptWarning>::Element *E = parser.get_warnings().front(); E; E = E->next()) {
-		String msg = "Script warning: " + E->get().get_name() + " (" + path + ") line " + itos(E->get().line) + ": ";
-		msg += E->get().get_message();
-		WARN_PRINTS(msg);
+		const GDScriptWarning &warning = E->get();
+		if (ScriptDebugger::get_singleton()) {
+			Vector<ScriptLanguage::StackInfo> si;
+			ScriptDebugger::get_singleton()->send_error("", get_path(), warning.line, warning.get_name(), warning.get_message(), ERR_HANDLER_WARNING, si);
+		}
 	}
 #endif
 
@@ -732,22 +722,36 @@ Error GDScript::load_byte_code(const String &p_path) {
 
 		FileAccess *fa = FileAccess::open(p_path, FileAccess::READ);
 		ERR_FAIL_COND_V(!fa, ERR_CANT_OPEN);
+
 		FileAccessEncrypted *fae = memnew(FileAccessEncrypted);
 		ERR_FAIL_COND_V(!fae, ERR_CANT_OPEN);
+
 		Vector<uint8_t> key;
 		key.resize(32);
 		for (int i = 0; i < key.size(); i++) {
 			key.write[i] = script_encryption_key[i];
 		}
+
 		Error err = fae->open_and_parse(fa, key, FileAccessEncrypted::MODE_READ);
-		ERR_FAIL_COND_V(err, err);
+
+		if (err) {
+			fa->close();
+			memdelete(fa);
+			memdelete(fae);
+
+			ERR_FAIL_COND_V(err, err);
+		}
+
 		bytecode.resize(fae->get_len());
 		fae->get_buffer(bytecode.ptrw(), bytecode.size());
+		fae->close();
 		memdelete(fae);
+
 	} else {
 
 		bytecode = FileAccess::get_file_as_array(p_path);
 	}
+
 	ERR_FAIL_COND_V(bytecode.size() == 0, ERR_PARSE_ERROR);
 	path = p_path;
 
@@ -815,7 +819,6 @@ Error GDScript::load_source_code(const String &p_path) {
 #ifdef TOOLS_ENABLED
 	source_changed_cache = true;
 #endif
-	//print_line("LSC :"+get_path());
 	path = p_path;
 	return OK;
 }
@@ -1497,7 +1500,6 @@ int GDScriptLanguage::profiling_get_frame_data(ProfilingInfo *p_info_arr, int p_
 			p_info_arr[current].self_time = elem->self()->profile.last_frame_self_time;
 			p_info_arr[current].total_time = elem->self()->profile.last_frame_total_time;
 			p_info_arr[current].signature = elem->self()->profile.signature;
-			//print_line(String(elem->self()->profile.signature)+": "+itos(elem->self()->profile.last_frame_call_count));
 			current++;
 		}
 		elem = elem->next();
@@ -1536,7 +1538,7 @@ struct GDScriptDepSort {
 void GDScriptLanguage::reload_all_scripts() {
 
 #ifdef DEBUG_ENABLED
-	print_line("RELOAD ALL SCRIPTS");
+	print_verbose("GDScript: Reloading all scripts");
 	if (lock) {
 		lock->lock();
 	}
@@ -1546,7 +1548,7 @@ void GDScriptLanguage::reload_all_scripts() {
 	SelfList<GDScript> *elem = script_list.first();
 	while (elem) {
 		if (elem->self()->get_path().is_resource_file()) {
-			print_line("FOUND: " + elem->self()->get_path());
+			print_verbose("GDScript: Found: " + elem->self()->get_path());
 			scripts.push_back(Ref<GDScript>(elem->self())); //cast to gdscript to avoid being erased by accident
 		}
 		elem = elem->next();
@@ -1562,7 +1564,7 @@ void GDScriptLanguage::reload_all_scripts() {
 
 	for (List<Ref<GDScript> >::Element *E = scripts.front(); E; E = E->next()) {
 
-		print_line("RELOADING: " + E->get()->get_path());
+		print_verbose("GDScript: Reloading: " + E->get()->get_path());
 		E->get()->load_source_code(E->get()->get_path());
 		E->get()->reload(true);
 	}
@@ -1693,7 +1695,6 @@ void GDScriptLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_so
 
 void GDScriptLanguage::frame() {
 
-	//print_line("calls: "+itos(calls));
 	calls = 0;
 
 #ifdef DEBUG_ENABLED
@@ -1803,7 +1804,7 @@ bool GDScriptLanguage::handles_global_class_type(const String &p_type) const {
 	return p_type == "GDScript";
 }
 
-String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type) const {
+String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_base_type, String *r_icon_path) const {
 
 	PoolVector<uint8_t> sourcef;
 	Error err;
@@ -1867,6 +1868,12 @@ String GDScriptLanguage::get_global_class_name(const String &p_path, String *r_b
 					*r_base_type = "Reference";
 				}
 			}
+		}
+		if (r_icon_path) {
+			if (c->icon_path.empty() || c->icon_path.is_abs_path())
+				*r_icon_path = c->icon_path;
+			else if (c->icon_path.is_rel_path())
+				*r_icon_path = p_path.get_base_dir().plus_file(c->icon_path).simplify_path();
 		}
 		return c->name;
 	}
@@ -2105,23 +2112,14 @@ RES ResourceFormatLoaderGDScript::load(const String &p_path, const String &p_ori
 		script->set_script_path(p_original_path); // script needs this.
 		script->set_path(p_original_path);
 		Error err = script->load_byte_code(p_path);
-
-		if (err != OK) {
-
-			ERR_FAIL_COND_V(err != OK, RES());
-		}
+		ERR_FAIL_COND_V(err != OK, RES());
 
 	} else {
 		Error err = script->load_source_code(p_path);
-
-		if (err != OK) {
-
-			ERR_FAIL_COND_V(err != OK, RES());
-		}
+		ERR_FAIL_COND_V(err != OK, RES());
 
 		script->set_script_path(p_original_path); // script needs this.
 		script->set_path(p_original_path);
-		//script->set_name(p_path.get_file());
 
 		script->reload();
 	}
@@ -2130,6 +2128,7 @@ RES ResourceFormatLoaderGDScript::load(const String &p_path, const String &p_ori
 
 	return scriptres;
 }
+
 void ResourceFormatLoaderGDScript::get_recognized_extensions(List<String> *p_extensions) const {
 
 	p_extensions->push_back("gd");

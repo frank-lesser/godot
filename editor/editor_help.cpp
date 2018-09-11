@@ -225,7 +225,6 @@ bool EditorHelpSearch::IncrementalSearch::work(uint64_t slot) {
 
 void EditorHelpSearch::_update_search() {
 	search_options->clear();
-	search_options->set_hide_root(true);
 
 	String term = search_box->get_text();
 	if (term.length() < 2)
@@ -253,7 +252,8 @@ void EditorHelpSearch::_notification(int p_what) {
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 
 		//_update_icons
-		search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
+		search_box->set_right_icon(get_icon("Search", "EditorIcons"));
+		search_box->set_clear_button_enabled(true);
 
 		connect("confirmed", this, "_confirmed");
 		_update_search();
@@ -267,7 +267,8 @@ void EditorHelpSearch::_notification(int p_what) {
 	} else if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
 
 		//_update_icons
-		search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
+		search_box->set_right_icon(get_icon("Search", "EditorIcons"));
+		search_box->set_clear_button_enabled(true);
 	} else if (p_what == NOTIFICATION_PROCESS) {
 
 		if (search.is_valid()) {
@@ -305,6 +306,7 @@ EditorHelpSearch::EditorHelpSearch() {
 	search_box->connect("text_changed", this, "_text_changed");
 	search_box->connect("gui_input", this, "_sbox_input");
 	search_options = memnew(Tree);
+	search_options->set_hide_root(true);
 	vbc->add_margin_child(TTR("Matches:"), search_options, true);
 	get_ok()->set_text(TTR("Open"));
 	get_ok()->set_disabled(true);
@@ -381,7 +383,8 @@ void EditorHelpIndex::_notification(int p_what) {
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 
 		//_update_icons
-		search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
+		search_box->set_right_icon(get_icon("Search", "EditorIcons"));
+		search_box->set_clear_button_enabled(true);
 		_update_class_list();
 
 		connect("confirmed", this, "_tree_item_selected");
@@ -392,7 +395,18 @@ void EditorHelpIndex::_notification(int p_what) {
 	} else if (p_what == EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED) {
 
 		//_update_icons
-		search_box->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
+		search_box->set_right_icon(get_icon("Search", "EditorIcons"));
+		search_box->set_clear_button_enabled(true);
+
+		bool enable_rl = EditorSettings::get_singleton()->get("docks/scene_tree/draw_relationship_lines");
+		Color rl_color = EditorSettings::get_singleton()->get("docks/scene_tree/relationship_line_color");
+
+		if (enable_rl) {
+			class_list->add_constant_override("draw_relationship_lines", 1);
+			class_list->add_color_override("relationship_line_color", rl_color);
+		} else {
+			class_list->add_constant_override("draw_relationship_lines", 0);
+		}
 	}
 }
 
@@ -406,7 +420,6 @@ void EditorHelpIndex::_update_class_list() {
 	class_list->clear();
 	tree_item_map.clear();
 	TreeItem *root = class_list->create_item();
-	class_list->set_hide_root(true);
 
 	String filter = search_box->get_text().strip_edges();
 	String to_select = "";
@@ -485,9 +498,20 @@ EditorHelpIndex::EditorHelpIndex() {
 
 	class_list = memnew(Tree);
 	vbc->add_margin_child(TTR("Class List:") + " ", class_list, true);
+	class_list->set_hide_root(true);
 	class_list->set_v_size_flags(SIZE_EXPAND_FILL);
 
 	class_list->connect("item_activated", this, "_tree_item_selected");
+
+	bool enable_rl = EditorSettings::get_singleton()->get("docks/scene_tree/draw_relationship_lines");
+	Color rl_color = EditorSettings::get_singleton()->get("docks/scene_tree/relationship_line_color");
+
+	if (enable_rl) {
+		class_list->add_constant_override("draw_relationship_lines", 1);
+		class_list->add_color_override("relationship_line_color", rl_color);
+	} else {
+		class_list->add_constant_override("draw_relationship_lines", 0);
+	}
 
 	get_ok()->set_text(TTR("Open"));
 	set_title(TTR("Search Classes"));
@@ -541,6 +565,7 @@ void EditorHelp::_class_desc_select(const String &p_select) {
 		String class_name;
 		if (select.find(".") != -1) {
 			class_name = select.get_slice(".", 0);
+			select = select.get_slice(".", 1);
 		} else {
 			class_name = "@GlobalScope";
 		}
@@ -619,6 +644,22 @@ void EditorHelp::_add_type(const String &p_type, const String &p_enum) {
 	class_desc->pop();
 }
 
+String EditorHelp::_fix_constant(const String &p_constant) const {
+
+	if (p_constant.strip_edges() == "4294967295") {
+		return "0xFFFFFFFF";
+	}
+
+	if (p_constant.strip_edges() == "2147483647") {
+		return "0x7FFFFFFF";
+	}
+	if (p_constant.strip_edges() == "1048575") {
+		return "0xfffff";
+	}
+
+	return p_constant;
+}
+
 void EditorHelp::_add_method(const DocData::MethodDoc &p_method, bool p_overview) {
 
 	method_line[p_method.name] = class_desc->get_line_count() - 2; //gets overridden if description
@@ -668,7 +709,7 @@ void EditorHelp::_add_method(const DocData::MethodDoc &p_method, bool p_overview
 			class_desc->push_color(symbol_color);
 			class_desc->add_text("=");
 			class_desc->pop();
-			_add_text(p_method.arguments[j].default_value);
+			_add_text(_fix_constant(p_method.arguments[j].default_value));
 		}
 
 		class_desc->pop();
@@ -713,16 +754,22 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 	if (p_class == edited_class)
 		return OK; //already there
 
+	edited_class = p_class;
+	_update_doc();
+	return OK;
+}
+
+void EditorHelp::_update_doc() {
+
 	scroll_locked = true;
 
 	class_desc->clear();
 	method_line.clear();
 	section_line.clear();
-	edited_class = p_class;
 
 	_init_colors();
 
-	DocData::ClassDoc cd = doc->class_list[p_class]; //make a copy, so we can sort without worrying
+	DocData::ClassDoc cd = doc->class_list[edited_class]; //make a copy, so we can sort without worrying
 
 	Ref<Font> doc_font = get_font("doc", "EditorFonts");
 	Ref<Font> doc_title_font = get_font("doc_title", "EditorFonts");
@@ -734,7 +781,7 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 	class_desc->push_color(title_color);
 	class_desc->add_text(TTR("Class:") + " ");
 	class_desc->push_color(headline_color);
-	_add_text(p_class);
+	_add_text(edited_class);
 	class_desc->pop();
 	class_desc->pop();
 	class_desc->pop();
@@ -1453,8 +1500,6 @@ Error EditorHelp::_goto_desc(const String &p_class, int p_vscr) {
 	}
 
 	scroll_locked = false;
-
-	return OK;
 }
 
 void EditorHelp::_request_help(const String &p_string) {
@@ -1751,9 +1796,6 @@ void EditorHelp::_add_text(const String &p_bbcode) {
 	_add_text_to_rt(p_bbcode, class_desc);
 }
 
-void EditorHelp::_update_doc() {
-}
-
 void EditorHelp::generate_doc() {
 
 	doc = memnew(DocData);
@@ -1775,7 +1817,8 @@ void EditorHelp::_notification(int p_what) {
 
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 
-			class_desc->add_color_override("selection_color", get_color("text_editor/theme/selection_color", "Editor"));
+			class_desc->add_color_override("selection_color", EditorSettings::get_singleton()->get("text_editor/theme/selection_color"));
+			_update_doc();
 
 		} break;
 
@@ -1856,7 +1899,7 @@ EditorHelp::EditorHelp() {
 	class_desc = memnew(RichTextLabel);
 	add_child(class_desc);
 	class_desc->set_v_size_flags(SIZE_EXPAND_FILL);
-	class_desc->add_color_override("selection_color", get_color("text_editor/theme/selection_color", "Editor"));
+	class_desc->add_color_override("selection_color", EditorSettings::get_singleton()->get("text_editor/theme/selection_color"));
 	class_desc->connect("meta_clicked", this, "_class_desc_select");
 	class_desc->connect("gui_input", this, "_class_desc_input");
 
@@ -1883,8 +1926,6 @@ void EditorHelpBit::_go_to_help(String p_what) {
 }
 
 void EditorHelpBit::_meta_clicked(String p_select) {
-
-	print_line("got meta " + p_select);
 
 	if (p_select.begins_with("$")) { //enum
 
@@ -1922,7 +1963,7 @@ void EditorHelpBit::_notification(int p_what) {
 	switch (p_what) {
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 
-			rich_text->add_color_override("selection_color", get_color("text_editor/theme/selection_color", "Editor"));
+			rich_text->add_color_override("selection_color", EditorSettings::get_singleton()->get("text_editor/theme/selection_color"));
 		} break;
 
 		default: break;
@@ -1941,7 +1982,7 @@ EditorHelpBit::EditorHelpBit() {
 	add_child(rich_text);
 	//rich_text->set_anchors_and_margins_preset(Control::PRESET_WIDE);
 	rich_text->connect("meta_clicked", this, "_meta_clicked");
-	rich_text->add_color_override("selection_color", get_color("text_editor/theme/selection_color", "Editor"));
+	rich_text->add_color_override("selection_color", EditorSettings::get_singleton()->get("text_editor/theme/selection_color"));
 	rich_text->set_override_selected_font_color(false);
 	set_custom_minimum_size(Size2(0, 70 * EDSCALE));
 }

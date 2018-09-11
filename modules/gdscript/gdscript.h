@@ -171,6 +171,7 @@ public:
 
 	virtual StringName get_instance_base_type() const; // this may not work in all scripts, will return empty if so
 	virtual ScriptInstance *instance_create(Object *p_this);
+	virtual PlaceHolderScriptInstance *placeholder_instance_create(Object *p_this);
 	virtual bool instance_has(const Object *p_this) const;
 
 	virtual bool has_source_code() const;
@@ -491,7 +492,7 @@ public:
 	/* GLOBAL CLASSES */
 
 	virtual bool handles_global_class_type(const String &p_type) const;
-	virtual String get_global_class_name(const String &p_path, String *r_base_type = NULL) const;
+	virtual String get_global_class_name(const String &p_path, String *r_base_type = NULL, String *r_icon_path = NULL) const;
 
 	GDScriptLanguage();
 	~GDScriptLanguage();

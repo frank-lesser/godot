@@ -191,10 +191,10 @@ void VisualScriptPropertySelector::_update_search() {
 			if (type_filter.size() && type_filter.find(E->get().type) == -1)
 				continue;
 
-			String get_text_raw = String(TTR("Get")) + String(" ") + E->get().name;
+			String get_text_raw = String(vformat(TTR("Get %s"), E->get().name));
 			String get_text = get_text_raw.capitalize();
 
-			String set_text_raw = String(TTR("Set ")) + String(" ") + E->get().name;
+			String set_text_raw = String(vformat(TTR("Set %s"), E->get().name));
 			String set_text = set_text_raw.capitalize();
 			String input = search_box->get_text().capitalize();
 			if (input == String() ||
@@ -285,7 +285,6 @@ void VisualScriptPropertySelector::_update_search() {
 
 			Ref<Texture> icon;
 			script_methods = false;
-			print_line("name: " + E->get().name);
 			String rep = E->get().name.replace("*", "");
 			if (E->get().name == "*Script Methods") {
 				icon = get_icon("Script", "EditorIcons");

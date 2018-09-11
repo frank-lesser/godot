@@ -33,9 +33,10 @@
 
 #include "curve.h"
 #include "io/resource_loader.h"
-#include "math_2d.h"
 #include "os/mutex.h"
+#include "os/rw_lock.h"
 #include "os/thread_safe.h"
+#include "rect2.h"
 #include "resource.h"
 #include "scene/resources/color_ramp.h"
 #include "servers/visual_server.h"
@@ -67,6 +68,8 @@ public:
 	virtual Size2 get_size() const;
 	virtual RID get_rid() const = 0;
 
+	virtual bool is_pixel_opaque(int p_x, int p_y) const;
+
 	virtual bool has_alpha() const = 0;
 
 	virtual void set_flags(uint32_t p_flags) = 0;
@@ -83,6 +86,8 @@ public:
 };
 
 VARIANT_ENUM_CAST(Texture::Flags);
+
+class BitMap;
 
 class ImageTexture : public Texture {
 
@@ -104,6 +109,7 @@ private:
 	Storage storage;
 	Size2 size_override;
 	float lossy_storage_quality;
+	mutable Ref<BitMap> alpha_cache;
 
 protected:
 	virtual void reload_from_file();
@@ -125,7 +131,9 @@ public:
 	void set_flags(uint32_t p_flags);
 	uint32_t get_flags() const;
 	Image::Format get_format() const;
+#ifndef DISABLE_DEPRECATED
 	Error load(const String &p_path);
+#endif
 	void set_data(const Ref<Image> &p_image);
 	Ref<Image> get_data() const;
 
@@ -140,6 +148,8 @@ public:
 	virtual void draw_rect_region(RID p_canvas_item, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, const Ref<Texture> &p_normal_map = Ref<Texture>(), bool p_clip_uv = true) const;
 	void set_storage(Storage p_storage);
 	Storage get_storage() const;
+
+	bool is_pixel_opaque(int p_x, int p_y) const;
 
 	void set_lossy_storage_quality(float p_lossy_storage_quality);
 	float get_lossy_storage_quality() const;
@@ -181,6 +191,7 @@ private:
 	Image::Format format;
 	uint32_t flags;
 	int w, h;
+	mutable Ref<BitMap> alpha_cache;
 
 	virtual void reload_from_file();
 
@@ -213,6 +224,7 @@ public:
 
 	virtual bool has_alpha() const;
 	virtual void set_flags(uint32_t p_flags);
+	bool is_pixel_opaque(int p_x, int p_y) const;
 
 	virtual Ref<Image> get_data() const;
 
@@ -270,6 +282,8 @@ public:
 	virtual void draw_rect_region(RID p_canvas_item, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, const Ref<Texture> &p_normal_map = Ref<Texture>(), bool p_clip_uv = true) const;
 	virtual bool get_rect_region(const Rect2 &p_rect, const Rect2 &p_src_rect, Rect2 &r_rect, Rect2 &r_src_rect) const;
 
+	bool is_pixel_opaque(int p_x, int p_y) const;
+
 	AtlasTexture();
 };
 
@@ -316,6 +330,8 @@ public:
 	virtual void draw(RID p_canvas_item, const Point2 &p_pos, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, const Ref<Texture> &p_normal_map = Ref<Texture>()) const;
 	virtual void draw_rect(RID p_canvas_item, const Rect2 &p_rect, bool p_tile = false, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, const Ref<Texture> &p_normal_map = Ref<Texture>()) const;
 	virtual void draw_rect_region(RID p_canvas_item, const Rect2 &p_rect, const Rect2 &p_src_rect, const Color &p_modulate = Color(1, 1, 1), bool p_transpose = false, const Ref<Texture> &p_normal_map = Ref<Texture>(), bool p_clip_uv = true) const;
+
+	bool is_pixel_opaque(int p_x, int p_y) const;
 
 	LargeTexture();
 };
@@ -607,7 +623,8 @@ public:
 class AnimatedTexture : public Texture {
 	GDCLASS(AnimatedTexture, Texture)
 
-	_THREAD_SAFE_CLASS_
+	//use readers writers lock for this, since its far more times read than written to
+	RWLock *rw_lock;
 
 private:
 	enum {
@@ -665,6 +682,8 @@ public:
 	virtual uint32_t get_flags() const;
 
 	virtual Ref<Image> get_data() const;
+
+	bool is_pixel_opaque(int p_x, int p_y) const;
 
 	AnimatedTexture();
 	~AnimatedTexture();

@@ -29,9 +29,12 @@
 /*************************************************************************/
 
 #include "particles_editor_plugin.h"
+
 #include "editor/plugins/spatial_editor_plugin.h"
 #include "io/resource_loader.h"
 #include "scene/3d/cpu_particles.h"
+#include "scene/resources/particles_material.h"
+
 bool ParticlesEditorBase::_generate(PoolVector<Vector3> &points, PoolVector<Vector3> &normals) {
 
 	bool use_normals = emission_fill->get_selected() == 1;
@@ -262,6 +265,7 @@ void ParticlesEditor::_notification(int p_notification) {
 
 	if (p_notification == NOTIFICATION_ENTER_TREE) {
 		options->set_icon(options->get_popup()->get_icon("Particles", "EditorIcons"));
+		get_tree()->connect("node_removed", this, "_node_removed");
 	}
 }
 
@@ -270,6 +274,12 @@ void ParticlesEditor::_menu_option(int p_option) {
 	switch (p_option) {
 
 		case MENU_OPTION_GENERATE_AABB: {
+			float gen_time = node->get_lifetime();
+
+			if (gen_time < 1.0)
+				generate_seconds->set_value(1.0);
+			else
+				generate_seconds->set_value(trunc(gen_time) + 1.0);
 			generate_aabb->popup_centered_minsize();
 		} break;
 		case MENU_OPTION_CREATE_EMISSION_VOLUME_FROM_MESH: {
@@ -323,7 +333,14 @@ void ParticlesEditor::_generate_aabb() {
 
 	EditorProgress ep("gen_aabb", TTR("Generating AABB"), int(time));
 
+	bool was_emitting = node->is_emitting();
+	if (!was_emitting) {
+		node->set_emitting(true);
+		OS::get_singleton()->delay_usec(1000);
+	}
+
 	AABB rect;
+
 	while (running < time) {
 
 		uint64_t ticks = OS::get_singleton()->get_ticks_usec();
@@ -337,6 +354,10 @@ void ParticlesEditor::_generate_aabb() {
 			rect.merge_with(capture);
 
 		running += (OS::get_singleton()->get_ticks_usec() - ticks) / 1000000.0;
+	}
+
+	if (!was_emitting) {
+		node->set_emitting(false);
 	}
 
 	node->set_visibility_aabb(rect);
@@ -427,6 +448,7 @@ void ParticlesEditor::_bind_methods() {
 
 	ClassDB::bind_method("_menu_option", &ParticlesEditor::_menu_option);
 	ClassDB::bind_method("_generate_aabb", &ParticlesEditor::_generate_aabb);
+	ClassDB::bind_method("_node_removed", &ParticlesEditor::_node_removed);
 }
 
 ParticlesEditor::ParticlesEditor() {

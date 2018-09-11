@@ -287,7 +287,11 @@ void CustomPropertyEditor::_menu_option(int p_which) {
 					Object *obj = ClassDB::instance(intype);
 
 					if (!obj) {
-						obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
+						if (ScriptServer::is_global_class(intype)) {
+							obj = EditorNode::get_editor_data().script_class_instance(intype);
+						} else {
+							obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
+						}
 					}
 
 					ERR_BREAK(!obj);
@@ -1132,7 +1136,11 @@ void CustomPropertyEditor::_type_create_selected(int p_idx) {
 		Object *obj = ClassDB::instance(intype);
 
 		if (!obj) {
-			obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
+			if (ScriptServer::is_global_class(intype)) {
+				obj = EditorNode::get_editor_data().script_class_instance(intype);
+			} else {
+				obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
+			}
 		}
 
 		ERR_FAIL_COND(!obj);
@@ -1334,7 +1342,11 @@ void CustomPropertyEditor::_action_pressed(int p_which) {
 					Object *obj = ClassDB::instance(intype);
 
 					if (!obj) {
-						obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
+						if (ScriptServer::is_global_class(intype)) {
+							obj = EditorNode::get_editor_data().script_class_instance(intype);
+						} else {
+							obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
+						}
 					}
 
 					ERR_BREAK(!obj);
@@ -3980,7 +3992,6 @@ void PropertyEditor::_edit_button(Object *p_item, int p_column, int p_button) {
 		String prop = d["name"];
 		emit_signal("property_keyed", prop, obj->get(prop), false);
 	} else if (p_button == 5) {
-		print_line("PB5");
 		if (!d.has("name"))
 			return;
 		String prop = d["name"];
@@ -4720,7 +4731,7 @@ double PropertyValueEvaluator::eval(const String &p_text) {
 	script->set_source_code(_build_script(p_new_text));
 	Error err = script->reload();
 	if (err) {
-		print_line("[PropertyValueEvaluator] Error loading script for expression: " + p_new_text);
+		ERR_PRINTS("PropertyValueEvaluator: Error loading script for expression: " + p_new_text);
 		return _default_eval(p_new_text);
 	}
 
@@ -4736,7 +4747,7 @@ double PropertyValueEvaluator::eval(const String &p_text) {
 	if (call_err.error == Variant::CallError::CALL_OK) {
 		return result;
 	}
-	print_line("[PropertyValueEvaluator]: Error eval! Error code: " + itos(call_err.error));
+	ERR_PRINTS("PropertyValueEvaluator: Eval failed, error code: " + itos(call_err.error));
 
 	return _default_eval(p_new_text);
 }

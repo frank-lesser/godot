@@ -119,7 +119,7 @@ void SceneTreeDock::instance(const String &p_file) {
 	if (!edited_scene) {
 
 		current_option = -1;
-		accept->get_ok()->set_text(TTR("OK :("));
+		accept->get_ok()->set_text(TTR("OK"));
 		accept->set_text(TTR("No parent to instance a child at."));
 		accept->popup_centered_minsize();
 		return;
@@ -365,10 +365,14 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				for (int i = 0; i < ScriptServer::get_language_count(); i++) {
 					ScriptLanguage *l = ScriptServer::get_language(i);
 					if (l->get_type() == existing->get_class()) {
-						if (EDITOR_GET("interface/editors/derive_script_globals_by_name").operator bool()) {
-							String name = l->get_global_class_name(existing->get_path(), NULL);
-							inherits = editor->get_editor_data().script_class_get_base(name);
-						} else if (l->can_inherit_from_file()) {
+						String name = l->get_global_class_name(existing->get_path());
+						if (ScriptServer::is_global_class(name)) {
+							if (EDITOR_GET("interface/editors/derive_script_globals_by_name").operator bool()) {
+								inherits = editor->get_editor_data().script_class_get_base(name);
+							} else if (l->can_inherit_from_file()) {
+								inherits = "\"" + existing->get_path() + "\"";
+							}
+						} else {
 							inherits = "\"" + existing->get_path() + "\"";
 						}
 					}
@@ -395,6 +399,11 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					const RefPtr empty;
 					editor_data->get_undo_redo().add_do_method(E->get(), "set_script", empty);
 					editor_data->get_undo_redo().add_undo_method(E->get(), "set_script", existing);
+
+					if (E->get()->has_meta("_editor_icon")) {
+						editor_data->get_undo_redo().add_do_method(E->get(), "set_meta", "_editor_icon", get_icon(E->get()->get_class(), "EditorIcons"));
+						editor_data->get_undo_redo().add_undo_method(E->get(), "set_meta", "_editor_icon", E->get()->get_meta("_editor_icon"));
+					}
 				}
 			}
 
@@ -402,7 +411,6 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			editor_data->get_undo_redo().add_undo_method(this, "_update_script_button");
 
 			editor_data->get_undo_redo().commit_action();
-
 		} break;
 		case TOOL_MOVE_UP:
 		case TOOL_MOVE_DOWN: {
@@ -712,6 +720,9 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 						node->set_scene_instance_load_placeholder(false);
 						menu->set_item_checked(placeholder_item_idx, false);
 					}
+
+					SpatialEditor::get_singleton()->update_all_gizmos(node);
+
 					scene_tree->update_tree();
 				}
 			}
@@ -797,18 +808,38 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 		} break;
 		case TOOL_CREATE_2D_SCENE:
 		case TOOL_CREATE_3D_SCENE:
-		case TOOL_CREATE_USER_INTERFACE: {
+		case TOOL_CREATE_USER_INTERFACE:
+		case TOOL_CREATE_FAVORITE: {
 
 			Node *new_node;
-			switch (p_tool) {
-				case TOOL_CREATE_2D_SCENE: new_node = memnew(Node2D); break;
-				case TOOL_CREATE_3D_SCENE: new_node = memnew(Spatial); break;
-				case TOOL_CREATE_USER_INTERFACE: {
-					Control *node = memnew(Control);
-					node->set_anchors_and_margins_preset(PRESET_WIDE); //more useful for resizable UIs.
-					new_node = node;
 
-				} break;
+			if (TOOL_CREATE_FAVORITE == p_tool) {
+				String name = selected_favorite_root.get_slicec(' ', 0);
+				if (ScriptServer::is_global_class(name)) {
+					new_node = Object::cast_to<Node>(ClassDB::instance(ScriptServer::get_global_class_base(name)));
+					Ref<Script> script = ResourceLoader::load(ScriptServer::get_global_class_path(name), "Script");
+					if (new_node && script.is_valid()) {
+						new_node->set_script(script.get_ref_ptr());
+						new_node->set_name(name);
+					}
+				} else {
+					new_node = Object::cast_to<Node>(ClassDB::instance(selected_favorite_root));
+				}
+				if (!new_node) {
+					ERR_EXPLAIN("Creating root from favorite '" + selected_favorite_root + "' failed. Creating 'Node' instead.");
+					new_node = memnew(Node);
+				}
+			} else {
+				switch (p_tool) {
+					case TOOL_CREATE_2D_SCENE: new_node = memnew(Node2D); break;
+					case TOOL_CREATE_3D_SCENE: new_node = memnew(Spatial); break;
+					case TOOL_CREATE_USER_INTERFACE: {
+						Control *node = memnew(Control);
+						node->set_anchors_and_margins_preset(PRESET_WIDE); //more useful for resizable UIs.
+						new_node = node;
+
+					} break;
+				}
 			}
 
 			editor_data->get_undo_redo().create_action("New Scene Root");
@@ -862,39 +893,67 @@ void SceneTreeDock::_notification(int p_what) {
 			button_create_script->set_icon(get_icon("ScriptCreate", "EditorIcons"));
 			button_clear_script->set_icon(get_icon("ScriptRemove", "EditorIcons"));
 
-			filter->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
+			filter->set_right_icon(get_icon("Search", "EditorIcons"));
+			filter->set_clear_button_enabled(true);
 
 			EditorNode::get_singleton()->get_editor_selection()->connect("selection_changed", this, "_selection_changed");
 
-			create_root_dialog->add_child(memnew(Label(TTR("Create Root Node:"))));
+			// create_root_dialog
+			HBoxContainer *top_row = memnew(HBoxContainer);
+			top_row->set_name("NodeShortcutsTopRow");
+			top_row->set_h_size_flags(SIZE_EXPAND_FILL);
+			top_row->add_child(memnew(Label(TTR("Create Root Node:"))));
+			top_row->add_spacer();
+
+			ToolButton *node_shortcuts_toggle = memnew(ToolButton);
+			node_shortcuts_toggle->set_name("NodeShortcutsToggle");
+			node_shortcuts_toggle->set_icon(get_icon("Favorites", "EditorIcons"));
+			node_shortcuts_toggle->set_toggle_mode(true);
+			node_shortcuts_toggle->set_pressed(EDITOR_GET("_use_favorites_root_selection"));
+			node_shortcuts_toggle->set_anchors_and_margins_preset(Control::PRESET_CENTER_RIGHT);
+			node_shortcuts_toggle->connect("pressed", this, "_update_create_root_dialog");
+			top_row->add_child(node_shortcuts_toggle);
+
+			create_root_dialog->add_child(top_row);
+
+			VBoxContainer *node_shortcuts = memnew(VBoxContainer);
+			node_shortcuts->set_name("NodeShortcuts");
+
+			VBoxContainer *beginner_node_shortcuts = memnew(VBoxContainer);
+			beginner_node_shortcuts->set_name("BeginnerNodeShortcuts");
+			node_shortcuts->add_child(beginner_node_shortcuts);
 
 			Button *button_2d = memnew(Button);
-			create_root_dialog->add_child(button_2d);
-
+			beginner_node_shortcuts->add_child(button_2d);
 			button_2d->set_text(TTR("2D Scene"));
 			button_2d->set_icon(get_icon("Node2D", "EditorIcons"));
 			button_2d->connect("pressed", this, "_tool_selected", make_binds(TOOL_CREATE_2D_SCENE, false));
 
 			Button *button_3d = memnew(Button);
-			create_root_dialog->add_child(button_3d);
+			beginner_node_shortcuts->add_child(button_3d);
 			button_3d->set_text(TTR("3D Scene"));
 			button_3d->set_icon(get_icon("Spatial", "EditorIcons"));
 			button_3d->connect("pressed", this, "_tool_selected", make_binds(TOOL_CREATE_3D_SCENE, false));
 
 			Button *button_ui = memnew(Button);
-			create_root_dialog->add_child(button_ui);
+			beginner_node_shortcuts->add_child(button_ui);
 			button_ui->set_text(TTR("User Interface"));
 			button_ui->set_icon(get_icon("Control", "EditorIcons"));
 			button_ui->connect("pressed", this, "_tool_selected", make_binds(TOOL_CREATE_USER_INTERFACE, false));
 
+			VBoxContainer *favorite_node_shortcuts = memnew(VBoxContainer);
+			favorite_node_shortcuts->set_name("FavoriteNodeShortcuts");
+			node_shortcuts->add_child(favorite_node_shortcuts);
+
 			Button *button_custom = memnew(Button);
-			create_root_dialog->add_child(button_custom);
+			node_shortcuts->add_child(button_custom);
 			button_custom->set_text(TTR("Custom Node"));
 			button_custom->set_icon(get_icon("Add", "EditorIcons"));
 			button_custom->connect("pressed", this, "_tool_selected", make_binds(TOOL_NEW, false));
 
-			create_root_dialog->add_spacer();
-
+			node_shortcuts->add_spacer();
+			create_root_dialog->add_child(node_shortcuts);
+			_update_create_root_dialog();
 		} break;
 
 		case NOTIFICATION_ENTER_TREE: {
@@ -910,7 +969,8 @@ void SceneTreeDock::_notification(int p_what) {
 			button_create_script->set_icon(get_icon("ScriptCreate", "EditorIcons"));
 			button_clear_script->set_icon(get_icon("ScriptRemove", "EditorIcons"));
 
-			filter->add_icon_override("right_icon", get_icon("Search", "EditorIcons"));
+			filter->set_right_icon(get_icon("Search", "EditorIcons"));
+			filter->set_clear_button_enabled(true);
 		} break;
 		case NOTIFICATION_PROCESS: {
 
@@ -1249,7 +1309,7 @@ bool SceneTreeDock::_validate_no_foreign() {
 
 		if (E->get() != edited_scene && E->get()->get_owner() != edited_scene) {
 
-			accept->get_ok()->set_text(TTR("Makes Sense!"));
+			accept->get_ok()->set_text(TTR("OK"));
 			accept->set_text(TTR("Can't operate on nodes from a foreign scene!"));
 			accept->popup_centered_minsize();
 			return false;
@@ -1257,7 +1317,7 @@ bool SceneTreeDock::_validate_no_foreign() {
 
 		if (edited_scene->get_scene_inherited_state().is_valid() && edited_scene->get_scene_inherited_state()->find_node_by_path(edited_scene->get_path_to(E->get())) >= 0) {
 
-			accept->get_ok()->set_text(TTR("Makes Sense!"));
+			accept->get_ok()->set_text(TTR("OK"));
 			accept->set_text(TTR("Can't operate on nodes the current scene inherits from!"));
 			accept->popup_centered_minsize();
 			return false;
@@ -1441,6 +1501,19 @@ void SceneTreeDock::_script_created(Ref<Script> p_script) {
 		Ref<Script> existing = E->get()->get_script();
 		editor_data->get_undo_redo().add_do_method(E->get(), "set_script", p_script.get_ref_ptr());
 		editor_data->get_undo_redo().add_undo_method(E->get(), "set_script", existing);
+
+		String icon_path;
+		String name = p_script->get_language()->get_global_class_name(p_script->get_path(), NULL, &icon_path);
+		if (ScriptServer::is_global_class(name)) {
+			RES icon = ResourceLoader::load(icon_path);
+			editor_data->get_undo_redo().add_do_method(E->get(), "set_meta", "_editor_icon", icon);
+			String existing_name = existing.is_valid() ? existing->get_language()->get_global_class_name(existing->get_path()) : String();
+			if (existing.is_null() || !ScriptServer::is_global_class(existing_name)) {
+				editor_data->get_undo_redo().add_undo_method(E->get(), "set_meta", "_editor_icon", get_icon(E->get()->get_class(), "EditorIcons"));
+			} else {
+				editor_data->get_undo_redo().add_undo_method(E->get(), "set_meta", "_editor_icon", editor_data->script_class_get_icon_path(existing_name));
+			}
+		}
 	}
 
 	editor_data->get_undo_redo().commit_action();
@@ -1739,6 +1812,13 @@ void SceneTreeDock::_new_scene_from(String p_file) {
 	if (selection.size() != 1) {
 		accept->get_ok()->set_text(TTR("OK"));
 		accept->set_text(TTR("This operation requires a single selected node."));
+		accept->popup_centered_minsize();
+		return;
+	}
+
+	if (EditorNode::get_singleton()->is_scene_open(p_file)) {
+		accept->get_ok()->set_text(TTR("OK"));
+		accept->set_text(TTR("Can't overwrite scene that is still open!"));
 		accept->popup_centered_minsize();
 		return;
 	}
@@ -2148,6 +2228,67 @@ void SceneTreeDock::_local_tree_selected() {
 	edit_local->set_pressed(true);
 }
 
+void SceneTreeDock::_update_create_root_dialog() {
+
+	BaseButton *toggle = Object::cast_to<BaseButton>(create_root_dialog->get_node(String("NodeShortcutsTopRow/NodeShortcutsToggle")));
+	Node *node_shortcuts = create_root_dialog->get_node(String("NodeShortcuts"));
+
+	if (!toggle || !node_shortcuts)
+		return;
+
+	Control *beginner_nodes = Object::cast_to<Control>(node_shortcuts->get_node(String("BeginnerNodeShortcuts")));
+	Control *favorite_nodes = Object::cast_to<Control>(node_shortcuts->get_node(String("FavoriteNodeShortcuts")));
+
+	if (!beginner_nodes || !favorite_nodes)
+		return;
+
+	EditorSettings::get_singleton()->set_setting("_use_favorites_root_selection", toggle->is_pressed());
+	EditorSettings::get_singleton()->save();
+	if (toggle->is_pressed()) {
+
+		for (int i = 0; i < favorite_nodes->get_child_count(); i++) {
+			favorite_nodes->get_child(i)->queue_delete();
+		}
+
+		FileAccess *f = FileAccess::open(EditorSettings::get_singleton()->get_project_settings_dir().plus_file("favorites.Node"), FileAccess::READ);
+
+		if (f) {
+
+			while (!f->eof_reached()) {
+				String l = f->get_line().strip_edges();
+
+				if (l != String()) {
+					Button *button = memnew(Button);
+					favorite_nodes->add_child(button);
+					button->set_text(TTR(l));
+					String name = l.get_slicec(' ', 0);
+					if (ScriptServer::is_global_class(name))
+						name = ScriptServer::get_global_class_base(name);
+					button->set_icon(get_icon(name, "EditorIcons"));
+					button->connect("pressed", this, "_favorite_root_selected", make_binds(l));
+				}
+			}
+
+			memdelete(f);
+		}
+
+		if (!favorite_nodes->is_visible_in_tree()) {
+			favorite_nodes->show();
+			beginner_nodes->hide();
+		}
+	} else {
+		if (!beginner_nodes->is_visible_in_tree()) {
+			beginner_nodes->show();
+			favorite_nodes->hide();
+		}
+	}
+}
+
+void SceneTreeDock::_favorite_root_selected(const String &p_class) {
+	selected_favorite_root = p_class;
+	_tool_selected(TOOL_CREATE_FAVORITE, false);
+}
+
 void SceneTreeDock::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_tool_selected"), &SceneTreeDock::_tool_selected, DEFVAL(false));
@@ -2176,6 +2317,8 @@ void SceneTreeDock::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_remote_tree_selected"), &SceneTreeDock::_remote_tree_selected);
 	ClassDB::bind_method(D_METHOD("_local_tree_selected"), &SceneTreeDock::_local_tree_selected);
 	ClassDB::bind_method(D_METHOD("_update_script_button"), &SceneTreeDock::_update_script_button);
+	ClassDB::bind_method(D_METHOD("_favorite_root_selected"), &SceneTreeDock::_favorite_root_selected);
+	ClassDB::bind_method(D_METHOD("_update_create_root_dialog"), &SceneTreeDock::_update_create_root_dialog);
 
 	ClassDB::bind_method(D_METHOD("instance"), &SceneTreeDock::instance);
 
@@ -2301,6 +2444,8 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 	create_dialog->set_base_type("Node");
 	add_child(create_dialog);
 	create_dialog->connect("create", this, "_create");
+	create_dialog->connect("favorites_updated", this, "_update_create_root_dialog");
+	EditorFileSystem::get_singleton()->connect("script_classes_updated", create_dialog, "_save_and_update_favorite_list");
 
 	rename_dialog = memnew(RenameDialog(scene_tree, &editor_data->get_undo_redo()));
 	add_child(rename_dialog);
@@ -2347,11 +2492,12 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 
 	clear_inherit_confirm = memnew(ConfirmationDialog);
 	clear_inherit_confirm->set_text(TTR("Clear Inheritance? (No Undo!)"));
-	clear_inherit_confirm->get_ok()->set_text(TTR("Clear!"));
+	clear_inherit_confirm->get_ok()->set_text(TTR("Clear"));
 	add_child(clear_inherit_confirm);
 
 	set_process_input(true);
 	set_process(true);
 
 	EDITOR_DEF("interface/editors/show_scene_tree_root_selection", true);
+	EDITOR_DEF("_use_favorites_root_selection", false);
 }

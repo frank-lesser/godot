@@ -1177,7 +1177,12 @@ void TextEdit::_notification(int p_what) {
 							int yofs = ofs_y + (get_row_height() - cache.font->get_height()) / 2;
 							int w = drawer.draw_char(ci, Point2i(char_ofs + char_margin + ofs_x, yofs + ascent), str[j], str[j + 1], in_selection && override_selected_font_color ? cache.font_selected_color : color);
 							if (underlined) {
-								draw_rect(Rect2(char_ofs + char_margin + ofs_x, yofs + ascent + 2, w, 1), in_selection && override_selected_font_color ? cache.font_selected_color : color);
+								float line_width = 1.0;
+#ifdef TOOLS_ENABLED
+								line_width *= EDSCALE;
+#endif
+
+								draw_rect(Rect2(char_ofs + char_margin + ofs_x, yofs + ascent + 2, w, line_width), in_selection && override_selected_font_color ? cache.font_selected_color : color);
 							}
 						} else if (draw_tabs && str[j] == '\t') {
 							int yofs = (get_row_height() - cache.tab_icon->get_height()) / 2;
@@ -2195,9 +2200,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			k->set_shift(false);
 		}
 
-		if (!k->get_command()) {
-			_reset_caret_blink_timer();
-		}
+		_reset_caret_blink_timer();
 
 		// save here for insert mode, just in case it is cleared in the following section
 		bool had_selection = selection.active;
@@ -3116,16 +3119,14 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					if (selection.active) {
 						int ini = selection.from_line;
 						int end = selection.to_line;
+
 						for (int i = ini; i <= end; i++) {
-							if (get_line(i).begins_with("#"))
-								_remove_text(i, 0, i, 1);
+							_uncomment_line(i);
 						}
 					} else {
-						if (get_line(cursor.line).begins_with("#")) {
-							_remove_text(cursor.line, 0, cursor.line, 1);
-							if (cursor.column >= get_line(cursor.line).length()) {
-								cursor.column = MAX(0, get_line(cursor.line).length() - 1);
-							}
+						_uncomment_line(cursor.line);
+						if (cursor.column >= get_line(cursor.line).length()) {
+							cursor.column = MAX(0, get_line(cursor.line).length() - 1);
 						}
 					}
 					update();
@@ -3202,6 +3203,24 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 		}
 
 		return;
+	}
+}
+
+void TextEdit::_uncomment_line(int p_line) {
+	String line_text = get_line(p_line);
+	for (int i = 0; i < line_text.length(); i++) {
+		if (line_text[i] == '#') {
+			_remove_text(p_line, i, p_line, i + 1);
+			if (p_line == selection.to_line && selection.to_column > line_text.length() - 1) {
+				selection.to_column -= 1;
+				if (selection.to_column >= selection.from_column) {
+					selection.active = false;
+				}
+			}
+			return;
+		} else if (line_text[i] != '\t' && line_text[i] != ' ') {
+			return;
+		}
 	}
 }
 
@@ -4819,28 +4838,27 @@ bool TextEdit::search(const String &p_key, uint32_t p_search_flags, int p_from_l
 
 		pos = -1;
 
-		int pos_from = 0;
+		int pos_from = (p_search_flags & SEARCH_BACKWARDS) ? text_line.length() : 0;
 		int last_pos = -1;
 
 		while (true) {
 
-			while ((last_pos = (p_search_flags & SEARCH_MATCH_CASE) ? text_line.find(p_key, pos_from) : text_line.findn(p_key, pos_from)) != -1) {
-
-				if (p_search_flags & SEARCH_BACKWARDS) {
-
-					if (last_pos > from_column)
+			if (p_search_flags & SEARCH_BACKWARDS) {
+				while ((last_pos = (p_search_flags & SEARCH_MATCH_CASE) ? text_line.rfind(p_key, pos_from) : text_line.rfindn(p_key, pos_from)) != -1) {
+					if (last_pos <= from_column) {
+						pos = last_pos;
 						break;
-					pos = last_pos;
-
-				} else {
-
+					}
+					pos_from = last_pos - p_key.length();
+				}
+			} else {
+				while ((last_pos = (p_search_flags & SEARCH_MATCH_CASE) ? text_line.find(p_key, pos_from) : text_line.findn(p_key, pos_from)) != -1) {
 					if (last_pos >= from_column) {
 						pos = last_pos;
 						break;
 					}
+					pos_from = last_pos + p_key.length();
 				}
-
-				pos_from = last_pos + p_key.length();
 			}
 
 			bool is_match = true;
@@ -4853,11 +4871,15 @@ bool TextEdit::search(const String &p_key, uint32_t p_search_flags, int p_from_l
 					is_match = false;
 			}
 
+			if (pos_from == -1) {
+				pos = -1;
+			}
+
 			if (is_match || last_pos == -1 || pos == -1) {
 				break;
 			}
 
-			pos_from = pos + 1;
+			pos_from = (p_search_flags & SEARCH_BACKWARDS) ? pos - 1 : pos + 1;
 			pos = -1;
 		}
 
@@ -5637,6 +5659,10 @@ void TextEdit::_confirm_completion() {
 	end_complex_operation();
 
 	_cancel_completion();
+
+	if (last_completion_char == '(') {
+		query_code_comple();
+	}
 }
 
 void TextEdit::_cancel_code_hint() {
@@ -5689,15 +5715,12 @@ void TextEdit::_update_completion_candidates() {
 	bool pre_keyword = false;
 	bool cancel = false;
 
-	//print_line("inquote: "+itos(inquote)+"first quote "+itos(first_quote)+" cofs-1 "+itos(cofs-1));
 	if (!inquote && first_quote == cofs - 1) {
 		//no completion here
-		//print_line("cancel!");
 		cancel = true;
 	} else if (inquote && first_quote != -1) {
 
 		s = l.substr(first_quote, cofs - first_quote);
-		//print_line("s: 1"+s);
 	} else if (cofs > 0 && l[cofs - 1] == ' ') {
 		int kofs = cofs - 1;
 		String kw;
@@ -5710,7 +5733,6 @@ void TextEdit::_update_completion_candidates() {
 		}
 
 		pre_keyword = keywords.has(kw);
-		//print_line("KW "+kw+"? "+itos(pre_keyword));
 
 	} else {
 
@@ -5752,40 +5774,23 @@ void TextEdit::_update_completion_candidates() {
 			completion_strings.write[i] = completion_strings[i].unquote().quote("'");
 		}
 
-		if (s == completion_strings[i]) {
-			// A perfect match, stop completion
-			_cancel_completion();
-			return;
+		if (completion_strings[i].begins_with(s)) {
+			completion_options.push_back(completion_strings[i]);
 		}
+	}
 
-		if (s.is_subsequence_ofi(completion_strings[i])) {
-			// don't remove duplicates if no input is provided
-			if (s != "" && completion_options.find(completion_strings[i]) != -1) {
-				continue;
-			}
-			// Calculate the similarity to keep completions in good order
-			float similarity;
-			if (completion_strings[i].to_lower().begins_with(s.to_lower())) {
-				// Substrings are the best candidates
-				similarity = 1.1;
-			} else {
-				// Otherwise compute the similarity
-				similarity = s.to_lower().similarity(completion_strings[i].to_lower());
-			}
-
-			int comp_size = completion_options.size();
-			if (comp_size == 0) {
+	if (completion_options.size() == 0) {
+		for (int i = 0; i < completion_strings.size(); i++) {
+			if (s.is_subsequence_of(completion_strings[i])) {
 				completion_options.push_back(completion_strings[i]);
-				sim_cache.push_back(similarity);
-			} else {
-				float comp_sim;
-				int pos = 0;
-				do {
-					comp_sim = sim_cache[pos++];
-				} while (pos < comp_size && similarity < comp_sim);
-				pos = similarity > comp_sim ? pos - 1 : pos; // Pos will be off by one
-				completion_options.insert(pos, completion_strings[i]);
-				sim_cache.insert(pos, similarity);
+			}
+		}
+	}
+
+	if (completion_options.size() == 0) {
+		for (int i = 0; i < completion_strings.size(); i++) {
+			if (s.is_subsequence_ofi(completion_strings[i])) {
+				completion_options.push_back(completion_strings[i]);
 			}
 		}
 	}
@@ -5793,7 +5798,12 @@ void TextEdit::_update_completion_candidates() {
 	if (completion_options.size() == 0) {
 		//no options to complete, cancel
 		_cancel_completion();
+		return;
+	}
 
+	if (completion_options.size() == 1 && s == completion_options[0]) {
+		// A perfect match, stop completion
+		_cancel_completion();
 		return;
 	}
 
@@ -5918,6 +5928,9 @@ void TextEdit::set_line(int line, String new_text) {
 	_insert_text(line, 0, new_text);
 	if (cursor.line == line) {
 		cursor.column = MIN(cursor.column, new_text.length());
+	}
+	if (is_selection_active() && line == selection.to_line && selection.to_column > text[line].length()) {
+		selection.to_column = text[line].length();
 	}
 }
 
@@ -6409,8 +6422,8 @@ Map<int, TextEdit::HighlighterInfo> TextEdit::_get_line_syntax_highlighting(int 
 			is_hex_notation = false;
 		}
 
-		// check for dot or underscore or 'x' for hex notation in floating point number
-		if ((str[j] == '.' || str[j] == 'x' || str[j] == '_' || str[j] == 'f') && !in_word && prev_is_number && !is_number) {
+		// check for dot or underscore or 'x' for hex notation in floating point number or 'e' for scientific notation
+		if ((str[j] == '.' || str[j] == 'x' || str[j] == '_' || str[j] == 'f' || str[j] == 'e') && !in_word && prev_is_number && !is_number) {
 			is_number = true;
 			is_symbol = false;
 			is_char = false;

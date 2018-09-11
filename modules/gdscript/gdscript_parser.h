@@ -149,6 +149,7 @@ public:
 		StringName extends_file;
 		Vector<StringName> extends_class;
 		DataType base_type;
+		String icon_path;
 
 		struct Member {
 			PropertyInfo _export;
@@ -344,6 +345,7 @@ public:
 			OP_PARENT_CALL,
 			OP_YIELD,
 			OP_IS,
+			OP_IS_BUILTIN,
 			//indexing operator
 			OP_INDEX,
 			OP_INDEX_NAMED,

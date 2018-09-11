@@ -661,6 +661,21 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 			List<String> remaps;
 			config->get_section_keys("remap", &remaps);
 
+			Set<String> remap_features;
+
+			for (List<String>::Element *F = remaps.front(); F; F = F->next()) {
+
+				String remap = F->get();
+				String feature = remap.get_slice(".", 1);
+				if (features.has(feature)) {
+					remap_features.insert(feature);
+				}
+			}
+
+			if (remap_features.size() > 1) {
+				this->resolve_platform_feature_priorities(p_preset, remap_features);
+			}
+
 			for (List<String>::Element *F = remaps.front(); F; F = F->next()) {
 
 				String remap = F->get();
@@ -670,7 +685,8 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 					p_func(p_udata, remapped_path, array, idx, total);
 				} else if (remap.begins_with("path.")) {
 					String feature = remap.get_slice(".", 1);
-					if (features.has(feature)) {
+
+					if (remap_features.has(feature)) {
 						String remapped_path = config->get_value("remap", remap);
 						Vector<uint8_t> array = FileAccess::get_file_as_array(remapped_path);
 						p_func(p_udata, remapped_path, array, idx, total);
@@ -1249,9 +1265,11 @@ void EditorExportPlatformPC::get_preset_features(const Ref<EditorExportPreset> &
 
 void EditorExportPlatformPC::get_export_options(List<ExportOption> *r_options) {
 
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "texture_format/bptc"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "texture_format/s3tc"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "texture_format/etc"), false));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "texture_format/etc2"), false));
+	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "texture_format/no_bptc_fallbacks"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "binary_format/64_bits"), true));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/release", PROPERTY_HINT_GLOBAL_FILE), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_template/debug", PROPERTY_HINT_GLOBAL_FILE), ""));
@@ -1434,6 +1452,15 @@ void EditorExportPlatformPC::get_platform_features(List<String> *r_features) {
 	}
 }
 
+void EditorExportPlatformPC::resolve_platform_feature_priorities(const Ref<EditorExportPreset> &p_preset, Set<String> &p_features) {
+
+	if (p_features.has("bptc")) {
+		if (p_preset->has("texture_format/no_bptc_fallbacks")) {
+			p_features.erase("s3tc");
+		}
+	}
+}
+
 int EditorExportPlatformPC::get_chmod_flags() const {
 
 	return chmod_flags;
@@ -1457,8 +1484,6 @@ void EditorExportTextSceneToBinaryPlugin::_export_file(const String &p_path, con
 	if (extension != "tres" && extension != "tscn") {
 		return;
 	}
-
-	print_line("exporting " + p_path);
 
 	bool convert = GLOBAL_GET("editor/convert_text_resources_to_binary_on_export");
 	if (!convert)

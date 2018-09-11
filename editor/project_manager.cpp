@@ -915,12 +915,6 @@ void ProjectManager::_update_project_buttons() {
 
 		CanvasItem *item = Object::cast_to<CanvasItem>(scroll_children->get_child(i));
 		item->update();
-
-		Button *show = Object::cast_to<Button>(item->get_node(NodePath("project/path_box/show")));
-		if (show) {
-			String current = item->get_meta("name");
-			show->set_visible(selected_list.has(current));
-		}
 	}
 
 	bool empty_selection = selected_list.empty();
@@ -1316,7 +1310,6 @@ void ProjectManager::_load_recent_projects() {
 		path_hb->add_child(show);
 		show->connect("pressed", this, "_show_project", varray(path));
 		show->set_tooltip(TTR("Show In File Manager"));
-		show->set_visible(false);
 
 		Label *fpath = memnew(Label(path));
 		fpath->set_name("path");
@@ -1397,7 +1390,7 @@ void ProjectManager::_open_project_confirm() {
 			return;
 		}
 
-		print_line("OPENING: " + path + " (" + selected + ")");
+		print_line("Editing project: " + path + " (" + selected + ")");
 
 		List<String> args;
 
@@ -1454,7 +1447,7 @@ void ProjectManager::_run_project_confirm() {
 			return;
 		}
 
-		print_line("OPENING: " + path + " (" + selected + ")");
+		print_line("Running project: " + path + " (" + selected + ")");
 
 		List<String> args;
 
@@ -1520,13 +1513,13 @@ void ProjectManager::_scan_dir(DirAccess *da, float pos, float total, List<Strin
 
 void ProjectManager::_scan_begin(const String &p_base) {
 
-	print_line("SCAN PROJECTS AT: " + p_base);
+	print_line("Scanning projects at: " + p_base);
 	List<String> projects;
 	DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 	da->change_dir(p_base);
 	_scan_dir(da, 0, 1, &projects);
 	memdelete(da);
-	print_line("found: " + itos(projects.size()) + " projects.");
+	print_line("Found " + itos(projects.size()) + " projects.");
 
 	for (List<String>::Element *E = projects.front(); E; E = E->next()) {
 		String proj = E->get().replace("/", "::");
@@ -1757,6 +1750,12 @@ ProjectManager::ProjectManager() {
 				editor_set_scale(custom_display_scale);
 			} break;
 		}
+
+#ifndef OSX_ENABLED
+		// The macOS platform implementation uses its own hiDPI window resizing code
+		// TODO: Resize windows on hiDPI displays on Windows and Linux and remove the line below
+		OS::get_singleton()->set_window_size(OS::get_singleton()->get_window_size() * MAX(1, EDSCALE));
+#endif
 	}
 
 	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("filesystem/file_dialog/show_hidden_files"));
@@ -1782,7 +1781,6 @@ ProjectManager::ProjectManager() {
 
 	String cp;
 	cp += 0xA9;
-	cp += '0';
 	OS::get_singleton()->set_window_title(VERSION_NAME + String(" - ") + TTR("Project Manager") + " - " + cp + " 2007-2018 Juan Linietsky, Ariel Manzur & Godot Contributors");
 
 	HBoxContainer *top_hb = memnew(HBoxContainer);
@@ -1825,7 +1823,7 @@ ProjectManager::ProjectManager() {
 	project_filter = memnew(ProjectListFilter);
 	search_box->add_child(project_filter);
 	project_filter->connect("filter_changed", this, "_load_recent_projects");
-	project_filter->set_custom_minimum_size(Size2(250, 10));
+	project_filter->set_custom_minimum_size(Size2(280, 10) * EDSCALE);
 	search_tree_vb->add_child(search_box);
 
 	PanelContainer *pc = memnew(PanelContainer);
@@ -2023,18 +2021,6 @@ void ProjectListFilter::_setup_filters() {
 	filter_option->add_item(TTR("Path"));
 }
 
-void ProjectListFilter::_command(int p_command) {
-	switch (p_command) {
-
-		case CMD_CLEAR_FILTER: {
-			if (search_box->get_text() != "") {
-				search_box->clear();
-				emit_signal("filter_changed");
-			}
-		} break;
-	}
-}
-
 void ProjectListFilter::_search_text_changed(const String &p_newtext) {
 	emit_signal("filter_changed");
 }
@@ -2057,13 +2043,14 @@ void ProjectListFilter::_filter_option_selected(int p_idx) {
 
 void ProjectListFilter::_notification(int p_what) {
 
-	if (p_what == NOTIFICATION_ENTER_TREE)
-		clear_search_button->set_icon(get_icon("Close", "EditorIcons"));
+	if (p_what == NOTIFICATION_ENTER_TREE) {
+		search_box->set_right_icon(get_icon("Search", "EditorIcons"));
+		search_box->set_clear_button_enabled(true);
+	}
 }
 
 void ProjectListFilter::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_command"), &ProjectListFilter::_command);
 	ClassDB::bind_method(D_METHOD("_search_text_changed"), &ProjectListFilter::_search_text_changed);
 	ClassDB::bind_method(D_METHOD("_filter_option_selected"), &ProjectListFilter::_filter_option_selected);
 
@@ -2088,8 +2075,4 @@ ProjectListFilter::ProjectListFilter() {
 	search_box->connect("text_changed", this, "_search_text_changed");
 	search_box->set_h_size_flags(SIZE_EXPAND_FILL);
 	add_child(search_box);
-
-	clear_search_button = memnew(ToolButton);
-	clear_search_button->connect("pressed", this, "_command", make_binds(CMD_CLEAR_FILTER));
-	add_child(clear_search_button);
 }

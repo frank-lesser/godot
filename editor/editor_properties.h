@@ -54,12 +54,14 @@ class EditorPropertyText : public EditorProperty {
 
 	bool updating;
 	void _text_changed(const String &p_string);
+	void _text_entered(const String &p_string);
 
 protected:
 	static void _bind_methods();
 
 public:
 	virtual void update_property();
+	void set_placeholder(const String &p_string);
 	EditorPropertyText();
 };
 
@@ -105,13 +107,16 @@ class EditorPropertyPath : public EditorProperty {
 	bool folder;
 	bool global;
 	EditorFileDialog *dialog;
-	Button *path;
+	LineEdit *path;
+	Button *path_edit;
 
 	void _path_selected(const String &p_path);
 	void _path_pressed();
+	void _path_focus_exited();
 
 protected:
 	static void _bind_methods();
+	void _notification(int p_what);
 
 public:
 	void setup(const Vector<String> &p_extensions, bool p_folder, bool p_global);
@@ -475,6 +480,7 @@ class EditorPropertyColor : public EditorProperty {
 	GDCLASS(EditorPropertyColor, EditorProperty)
 	ColorPickerButton *picker;
 	void _color_changed(const Color &p_color);
+	void _popup_closed();
 
 protected:
 	static void _bind_methods();

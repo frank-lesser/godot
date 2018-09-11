@@ -112,6 +112,13 @@ PoolStringArray _ResourceLoader::get_dependencies(const String &p_path) {
 	return ret;
 };
 
+#ifndef DISABLE_DEPRECATED
+bool _ResourceLoader::has(const String &p_path) {
+	WARN_PRINTS("ResourceLoader.has() is deprecated, please replace it with the equivalent has_cached() or the new exists().");
+	return has_cached(p_path);
+}
+#endif // DISABLE_DEPRECATED
+
 bool _ResourceLoader::has_cached(const String &p_path) {
 
 	String local_path = ProjectSettings::get_singleton()->localize_path(p_path);
@@ -131,6 +138,9 @@ void _ResourceLoader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_dependencies", "path"), &_ResourceLoader::get_dependencies);
 	ClassDB::bind_method(D_METHOD("has_cached", "path"), &_ResourceLoader::has_cached);
 	ClassDB::bind_method(D_METHOD("exists", "path", "type_hint"), &_ResourceLoader::exists, DEFVAL(""));
+#ifndef DISABLE_DEPRECATED
+	ClassDB::bind_method(D_METHOD("has", "path"), &_ResourceLoader::has);
+#endif // DISABLE_DEPRECATED
 }
 
 _ResourceLoader::_ResourceLoader() {
@@ -228,6 +238,14 @@ String _OS::get_audio_driver_name(int p_driver) const {
 
 PoolStringArray _OS::get_connected_midi_inputs() {
 	return OS::get_singleton()->get_connected_midi_inputs();
+}
+
+void _OS::open_midi_inputs() {
+	return OS::get_singleton()->open_midi_inputs();
+}
+
+void _OS::close_midi_inputs() {
+	return OS::get_singleton()->close_midi_inputs();
 }
 
 void _OS::set_video_mode(const Size2 &p_size, bool p_fullscreen, bool p_resizeable, int p_screen) {
@@ -648,7 +666,7 @@ Dictionary _OS::get_time(bool utc) const {
  *
  * @return epoch calculated
  */
-uint64_t _OS::get_unix_time_from_datetime(Dictionary datetime) const {
+int64_t _OS::get_unix_time_from_datetime(Dictionary datetime) const {
 
 	// Bunch of conversion constants
 	static const unsigned int SECONDS_PER_MINUTE = 60;
@@ -693,13 +711,18 @@ uint64_t _OS::get_unix_time_from_datetime(Dictionary datetime) const {
 	// Calculate all the seconds from months past in this year
 	uint64_t SECONDS_FROM_MONTHS_PAST_THIS_YEAR = DAYS_PAST_THIS_YEAR_TABLE[LEAPYEAR(year)][month - 1] * SECONDS_PER_DAY;
 
-	uint64_t SECONDS_FROM_YEARS_PAST = 0;
-	for (unsigned int iyear = EPOCH_YR; iyear < year; iyear++) {
-
-		SECONDS_FROM_YEARS_PAST += YEARSIZE(iyear) * SECONDS_PER_DAY;
+	int64_t SECONDS_FROM_YEARS_PAST = 0;
+	if (year >= EPOCH_YR) {
+		for (unsigned int iyear = EPOCH_YR; iyear < year; iyear++) {
+			SECONDS_FROM_YEARS_PAST += YEARSIZE(iyear) * SECONDS_PER_DAY;
+		}
+	} else {
+		for (unsigned int iyear = EPOCH_YR - 1; iyear >= year; iyear--) {
+			SECONDS_FROM_YEARS_PAST -= YEARSIZE(iyear) * SECONDS_PER_DAY;
+		}
 	}
 
-	uint64_t epoch =
+	int64_t epoch =
 			second +
 			minute * SECONDS_PER_MINUTE +
 			hour * SECONDS_PER_HOUR +
@@ -722,34 +745,36 @@ uint64_t _OS::get_unix_time_from_datetime(Dictionary datetime) const {
  *
  * @return dictionary of date and time values
  */
-Dictionary _OS::get_datetime_from_unix_time(uint64_t unix_time_val) const {
-
-	// Just fail if unix time is negative (when interpreted as an int).
-	//  This means the user passed in a negative value by accident
-	ERR_EXPLAIN("unix_time_val was really huge!" + itos(unix_time_val) + " You probably passed in a negative value!");
-	ERR_FAIL_COND_V((int64_t)unix_time_val < 0, Dictionary());
+Dictionary _OS::get_datetime_from_unix_time(int64_t unix_time_val) const {
 
 	OS::Date date;
 	OS::Time time;
 
-	unsigned long dayclock, dayno;
+	long dayclock, dayno;
 	int year = EPOCH_YR;
 
-	dayclock = (unsigned long)unix_time_val % SECS_DAY;
-	dayno = (unsigned long)unix_time_val / SECS_DAY;
+	if (unix_time_val >= 0) {
+		dayno = unix_time_val / SECS_DAY;
+		dayclock = unix_time_val % SECS_DAY;
+		/* day 0 was a thursday */
+		date.weekday = static_cast<OS::Weekday>((dayno + 4) % 7);
+		while (dayno >= YEARSIZE(year)) {
+			dayno -= YEARSIZE(year);
+			year++;
+		}
+	} else {
+		dayno = (unix_time_val - SECS_DAY + 1) / SECS_DAY;
+		dayclock = unix_time_val - dayno * SECS_DAY;
+		date.weekday = static_cast<OS::Weekday>((dayno - 3) % 7 + 7);
+		do {
+			year--;
+			dayno += YEARSIZE(year);
+		} while (dayno < 0);
+	}
 
 	time.sec = dayclock % 60;
 	time.min = (dayclock % 3600) / 60;
 	time.hour = dayclock / 3600;
-
-	/* day 0 was a thursday */
-	date.weekday = static_cast<OS::Weekday>((dayno + 4) % 7);
-
-	while (dayno >= YEARSIZE(year)) {
-		dayno -= YEARSIZE(year);
-		year++;
-	}
-
 	date.year = year;
 
 	size_t imonth = 0;
@@ -1068,6 +1093,8 @@ void _OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_audio_driver_count"), &_OS::get_audio_driver_count);
 	ClassDB::bind_method(D_METHOD("get_audio_driver_name", "driver"), &_OS::get_audio_driver_name);
 	ClassDB::bind_method(D_METHOD("get_connected_midi_inputs"), &_OS::get_connected_midi_inputs);
+	ClassDB::bind_method(D_METHOD("open_midi_inputs"), &_OS::open_midi_inputs);
+	ClassDB::bind_method(D_METHOD("close_midi_inputs"), &_OS::close_midi_inputs);
 
 	ClassDB::bind_method(D_METHOD("get_screen_count"), &_OS::get_screen_count);
 	ClassDB::bind_method(D_METHOD("get_current_screen"), &_OS::get_current_screen);

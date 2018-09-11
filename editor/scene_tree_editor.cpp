@@ -521,8 +521,10 @@ void SceneTreeEditor::_selected_changed() {
 void SceneTreeEditor::_deselect_items() {
 
 	// Clear currently elected items in scene tree dock.
-	if (editor_selection)
+	if (editor_selection) {
 		editor_selection->clear();
+		emit_signal("node_changed");
+	}
 }
 
 void SceneTreeEditor::_cell_multi_selected(Object *p_object, int p_cell, bool p_selected) {
@@ -546,6 +548,7 @@ void SceneTreeEditor::_cell_multi_selected(Object *p_object, int p_cell, bool p_
 	} else {
 		editor_selection->remove_node(n);
 	}
+	emit_signal("node_changed");
 }
 
 void SceneTreeEditor::_notification(int p_what) {
@@ -965,7 +968,6 @@ void SceneTreeEditor::_warning_changed(Node *p_for_node) {
 
 	//should use a timer
 	update_timer->start();
-	//print_line("WARNING CHANGED "+String(p_for_node->get_name()));
 }
 
 void SceneTreeEditor::_editor_settings_changed() {

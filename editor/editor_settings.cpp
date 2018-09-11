@@ -146,7 +146,7 @@ bool EditorSettings::_get(const StringName &p_name, Variant &r_ret) const {
 
 	const VariantContainer *v = props.getptr(p_name);
 	if (!v) {
-		print_line("EditorSettings::_get - Warning, not found: " + String(p_name));
+		WARN_PRINTS("EditorSettings::_get - Property not found: " + String(p_name));
 		return false;
 	}
 	r_ret = v->variant;
@@ -357,6 +357,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["text_editor/theme/color_theme"] = PropertyInfo(Variant::STRING, "text_editor/theme/color_theme", PROPERTY_HINT_ENUM, "Adaptive,Default,Custom");
 
 	_initial_set("text_editor/theme/line_spacing", 4);
+	_initial_set("text_editor/theme/selection_color", Color::html("40808080"));
 
 	_load_default_text_editor_theme();
 
@@ -396,7 +397,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	_initial_set("text_editor/cursor/block_caret", false);
 	_initial_set("text_editor/cursor/caret_blink", true);
-	_initial_set("text_editor/cursor/caret_blink_speed", 0.65);
+	_initial_set("text_editor/cursor/caret_blink_speed", 0.5);
 	hints["text_editor/cursor/caret_blink_speed"] = PropertyInfo(Variant::REAL, "text_editor/cursor/caret_blink_speed", PROPERTY_HINT_RANGE, "0.1, 10, 0.01");
 	_initial_set("text_editor/cursor/right_click_moves_caret", true);
 
@@ -473,6 +474,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	hints["editors/3d/freelook/freelook_modifier_speed_factor"] = PropertyInfo(Variant::REAL, "editors/3d/freelook/freelook_modifier_speed_factor", PROPERTY_HINT_RANGE, "0.0, 10.0, 0.1");
 	_initial_set("editors/3d/freelook/freelook_speed_zoom_link", false);
 
+	_initial_set("editors/2d/grid_color", Color(1.0, 1.0, 1.0, 0.07));
 	_initial_set("editors/2d/guides_color", Color(0.6, 0.0, 0.8));
 	_initial_set("editors/2d/bone_width", 5);
 	_initial_set("editors/2d/bone_color1", Color(1.0, 1.0, 1.0, 0.9));
@@ -492,7 +494,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	_initial_set("run/window_placement/rect", 1);
 	hints["run/window_placement/rect"] = PropertyInfo(Variant::INT, "run/window_placement/rect", PROPERTY_HINT_ENUM, "Top Left,Centered,Custom Position,Force Maximized,Force Fullscreen");
-	String screen_hints = TTR("Default (Same as Editor)");
+	String screen_hints = "Same as Editor,Previous Monitor,Next Monitor";
 	for (int i = 0; i < OS::get_singleton()->get_screen_count(); i++) {
 		screen_hints += ",Monitor " + itos(i + 1);
 	}
@@ -511,6 +513,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("filesystem/file_dialog/thumbnail_size", 64);
 	hints["filesystem/file_dialog/thumbnail_size"] = PropertyInfo(Variant::INT, "filesystem/file_dialog/thumbnail_size", PROPERTY_HINT_RANGE, "32,128,16");
 
+	_initial_set("docks/filesystem/disable_split", false);
+	_initial_set("docks/filesystem/split_mode_minimum_height", 600);
 	_initial_set("docks/filesystem/display_mode", 0);
 	hints["docks/filesystem/display_mode"] = PropertyInfo(Variant::INT, "docks/filesystem/display_mode", PROPERTY_HINT_ENUM, "Thumbnails,List");
 	_initial_set("docks/filesystem/thumbnail_size", 64);
@@ -755,7 +759,7 @@ void EditorSettings::create() {
 		}
 
 		if (dir->change_dir(data_dir) != OK) {
-			dir->make_dir(data_dir);
+			dir->make_dir_recursive(data_dir);
 			if (dir->change_dir(data_dir) != OK) {
 				ERR_PRINT("Cannot create data directory!");
 				memdelete(dir);
@@ -771,14 +775,8 @@ void EditorSettings::create() {
 
 		// Validate/create cache dir
 
-		if (dir->change_dir(cache_path) != OK) {
-			ERR_PRINT("Cannot find path for cache directory!");
-			memdelete(dir);
-			goto fail;
-		}
-
 		if (dir->change_dir(cache_dir) != OK) {
-			dir->make_dir(cache_dir);
+			dir->make_dir_recursive(cache_dir);
 			if (dir->change_dir(cache_dir) != OK) {
 				ERR_PRINT("Cannot create cache directory!");
 				memdelete(dir);
@@ -788,14 +786,8 @@ void EditorSettings::create() {
 
 		// Validate/create config dir and subdirectories
 
-		if (dir->change_dir(config_path) != OK) {
-			ERR_PRINT("Cannot find path for config directory!");
-			memdelete(dir);
-			goto fail;
-		}
-
 		if (dir->change_dir(config_dir) != OK) {
-			dir->make_dir(config_dir);
+			dir->make_dir_recursive(config_dir);
 			if (dir->change_dir(config_dir) != OK) {
 				ERR_PRINT("Cannot create config directory!");
 				memdelete(dir);
@@ -861,10 +853,7 @@ void EditorSettings::create() {
 		singleton->data_dir = data_dir;
 		singleton->cache_dir = cache_dir;
 
-		if (OS::get_singleton()->is_stdout_verbose()) {
-
-			print_line("EditorSettings: Load OK!");
-		}
+		print_verbose("EditorSettings: Load OK!");
 
 		singleton->setup_language();
 		singleton->setup_network();
@@ -976,8 +965,8 @@ void EditorSettings::save() {
 
 	if (err != OK) {
 		ERR_PRINTS("Error saving editor settings to " + singleton->config_file_path);
-	} else if (OS::get_singleton()->is_stdout_verbose()) {
-		print_line("EditorSettings Save OK!");
+	} else {
+		print_verbose("EditorSettings: Save OK!");
 	}
 }
 

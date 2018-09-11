@@ -356,14 +356,14 @@ bool GraphEdit::_filter_input(const Point2 &p_point) {
 		for (int j = 0; j < gn->get_connection_output_count(); j++) {
 
 			Vector2 pos = gn->get_connection_output_position(j) + gn->get_position();
-			if (create_hot_zone(pos).has_point(p_point))
+			if (is_in_hot_zone(pos, p_point))
 				return true;
 		}
 
 		for (int j = 0; j < gn->get_connection_input_count(); j++) {
 
 			Vector2 pos = gn->get_connection_input_position(j) + gn->get_position();
-			if (create_hot_zone(pos).has_point(p_point)) {
+			if (is_in_hot_zone(pos, p_point)) {
 				return true;
 			}
 		}
@@ -388,7 +388,7 @@ void GraphEdit::_top_layer_input(const Ref<InputEvent> &p_ev) {
 			for (int j = 0; j < gn->get_connection_output_count(); j++) {
 
 				Vector2 pos = gn->get_connection_output_position(j) + gn->get_position();
-				if (create_hot_zone(pos).has_point(mpos)) {
+				if (is_in_hot_zone(pos, mpos)) {
 
 					if (valid_left_disconnect_types.has(gn->get_connection_output_type(j))) {
 						//check disconnect
@@ -435,7 +435,7 @@ void GraphEdit::_top_layer_input(const Ref<InputEvent> &p_ev) {
 			for (int j = 0; j < gn->get_connection_input_count(); j++) {
 
 				Vector2 pos = gn->get_connection_input_position(j) + gn->get_position();
-				if (create_hot_zone(pos).has_point(mpos)) {
+				if (is_in_hot_zone(pos, mpos)) {
 
 					if (right_disconnects || valid_right_disconnect_types.has(gn->get_connection_input_type(j))) {
 						//check disconnect
@@ -502,7 +502,7 @@ void GraphEdit::_top_layer_input(const Ref<InputEvent> &p_ev) {
 
 					Vector2 pos = gn->get_connection_output_position(j) + gn->get_position();
 					int type = gn->get_connection_output_type(j);
-					if ((type == connecting_type || valid_connection_types.has(ConnType(type, connecting_type))) && create_hot_zone(pos).has_point(mpos)) {
+					if ((type == connecting_type || valid_connection_types.has(ConnType(type, connecting_type))) && is_in_hot_zone(pos, mpos)) {
 
 						connecting_target = true;
 						connecting_to = pos;
@@ -517,7 +517,7 @@ void GraphEdit::_top_layer_input(const Ref<InputEvent> &p_ev) {
 
 					Vector2 pos = gn->get_connection_input_position(j) + gn->get_position();
 					int type = gn->get_connection_input_type(j);
-					if ((type == connecting_type || valid_connection_types.has(ConnType(type, connecting_type))) && create_hot_zone(pos).has_point(mpos)) {
+					if ((type == connecting_type || valid_connection_types.has(ConnType(type, connecting_type))) && is_in_hot_zone(pos, mpos)) {
 						connecting_target = true;
 						connecting_to = pos;
 						connecting_target_to = gn->get_name();
@@ -557,8 +557,55 @@ void GraphEdit::_top_layer_input(const Ref<InputEvent> &p_ev) {
 	}
 }
 
-Rect2 GraphEdit::create_hot_zone(const Vector2 &pos) {
-	return Rect2(pos.x - port_grab_distance_horizontal, pos.y - port_grab_distance_vertical, port_grab_distance_horizontal * 2, port_grab_distance_vertical * 2);
+bool GraphEdit::_check_clickable_control(Control *p_control, const Vector2 &pos) {
+
+	if (p_control->is_set_as_toplevel() || !p_control->is_visible())
+		return false;
+
+	if (!p_control->has_point(pos) || p_control->get_mouse_filter() == MOUSE_FILTER_IGNORE) {
+		//test children
+		for (int i = 0; i < p_control->get_child_count(); i++) {
+			Control *subchild = Object::cast_to<Control>(p_control->get_child(i));
+			if (!subchild)
+				continue;
+			if (_check_clickable_control(subchild, pos - subchild->get_position())) {
+				return true;
+			}
+		}
+
+		return false;
+	} else {
+		return true;
+	}
+}
+
+bool GraphEdit::is_in_hot_zone(const Vector2 &pos, const Vector2 &p_mouse_pos) {
+	if (!Rect2(pos.x - port_grab_distance_horizontal, pos.y - port_grab_distance_vertical, port_grab_distance_horizontal * 2, port_grab_distance_vertical * 2).has_point(p_mouse_pos))
+		return false;
+
+	for (int i = 0; i < get_child_count(); i++) {
+		Control *child = Object::cast_to<Control>(get_child(i));
+		if (!child)
+			continue;
+		Rect2 rect = child->get_rect();
+		if (rect.has_point(p_mouse_pos)) {
+
+			//check sub-controls
+			Vector2 subpos = p_mouse_pos - rect.position;
+
+			for (int j = 0; j < child->get_child_count(); j++) {
+				Control *subchild = Object::cast_to<Control>(child->get_child(j));
+				if (!subchild)
+					continue;
+
+				if (_check_clickable_control(subchild, subpos - subchild->get_position())) {
+					return false;
+				}
+			}
+		}
+	}
+
+	return true;
 }
 
 template <class Vector2>
@@ -1232,7 +1279,7 @@ void GraphEdit::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("disconnection_request", PropertyInfo(Variant::STRING, "from"), PropertyInfo(Variant::INT, "from_slot"), PropertyInfo(Variant::STRING, "to"), PropertyInfo(Variant::INT, "to_slot")));
 	ADD_SIGNAL(MethodInfo("popup_request", PropertyInfo(Variant::VECTOR2, "p_position")));
 	ADD_SIGNAL(MethodInfo("duplicate_nodes_request"));
-	ADD_SIGNAL(MethodInfo("node_selected", PropertyInfo(Variant::OBJECT, "node")));
+	ADD_SIGNAL(MethodInfo("node_selected", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 	ADD_SIGNAL(MethodInfo("connection_to_empty", PropertyInfo(Variant::STRING, "from"), PropertyInfo(Variant::INT, "from_slot"), PropertyInfo(Variant::VECTOR2, "release_position")));
 	ADD_SIGNAL(MethodInfo("delete_nodes_request"));
 	ADD_SIGNAL(MethodInfo("_begin_node_move"));

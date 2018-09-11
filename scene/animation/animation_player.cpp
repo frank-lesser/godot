@@ -263,43 +263,36 @@ void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim) {
 		key.id = id;
 		key.bone_idx = bone_idx;
 
-		if (node_cache_map.has(key)) {
-
-			p_anim->node_cache.write[i] = &node_cache_map[key];
-		} else {
-
+		if (!node_cache_map.has(key))
 			node_cache_map[key] = TrackNodeCache();
 
-			p_anim->node_cache.write[i] = &node_cache_map[key];
-			p_anim->node_cache[i]->path = a->track_get_path(i);
-			p_anim->node_cache[i]->node = child;
-			p_anim->node_cache[i]->resource = resource;
-			p_anim->node_cache[i]->node_2d = Object::cast_to<Node2D>(child);
-			if (a->track_get_type(i) == Animation::TYPE_TRANSFORM) {
-				// special cases and caches for transform tracks
+		p_anim->node_cache.write[i] = &node_cache_map[key];
+		p_anim->node_cache[i]->path = a->track_get_path(i);
+		p_anim->node_cache[i]->node = child;
+		p_anim->node_cache[i]->resource = resource;
+		p_anim->node_cache[i]->node_2d = Object::cast_to<Node2D>(child);
+		if (a->track_get_type(i) == Animation::TYPE_TRANSFORM) {
+			// special cases and caches for transform tracks
 
-				// cache spatial
-				p_anim->node_cache[i]->spatial = Object::cast_to<Spatial>(child);
-				// cache skeleton
-				p_anim->node_cache[i]->skeleton = Object::cast_to<Skeleton>(child);
-				if (p_anim->node_cache[i]->skeleton) {
+			// cache spatial
+			p_anim->node_cache[i]->spatial = Object::cast_to<Spatial>(child);
+			// cache skeleton
+			p_anim->node_cache[i]->skeleton = Object::cast_to<Skeleton>(child);
+			if (p_anim->node_cache[i]->skeleton) {
+				if (a->track_get_path(i).get_subname_count() == 1) {
+					StringName bone_name = a->track_get_path(i).get_subname(0);
 
-					if (a->track_get_path(i).get_subname_count() == 1) {
-						StringName bone_name = a->track_get_path(i).get_subname(0);
-
-						p_anim->node_cache[i]->bone_idx = p_anim->node_cache[i]->skeleton->find_bone(bone_name);
-						if (p_anim->node_cache[i]->bone_idx < 0) {
-							// broken track (nonexistent bone)
-							p_anim->node_cache[i]->skeleton = NULL;
-							p_anim->node_cache[i]->spatial = NULL;
-							printf("bone is %ls\n", String(bone_name).c_str());
-							ERR_CONTINUE(p_anim->node_cache[i]->bone_idx < 0);
-						} else {
-						}
-					} else {
-						// no property, just use spatialnode
+					p_anim->node_cache[i]->bone_idx = p_anim->node_cache[i]->skeleton->find_bone(bone_name);
+					if (p_anim->node_cache[i]->bone_idx < 0) {
+						// broken track (nonexistent bone)
 						p_anim->node_cache[i]->skeleton = NULL;
+						p_anim->node_cache[i]->spatial = NULL;
+						printf("bone is %ls\n", String(bone_name).c_str());
+						ERR_CONTINUE(p_anim->node_cache[i]->bone_idx < 0);
 					}
+				} else {
+					// no property, just use spatialnode
+					p_anim->node_cache[i]->skeleton = NULL;
 				}
 			}
 		}
@@ -959,8 +952,6 @@ Error AnimationPlayer::add_animation(const StringName &p_name, const Ref<Animati
 #endif
 
 	ERR_FAIL_COND_V(p_animation.is_null(), ERR_INVALID_PARAMETER);
-
-	//print_line("Add anim: "+String(p_name)+" name: "+p_animation->get_name());
 
 	if (animation_set.has(p_name)) {
 
@@ -1644,7 +1635,7 @@ void AnimationPlayer::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "current_animation_position", PROPERTY_HINT_NONE, "", 0), "", "get_current_animation_position");
 
 	ADD_GROUP("Playback Options", "playback_");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "playback_process_mode", PROPERTY_HINT_ENUM, "Physics,Idle"), "set_animation_process_mode", "get_animation_process_mode");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "playback_process_mode", PROPERTY_HINT_ENUM, "Physics,Idle,Manual"), "set_animation_process_mode", "get_animation_process_mode");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "playback_default_blend_time", PROPERTY_HINT_RANGE, "0,4096,0.01"), "set_default_blend_time", "get_default_blend_time");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "playback_active", PROPERTY_HINT_NONE, "", 0), "set_active", "is_active");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "playback_speed", PROPERTY_HINT_RANGE, "-64,64,0.01"), "set_speed_scale", "get_speed_scale");
@@ -1656,6 +1647,7 @@ void AnimationPlayer::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(ANIMATION_PROCESS_PHYSICS);
 	BIND_ENUM_CONSTANT(ANIMATION_PROCESS_IDLE);
+	BIND_ENUM_CONSTANT(ANIMATION_PROCESS_MANUAL);
 }
 
 AnimationPlayer::AnimationPlayer() {

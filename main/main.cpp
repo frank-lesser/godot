@@ -830,6 +830,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		video_driver = GLOBAL_GET("rendering/quality/driver/driver_name");
 	}
 
+	GLOBAL_DEF("rendering/quality/driver/driver_fallback", "Best");
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/driver/driver_fallback", PropertyInfo(Variant::STRING, "rendering/quality/driver/driver_fallback", PROPERTY_HINT_ENUM, "Best,Never"));
+
 	GLOBAL_DEF("display/window/size/width", 1024);
 	GLOBAL_DEF("display/window/size/height", 600);
 	GLOBAL_DEF("display/window/size/resizable", true);
@@ -1040,6 +1043,7 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 	if (err != OK) {
 		return err;
 	}
+
 	if (init_use_custom_pos) {
 		OS::get_singleton()->set_window_position(init_custom_pos);
 	}
@@ -1092,7 +1096,7 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 		boot_logo_path = boot_logo_path.strip_edges();
 
-		if (boot_logo_path != String() /*&& FileAccess::exists(boot_logo_path)*/) {
+		if (boot_logo_path != String()) {
 			print_line("Boot splash path: " + boot_logo_path);
 			boot_logo.instance();
 			Error err = boot_logo->load(boot_logo_path);
@@ -1164,10 +1168,8 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	if (String(ProjectSettings::get_singleton()->get("display/mouse_cursor/custom_image")) != String()) {
 
-		//print_line("use custom cursor");
 		Ref<Texture> cursor = ResourceLoader::load(ProjectSettings::get_singleton()->get("display/mouse_cursor/custom_image"));
 		if (cursor.is_valid()) {
-			//print_line("loaded ok");
 			Vector2 hotspot = ProjectSettings::get_singleton()->get("display/mouse_cursor/custom_image_hotspot");
 			Input::get_singleton()->set_custom_mouse_cursor(cursor, Input::CURSOR_ARROW, hotspot);
 		}
@@ -1214,10 +1216,8 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	ClassDB::set_current_api(ClassDB::API_NONE); //no more api is registered at this point
 
-	if (OS::get_singleton()->is_stdout_verbose()) {
-		print_line("CORE API HASH: " + itos(ClassDB::get_api_hash(ClassDB::API_CORE)));
-		print_line("EDITOR API HASH: " + itos(ClassDB::get_api_hash(ClassDB::API_EDITOR)));
-	}
+	print_verbose("CORE API HASH: " + itos(ClassDB::get_api_hash(ClassDB::API_CORE)));
+	print_verbose("EDITOR API HASH: " + itos(ClassDB::get_api_hash(ClassDB::API_EDITOR)));
 	MAIN_PRINT("Main: Done");
 
 	return OK;
@@ -1693,6 +1693,7 @@ bool Main::start() {
 #ifdef TOOLS_ENABLED
 		if (project_manager || (script == "" && test == "" && game_path == "" && !editor)) {
 
+			Engine::get_singleton()->set_editor_hint(true);
 			ProjectManager *pmanager = memnew(ProjectManager);
 			ProgressDialog *progress_dialog = memnew(ProgressDialog);
 			pmanager->add_child(progress_dialog);

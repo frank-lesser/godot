@@ -161,8 +161,6 @@ CSGBrush *CSGShape::_get_brush() {
 
 void CSGShape::_update_shape() {
 
-	//print_line("updating shape for " + String(get_path()));
-
 	if (parent)
 		return;
 
@@ -372,7 +370,6 @@ void CSGShape::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_LOCAL_TRANSFORM_CHANGED) {
 
-		//print_line("local xform changed");
 		if (parent) {
 			parent->_make_dirty();
 		}
@@ -641,7 +638,6 @@ CSGBrush *CSGMesh::_build_brush() {
 		}
 	}
 
-	//print_line("total vertices? " + itos(vertices.size()));
 	if (vertices.size() == 0)
 		return NULL;
 
@@ -921,7 +917,7 @@ CSGBrush *CSGBox::_build_brush() {
 
 		int face = 0;
 
-		Vector3 vertex_mul(width, height, depth);
+		Vector3 vertex_mul(width * 0.5, height * 0.5, depth * 0.5);
 
 		{
 
@@ -1055,9 +1051,9 @@ Ref<Material> CSGBox::get_material() const {
 
 CSGBox::CSGBox() {
 	// defaults
-	width = 1.0;
-	height = 1.0;
-	depth = 1.0;
+	width = 2.0;
+	height = 2.0;
+	depth = 2.0;
 }
 
 ///////////////

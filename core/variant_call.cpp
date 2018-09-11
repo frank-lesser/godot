@@ -339,6 +339,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM0R(Vector2, is_normalized);
 	VCALL_LOCALMEM1R(Vector2, distance_to);
 	VCALL_LOCALMEM1R(Vector2, distance_squared_to);
+	VCALL_LOCALMEM1R(Vector2, project);
 	VCALL_LOCALMEM1R(Vector2, angle_to);
 	VCALL_LOCALMEM1R(Vector2, angle_to_point);
 	VCALL_LOCALMEM2R(Vector2, linear_interpolate);
@@ -395,6 +396,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM0R(Vector3, round);
 	VCALL_LOCALMEM1R(Vector3, distance_to);
 	VCALL_LOCALMEM1R(Vector3, distance_squared_to);
+	VCALL_LOCALMEM1R(Vector3, project);
 	VCALL_LOCALMEM1R(Vector3, angle_to);
 	VCALL_LOCALMEM1R(Vector3, slide);
 	VCALL_LOCALMEM1R(Vector3, bounce);
@@ -514,6 +516,8 @@ struct _VariantCall {
 	VCALL_LOCALMEM4R(Array, bsearch_custom);
 	VCALL_LOCALMEM1R(Array, duplicate);
 	VCALL_LOCALMEM0(Array, invert);
+	VCALL_LOCALMEM0R(Array, max);
+	VCALL_LOCALMEM0R(Array, min);
 
 	static void _call_PoolByteArray_get_string_from_ascii(Variant &r_ret, Variant &p_self, const Variant **p_args) {
 
@@ -1159,7 +1163,7 @@ Variant Variant::construct(const Variant::Type p_type, const Variant **p_args, i
 				return Variant(bool(*p_args[0]));
 			}
 			case INT: {
-				return (int(*p_args[0]));
+				return (int64_t(*p_args[0]));
 			}
 			case REAL: {
 				return real_t(*p_args[0]);
@@ -1551,6 +1555,7 @@ void register_variant_methods() {
 	ADDFUNC0R(VECTOR2, BOOL, Vector2, is_normalized, varray());
 	ADDFUNC1R(VECTOR2, REAL, Vector2, distance_to, VECTOR2, "to", varray());
 	ADDFUNC1R(VECTOR2, REAL, Vector2, distance_squared_to, VECTOR2, "to", varray());
+	ADDFUNC1R(VECTOR2, VECTOR2, Vector2, project, VECTOR2, "b", varray());
 	ADDFUNC1R(VECTOR2, REAL, Vector2, angle_to, VECTOR2, "to", varray());
 	ADDFUNC1R(VECTOR2, REAL, Vector2, angle_to_point, VECTOR2, "to", varray());
 	ADDFUNC2R(VECTOR2, VECTOR2, Vector2, linear_interpolate, VECTOR2, "b", REAL, "t", varray());
@@ -1606,6 +1611,7 @@ void register_variant_methods() {
 	ADDFUNC0R(VECTOR3, VECTOR3, Vector3, round, varray());
 	ADDFUNC1R(VECTOR3, REAL, Vector3, distance_to, VECTOR3, "b", varray());
 	ADDFUNC1R(VECTOR3, REAL, Vector3, distance_squared_to, VECTOR3, "b", varray());
+	ADDFUNC1R(VECTOR3, VECTOR3, Vector3, project, VECTOR3, "b", varray());
 	ADDFUNC1R(VECTOR3, REAL, Vector3, angle_to, VECTOR3, "to", varray());
 	ADDFUNC1R(VECTOR3, VECTOR3, Vector3, slide, VECTOR3, "n", varray());
 	ADDFUNC1R(VECTOR3, VECTOR3, Vector3, bounce, VECTOR3, "n", varray());
@@ -1668,7 +1674,7 @@ void register_variant_methods() {
 	ADDFUNC0NC(DICTIONARY, NIL, Dictionary, clear, varray());
 	ADDFUNC1R(DICTIONARY, BOOL, Dictionary, has, NIL, "key", varray());
 	ADDFUNC1R(DICTIONARY, BOOL, Dictionary, has_all, ARRAY, "keys", varray());
-	ADDFUNC1(DICTIONARY, NIL, Dictionary, erase, NIL, "key", varray());
+	ADDFUNC1R(DICTIONARY, BOOL, Dictionary, erase, NIL, "key", varray());
 	ADDFUNC0R(DICTIONARY, INT, Dictionary, hash, varray());
 	ADDFUNC0R(DICTIONARY, ARRAY, Dictionary, keys, varray());
 	ADDFUNC0R(DICTIONARY, ARRAY, Dictionary, values, varray());
@@ -1701,6 +1707,8 @@ void register_variant_methods() {
 	ADDFUNC4R(ARRAY, INT, Array, bsearch_custom, NIL, "value", OBJECT, "obj", STRING, "func", BOOL, "before", varray(true));
 	ADDFUNC0NC(ARRAY, NIL, Array, invert, varray());
 	ADDFUNC1R(ARRAY, ARRAY, Array, duplicate, BOOL, "deep", varray(false));
+	ADDFUNC0R(ARRAY, NIL, Array, max, varray());
+	ADDFUNC0R(ARRAY, NIL, Array, min, varray());
 
 	ADDFUNC0R(POOL_BYTE_ARRAY, INT, PoolByteArray, size, varray());
 	ADDFUNC2(POOL_BYTE_ARRAY, NIL, PoolByteArray, set, INT, "idx", INT, "byte", varray());
@@ -1916,23 +1924,11 @@ void register_variant_methods() {
 	transform_x.set(1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0);
 	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_Z", transform_z);
 
-	_VariantCall::add_variant_constant(Variant::PLANE, "X", Plane(Vector3(1, 0, 0), 0));
-	_VariantCall::add_variant_constant(Variant::PLANE, "Y", Plane(Vector3(0, 1, 0), 0));
-	_VariantCall::add_variant_constant(Variant::PLANE, "Z", Plane(Vector3(0, 0, 1), 0));
+	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_YZ", Plane(Vector3(1, 0, 0), 0));
+	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_XZ", Plane(Vector3(0, 1, 0), 0));
+	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_XY", Plane(Vector3(0, 0, 1), 0));
 
 	_VariantCall::add_variant_constant(Variant::QUAT, "IDENTITY", Quat(0, 0, 0, 1));
-
-	CharType black_circle[2] = { 0x25CF, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "BLACK_CIRCLE", String(black_circle));
-	CharType white_circle[2] = { 0x25CB, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "WHITE_CIRCLE", String(white_circle));
-	CharType black_diamond[2] = { 0x25C6, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "BLACK_DIAMOND", String(black_diamond));
-	CharType white_diamond[2] = { 0x25C7, 0 };
-	_VariantCall::add_variant_constant(Variant::STRING, "WHITE_DIAMOND", String(white_diamond));
-
-	_VariantCall::add_variant_constant(Variant::NODE_PATH, "CURRENT", String("."));
-	_VariantCall::add_variant_constant(Variant::NODE_PATH, "PARENT", String(".."));
 }
 
 void unregister_variant_methods() {

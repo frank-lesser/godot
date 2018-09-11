@@ -29,6 +29,7 @@
 /*************************************************************************/
 
 #include "bit_mask.h"
+
 #include "io/image_loader.h"
 
 void BitMap::create(const Size2 &p_size) {
@@ -189,13 +190,13 @@ Vector<Vector2> BitMap::_march_square(const Rect2i &rect, const Point2i &start) 
 		{ //square value
 
 			/*
-	     checking the 2x2 pixel grid, assigning these values to each pixel, if not transparent
-	     +---+---+
-	     | 1 | 2 |
-	     +---+---+
-	     | 4 | 8 | <- current pixel (curx,cury)
-	     +---+---+
-	     */
+			checking the 2x2 pixel grid, assigning these values to each pixel, if not transparent
+			+---+---+
+			| 1 | 2 |
+			+---+---+
+			| 4 | 8 | <- current pixel (curx,cury)
+			+---+---+
+			*/
 			//NOTE: due to the way we pick points from texture, rect needs to be smaller, otherwise it goes outside 1 pixel
 			Rect2i fixed_rect = Rect2i(rect.position, rect.size - Size2i(2, 2));
 			Point2i tl = Point2i(curx - 1, cury - 1);
@@ -215,13 +216,13 @@ Vector<Vector2> BitMap::_march_square(const Rect2i &rect, const Point2i &start) 
 			case 5:
 			case 13:
 				/* going UP with these cases:
-		 1          5           13
-		 +---+---+  +---+---+  +---+---+
-		 | 1 |   |  | 1 |   |  | 1 |   |
-		 +---+---+  +---+---+  +---+---+
-		 |   |   |  | 4 |   |  | 4 | 8 |
-		 +---+---+  +---+---+  +---+---+
-		 */
+				1          5           13
+				+---+---+  +---+---+  +---+---+
+				| 1 |   |  | 1 |   |  | 1 |   |
+				+---+---+  +---+---+  +---+---+
+				|   |   |  | 4 |   |  | 4 | 8 |
+				+---+---+  +---+---+  +---+---+
+				*/
 				stepx = 0;
 				stepy = -1;
 				break;
@@ -230,13 +231,13 @@ Vector<Vector2> BitMap::_march_square(const Rect2i &rect, const Point2i &start) 
 			case 10:
 			case 11:
 				/* going DOWN with these cases:
-		 8          10          11
-		 +---+---+  +---+---+   +---+---+
-		 |   |   |  |   | 2 |   | 1 | 2 |
-		 +---+---+  +---+---+   +---+---+
-		 |   | 8 |  |   | 8 |   |   | 8 |
-		 +---+---+  +---+---+  	+---+---+
-		 */
+				8          10         11
+				+---+---+  +---+---+  +---+---+
+				|   |   |  |   | 2 |  | 1 | 2 |
+				+---+---+  +---+---+  +---+---+
+				|   | 8 |  |   | 8 |  |   | 8 |
+				+---+---+  +---+---+  +---+---+
+				*/
 				stepx = 0;
 				stepy = 1;
 				break;
@@ -245,13 +246,13 @@ Vector<Vector2> BitMap::_march_square(const Rect2i &rect, const Point2i &start) 
 			case 12:
 			case 14:
 				/* going LEFT with these cases:
-		 4          12          14
-		 +---+---+  +---+---+   +---+---+
-		 |   |   |  |   |   |   |   | 2 |
-		 +---+---+  +---+---+   +---+---+
-		 | 4 |   |  | 4 | 8 |   | 4 | 8 |
-		 +---+---+  +---+---+  	+---+---+
-		 */
+				4          12         14
+				+---+---+  +---+---+  +---+---+
+				|   |   |  |   |   |  |   | 2 |
+				+---+---+  +---+---+  +---+---+
+				| 4 |   |  | 4 | 8 |  | 4 | 8 |
+				+---+---+  +---+---+  +---+---+
+				*/
 				stepx = -1;
 				stepy = 0;
 				break;
@@ -260,25 +261,25 @@ Vector<Vector2> BitMap::_march_square(const Rect2i &rect, const Point2i &start) 
 			case 3:
 			case 7:
 				/* going RIGHT with these cases:
-		 2          3           7
-		 +---+---+  +---+---+   +---+---+
-		 |   | 2 |  | 1 | 2 |   | 1 | 2 |
-		 +---+---+  +---+---+   +---+---+
-		 |   |   |  |   |   |   | 4 |   |
-		 +---+---+  +---+---+  	+---+---+
-		 */
+				2          3          7
+				+---+---+  +---+---+  +---+---+
+				|   | 2 |  | 1 | 2 |  | 1 | 2 |
+				+---+---+  +---+---+  +---+---+
+				|   |   |  |   |   |  | 4 |   |
+				+---+---+  +---+---+  +---+---+
+				*/
 				stepx = 1;
 				stepy = 0;
 				break;
 			case 9:
 				/*
-		 +---+---+
-		 | 1 |   |
-		 +---+---+
-		 |   | 8 |
-		 +---+---+
-		 this should normally go UP, but if we already been here, we go down
-		*/
+				+---+---+
+				| 1 |   |
+				+---+---+
+				|   | 8 |
+				+---+---+
+				this should normally go UP, but if we already been here, we go down
+				*/
 				if (case9s.has(Point2i(curx, cury))) {
 					//found, so we go down, and delete from case9s;
 					stepx = 0;
@@ -293,14 +294,14 @@ Vector<Vector2> BitMap::_march_square(const Rect2i &rect, const Point2i &start) 
 				break;
 			case 6:
 				/*
-		 6
-		 +---+---+
-		 |   | 2 |
-		 +---+---+
-		 | 4 |   |
-		 +---+---+
-		 this normally go RIGHT, but if its coming from UP, it should go LEFT
-		 */
+				6
+				+---+---+
+				|   | 2 |
+				+---+---+
+				| 4 |   |
+				+---+---+
+				this normally go RIGHT, but if its coming from UP, it should go LEFT
+				*/
 				if (case6s.has(Point2i(curx, cury))) {
 					//found, so we go down, and delete from case6s;
 					stepx = -1;
@@ -491,18 +492,14 @@ static void fill_bits(const BitMap *p_src, Ref<BitMap> &p_map, const Point2i &p_
 		}
 	} while (reenter || popped);
 
-#ifdef DEBUG_ENABLED
-	print_line("max stack size: " + itos(stack.size()));
-#endif
+	print_verbose("BitMap: Max stack size: " + itos(stack.size()));
 }
 
 Vector<Vector<Vector2> > BitMap::clip_opaque_to_polygons(const Rect2 &p_rect, float p_epsilon) const {
 
 	Rect2i r = Rect2i(0, 0, width, height).clip(p_rect);
+	print_verbose("BitMap: Rect: " + r);
 
-#ifdef DEBUG_ENABLED
-	print_line("Rect: " + r);
-#endif
 	Point2i from;
 	Ref<BitMap> fill;
 	fill.instance();
@@ -514,13 +511,9 @@ Vector<Vector<Vector2> > BitMap::clip_opaque_to_polygons(const Rect2 &p_rect, fl
 			if (!fill->get_bit(Point2(j, i)) && get_bit(Point2(j, i))) {
 
 				Vector<Vector2> polygon = _march_square(r, Point2i(j, i));
-#ifdef DEBUG_ENABLED
-				print_line("pre reduce: " + itos(polygon.size()));
-#endif
+				print_verbose("BitMap: Pre reduce: " + itos(polygon.size()));
 				polygon = reduce(polygon, r, p_epsilon);
-#ifdef DEBUG_ENABLED
-				print_line("post reduce: " + itos(polygon.size()));
-#endif
+				print_verbose("BitMap: Post reduce: " + itos(polygon.size()));
 				polygons.push_back(polygon);
 				fill_bits(this, fill, Point2i(j, i), r);
 			}

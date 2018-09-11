@@ -30,6 +30,7 @@
 
 #include "area_bullet.h"
 
+#include "bullet_physics_server.h"
 #include "bullet_types_converter.h"
 #include "bullet_utilities.h"
 #include "collision_object_bullet.h"
@@ -57,7 +58,7 @@ AreaBullet::AreaBullet() :
 		spOv_priority(0) {
 
 	btGhost = bulletnew(btGhostObject);
-	btGhost->setCollisionShape(compoundShape);
+	btGhost->setCollisionShape(BulletPhysicsServer::get_empty_shape());
 	setupBulletCollisionObject(btGhost);
 	/// Collision objects with a callback still have collision response with dynamic rigid bodies.
 	/// In order to use collision objects as trigger, you have to disable the collision response.
@@ -162,6 +163,13 @@ bool AreaBullet::is_monitoring() const {
 	return get_godot_object_flags() & GOF_IS_MONITORING_AREA;
 }
 
+void AreaBullet::main_shape_resetted() {
+	if (get_main_shape())
+		btGhost->setCollisionShape(get_main_shape());
+	else
+		btGhost->setCollisionShape(BulletPhysicsServer::get_empty_shape());
+}
+
 void AreaBullet::reload_body() {
 	if (space) {
 		space->remove_area(this);
@@ -236,7 +244,7 @@ void AreaBullet::set_param(PhysicsServer::AreaParameter p_param, const Variant &
 			set_spOv_gravityPointAttenuation(p_value);
 			break;
 		default:
-			print_line("The Bullet areas doesn't suppot this param: " + itos(p_param));
+			WARN_PRINTS("Area doesn't support this parameter in the Bullet backend: " + itos(p_param));
 	}
 }
 
@@ -259,7 +267,7 @@ Variant AreaBullet::get_param(PhysicsServer::AreaParameter p_param) const {
 		case PhysicsServer::AREA_PARAM_GRAVITY_POINT_ATTENUATION:
 			return spOv_gravityPointAttenuation;
 		default:
-			print_line("The Bullet areas doesn't suppot this param: " + itos(p_param));
+			WARN_PRINTS("Area doesn't support this parameter in the Bullet backend: " + itos(p_param));
 			return Variant();
 	}
 }

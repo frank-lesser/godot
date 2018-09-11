@@ -631,11 +631,7 @@ void TileMap::_recompute_rect_cache() {
 			r_total = r_total.merge(r);
 	}
 
-	if (r_total == Rect2()) {
-		rect_cache = Rect2(-10, -10, 20, 20);
-	} else {
-		rect_cache = r_total.grow(MAX(cell_size.x, cell_size.y) * _get_quadrant_size());
-	}
+	rect_cache = r_total;
 
 	item_rect_changed();
 
@@ -730,7 +726,7 @@ void TileMap::set_cellv(const Vector2 &p_pos, int p_tile, bool p_flip_x, bool p_
 	set_cell(p_pos.x, p_pos.y, p_tile, p_flip_x, p_flip_y, p_transpose);
 }
 
-void TileMap::set_celld(const Vector2 &p_pos, const Dictionary &p_data) {
+void TileMap::_set_celld(const Vector2 &p_pos, const Dictionary &p_data) {
 
 	set_cell(p_pos.x, p_pos.y, p_data["id"], p_data["flip_h"], p_data["flip_y"], p_data["transpose"], p_data["auto_coord"]);
 }
@@ -1150,6 +1146,11 @@ PoolVector<int> TileMap::_get_tile_data() const {
 	w = PoolVector<int>::Write();
 
 	return data;
+}
+
+Rect2 TileMap::_edit_get_rect() const {
+	const_cast<TileMap *>(this)->update_dirty_quadrants();
+	return rect_cache;
 }
 
 void TileMap::set_collision_layer(uint32_t p_layer) {
@@ -1611,7 +1612,7 @@ void TileMap::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_cell", "x", "y", "tile", "flip_x", "flip_y", "transpose", "autotile_coord"), &TileMap::set_cell, DEFVAL(false), DEFVAL(false), DEFVAL(false), DEFVAL(Vector2()));
 	ClassDB::bind_method(D_METHOD("set_cellv", "position", "tile", "flip_x", "flip_y", "transpose"), &TileMap::set_cellv, DEFVAL(false), DEFVAL(false), DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("set_celld", "position", "data"), &TileMap::set_celld);
+	ClassDB::bind_method(D_METHOD("_set_celld", "position", "data"), &TileMap::_set_celld);
 	ClassDB::bind_method(D_METHOD("get_cell", "x", "y"), &TileMap::get_cell);
 	ClassDB::bind_method(D_METHOD("get_cellv", "position"), &TileMap::get_cellv);
 	ClassDB::bind_method(D_METHOD("is_cell_x_flipped", "x", "y"), &TileMap::is_cell_x_flipped);

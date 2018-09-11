@@ -156,15 +156,6 @@
 				Clear all the state and reset the object being edited to zero. This ensures your plugin does not keep editing a currently existing node, or a node from the wrong scene.
 			</description>
 		</method>
-		<method name="create_spatial_gizmo" qualifiers="virtual">
-			<return type="EditorSpatialGizmo">
-			</return>
-			<argument index="0" name="for_spatial" type="Spatial">
-			</argument>
-			<description>
-				This is used for plugins that create gizmos used by the spatial editor. Just check that the node passed in the "for_spatial" argument matches your plugin.
-			</description>
-		</method>
 		<method name="edit" qualifiers="virtual">
 			<return type="void">
 			</return>
@@ -454,13 +445,13 @@
 			</description>
 		</signal>
 		<signal name="resource_saved">
-			<argument index="0" name="resource" type="Object">
+			<argument index="0" name="resource" type="Resource">
 			</argument>
 			<description>
 			</description>
 		</signal>
 		<signal name="scene_changed">
-			<argument index="0" name="scene_root" type="Object">
+			<argument index="0" name="scene_root" type="Node">
 			</argument>
 			<description>
 				Emitted when user change scene. The argument is a root node of freshly opened scene.
@@ -479,17 +470,21 @@
 		</constant>
 		<constant name="CONTAINER_SPATIAL_EDITOR_MENU" value="1" enum="CustomControlContainer">
 		</constant>
-		<constant name="CONTAINER_SPATIAL_EDITOR_SIDE" value="2" enum="CustomControlContainer">
+		<constant name="CONTAINER_SPATIAL_EDITOR_SIDE_LEFT" value="2" enum="CustomControlContainer">
 		</constant>
-		<constant name="CONTAINER_SPATIAL_EDITOR_BOTTOM" value="3" enum="CustomControlContainer">
+		<constant name="CONTAINER_SPATIAL_EDITOR_SIDE_RIGHT" value="3" enum="CustomControlContainer">
 		</constant>
-		<constant name="CONTAINER_CANVAS_EDITOR_MENU" value="4" enum="CustomControlContainer">
+		<constant name="CONTAINER_SPATIAL_EDITOR_BOTTOM" value="4" enum="CustomControlContainer">
 		</constant>
-		<constant name="CONTAINER_CANVAS_EDITOR_SIDE" value="5" enum="CustomControlContainer">
+		<constant name="CONTAINER_CANVAS_EDITOR_MENU" value="5" enum="CustomControlContainer">
 		</constant>
-		<constant name="CONTAINER_CANVAS_EDITOR_BOTTOM" value="6" enum="CustomControlContainer">
+		<constant name="CONTAINER_CANVAS_EDITOR_SIDE_LEFT" value="6" enum="CustomControlContainer">
 		</constant>
-		<constant name="CONTAINER_PROPERTY_EDITOR_BOTTOM" value="7" enum="CustomControlContainer">
+		<constant name="CONTAINER_CANVAS_EDITOR_SIDE_RIGHT" value="7" enum="CustomControlContainer">
+		</constant>
+		<constant name="CONTAINER_CANVAS_EDITOR_BOTTOM" value="8" enum="CustomControlContainer">
+		</constant>
+		<constant name="CONTAINER_PROPERTY_EDITOR_BOTTOM" value="9" enum="CustomControlContainer">
 		</constant>
 		<constant name="DOCK_SLOT_LEFT_UL" value="0" enum="DockSlot">
 		</constant>

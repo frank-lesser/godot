@@ -41,9 +41,6 @@ Error LWSServer::listen(int p_port, PoolVector<String> p_protocols, bool gd_mp_a
 	struct lws_context_creation_info info;
 	memset(&info, 0, sizeof info);
 
-	if (p_protocols.size() == 0) // default to binary protocol
-		p_protocols.append(String("binary"));
-
 	// Prepare lws protocol structs
 	_lws_make_protocols(this, &LWSServer::_lws_gd_callback, p_protocols, &_lws_ref);
 
@@ -92,11 +89,6 @@ int LWSServer::_handle_cb(struct lws *wsi, enum lws_callback_reasons reason, voi
 			_peer_map[id] = peer;
 
 			peer_data->peer_id = id;
-			peer_data->in_size = 0;
-			peer_data->in_count = 0;
-			peer_data->out_count = 0;
-			peer_data->rbw.resize(16);
-			peer_data->rbr.resize(16);
 			peer_data->force_close = false;
 
 			_on_connect(id, lws_get_protocol(wsi)->name);
@@ -111,10 +103,6 @@ int LWSServer::_handle_cb(struct lws *wsi, enum lws_callback_reasons reason, voi
 				_peer_map[id]->close();
 				_peer_map.erase(id);
 			}
-			peer_data->in_count = 0;
-			peer_data->out_count = 0;
-			peer_data->rbr.resize(0);
-			peer_data->rbw.resize(0);
 			_on_disconnect(id);
 			return 0; // we can end here
 		}
