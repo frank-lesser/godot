@@ -31,10 +31,10 @@
 #include "node.h"
 
 #include "core/core_string_names.h"
+#include "core/io/resource_loader.h"
+#include "core/message_queue.h"
+#include "core/print_string.h"
 #include "instance_placeholder.h"
-#include "io/resource_loader.h"
-#include "message_queue.h"
-#include "print_string.h"
 #include "scene/resources/packed_scene.h"
 #include "scene/scene_string_names.h"
 #include "viewport.h"
@@ -1348,6 +1348,19 @@ Node *Node::get_parent() const {
 	return data.parent;
 }
 
+Node *Node::find_parent(const String &p_mask) const {
+
+	Node *p = data.parent;
+	while (p) {
+
+		if (p->data.name.operator String().match(p_mask))
+			return p;
+		p = p->data.parent;
+	}
+
+	return NULL;
+}
+
 bool Node::is_a_parent_of(const Node *p_node) const {
 
 	ERR_FAIL_NULL_V(p_node, false);
@@ -2116,6 +2129,12 @@ void Node::_duplicate_and_reown(Node *p_new_parent, const Map<Node *, Node *> &p
 		node->set(name, value);
 	}
 
+	List<GroupInfo> groups;
+	get_groups(&groups);
+
+	for (List<GroupInfo>::Element *E = groups.front(); E; E = E->next())
+		node->add_to_group(E->get().name, E->get().persistent);
+
 	node->set_name(get_name());
 	p_new_parent->add_child(node);
 
@@ -2209,6 +2228,12 @@ Node *Node::duplicate_and_reown(const Map<Node *, Node *> &p_reown_map) const {
 		String name = E->get().name;
 		node->set(name, get(name));
 	}
+
+	List<GroupInfo> groups;
+	get_groups(&groups);
+
+	for (List<GroupInfo>::Element *E = groups.front(); E; E = E->next())
+		node->add_to_group(E->get().name, E->get().persistent);
 
 	for (int i = 0; i < get_child_count(); i++) {
 
@@ -2617,6 +2642,7 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_node", "path"), &Node::get_node);
 	ClassDB::bind_method(D_METHOD("get_parent"), &Node::get_parent);
 	ClassDB::bind_method(D_METHOD("find_node", "mask", "recursive", "owned"), &Node::find_node, DEFVAL(true), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("find_parent", "mask"), &Node::find_parent);
 	ClassDB::bind_method(D_METHOD("has_node_and_resource", "path"), &Node::has_node_and_resource);
 	ClassDB::bind_method(D_METHOD("get_node_and_resource", "path"), &Node::_get_node_and_resource);
 

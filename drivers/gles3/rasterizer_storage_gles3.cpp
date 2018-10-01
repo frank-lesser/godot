@@ -29,8 +29,8 @@
 /*************************************************************************/
 
 #include "rasterizer_storage_gles3.h"
-#include "engine.h"
-#include "project_settings.h"
+#include "core/engine.h"
+#include "core/project_settings.h"
 #include "rasterizer_canvas_gles3.h"
 #include "rasterizer_scene_gles3.h"
 
@@ -1029,7 +1029,7 @@ Ref<Image> RasterizerStorageGLES3::texture_get_data(RID p_texture, int p_layer) 
 
 	PoolVector<uint8_t> data;
 
-	int data_size = Image::get_image_data_size(texture->alloc_width, texture->alloc_height, real_format, texture->mipmaps > 1 ? -1 : 0);
+	int data_size = Image::get_image_data_size(texture->alloc_width, texture->alloc_height, real_format, texture->mipmaps > 1);
 
 	data.resize(data_size * 2); //add some memory at the end, just in case for buggy drivers
 	PoolVector<uint8_t>::Write wb = data.write();
@@ -1072,7 +1072,7 @@ Ref<Image> RasterizerStorageGLES3::texture_get_data(RID p_texture, int p_layer) 
 		uint32_t *ptr = (uint32_t *)wb.ptr();
 		uint32_t num_pixels = data_size / 4;
 
-		for (int ofs = 0; ofs < num_pixels; ofs++) {
+		for (uint32_t ofs = 0; ofs < num_pixels; ofs++) {
 			uint32_t px = ptr[ofs];
 			uint32_t a = px >> 30 & 0xFF;
 
@@ -1905,6 +1905,7 @@ void RasterizerStorageGLES3::_update_shader(Shader *p_shader) const {
 			actions = &shaders.actions_particles;
 			actions->uniforms = &p_shader->uniforms;
 		} break;
+		case VS::SHADER_MAX: break; // Can't happen, but silences warning
 	}
 
 	Error err = shaders.compiler.compile(p_shader->mode, p_shader->code, actions, p_shader->path, gen_code);
@@ -2028,6 +2029,14 @@ void RasterizerStorageGLES3::shader_get_param_list(RID p_shader, List<PropertyIn
 				pi.hint = PROPERTY_HINT_RESOURCE_TYPE;
 				pi.hint_string = "Texture";
 			} break;
+			case ShaderLanguage::TYPE_SAMPLER2DARRAY:
+			case ShaderLanguage::TYPE_ISAMPLER2DARRAY:
+			case ShaderLanguage::TYPE_USAMPLER2DARRAY: {
+
+				pi.type = Variant::OBJECT;
+				pi.hint = PROPERTY_HINT_RESOURCE_TYPE;
+				pi.hint_string = "TextureArray";
+			} break;
 			case ShaderLanguage::TYPE_SAMPLER3D:
 			case ShaderLanguage::TYPE_ISAMPLER3D:
 			case ShaderLanguage::TYPE_USAMPLER3D: {
@@ -2139,6 +2148,19 @@ Variant RasterizerStorageGLES3::material_get_param(RID p_material, const StringN
 	if (material->params.has(p_param))
 		return material->params[p_param];
 
+	return material_get_param_default(p_material, p_param);
+}
+
+Variant RasterizerStorageGLES3::material_get_param_default(RID p_material, const StringName &p_param) const {
+	const Material *material = material_owner.get(p_material);
+	ERR_FAIL_COND_V(!material, Variant());
+
+	if (material->shader) {
+		if (material->shader->uniforms.has(p_param)) {
+			Vector<ShaderLanguage::ConstantNode::Value> default_value = material->shader->uniforms[p_param].default_value;
+			return ShaderLanguage::constant_value_to_variant(default_value, material->shader->uniforms[p_param].type);
+		}
+	}
 	return Variant();
 }
 
@@ -4948,6 +4970,7 @@ void RasterizerStorageGLES3::light_set_param(RID p_light, VS::LightParam p_param
 			light->version++;
 			light->instance_change_notify();
 		} break;
+		default: {}
 	}
 
 	light->param[p_param] = p_value;
@@ -5270,6 +5293,9 @@ void RasterizerStorageGLES3::reflection_probe_set_cull_mask(RID p_probe, uint32_
 
 	reflection_probe->cull_mask = p_layers;
 	reflection_probe->instance_change_notify();
+}
+
+void RasterizerStorageGLES3::reflection_probe_set_resolution(RID p_probe, int p_resolution) {
 }
 
 AABB RasterizerStorageGLES3::reflection_probe_get_aabb(RID p_probe) const {
@@ -7338,7 +7364,7 @@ bool RasterizerStorageGLES3::free(RID p_rid) {
 		GIProbeData *gi_probe_data = gi_probe_data_owner.get(p_rid);
 
 		glDeleteTextures(1, &gi_probe_data->tex_id);
-		gi_probe_owner.free(p_rid);
+		gi_probe_data_owner.free(p_rid);
 		memdelete(gi_probe_data);
 	} else if (lightmap_capture_data_owner.owns(p_rid)) {
 
@@ -7346,7 +7372,7 @@ bool RasterizerStorageGLES3::free(RID p_rid) {
 		LightmapCapture *lightmap_capture = lightmap_capture_data_owner.get(p_rid);
 		lightmap_capture->instance_remove_deps();
 
-		gi_probe_owner.free(p_rid);
+		lightmap_capture_data_owner.free(p_rid);
 		memdelete(lightmap_capture);
 
 	} else if (canvas_occluder_owner.owns(p_rid)) {

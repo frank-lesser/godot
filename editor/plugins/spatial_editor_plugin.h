@@ -86,7 +86,7 @@ public:
 
 	Vector<Vector3> handles;
 	Vector<Vector3> secondary_handles;
-	float selectable_icon_size = -1.0f;
+	float selectable_icon_size;
 	bool billboard_handle;
 
 	bool valid;
@@ -510,7 +510,6 @@ private:
 	RID grid[3];
 	RID grid_instance[3];
 	bool grid_visible[3]; //currently visible
-	float last_grid_snap;
 	bool grid_enable[3]; //should be always visible if true
 	bool grid_enabled;
 

@@ -19,6 +19,14 @@ def add_source_files(self, sources, filetype, lib_env=None, shared=False):
         sources.append(self.Object(path))
 
 
+def disable_warnings(self):
+    # 'self' is the environment
+    if self.msvc:
+        self.Append(CCFLAGS=['/w'])
+    else:
+        self.Append(CCFLAGS=['-w'])
+
+
 def add_module_version_string(self,s):
     self.module_version_string += "." + s
 
@@ -578,6 +586,9 @@ def generate_vs_project(env, num_jobs):
         release_targets = ['bin\\godot.windows.opt.32.exe'] + ['bin\\godot.windows.opt.64.exe']
         release_debug_targets = ['bin\\godot.windows.opt.tools.32.exe'] + ['bin\\godot.windows.opt.tools.64.exe']
         targets = debug_targets + release_targets + release_debug_targets
+        if not env.get('MSVS'):
+            env['MSVS']['PROJECTSUFFIX'] = '.vcxproj'    
+            env['MSVS']['SOLUTIONSUFFIX'] = '.sln'
         env.MSVSProject(
             target=['#godot' + env['MSVSPROJECTSUFFIX']],
             incs=env.vs_incs,

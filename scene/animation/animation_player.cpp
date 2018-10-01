@@ -30,8 +30,8 @@
 
 #include "animation_player.h"
 
-#include "engine.h"
-#include "message_queue.h"
+#include "core/engine.h"
+#include "core/message_queue.h"
 #include "scene/scene_string_names.h"
 #include "servers/audio/audio_stream.h"
 #ifdef TOOLS_ENABLED
@@ -419,7 +419,7 @@ void AnimationPlayer::_animation_process_animation(AnimationData *p_anim, float 
 					if (first_key_time == 0.0) {
 						//ignore, use for transition
 						if (key_count == 1)
-							continue; //with one key we cant do anything
+							continue; //with one key we can't do anything
 						transition = a->track_get_key_transition(i, 0);
 						first_key_time = a->track_get_key_time(i, 1);
 						first_key = 1;
@@ -1451,6 +1451,7 @@ void AnimationPlayer::_set_process(bool p_process, bool p_force) {
 
 		case ANIMATION_PROCESS_PHYSICS: set_physics_process_internal(p_process && active); break;
 		case ANIMATION_PROCESS_IDLE: set_process_internal(p_process && active); break;
+		case ANIMATION_PROCESS_MANUAL: break;
 	}
 
 	processing = p_process;

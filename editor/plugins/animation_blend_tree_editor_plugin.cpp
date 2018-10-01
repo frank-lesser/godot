@@ -31,10 +31,10 @@
 #include "animation_blend_tree_editor_plugin.h"
 
 #include "core/io/resource_loader.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/project_settings.h"
 #include "editor/editor_inspector.h"
-#include "os/input.h"
-#include "os/keyboard.h"
 #include "scene/animation/animation_player.h"
 #include "scene/gui/menu_button.h"
 #include "scene/gui/panel.h"
@@ -130,10 +130,6 @@ void AnimationNodeBlendTreeEditor::_update_graph() {
 		graph->add_child(node);
 
 		Ref<AnimationNode> agnode = blend_tree->get_node(E->get());
-
-		if (!agnode->is_connected("changed", this, "_node_changed")) {
-			agnode->connect("changed", this, "_node_changed", varray(agnode->get_instance_id()), CONNECT_DEFERRED);
-		}
 
 		node->set_offset(blend_tree->get_node_position(E->get()) * EDSCALE);
 
@@ -241,7 +237,7 @@ void AnimationNodeBlendTreeEditor::_update_graph() {
 			mb->get_popup()->connect("index_pressed", this, "_anim_selected", varray(options, E->get()), CONNECT_DEFERRED);
 		}
 
-		/* should be no longer necesary, as the boolean works
+		/* should be no longer necessary, as the boolean works
 		Ref<AnimationNodeOneShot> oneshot = agnode;
 		if (oneshot.is_valid()) {
 
@@ -542,11 +538,7 @@ bool AnimationNodeBlendTreeEditor::_update_filters(const Ref<AnimationNode> &ano
 
 				if (base->has_node(accum)) {
 					Node *node = base->get_node(accum);
-					if (has_icon(node->get_class(), "EditorIcons")) {
-						ti->set_icon(0, get_icon(node->get_class(), "EditorIcons"));
-					} else {
-						ti->set_icon(0, get_icon("Node", "EditorIcons"));
-					}
+					ti->set_icon(0, EditorNode::get_singleton()->get_object_icon(node, "Node"));
 				}
 
 			} else {
@@ -559,7 +551,7 @@ bool AnimationNodeBlendTreeEditor::_update_filters(const Ref<AnimationNode> &ano
 			node = base->get_node(accum);
 		}
 		if (!node)
-			continue; //no node, cant edit
+			continue; //no node, can't edit
 
 		if (path.get_subname_count()) {
 
@@ -725,14 +717,6 @@ void AnimationNodeBlendTreeEditor::_scroll_changed(const Vector2 &p_scroll) {
 	updating = false;
 }
 
-void AnimationNodeBlendTreeEditor::_node_changed(ObjectID p_node) {
-
-	AnimationNode *an = Object::cast_to<AnimationNode>(ObjectDB::get_instance(p_node));
-	//if (an && an->get_parent() == blend_tree) {
-	_update_graph();
-	//}
-}
-
 void AnimationNodeBlendTreeEditor::_bind_methods() {
 
 	ClassDB::bind_method("_update_graph", &AnimationNodeBlendTreeEditor::_update_graph);
@@ -750,7 +734,6 @@ void AnimationNodeBlendTreeEditor::_bind_methods() {
 	ClassDB::bind_method("_update_filters", &AnimationNodeBlendTreeEditor::_update_filters);
 	ClassDB::bind_method("_filter_edited", &AnimationNodeBlendTreeEditor::_filter_edited);
 	ClassDB::bind_method("_filter_toggled", &AnimationNodeBlendTreeEditor::_filter_toggled);
-	ClassDB::bind_method("_node_changed", &AnimationNodeBlendTreeEditor::_node_changed);
 	ClassDB::bind_method("_removed_from_graph", &AnimationNodeBlendTreeEditor::_removed_from_graph);
 	ClassDB::bind_method("_property_changed", &AnimationNodeBlendTreeEditor::_property_changed);
 	ClassDB::bind_method("_file_opened", &AnimationNodeBlendTreeEditor::_file_opened);

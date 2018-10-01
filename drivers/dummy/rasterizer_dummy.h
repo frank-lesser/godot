@@ -27,15 +27,15 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef RASTERIZER_DUMMY_H
 #define RASTERIZER_DUMMY_H
 
-#include "camera_matrix.h"
+#include "core/math/camera_matrix.h"
+#include "core/self_list.h"
 #include "scene/resources/mesh.h"
 #include "servers/visual/rasterizer.h"
 #include "servers/visual_server.h"
-
-#include "self_list.h"
 
 class RasterizerSceneDummy : public RasterizerScene {
 public:
@@ -267,6 +267,7 @@ public:
 
 	void material_set_param(RID p_material, const StringName &p_param, const Variant &p_value) {}
 	Variant material_get_param(RID p_material, const StringName &p_param) const { return Variant(); }
+	Variant material_get_param_default(RID p_material, const StringName &p_param) const { return Variant(); }
 
 	void material_set_line_width(RID p_material, float p_width) {}
 
@@ -516,6 +517,7 @@ public:
 	void reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable) {}
 	void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) {}
 	void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) {}
+	void reflection_probe_set_resolution(RID p_probe, int p_resolution) {}
 
 	AABB reflection_probe_get_aabb(RID p_probe) const { return AABB(); }
 	VS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const { return VisualServer::REFLECTION_PROBE_UPDATE_ONCE; }
@@ -800,6 +802,8 @@ public:
 	static void make_current() {
 		_create_func = _create_current;
 	}
+
+	virtual bool is_low_end() const { return true; }
 
 	RasterizerDummy() {}
 	~RasterizerDummy() {}

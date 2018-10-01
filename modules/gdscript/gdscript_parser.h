@@ -31,11 +31,11 @@
 #ifndef GDSCRIPT_PARSER_H
 #define GDSCRIPT_PARSER_H
 
+#include "core/map.h"
+#include "core/object.h"
+#include "core/script_language.h"
 #include "gdscript_functions.h"
 #include "gdscript_tokenizer.h"
-#include "map.h"
-#include "object.h"
-#include "script_language.h"
 
 struct GDScriptDataType;
 struct GDScriptWarning;
@@ -87,6 +87,8 @@ public:
 				} break;
 				case CLASS: {
 					return class_type == other.class_type;
+				} break;
+				case UNRESOLVED: {
 				} break;
 			}
 			return false;

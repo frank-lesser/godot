@@ -31,21 +31,21 @@
 #ifndef NATIVE_SCRIPT_H
 #define NATIVE_SCRIPT_H
 
+#include "core/io/resource_loader.h"
+#include "core/io/resource_saver.h"
+#include "core/oa_hash_map.h"
+#include "core/ordered_hash_map.h"
+#include "core/os/thread_safe.h"
 #include "core/resource.h"
 #include "core/script_language.h"
 #include "core/self_list.h"
-#include "io/resource_loader.h"
-#include "io/resource_saver.h"
-#include "oa_hash_map.h"
-#include "ordered_hash_map.h"
-#include "os/thread_safe.h"
 #include "scene/main/node.h"
 
 #include "modules/gdnative/gdnative.h"
 #include <nativescript/godot_nativescript.h>
 
 #ifndef NO_THREADS
-#include "os/mutex.h"
+#include "core/os/mutex.h"
 #endif
 
 struct NativeScriptDesc {
@@ -70,8 +70,6 @@ struct NativeScriptDesc {
 		String documentation;
 	};
 
-	String documentation;
-
 	Map<StringName, Method> methods;
 	OrderedHashMap<StringName, Property> properties;
 	Map<StringName, Signal> signals_; // QtCreator doesn't like the name signals
@@ -80,6 +78,8 @@ struct NativeScriptDesc {
 	NativeScriptDesc *base_data;
 	godot_instance_create_func create_func;
 	godot_instance_destroy_func destroy_func;
+
+	String documentation;
 
 	const void *type_tag;
 

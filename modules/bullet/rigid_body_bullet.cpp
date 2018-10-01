@@ -259,21 +259,21 @@ RigidBodyBullet::RigidBodyBullet() :
 		RigidCollisionObjectBullet(CollisionObjectBullet::TYPE_RIGID_BODY),
 		kinematic_utilities(NULL),
 		locked_axis(0),
-		gravity_scale(1),
 		mass(1),
+		gravity_scale(1),
 		linearDamp(0),
 		angularDamp(0),
 		can_sleep(true),
 		omit_forces_integration(false),
-		force_integration_callback(NULL),
-		isTransformChanged(false),
-		previousActiveState(true),
 		maxCollisionsDetection(0),
 		collisionsCount(0),
 		maxAreasWhereIam(10),
 		areaWhereIamCount(0),
 		countGravityPointSpaces(0),
-		isScratchedSpaceOverrideModificator(false) {
+		isScratchedSpaceOverrideModificator(false),
+		isTransformChanged(false),
+		previousActiveState(true),
+		force_integration_callback(NULL) {
 
 	godotMotionState = bulletnew(GodotMotionState(this));
 
@@ -351,7 +351,7 @@ void RigidBodyBullet::set_space(SpaceBullet *p_space) {
 
 void RigidBodyBullet::dispatch_callbacks() {
 	/// The check isTransformChanged is necessary in order to call integrated forces only when the first transform is sent
-	if ((btBody->isActive() || previousActiveState != btBody->isActive()) && force_integration_callback && isTransformChanged) {
+	if ((btBody->isKinematicObject() || btBody->isActive() || previousActiveState != btBody->isActive()) && force_integration_callback && isTransformChanged) {
 
 		if (omit_forces_integration)
 			btBody->clearForces();
@@ -535,20 +535,18 @@ void RigidBodyBullet::set_mode(PhysicsServer::BodyMode p_mode) {
 			reload_axis_lock();
 			_internal_set_mass(0);
 			break;
-		case PhysicsServer::BODY_MODE_RIGID: {
+		case PhysicsServer::BODY_MODE_RIGID:
 			mode = PhysicsServer::BODY_MODE_RIGID;
 			reload_axis_lock();
 			_internal_set_mass(0 == mass ? 1 : mass);
 			scratch_space_override_modificator();
 			break;
-		}
-		case PhysicsServer::BODY_MODE_CHARACTER: {
+		case PhysicsServer::BODY_MODE_CHARACTER:
 			mode = PhysicsServer::BODY_MODE_CHARACTER;
 			reload_axis_lock();
 			_internal_set_mass(0 == mass ? 1 : mass);
 			scratch_space_override_modificator();
 			break;
-		}
 	}
 
 	btBody->setAngularVelocity(btVector3(0, 0, 0));
@@ -774,10 +772,13 @@ Vector3 RigidBodyBullet::get_angular_velocity() const {
 
 void RigidBodyBullet::set_transform__bullet(const btTransform &p_global_transform) {
 	if (mode == PhysicsServer::BODY_MODE_KINEMATIC) {
+		if (space)
+			btBody->setLinearVelocity((p_global_transform.getOrigin() - btBody->getWorldTransform().getOrigin()) / space->get_delta_time());
 		// The kinematic use MotionState class
 		godotMotionState->moveBody(p_global_transform);
 	}
 	btBody->setWorldTransform(p_global_transform);
+	scratch();
 }
 
 const btTransform &RigidBodyBullet::get_transform__bullet() const {
@@ -849,7 +850,7 @@ void RigidBodyBullet::on_exit_area(AreaBullet *p_area) {
 	bool wasTheAreaFound = false;
 	for (int i = 0; i < areaWhereIamCount; ++i) {
 		if (p_area == areasWhereIam[i]) {
-			// The area was fount, just shift down all elements
+			// The area was found, just shift down all elements
 			for (int j = i; j < areaWhereIamCount; ++j) {
 				areasWhereIam.write[j] = areasWhereIam[j + 1];
 			}
@@ -924,10 +925,10 @@ void RigidBodyBullet::reload_space_override_modificator() {
 		}
 
 		switch (currentArea->get_spOv_mode()) {
-			///case PhysicsServer::AREA_SPACE_OVERRIDE_DISABLED:
-			/// This area does not affect gravity/damp. These are generally areas
-			/// that exist only to detect collisions, and objects entering or exiting them.
-			///    break;
+			case PhysicsServer::AREA_SPACE_OVERRIDE_DISABLED:
+				/// This area does not affect gravity/damp. These are generally areas
+				/// that exist only to detect collisions, and objects entering or exiting them.
+				break;
 			case PhysicsServer::AREA_SPACE_OVERRIDE_COMBINE:
 				/// This area adds its gravity/damp values to whatever has been
 				/// calculated so far. This way, many overlapping areas can combine

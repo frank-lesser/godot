@@ -30,12 +30,12 @@
 
 #include "script_debugger_remote.h"
 
-#include "engine.h"
-#include "io/ip.h"
-#include "io/marshalls.h"
-#include "os/input.h"
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/engine.h"
+#include "core/io/ip.h"
+#include "core/io/marshalls.h"
+#include "core/os/input.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 #include "scene/main/node.h"
 #include "scene/resources/packed_scene.h"
 
@@ -77,54 +77,25 @@ Error ScriptDebuggerRemote::connect_to_host(const String &p_host, uint16_t p_por
 	for (int i = 0; i < tries; i++) {
 
 		if (tcp_client->get_status() == StreamPeerTCP::STATUS_CONNECTED) {
+			print_verbose("Remote Debugger: Connected!");
 			break;
 		} else {
 
 			const int ms = waits[i];
 			OS::get_singleton()->delay_usec(ms * 1000);
-			ERR_PRINTS("Remote Debugger: Connection failed with status: '" + String::num(tcp_client->get_status()) + "', retrying in " + String::num(ms) + " msec.");
+			print_verbose("Remote Debugger: Connection failed with status: '" + String::num(tcp_client->get_status()) + "', retrying in " + String::num(ms) + " msec.");
 		};
 	};
 
 	if (tcp_client->get_status() != StreamPeerTCP::STATUS_CONNECTED) {
 
-		ERR_PRINTS("Remote Debugger: Unable to connect.");
+		ERR_PRINTS("Remote Debugger: Unable to connect. Status: " + String::num(tcp_client->get_status()));
 		return FAILED;
 	};
 
 	packet_peer_stream->set_stream_peer(tcp_client);
 
 	return OK;
-}
-
-static int _ScriptDebuggerRemote_found_id = 0;
-static Object *_ScriptDebuggerRemote_find = NULL;
-static void _ScriptDebuggerRemote_debug_func(Object *p_obj) {
-
-	if (_ScriptDebuggerRemote_find == p_obj) {
-		_ScriptDebuggerRemote_found_id = p_obj->get_instance_id();
-	}
-}
-
-static ObjectID safe_get_instance_id(const Variant &p_v) {
-
-	Object *o = p_v;
-	if (o == NULL)
-		return 0;
-	else {
-
-		REF r = p_v;
-		if (r.is_valid()) {
-
-			return r->get_instance_id();
-		} else {
-
-			_ScriptDebuggerRemote_found_id = 0;
-			_ScriptDebuggerRemote_find = NULL;
-			ObjectDB::debug_objects(_ScriptDebuggerRemote_debug_func);
-			return _ScriptDebuggerRemote_found_id;
-		}
-	}
 }
 
 void ScriptDebuggerRemote::_put_variable(const String &p_name, const Variant &p_variable) {
@@ -661,11 +632,14 @@ void ScriptDebuggerRemote::_send_object_id(ObjectID p_id) {
 			prop.push_back(Variant());
 		} else {
 			prop.push_back(pi.hint);
-			if (res.is_null() || res->get_path().empty())
-				prop.push_back(pi.hint_string);
-			else
-				prop.push_back(String("RES:") + res->get_path());
+			prop.push_back(pi.hint_string);
 			prop.push_back(pi.usage);
+			if (!res.is_null()) {
+				var = String("PATH") + res->get_path();
+			} else if (var.get_type() == Variant::STRING) {
+				var = String("DATA") + var;
+			}
+
 			prop.push_back(var);
 		}
 		send_props.push_back(prop);
@@ -1084,18 +1058,18 @@ ScriptDebuggerRemote::ScriptDebuggerRemote() :
 		max_frame_functions(16),
 		skip_profile_frame(false),
 		reload_all_scripts(false),
-		tcp_client(StreamPeerTCP::create_ref()),
+		tcp_client(Ref<StreamPeerTCP>(memnew(StreamPeerTCP))),
 		packet_peer_stream(Ref<PacketPeerStream>(memnew(PacketPeerStream))),
 		last_perf_time(0),
 		performance(Engine::get_singleton()->get_singleton_object("Performance")),
 		requested_quit(false),
 		mutex(Mutex::create()),
-		max_cps(GLOBAL_GET("network/limits/debugger_stdout/max_chars_per_second")),
 		max_messages_per_frame(GLOBAL_GET("network/limits/debugger_stdout/max_messages_per_frame")),
-		max_errors_per_frame(GLOBAL_GET("network/limits/debugger_stdout/max_errors_per_frame")),
-		char_count(0),
 		n_messages_dropped(0),
+		max_errors_per_frame(GLOBAL_GET("network/limits/debugger_stdout/max_errors_per_frame")),
 		n_errors_dropped(0),
+		max_cps(GLOBAL_GET("network/limits/debugger_stdout/max_chars_per_second")),
+		char_count(0),
 		last_msec(0),
 		msec_count(0),
 		allow_focus_steal_pid(0),

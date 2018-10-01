@@ -33,10 +33,10 @@
 
 #include "audio_driver_jandroid.h"
 #include "audio_driver_opensl.h"
+#include "core/os/input.h"
+#include "core/os/main_loop.h"
 #include "drivers/unix/os_unix.h"
 #include "main/input_default.h"
-#include "os/input.h"
-#include "os/main_loop.h"
 //#include "power_android.h"
 #include "servers/audio_server.h"
 #include "servers/visual/rasterizer.h"
@@ -144,7 +144,7 @@ private:
 	int video_driver_index;
 
 public:
-	// functions used by main to initialize/deintialize the OS
+	// functions used by main to initialize/deinitialize the OS
 	virtual int get_video_driver_count() const;
 	virtual const char *get_video_driver_name(int p_driver) const;
 

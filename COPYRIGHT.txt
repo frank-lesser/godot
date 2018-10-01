@@ -96,6 +96,11 @@ Copyright: 1997-2017, Sam Lantinga
   2014-2018, Godot Engine contributors.
 License: Expat and Zlib
 
+Files: ./scene/animation/tween_interpolaters.cpp
+Comment: Penner Easing
+Copyright: 2001, Robert Penner
+License: BSD-3-clause
+
 Files: ./servers/physics/gjk_epa.cpp
  ./servers/physics/joints/generic_6dof_joint_sw.cpp
  ./servers/physics/joints/generic_6dof_joint_sw.h
@@ -272,6 +277,11 @@ Files: ./thirdparty/misc/curl_hostcheck.c
 Comment: curl
 Copyright: 1998-2012, Daniel Stenberg et al.
 License: curl
+
+Files: ./thirdparty/misc/easing_equations.cpp
+Comment: Robert Penner's Easing Functions
+Copyright: 2001, Robert Penner
+License: BSD-3-clause
 
 Files: ./thirdparty/misc/fastlz.c
  ./thirdparty/misc/fastlz.h

@@ -30,9 +30,9 @@
 
 #include "physics_server.h"
 
+#include "core/method_bind_ext.gen.inc"
+#include "core/print_string.h"
 #include "core/project_settings.h"
-#include "method_bind_ext.gen.inc"
-#include "print_string.h"
 
 PhysicsServer *PhysicsServer::singleton = NULL;
 
@@ -678,7 +678,6 @@ void PhysicsServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(BODY_MODE_STATIC);
 	BIND_ENUM_CONSTANT(BODY_MODE_KINEMATIC);
 	BIND_ENUM_CONSTANT(BODY_MODE_RIGID);
-	BIND_ENUM_CONSTANT(BODY_MODE_SOFT);
 	BIND_ENUM_CONSTANT(BODY_MODE_CHARACTER);
 
 	BIND_ENUM_CONSTANT(BODY_PARAM_BOUNCE);

@@ -30,9 +30,9 @@
 
 #include "input_default.h"
 
-#include "default_controller_mappings.h"
-#include "input_map.h"
-#include "os/os.h"
+#include "core/input_map.h"
+#include "core/os/os.h"
+#include "main/default_controller_mappings.h"
 #include "scene/resources/texture.h"
 #include "servers/visual_server.h"
 
@@ -343,9 +343,9 @@ void InputDefault::_parse_input_event_impl(const Ref<InputEvent> &p_event, bool 
 				button_event->set_pressed(st->is_pressed());
 				button_event->set_button_index(BUTTON_LEFT);
 				if (st->is_pressed()) {
-					button_event->set_button_mask(mouse_button_mask | (1 << BUTTON_LEFT - 1));
+					button_event->set_button_mask(mouse_button_mask | (1 << (BUTTON_LEFT - 1)));
 				} else {
-					button_event->set_button_mask(mouse_button_mask & ~(1 << BUTTON_LEFT - 1));
+					button_event->set_button_mask(mouse_button_mask & ~(1 << (BUTTON_LEFT - 1)));
 				}
 
 				_parse_input_event_impl(button_event, true);
@@ -576,7 +576,7 @@ void InputDefault::ensure_touch_mouse_raised() {
 		button_event->set_global_position(mouse_pos);
 		button_event->set_pressed(false);
 		button_event->set_button_index(BUTTON_LEFT);
-		button_event->set_button_mask(mouse_button_mask & ~(1 << BUTTON_LEFT - 1));
+		button_event->set_button_mask(mouse_button_mask & ~(1 << (BUTTON_LEFT - 1)));
 
 		_parse_input_event_impl(button_event, true);
 	}
@@ -598,7 +598,13 @@ Input::CursorShape InputDefault::get_default_cursor_shape() {
 
 void InputDefault::set_default_cursor_shape(CursorShape p_shape) {
 	default_shape = p_shape;
-	OS::get_singleton()->set_cursor_shape((OS::CursorShape)p_shape);
+	// The default shape is set in Viewport::_gui_input_event. To instantly
+	// see the shape in the viewport we need to trigger a mouse motion event.
+	Ref<InputEventMouseMotion> mm;
+	mm.instance();
+	mm->set_position(mouse_pos);
+	mm->set_global_position(mouse_pos);
+	parse_input_event(mm);
 }
 
 void InputDefault::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, const Vector2 &p_hotspot) {
@@ -630,6 +636,7 @@ InputDefault::InputDefault() {
 	emulate_mouse_from_touch = false;
 	mouse_from_touch_index = -1;
 	main_loop = NULL;
+	default_shape = CURSOR_ARROW;
 
 	hat_map_default[HAT_UP].type = TYPE_BUTTON;
 	hat_map_default[HAT_UP].index = JOY_DPAD_UP;

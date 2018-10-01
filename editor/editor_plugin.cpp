@@ -39,6 +39,7 @@
 #include "scene/3d/camera.h"
 #include "scene/gui/popup_menu.h"
 #include "servers/visual_server.h"
+
 Array EditorInterface::_make_mesh_previews(const Array &p_meshes, int p_preview_size) {
 
 	Vector<Ref<Mesh> > meshes;
@@ -503,17 +504,17 @@ bool EditorPlugin::forward_canvas_gui_input(const Ref<InputEvent> &p_event) {
 	return false;
 }
 
-void EditorPlugin::forward_draw_over_viewport(Control *p_overlay) {
+void EditorPlugin::forward_canvas_draw_over_viewport(Control *p_overlay) {
 
-	if (get_script_instance() && get_script_instance()->has_method("forward_draw_over_viewport")) {
-		get_script_instance()->call("forward_draw_over_viewport", p_overlay);
+	if (get_script_instance() && get_script_instance()->has_method("forward_canvas_draw_over_viewport")) {
+		get_script_instance()->call("forward_canvas_draw_over_viewport", p_overlay);
 	}
 }
 
-void EditorPlugin::forward_force_draw_over_viewport(Control *p_overlay) {
+void EditorPlugin::forward_canvas_force_draw_over_viewport(Control *p_overlay) {
 
-	if (get_script_instance() && get_script_instance()->has_method("forward_force_draw_over_viewport")) {
-		get_script_instance()->call("forward_force_draw_over_viewport", p_overlay);
+	if (get_script_instance() && get_script_instance()->has_method("forward_canvas_force_draw_over_viewport")) {
+		get_script_instance()->call("forward_canvas_force_draw_over_viewport", p_overlay);
 	}
 }
 
@@ -522,7 +523,7 @@ int EditorPlugin::update_overlays() const {
 
 	if (SpatialEditor::get_singleton()->is_visible()) {
 		int count = 0;
-		for (int i = 0; i < SpatialEditor::VIEWPORTS_COUNT; i++) {
+		for (uint32_t i = 0; i < SpatialEditor::VIEWPORTS_COUNT; i++) {
 			SpatialEditorViewport *vp = SpatialEditor::get_singleton()->get_editor_viewport(i);
 			if (vp->is_visible()) {
 				vp->update_surface();
@@ -544,6 +545,20 @@ bool EditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Ref<InputEv
 	}
 
 	return false;
+}
+
+void EditorPlugin::forward_spatial_draw_over_viewport(Control *p_overlay) {
+
+	if (get_script_instance() && get_script_instance()->has_method("forward_spatial_draw_over_viewport")) {
+		get_script_instance()->call("forward_spatial_draw_over_viewport", p_overlay);
+	}
+}
+
+void EditorPlugin::forward_spatial_force_draw_over_viewport(Control *p_overlay) {
+
+	if (get_script_instance() && get_script_instance()->has_method("forward_spatial_force_draw_over_viewport")) {
+		get_script_instance()->call("forward_spatial_force_draw_over_viewport", p_overlay);
+	}
 }
 String EditorPlugin::get_name() const {
 
@@ -769,8 +784,8 @@ void EditorPlugin::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_script_create_dialog"), &EditorPlugin::get_script_create_dialog);
 
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::BOOL, "forward_canvas_gui_input", PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
-	ClassDB::add_virtual_method(get_class_static(), MethodInfo("forward_draw_over_viewport", PropertyInfo(Variant::OBJECT, "overlay", PROPERTY_HINT_RESOURCE_TYPE, "Control")));
-	ClassDB::add_virtual_method(get_class_static(), MethodInfo("forward_force_draw_over_viewport", PropertyInfo(Variant::OBJECT, "overlay", PROPERTY_HINT_RESOURCE_TYPE, "Control")));
+	ClassDB::add_virtual_method(get_class_static(), MethodInfo("forward_canvas_draw_over_viewport", PropertyInfo(Variant::OBJECT, "overlay", PROPERTY_HINT_RESOURCE_TYPE, "Control")));
+	ClassDB::add_virtual_method(get_class_static(), MethodInfo("forward_canvas_force_draw_over_viewport", PropertyInfo(Variant::OBJECT, "overlay", PROPERTY_HINT_RESOURCE_TYPE, "Control")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::BOOL, "forward_spatial_gui_input", PropertyInfo(Variant::OBJECT, "camera", PROPERTY_HINT_RESOURCE_TYPE, "Camera"), PropertyInfo(Variant::OBJECT, "event", PROPERTY_HINT_RESOURCE_TYPE, "InputEvent")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::STRING, "get_plugin_name"));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::OBJECT, "get_plugin_icon"));

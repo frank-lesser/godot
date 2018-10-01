@@ -34,13 +34,13 @@
 #include "bullet_types_converter.h"
 #include "bullet_utilities.h"
 #include "constraint_bullet.h"
+#include "core/project_settings.h"
+#include "core/ustring.h"
 #include "godot_collision_configuration.h"
 #include "godot_collision_dispatcher.h"
-#include "project_settings.h"
 #include "rigid_body_bullet.h"
 #include "servers/physics_server.h"
 #include "soft_body_bullet.h"
-#include "ustring.h"
 
 #include <BulletCollision/CollisionDispatch/btCollisionObject.h>
 #include <BulletCollision/CollisionDispatch/btGhostObject.h>
@@ -150,14 +150,14 @@ int BulletPhysicsDirectSpaceState::intersect_shape(const RID &p_shape, const Tra
 	return btQuery.m_count;
 }
 
-bool BulletPhysicsDirectSpaceState::cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, float p_margin, float &p_closest_safe, float &p_closest_unsafe, const Set<RID> &p_exclude, uint32_t p_collision_mask, bool p_collide_with_bodies, bool p_collide_with_areas, ShapeRestInfo *r_info) {
+bool BulletPhysicsDirectSpaceState::cast_motion(const RID &p_shape, const Transform &p_xform, const Vector3 &p_motion, float p_margin, float &r_closest_safe, float &r_closest_unsafe, const Set<RID> &p_exclude, uint32_t p_collision_mask, bool p_collide_with_bodies, bool p_collide_with_areas, ShapeRestInfo *r_info) {
 	ShapeBullet *shape = space->get_physics_server()->get_shape_owner()->get(p_shape);
 
 	btCollisionShape *btShape = shape->create_bt_shape(p_xform.basis.get_scale(), p_margin);
 	if (!btShape->isConvex()) {
 		bulletdelete(btShape);
 		ERR_PRINTS("The shape is not a convex shape, then is not supported: shape type: " + itos(shape->get_type()));
-		return 0;
+		return false;
 	}
 	btConvexShape *bt_convex_shape = static_cast<btConvexShape *>(btShape);
 
@@ -177,10 +177,13 @@ bool BulletPhysicsDirectSpaceState::cast_motion(const RID &p_shape, const Transf
 
 	space->dynamicsWorld->convexSweepTest(bt_convex_shape, bt_xform_from, bt_xform_to, btResult, 0.002);
 
+	r_closest_unsafe = 1.0;
+	r_closest_safe = 1.0;
+
 	if (btResult.hasHit()) {
 		const btScalar l = bt_motion.length();
-		p_closest_unsafe = btResult.m_closestHitFraction;
-		p_closest_safe = MAX(p_closest_unsafe - (1 - ((l - 0.01) / l)), 0);
+		r_closest_unsafe = btResult.m_closestHitFraction;
+		r_closest_safe = MAX(r_closest_unsafe - (1 - ((l - 0.01) / l)), 0);
 		if (r_info) {
 			if (btCollisionObject::CO_RIGID_BODY == btResult.m_hitCollisionObject->getInternalType()) {
 				B_TO_G(static_cast<const btRigidBody *>(btResult.m_hitCollisionObject)->getVelocityInLocalPoint(btResult.m_hitPointWorld), r_info->linear_velocity);
@@ -195,7 +198,7 @@ bool BulletPhysicsDirectSpaceState::cast_motion(const RID &p_shape, const Transf
 	}
 
 	bulletdelete(bt_convex_shape);
-	return btResult.hasHit();
+	return true; // Mean success
 }
 
 /// Returns the list of contacts pairs in this order: Local contact, other body contact
@@ -329,16 +332,17 @@ Vector3 BulletPhysicsDirectSpaceState::get_closest_point_to_object_volume(RID p_
 
 SpaceBullet::SpaceBullet() :
 		broadphase(NULL),
+		collisionConfiguration(NULL),
 		dispatcher(NULL),
 		solver(NULL),
-		collisionConfiguration(NULL),
 		dynamicsWorld(NULL),
 		soft_body_world_info(NULL),
 		ghostPairCallback(NULL),
 		godotFilterCallback(NULL),
 		gravityDirection(0, -1, 0),
 		gravityMagnitude(10),
-		contactDebugCount(0) {
+		contactDebugCount(0),
+		delta_time(0.) {
 
 	create_empty_world(GLOBAL_DEF("physics/3d/active_soft_world", true));
 	direct_access = memnew(BulletPhysicsDirectSpaceState(this));
@@ -577,7 +581,7 @@ void SpaceBullet::create_empty_world(bool p_create_soft_world) {
 	}
 
 	if (p_create_soft_world) {
-		collisionConfiguration = bulletnew(btSoftBodyRigidBodyCollisionConfiguration);
+		collisionConfiguration = bulletnew(GodotSoftCollisionConfiguration(static_cast<btDiscreteDynamicsWorld *>(world_mem)));
 	} else {
 		collisionConfiguration = bulletnew(GodotCollisionConfiguration(static_cast<btDiscreteDynamicsWorld *>(world_mem)));
 	}
@@ -786,30 +790,32 @@ void SpaceBullet::check_body_collision() {
 			if (numContacts) {
 				btManifoldPoint &pt = contactManifold->getContactPoint(0);
 #endif
-				Vector3 collisionWorldPosition;
-				Vector3 collisionLocalPosition;
-				Vector3 normalOnB;
-				float appliedImpulse = pt.m_appliedImpulse;
-				B_TO_G(pt.m_normalWorldOnB, normalOnB);
+				if (pt.getDistance() <= 0.0) {
+					Vector3 collisionWorldPosition;
+					Vector3 collisionLocalPosition;
+					Vector3 normalOnB;
+					float appliedImpulse = pt.m_appliedImpulse;
+					B_TO_G(pt.m_normalWorldOnB, normalOnB);
 
-				if (bodyA->can_add_collision()) {
-					B_TO_G(pt.getPositionWorldOnB(), collisionWorldPosition);
-					/// pt.m_localPointB Doesn't report the exact point in local space
-					B_TO_G(pt.getPositionWorldOnB() - contactManifold->getBody1()->getWorldTransform().getOrigin(), collisionLocalPosition);
-					bodyA->add_collision_object(bodyB, collisionWorldPosition, collisionLocalPosition, normalOnB, appliedImpulse, pt.m_index1, pt.m_index0);
-				}
-				if (bodyB->can_add_collision()) {
-					B_TO_G(pt.getPositionWorldOnA(), collisionWorldPosition);
-					/// pt.m_localPointA Doesn't report the exact point in local space
-					B_TO_G(pt.getPositionWorldOnA() - contactManifold->getBody0()->getWorldTransform().getOrigin(), collisionLocalPosition);
-					bodyB->add_collision_object(bodyA, collisionWorldPosition, collisionLocalPosition, normalOnB * -1, appliedImpulse * -1, pt.m_index0, pt.m_index1);
-				}
+					if (bodyA->can_add_collision()) {
+						B_TO_G(pt.getPositionWorldOnB(), collisionWorldPosition);
+						/// pt.m_localPointB Doesn't report the exact point in local space
+						B_TO_G(pt.getPositionWorldOnB() - contactManifold->getBody1()->getWorldTransform().getOrigin(), collisionLocalPosition);
+						bodyA->add_collision_object(bodyB, collisionWorldPosition, collisionLocalPosition, normalOnB, appliedImpulse, pt.m_index1, pt.m_index0);
+					}
+					if (bodyB->can_add_collision()) {
+						B_TO_G(pt.getPositionWorldOnA(), collisionWorldPosition);
+						/// pt.m_localPointA Doesn't report the exact point in local space
+						B_TO_G(pt.getPositionWorldOnA() - contactManifold->getBody0()->getWorldTransform().getOrigin(), collisionLocalPosition);
+						bodyB->add_collision_object(bodyA, collisionWorldPosition, collisionLocalPosition, normalOnB * -1, appliedImpulse * -1, pt.m_index0, pt.m_index1);
+					}
 
 #ifdef DEBUG_ENABLED
-				if (is_debugging_contacts()) {
-					add_debug_contact(collisionWorldPosition);
-				}
+					if (is_debugging_contacts()) {
+						add_debug_contact(collisionWorldPosition);
+					}
 #endif
+				}
 			}
 		}
 	}

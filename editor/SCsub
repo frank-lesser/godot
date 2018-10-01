@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 Import('env')
+
 env.editor_sources = []
 
 import os
@@ -61,10 +62,6 @@ if env['tools']:
     env.Depends("#editor/doc_data_compressed.gen.h", docs)
     env.CommandNoCache("#editor/doc_data_compressed.gen.h", docs, run_in_subprocess(editor_builders.make_doc_header))
 
-    # Certificates
-    env.Depends("#editor/certs_compressed.gen.h", "#thirdparty/certs/ca-certificates.crt")
-    env.CommandNoCache("#editor/certs_compressed.gen.h", "#thirdparty/certs/ca-certificates.crt", run_in_subprocess(editor_builders.make_certs_header))
-
     import glob
 
     path = env.Dir('.').abspath
@@ -93,5 +90,3 @@ if env['tools']:
 
     lib = env.add_library("editor", env.editor_sources)
     env.Prepend(LIBS=[lib])
-
-    Export('env')

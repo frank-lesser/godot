@@ -32,6 +32,7 @@
 #define TYPEDEFS_H
 
 #include <stddef.h>
+
 /**
  * Basic definitions and simple functions to be used everywhere.
  */
@@ -96,19 +97,19 @@ T *_nullptr() {
 #undef CONNECT_DEFERRED // override from Windows SDK, clashes with Object enum
 #endif
 
-#include "int_types.h"
+#include "core/int_types.h"
 
-#include "error_list.h"
-#include "error_macros.h"
+#include "core/error_list.h"
+#include "core/error_macros.h"
 
 /** Generic ABS function, for math uses please use Math::abs */
 
 #ifndef ABS
-#define ABS(m_v) ((m_v < 0) ? (-(m_v)) : (m_v))
+#define ABS(m_v) (((m_v) < 0) ? (-(m_v)) : (m_v))
 #endif
 
 #ifndef SGN
-#define SGN(m_v) ((m_v < 0) ? (-1.0) : (+1.0))
+#define SGN(m_v) (((m_v) < 0) ? (-1.0) : (+1.0))
 #endif
 
 #ifndef MIN

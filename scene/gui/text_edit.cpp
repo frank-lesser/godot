@@ -30,11 +30,11 @@
 
 #include "text_edit.h"
 
-#include "message_queue.h"
-#include "os/input.h"
-#include "os/keyboard.h"
-#include "os/os.h"
-#include "project_settings.h"
+#include "core/message_queue.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
+#include "core/project_settings.h"
 #include "scene/main/viewport.h"
 
 #ifdef TOOLS_ENABLED
@@ -556,7 +556,6 @@ void TextEdit::_notification(int p_what) {
 		} break;
 		case NOTIFICATION_RESIZED: {
 
-			cache.size = get_size();
 			_update_scrollbars();
 			update_wrap_at();
 		} break;
@@ -593,6 +592,7 @@ void TextEdit::_notification(int p_what) {
 			}
 		} break;
 		case NOTIFICATION_DRAW: {
+			Size2 size = get_size();
 			if ((!has_focus() && !menu->has_focus()) || !window_has_focus) {
 				draw_caret = false;
 			}
@@ -634,23 +634,21 @@ void TextEdit::_notification(int p_what) {
 			RID ci = get_canvas_item();
 			VisualServer::get_singleton()->canvas_item_set_clip(get_canvas_item(), true);
 			int xmargin_beg = cache.style_normal->get_margin(MARGIN_LEFT) + cache.line_number_w + cache.breakpoint_gutter_width + cache.fold_gutter_width;
-			int xmargin_end = cache.size.width - cache.style_normal->get_margin(MARGIN_RIGHT);
+			int xmargin_end = size.width - cache.style_normal->get_margin(MARGIN_RIGHT);
 			//let's do it easy for now:
-			cache.style_normal->draw(ci, Rect2(Point2(), cache.size));
+			cache.style_normal->draw(ci, Rect2(Point2(), size));
 			float readonly_alpha = 1.0; // used to set the input text color when in read-only mode
 			if (readonly) {
-				cache.style_readonly->draw(ci, Rect2(Point2(), cache.size));
+				cache.style_readonly->draw(ci, Rect2(Point2(), size));
 				readonly_alpha = .5;
 				draw_caret = false;
 			}
 			if (has_focus())
-				cache.style_focus->draw(ci, Rect2(Point2(), cache.size));
+				cache.style_focus->draw(ci, Rect2(Point2(), size));
 
 			int ascent = cache.font->get_ascent();
 
 			int visible_rows = get_visible_rows() + 1;
-
-			int tab_w = cache.font->get_char_size(' ').width * indent_size;
 
 			Color color = cache.font_color;
 			color.a *= readonly_alpha;
@@ -1261,7 +1259,7 @@ void TextEdit::_notification(int p_what) {
 			if (line_length_guideline) {
 				int x = xmargin_beg + cache.font->get_char_size('0').width * line_length_guideline_col - cursor.x_ofs;
 				if (x > xmargin_beg && x < xmargin_end) {
-					VisualServer::get_singleton()->canvas_item_add_line(ci, Point2(x, 0), Point2(x, cache.size.height), cache.line_length_guideline_color);
+					VisualServer::get_singleton()->canvas_item_add_line(ci, Point2(x, 0), Point2(x, size.height), cache.line_length_guideline_color);
 				}
 			}
 
@@ -1942,7 +1940,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						int to_column = get_selection_to_column();
 
 						if (row < from_line || row > to_line || (row == from_line && col < from_column) || (row == to_line && col > to_column)) {
-							// Right click is outside the seleted text
+							// Right click is outside the selected text
 							deselect();
 						}
 					}
@@ -3625,7 +3623,7 @@ Size2 TextEdit::get_minimum_size() const {
 
 int TextEdit::get_visible_rows() const {
 
-	int total = cache.size.height;
+	int total = get_size().height;
 	total -= cache.style_normal->get_minimum_size().height;
 	if (h_scroll->is_visible_in_tree())
 		total -= h_scroll->get_size().height;
@@ -3652,7 +3650,7 @@ int TextEdit::get_total_visible_rows() const {
 
 void TextEdit::update_wrap_at() {
 
-	wrap_at = cache.size.width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width - wrap_right_offset;
+	wrap_at = get_size().width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width - wrap_right_offset;
 	update_cursor_wrap_offset();
 	text.clear_wrap_cache();
 
@@ -3686,7 +3684,7 @@ void TextEdit::adjust_viewport_to_cursor() {
 		set_line_as_last_visible(cur_line, cur_wrap);
 	}
 
-	int visible_width = cache.size.width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width;
+	int visible_width = get_size().width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width;
 	if (v_scroll->is_visible_in_tree())
 		visible_width -= v_scroll->get_combined_minimum_size().width;
 	visible_width -= 20; // give it a little more space
@@ -3717,7 +3715,7 @@ void TextEdit::center_viewport_to_cursor() {
 		unfold_line(cursor.line);
 
 	set_line_as_center_visible(cursor.line, get_cursor_wrap_index());
-	int visible_width = cache.size.width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width;
+	int visible_width = get_size().width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width;
 	if (v_scroll->is_visible_in_tree())
 		visible_width -= v_scroll->get_combined_minimum_size().width;
 	visible_width -= 20; // give it a little more space
@@ -3796,7 +3794,7 @@ Vector<String> TextEdit::get_wrap_rows_text(int p_line) const {
 	int tab_offset_px = get_indent_level(p_line) * cache.font->get_char_size(' ').width;
 
 	while (col < line_text.length()) {
-		char c = line_text[col];
+		CharType c = line_text[col];
 		int w = text.get_char_width(c, line_text[col + 1], px + word_px);
 
 		int indent_ofs = (cur_wrap_index != 0 ? tab_offset_px : 0);
@@ -4174,7 +4172,7 @@ Control::CursorShape TextEdit::get_cursor_shape(const Point2 &p_pos) const {
 		}
 	}
 
-	return CURSOR_IBEAM;
+	return get_default_cursor_shape();
 }
 
 void TextEdit::set_text(String p_text) {
@@ -4402,7 +4400,7 @@ int TextEdit::_is_line_in_region(int p_line) {
 
 	// if not find the closest line we have
 	int previous_line = p_line - 1;
-	for (previous_line; previous_line > -1; previous_line--) {
+	for (; previous_line > -1; previous_line--) {
 		if (color_region_cache.has(p_line)) {
 			break;
 		}
@@ -4547,9 +4545,13 @@ void TextEdit::cut() {
 void TextEdit::copy() {
 
 	if (!selection.active) {
-		String clipboard = _base_get_text(cursor.line, 0, cursor.line, text[cursor.line].length());
-		OS::get_singleton()->set_clipboard(clipboard);
-		cut_copy_line = clipboard;
+
+		if (text[cursor.line].length() != 0) {
+
+			String clipboard = _base_get_text(cursor.line, 0, cursor.line, text[cursor.line].length());
+			OS::get_singleton()->set_clipboard(clipboard);
+			cut_copy_line = clipboard;
+		}
 	} else {
 		String clipboard = _base_get_text(selection.from_line, selection.from_column, selection.to_line, selection.to_column);
 		OS::get_singleton()->set_clipboard(clipboard);
@@ -5152,7 +5154,7 @@ bool TextEdit::can_fold(int p_line) const {
 		return false;
 	if (p_line + 1 >= text.size())
 		return false;
-	if (text[p_line].size() == 0)
+	if (text[p_line].strip_edges().size() == 0)
 		return false;
 	if (is_folded(p_line))
 		return false;
@@ -5164,7 +5166,7 @@ bool TextEdit::can_fold(int p_line) const {
 	int start_indent = get_indent_level(p_line);
 
 	for (int i = p_line + 1; i < text.size(); i++) {
-		if (text[i].size() == 0)
+		if (text[i].strip_edges().size() == 0)
 			continue;
 		int next_indent = get_indent_level(i);
 		if (is_line_comment(i)) {
@@ -5562,7 +5564,7 @@ int TextEdit::get_last_visible_line_wrap_index() const {
 
 double TextEdit::get_visible_rows_offset() const {
 
-	double total = cache.size.height;
+	double total = get_size().height;
 	total -= cache.style_normal->get_minimum_size().height;
 	if (h_scroll->is_visible_in_tree())
 		total -= h_scroll->get_size().height;
@@ -5866,7 +5868,7 @@ String TextEdit::get_word_at_pos(const Vector2 &p_pos) const {
 	if (select_word(s, col, beg, end)) {
 
 		bool inside_quotes = false;
-		char selected_quote = '\0';
+		CharType selected_quote = '\0';
 		int qbegin = 0, qend = 0;
 		for (int i = 0; i < s.length(); i++) {
 			if (s[i] == '"' || s[i] == '\'') {
@@ -6249,7 +6251,6 @@ TextEdit::TextEdit() {
 	set_focus_mode(FOCUS_ALL);
 	syntax_highlighter = NULL;
 	_update_caches();
-	cache.size = Size2(1, 1);
 	cache.row_height = 1;
 	cache.line_spacing = 1;
 	cache.line_number_w = 1;
@@ -6257,6 +6258,7 @@ TextEdit::TextEdit() {
 	breakpoint_gutter_width = 0;
 	cache.fold_gutter_width = 0;
 	fold_gutter_width = 0;
+	set_default_cursor_shape(CURSOR_IBEAM);
 
 	indent_size = 4;
 	text.set_indent_size(indent_size);

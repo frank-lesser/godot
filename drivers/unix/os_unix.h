@@ -37,12 +37,10 @@
 
 #ifdef UNIX_ENABLED
 
+#include "core/os/os.h"
 #include "drivers/unix/ip_unix.h"
-#include "os/os.h"
 
 class OS_Unix : public OS {
-
-	uint64_t ticks_start;
 
 protected:
 	// UNIX only handles the core functions.

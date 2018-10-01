@@ -30,7 +30,7 @@
 
 #include "shader_gles3.h"
 
-#include "print_string.h"
+#include "core/print_string.h"
 
 //#define DEBUG_OPENGL
 
@@ -121,6 +121,11 @@ bool ShaderGLES3::bind() {
 	}
 
 	ERR_FAIL_COND_V(!version, false);
+
+	if (!version->ok) { //broken, unable to bind (do not throw error, you saw it before already when it failed compilation).
+		glUseProgram(0);
+		return false;
+	}
 
 	glUseProgram(version->id);
 

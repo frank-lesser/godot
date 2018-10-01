@@ -36,10 +36,6 @@
 #include "multi_node_edit.h"
 #include "scene/resources/packed_scene.h"
 
-// TODO:
-// arrays and dictionary
-// replace property editor in sectionedpropertyeditor
-
 Size2 EditorProperty::get_minimum_size() const {
 
 	Size2 ms;
@@ -268,11 +264,6 @@ void EditorProperty::_notification(int p_what) {
 		} else {
 			keying_rect = Rect2();
 		}
-
-		//int vs = get_constant("vseparation", "Tree");
-		Color guide_color = get_color("guide_color", "Tree");
-		int vs_height = get_size().height; // vs / 2;
-		//	draw_line(Point2(0, vs_height), Point2(get_size().width, vs_height), guide_color);
 	}
 }
 
@@ -1138,7 +1129,6 @@ void EditorInspectorSection::_gui_input(const Ref<InputEvent> &p_event) {
 		return;
 
 #ifdef TOOLS_ENABLED
-
 	Ref<InputEventMouseButton> mb = p_event;
 	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
 
@@ -1167,7 +1157,6 @@ void EditorInspectorSection::unfold() {
 	_test_unfold();
 
 #ifdef TOOLS_ENABLED
-
 	object->editor_set_section_unfold(section, true);
 	vbox->show();
 	update();
@@ -1180,8 +1169,8 @@ void EditorInspectorSection::fold() {
 
 	if (!vbox_added)
 		return; //kinda pointless
-#ifdef TOOLS_ENABLED
 
+#ifdef TOOLS_ENABLED
 	object->editor_set_section_unfold(section, false);
 	vbox->hide();
 	update();
@@ -1202,7 +1191,6 @@ EditorInspectorSection::EditorInspectorSection() {
 	foldable = false;
 	vbox = memnew(VBoxContainer);
 	vbox_added = false;
-	//add_child(vbox);
 }
 
 EditorInspectorSection::~EditorInspectorSection() {
@@ -1427,10 +1415,7 @@ void EditorInspector::update_tree() {
 			category_vbox = NULL; //reset
 
 			String type = p.name;
-			if (has_icon(type, "EditorIcons"))
-				category->icon = get_icon(type, "EditorIcons");
-			else
-				category->icon = get_icon("Object", "EditorIcons");
+			category->icon = EditorNode::get_singleton()->get_class_icon(type, "Object");
 			category->label = type;
 
 			category->bg_color = get_color("prop_category", "Editor");
@@ -1460,6 +1445,9 @@ void EditorInspector::update_tree() {
 
 		} else if (!(p.usage & PROPERTY_USAGE_EDITOR))
 			continue;
+
+		if (p.usage & PROPERTY_USAGE_HIGH_END_GFX && VS::get_singleton()->is_low_end())
+			continue; //do not show this property in low end gfx
 
 		if (p.name == "script" && (hide_script || bool(object->call("_hide_script_from_inspector")))) {
 			continue;
@@ -1607,12 +1595,6 @@ void EditorInspector::update_tree() {
 			doc_hint = descr;
 		}
 
-#if 0
-		if (p.name == selected_property) {
-
-			item->select(1);
-		}
-#endif
 		for (List<Ref<EditorInspectorPlugin> >::Element *E = valid_plugins.front(); E; E = E->next()) {
 			Ref<EditorInspectorPlugin> ped = E->get();
 			bool exclusive = ped->parse_property(object, p.type, p.name, p.hint, p.hint_string, p.usage);
@@ -1752,7 +1734,7 @@ void EditorInspector::edit(Object *p_object) {
 	if (object) {
 		update_scroll_request = 0; //reset
 		if (scroll_cache.has(object->get_instance_id())) { //if exists, set something else
-			update_scroll_request = scroll_cache[object->get_instance_id()]; //done this way because wait until full size is accomodated
+			update_scroll_request = scroll_cache[object->get_instance_id()]; //done this way because wait until full size is accommodated
 		}
 		object->add_change_receptor(this);
 		update_tree();
@@ -1810,12 +1792,6 @@ void EditorInspector::_filter_changed(const String &p_text) {
 
 	_clear();
 	update_tree();
-}
-
-void EditorInspector::set_subsection_selectable(bool p_selectable) {
-}
-
-void EditorInspector::set_property_selectable(bool p_selectable) {
 }
 
 void EditorInspector::set_use_folding(bool p_enable) {
@@ -2005,7 +1981,7 @@ void EditorInspector::_property_keyed(const String &p_path) {
 	if (!object)
 		return;
 
-	emit_signal("property_keyed", p_path, object->get(p_path), false); //second param is deprecated
+	emit_signal("property_keyed", p_path, object->get(p_path), true); //second param is deprecated
 }
 
 void EditorInspector::_property_keyed_with_value(const String &p_path, const Variant &p_value) {

@@ -30,13 +30,13 @@
 
 #include "visual_script_editor.h"
 
+#include "core/object.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "core/script_language.h"
+#include "core/variant.h"
 #include "editor/editor_node.h"
 #include "editor/editor_resource_preview.h"
-#include "object.h"
-#include "os/input.h"
-#include "os/keyboard.h"
-#include "variant.h"
 #include "visual_script_expression.h"
 #include "visual_script_flow_control.h"
 #include "visual_script_func_nodes.h"
@@ -2343,7 +2343,7 @@ void VisualScriptEditor::_graph_connected(const String &p_from, int p_from_slot,
 	int from_port;
 
 	if (!_get_out_slot(from_node, p_from_slot, from_port, from_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	Ref<VisualScriptNode> to_node = script->get_node(edited_func, p_to.to_int());
 	ERR_FAIL_COND(!to_node.is_valid());
@@ -2352,7 +2352,7 @@ void VisualScriptEditor::_graph_connected(const String &p_from, int p_from_slot,
 	int to_port;
 
 	if (!_get_in_slot(to_node, p_to_slot, to_port, to_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	ERR_FAIL_COND(from_seq != to_seq);
 
@@ -2363,7 +2363,7 @@ void VisualScriptEditor::_graph_connected(const String &p_from, int p_from_slot,
 		undo_redo->add_undo_method(script.ptr(), "sequence_disconnect", edited_func, p_from.to_int(), from_port, p_to.to_int());
 	} else {
 
-		// disconect current, and connect the new one
+		// disconnect current, and connect the new one
 		if (script->is_input_value_port_connected(edited_func, p_to.to_int(), to_port)) {
 			int conn_from;
 			int conn_port;
@@ -2396,7 +2396,7 @@ void VisualScriptEditor::_graph_disconnected(const String &p_from, int p_from_sl
 	int from_port;
 
 	if (!_get_out_slot(from_node, p_from_slot, from_port, from_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	Ref<VisualScriptNode> to_node = script->get_node(edited_func, p_to.to_int());
 	ERR_FAIL_COND(!to_node.is_valid());
@@ -2405,7 +2405,7 @@ void VisualScriptEditor::_graph_disconnected(const String &p_from, int p_from_sl
 	int to_port;
 
 	if (!_get_in_slot(to_node, p_to_slot, to_port, to_seq))
-		return; //can't  connect this, it' s invalid
+		return; //can't connect this, it's invalid
 
 	ERR_FAIL_COND(from_seq != to_seq);
 
@@ -2518,8 +2518,6 @@ void VisualScriptEditor::_port_action_menu(int p_option) {
 	}
 	ofs /= EDSCALE;
 
-	bool seq_connect = false;
-
 	Set<int> vn;
 
 	switch (p_option) {
@@ -2552,7 +2550,6 @@ void VisualScriptEditor::_port_action_menu(int p_option) {
 			}
 		} break;
 		case CREATE_ACTION: {
-			seq_connect = true;
 			VisualScriptNode::TypeGuess tg = _guess_output_type(port_action_node, port_action_output, vn);
 			PropertyInfo property_info = script->get_node(edited_func, port_action_node)->get_output_value_port_info(port_action_output);
 			if (tg.type == Variant::OBJECT) {
@@ -2603,7 +2600,6 @@ void VisualScriptEditor::connect_data(Ref<VisualScriptNode> vnode_old, Ref<Visua
 	if (port >= value_count) {
 		port = 0;
 	}
-	int count = vnode_old->get_output_value_port_count() + vnode_old->get_output_sequence_port_count();
 	undo_redo->add_do_method(script.ptr(), "data_connect", edited_func, port_action_node, port, new_id, 0);
 	undo_redo->add_undo_method(script.ptr(), "data_disconnect", edited_func, port_action_node, port, new_id, 0);
 	undo_redo->commit_action();
@@ -2657,7 +2653,6 @@ void VisualScriptEditor::_selected_connect_node(const String &p_text, const Stri
 
 	Ref<VisualScriptNode> vnode;
 
-	seq_connect = false;
 	if (p_category == String("method")) {
 
 		Ref<VisualScriptFunctionCall> n;
@@ -2683,38 +2678,32 @@ void VisualScriptEditor::_selected_connect_node(const String &p_text, const Stri
 			Ref<VisualScriptCondition> n;
 			n.instance();
 			vnode = n;
-			seq_connect = true;
 		}
 		if (p_text == "VisualScriptSwitch") {
 
 			Ref<VisualScriptSwitch> n;
 			n.instance();
 			vnode = n;
-			seq_connect = true;
 		} else if (p_text == "VisualScriptSequence") {
 
 			Ref<VisualScriptSequence> n;
 			n.instance();
 			vnode = n;
-			seq_connect = true;
 		} else if (p_text == "VisualScriptIterator") {
 
 			Ref<VisualScriptIterator> n;
 			n.instance();
 			vnode = n;
-			seq_connect = true;
 		} else if (p_text == "VisualScriptWhile") {
 
 			Ref<VisualScriptWhile> n;
 			n.instance();
 			vnode = n;
-			seq_connect = true;
 		} else if (p_text == "VisualScriptReturn") {
 
 			Ref<VisualScriptReturn> n;
 			n.instance();
 			vnode = n;
-			seq_connect = true;
 		}
 	}
 
@@ -2826,7 +2815,6 @@ void VisualScriptEditor::_selected_connect_node(const String &p_text, const Stri
 }
 
 void VisualScriptEditor::connect_seq(Ref<VisualScriptNode> vnode_old, Ref<VisualScriptNode> vnode_new, int new_id) {
-	int seq_count = vnode_old->get_output_sequence_port_count();
 	VisualScriptOperator *vnode_operator = Object::cast_to<VisualScriptOperator>(vnode_new.ptr());
 	if (vnode_operator != NULL && vnode_operator->has_input_sequence_port() == false) {
 		return;
@@ -2841,7 +2829,7 @@ void VisualScriptEditor::connect_seq(Ref<VisualScriptNode> vnode_old, Ref<Visual
 	if (vnode_new->has_input_sequence_port() == false) {
 		return;
 	}
-	VisualScriptFunction *vnode_function = Object::cast_to<VisualScriptFunction>(vnode_old.ptr());
+
 	undo_redo->create_action(TTR("Connect Node Sequence"));
 	int pass_port = -vnode_old->get_output_sequence_port_count() + 1;
 	int return_port = port_action_output - 1;
@@ -3367,11 +3355,6 @@ void VisualScriptEditor::_member_option(int p_option) {
 					undo_redo->add_undo_method(script.ptr(), "data_connect", name, E->get().from_node, E->get().from_port, E->get().to_node, E->get().to_port);
 				}
 
-				/*
-				for(int i=0;i<script->function_get_argument_count(name);i++) {
-					undo_redo->add_undo_method(script.ptr(),"function_add_argument",name,script->function_get_argument_name(name,i),script->function_get_argument_type(name,i));
-				}
-				*/
 				undo_redo->add_do_method(this, "_update_members");
 				undo_redo->add_undo_method(this, "_update_members");
 				undo_redo->add_do_method(this, "_update_graph");

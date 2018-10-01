@@ -30,9 +30,9 @@
 
 #include "tile_map.h"
 
-#include "io/marshalls.h"
-#include "method_bind_ext.gen.inc"
-#include "os/os.h"
+#include "core/io/marshalls.h"
+#include "core/method_bind_ext.gen.inc"
+#include "core/os/os.h"
 #include "servers/physics_2d_server.h"
 
 int TileMap::_get_quadrant_size() const {
@@ -257,7 +257,6 @@ void TileMap::update_dirty_quadrants() {
 	VisualServer *vs = VisualServer::get_singleton();
 	Physics2DServer *ps = Physics2DServer::get_singleton();
 	Vector2 tofs = get_cell_draw_offset();
-	Vector2 tcenter = cell_size / 2;
 	Transform2D nav_rel;
 	if (navigation)
 		nav_rel = get_relative_transform_to_parent(navigation);

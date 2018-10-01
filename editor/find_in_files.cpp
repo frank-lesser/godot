@@ -302,7 +302,7 @@ FindInFilesDialog::FindInFilesDialog() {
 
 	set_custom_minimum_size(Size2(400, 190));
 	set_resizable(true);
-	set_title(TTR("Find in files"));
+	set_title(TTR("Find in Files"));
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	vbc->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 8 * EDSCALE);
@@ -864,7 +864,7 @@ void FindInFilesPanel::apply_replaces_in_file(String fpath, const Vector<Result>
 
 	// If the file is already open, I assume the editor will reload it.
 	// If there are unsaved changes, the user will be asked on focus,
-	// however that means either loosing changes or loosing replaces.
+	// however that means either losing changes or losing replaces.
 
 	FileAccess *f = FileAccess::open(fpath, FileAccess::READ);
 	ERR_FAIL_COND(f == NULL);

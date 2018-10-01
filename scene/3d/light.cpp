@@ -30,8 +30,8 @@
 
 #include "light.h"
 
-#include "engine.h"
-#include "project_settings.h"
+#include "core/engine.h"
+#include "core/project_settings.h"
 #include "scene/resources/surface_tool.h"
 
 bool Light::_can_gizmo_scale() const {
@@ -48,6 +48,13 @@ void Light::set_param(Param p_param, float p_value) {
 
 	if (p_param == PARAM_SPOT_ANGLE || p_param == PARAM_RANGE) {
 		update_gizmo();
+
+		if (p_param == PARAM_SPOT_ANGLE) {
+			_change_notify("spot_angle");
+		} else if (p_param == PARAM_RANGE) {
+			_change_notify("omni_range");
+			_change_notify("spot_range");
+		}
 	}
 }
 
@@ -156,6 +163,11 @@ void Light::_update_visibility() {
 	if (!is_inside_tree())
 		return;
 
+	// FIXME: Since the call to VS::instance_light_set_enabled was disabled below,
+	// the whole logic became pointless so editor_ok triggers unused variable warnings.
+	// Commenting out for now but this should be fixed/reimplemented so that editor_only
+	// works as expected (GH-17989).
+	/*
 	bool editor_ok = true;
 
 #ifdef TOOLS_ENABLED
@@ -173,6 +185,7 @@ void Light::_update_visibility() {
 #endif
 
 	//VS::get_singleton()->instance_light_set_enabled(get_instance(),is_visible_in_tree() && editor_ok);
+	*/
 	_change_notify("geometry/visible");
 }
 

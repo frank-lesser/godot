@@ -27,6 +27,7 @@
 /* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
+
 #ifndef RASTERIZERGLES2_H
 #define RASTERIZERGLES2_H
 
@@ -64,6 +65,8 @@ public:
 	static Error is_viable();
 	static void make_current();
 	static void register_config();
+
+	virtual bool is_low_end() const { return true; }
 
 	RasterizerGLES2();
 	~RasterizerGLES2();

@@ -31,10 +31,10 @@
 #include "polygon_2d_editor_plugin.h"
 
 #include "canvas_item_editor_plugin.h"
+#include "core/os/file_access.h"
+#include "core/os/input.h"
+#include "core/os/keyboard.h"
 #include "editor/editor_settings.h"
-#include "os/file_access.h"
-#include "os/input.h"
-#include "os/keyboard.h"
 #include "scene/2d/skeleton_2d.h"
 
 Node2D *Polygon2DEditor::_get_node() const {
@@ -767,6 +767,7 @@ void Polygon2DEditor::_uv_input(const Ref<InputEvent> &p_input) {
 						node->set_polygon(uv_new);
 					}
 				} break;
+				default: {}
 			}
 
 			if (bone_painting) {

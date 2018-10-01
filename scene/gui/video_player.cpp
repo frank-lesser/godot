@@ -31,7 +31,7 @@
 #include "video_player.h"
 #include "scene/scene_string_names.h"
 
-#include "os/os.h"
+#include "core/os/os.h"
 #include "servers/audio_server.h"
 
 int VideoPlayer::sp_get_channel_count() const {
@@ -101,6 +101,10 @@ void VideoPlayer::_mix_audio() {
 				target[j] += buffer[j] * vol;
 			}
 
+		} break;
+		case AudioServer::SPEAKER_SURROUND_31: {
+
+			// FIXME: Implement
 		} break;
 		case AudioServer::SPEAKER_SURROUND_51: {
 

@@ -30,16 +30,16 @@
 
 #include "scene_tree.h"
 
+#include "core/io/marshalls.h"
+#include "core/io/resource_loader.h"
+#include "core/message_queue.h"
+#include "core/os/keyboard.h"
+#include "core/os/os.h"
+#include "core/print_string.h"
+#include "core/project_settings.h"
 #include "editor/editor_node.h"
-#include "io/marshalls.h"
-#include "io/resource_loader.h"
 #include "main/input_default.h"
-#include "message_queue.h"
 #include "node.h"
-#include "os/keyboard.h"
-#include "os/os.h"
-#include "print_string.h"
-#include "project_settings.h"
 #include "scene/resources/dynamic_font.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
@@ -1197,6 +1197,9 @@ void SceneTree::_update_root_rect() {
 	}
 
 	switch (stretch_mode) {
+		case STRETCH_MODE_DISABLED: {
+			// Already handled above
+		} break;
 		case STRETCH_MODE_2D: {
 
 			root->set_size((screen_size / stretch_shrink).floor());
@@ -1602,7 +1605,7 @@ void SceneTree::_live_edit_duplicate_node_func(const NodePath &p_at, const Strin
 			continue;
 		Node *n2 = n->get_node(p_at);
 
-		Node *dup = n2->duplicate(true);
+		Node *dup = n2->duplicate(Node::DUPLICATE_SIGNALS | Node::DUPLICATE_GROUPS | Node::DUPLICATE_SCRIPTS);
 
 		if (!dup)
 			continue;
