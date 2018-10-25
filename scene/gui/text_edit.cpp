@@ -2331,9 +2331,9 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 				// no need to indent if we are going upwards.
 				if (auto_indent && !(k->get_command() && k->get_shift())) {
-					// indent once again if previous line will end with ':' or '{'
+					// indent once again if previous line will end with ':' or '{' and the line is not a comment
 					// (i.e. colon/brace precedes current cursor position)
-					if (cursor.column > 0 && (text[cursor.line][cursor.column - 1] == ':' || text[cursor.line][cursor.column - 1] == '{')) {
+					if (cursor.column > 0 && (text[cursor.line][cursor.column - 1] == ':' || text[cursor.line][cursor.column - 1] == '{') && !is_line_comment(cursor.line)) {
 						if (indent_using_spaces) {
 							ins += space_indent;
 						} else {
@@ -6232,6 +6232,7 @@ void TextEdit::_bind_methods() {
 	BIND_ENUM_CONSTANT(MENU_MAX);
 
 	GLOBAL_DEF("gui/timers/text_edit_idle_detect_sec", 3);
+	ProjectSettings::get_singleton()->set_custom_property_info("gui/timers/text_edit_idle_detect_sec", PropertyInfo(Variant::REAL, "gui/timers/text_edit_idle_detect_sec", PROPERTY_HINT_RANGE, "0,10,0.01,or_greater")); // No negative numbers
 }
 
 TextEdit::TextEdit() {

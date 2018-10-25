@@ -225,7 +225,7 @@ void FileSystemDock::_update_tree(const Vector<String> p_uncollapsed_paths, bool
 	updating_tree = false;
 }
 
-void FileSystemDock::_update_display_mode() {
+void FileSystemDock::_update_display_mode(bool p_force) {
 	// Compute the new display mode
 	DisplayMode new_display_mode;
 	if (display_mode_setting == DISPLAY_MODE_SETTING_TREE_ONLY) {
@@ -234,7 +234,7 @@ void FileSystemDock::_update_display_mode() {
 		new_display_mode = DISPLAY_MODE_SPLIT;
 	}
 
-	if (new_display_mode != display_mode || old_display_mode_setting != display_mode_setting) {
+	if (p_force || new_display_mode != display_mode || old_display_mode_setting != display_mode_setting) {
 		display_mode = new_display_mode;
 		old_display_mode_setting = display_mode_setting;
 		button_toggle_display_mode->set_pressed(display_mode_setting == DISPLAY_MODE_SETTING_SPLIT ? true : false);
@@ -352,6 +352,11 @@ void FileSystemDock::_notification(int p_what) {
 			tree->set_drop_mode_flags(0);
 
 		} break;
+		case NOTIFICATION_THEME_CHANGED: {
+			if (tree->is_visible_in_tree()) {
+				_update_display_mode(true);
+			}
+		} break;
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 			// Update icons
 			String ei = "EditorIcons";
@@ -360,6 +365,11 @@ void FileSystemDock::_notification(int p_what) {
 			button_tree->set_icon(get_icon("Filesystem", ei));
 			button_hist_next->set_icon(get_icon("Forward", ei));
 			button_hist_prev->set_icon(get_icon("Back", ei));
+			if (button_file_list_display_mode->is_pressed()) {
+				button_file_list_display_mode->set_icon(get_icon("FileThumbnail", "EditorIcons"));
+			} else {
+				button_file_list_display_mode->set_icon(get_icon("FileList", "EditorIcons"));
+			}
 
 			tree_search_box->set_right_icon(get_icon("Search", ei));
 			tree_search_box->set_clear_button_enabled(true);
@@ -412,7 +422,7 @@ void FileSystemDock::_tree_multi_selected(Object *p_item, int p_column, bool p_s
 		return;
 
 	TreeItem *favorites_item = tree->get_root()->get_children();
-	if (selected->get_parent() == favorites_item) {
+	if (selected->get_parent() == favorites_item && !String(selected->get_metadata(0)).ends_with("/")) {
 		// Go to the favorites if we click in the favorites and the path has changed
 		path = "Favorites";
 	} else {
@@ -1172,6 +1182,23 @@ void FileSystemDock::_update_project_settings_after_move(const Map<String, Strin
 			}
 		};
 	}
+
+	// Also search for the file in autoload, as they are stored differently from normal files.
+	List<PropertyInfo> property_list;
+	ProjectSettings::get_singleton()->get_property_list(&property_list);
+	for (const List<PropertyInfo>::Element *E = property_list.front(); E; E = E->next()) {
+		if (E->get().name.begins_with("autoload/")) {
+			// If the autoload resource paths has a leading "*", it indicates that it is a Singleton,
+			// so we have to handle both cases when updating.
+			String autoload = GLOBAL_GET(E->get().name);
+			String autoload_singleton = autoload.substr(1, autoload.length());
+			if (p_renames.has(autoload)) {
+				ProjectSettings::get_singleton()->set_setting(E->get().name, p_renames[autoload]);
+			} else if (autoload.begins_with("*") && p_renames.has(autoload_singleton)) {
+				ProjectSettings::get_singleton()->set_setting(E->get().name, "*" + p_renames[autoload_singleton]);
+			}
+		}
+	}
 	ProjectSettings::get_singleton()->save();
 }
 
@@ -1200,7 +1227,8 @@ void FileSystemDock::_make_dir_confirm() {
 	if (dir_name.length() == 0) {
 		EditorNode::get_singleton()->show_warning(TTR("No name provided"));
 		return;
-	} else if (dir_name.find("/") != -1 || dir_name.find("\\") != -1 || dir_name.find(":") != -1 || dir_name.ends_with(".") || dir_name.ends_with(" ")) {
+	} else if (dir_name.find("/") != -1 || dir_name.find("\\") != -1 || dir_name.find(":") != -1 || dir_name.find("*") != -1 ||
+			   dir_name.find("|") != -1 || dir_name.find(">") != -1 || dir_name.ends_with(".") || dir_name.ends_with(" ")) {
 		EditorNode::get_singleton()->show_warning(TTR("Provided name contains invalid characters"));
 		return;
 	}
