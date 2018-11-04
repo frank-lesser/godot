@@ -763,7 +763,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 
 				RECT r;
 				GetWindowRect(hWnd, &r);
-				dib_size = Size2(r.right - r.left, r.bottom - r.top);
+				dib_size = Size2i(r.right - r.left, r.bottom - r.top);
 
 				BITMAPINFO bmi;
 				ZeroMemory(&bmi, sizeof(BITMAPINFO));
@@ -773,7 +773,7 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 				bmi.bmiHeader.biPlanes = 1;
 				bmi.bmiHeader.biBitCount = 32;
 				bmi.bmiHeader.biCompression = BI_RGB;
-				bmi.bmiHeader.biSizeImage = dib_size.x, dib_size.y * 4;
+				bmi.bmiHeader.biSizeImage = dib_size.x * dib_size.y * 4;
 				hBitmap = CreateDIBSection(hDC_dib, &bmi, DIB_RGB_COLORS, (void **)&dib_data, NULL, 0x0);
 				SelectObject(hDC_dib, hBitmap);
 
@@ -1050,7 +1050,6 @@ static int QueryDpiForMonitor(HMONITOR hmon, _MonitorDpiType dpiType = MDT_Defau
 
 	UINT x = 0, y = 0;
 	HRESULT hr = E_FAIL;
-	bool bSet = false;
 	if (hmon && (Shcore != (HMODULE)INVALID_HANDLE_VALUE)) {
 		hr = getDPIForMonitor(hmon, dpiType /*MDT_Effective_DPI*/, &x, &y);
 		if (SUCCEEDED(hr) && (x > 0) && (y > 0)) {
@@ -1229,7 +1228,7 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 
 			printf("Error setting WNDPROC: %li\n", le);
 		};
-		LONG_PTR proc = GetWindowLongPtr(hWnd, GWLP_WNDPROC);
+		GetWindowLongPtr(hWnd, GWLP_WNDPROC);
 
 		RECT rect;
 		if (!GetClientRect(hWnd, &rect)) {
@@ -1335,24 +1334,9 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 
 	visual_server = memnew(VisualServerRaster);
 	if (get_render_thread_mode() != RENDER_THREAD_UNSAFE) {
-
 		visual_server = memnew(VisualServerWrapMT(visual_server, get_render_thread_mode() == RENDER_SEPARATE_THREAD));
 	}
 
-	/*
-		DEVMODE dmScreenSettings;					// Device Mode
-		memset(&dmScreenSettings,0,sizeof(dmScreenSettings));		// Makes Sure Memory's Cleared
-		dmScreenSettings.dmSize=sizeof(dmScreenSettings);		// Size Of The Devmode Structure
-		dmScreenSettings.dmPelsWidth	= width;			// Selected Screen Width
-		dmScreenSettings.dmPelsHeight	= height;			// Selected Screen Height
-		dmScreenSettings.dmBitsPerPel	= bits;				// Selected Bits Per Pixel
-		dmScreenSettings.dmFields=DM_BITSPERPEL|DM_PELSWIDTH|DM_PELSHEIGHT;
-		if (ChangeDisplaySettings(&dmScreenSettings,CDS_FULLSCREEN)!=DISP_CHANGE_SUCCESSFUL)
-
-
-
-
-  */
 	visual_server->init();
 
 	input = memnew(InputDefault);
@@ -1728,14 +1712,18 @@ void OS_Windows::set_window_position(const Point2 &p_position) {
 Size2 OS_Windows::get_window_size() const {
 
 	RECT r;
-	GetClientRect(hWnd, &r);
-	return Vector2(r.right - r.left, r.bottom - r.top);
+	if (GetClientRect(hWnd, &r)) { // Only area inside of window border
+		return Size2(r.right - r.left, r.bottom - r.top);
+	}
+	return Size2();
 }
 Size2 OS_Windows::get_real_window_size() const {
 
 	RECT r;
-	GetWindowRect(hWnd, &r);
-	return Vector2(r.right - r.left, r.bottom - r.top);
+	if (GetWindowRect(hWnd, &r)) { // Includes area of the window border
+		return Size2(r.right - r.left, r.bottom - r.top);
+	}
+	return Size2();
 }
 void OS_Windows::set_window_size(const Size2 p_size) {
 
@@ -2274,7 +2262,6 @@ void OS_Windows::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shap
 		ERR_FAIL_COND(!image.is_valid());
 
 		UINT image_size = texture_size.width * texture_size.height;
-		UINT size = sizeof(UINT) * image_size;
 
 		// Create the BITMAP with alpha channel
 		COLORREF *buffer = (COLORREF *)memalloc(sizeof(COLORREF) * image_size);
@@ -2745,11 +2732,6 @@ void OS_Windows::run() {
 		return;
 
 	main_loop->init();
-
-	uint64_t last_ticks = get_ticks_usec();
-
-	int frames = 0;
-	uint64_t frame = 0;
 
 	while (!force_quit) {
 

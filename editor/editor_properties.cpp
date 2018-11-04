@@ -1802,8 +1802,13 @@ void EditorPropertyNodePath::_node_selected(const NodePath &p_path) {
 
 	NodePath path = p_path;
 	Node *base_node = Object::cast_to<Node>(get_edited_object());
-	if (base_node == NULL && get_edited_object()->has_method("get_root_path")) {
-		base_node = get_edited_object()->call("get_root_path");
+	if (base_node == NULL) {
+		if (Object::cast_to<Resource>(get_edited_object())) {
+			Node *to_node = get_node(p_path);
+			path = get_tree()->get_edited_scene_root()->get_path_to(to_node);
+		} else if (get_edited_object()->has_method("get_root_path")) {
+			base_node = get_edited_object()->call("get_root_path");
+		}
 	}
 	if (base_node) { // for AnimationTrackKeyEdit
 		path = base_node->get_path().rel_path_to(p_path);
@@ -1859,6 +1864,12 @@ void EditorPropertyNodePath::update_property() {
 
 	Node *target_node = base_node->get_node(p);
 	ERR_FAIL_COND(!target_node);
+
+	if (String(target_node->get_name()).find("@") != -1) {
+		assign->set_icon(Ref<Texture>());
+		assign->set_text(p);
+		return;
+	}
 
 	assign->set_text(target_node->get_name());
 	assign->set_icon(EditorNode::get_singleton()->get_object_icon(target_node, "Node"));
@@ -2210,7 +2221,7 @@ void EditorPropertyResource::_update_menu() {
 		RES r = res;
 		if (r.is_valid() && r->get_path().is_resource_file()) {
 			menu->add_separator();
-			menu->add_item(TTR("Show in File System"), OBJ_MENU_SHOW_IN_FILE_SYSTEM);
+			menu->add_item(TTR("Show in FileSystem"), OBJ_MENU_SHOW_IN_FILE_SYSTEM);
 		}
 	} else {
 	}

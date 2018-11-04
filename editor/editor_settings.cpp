@@ -357,7 +357,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("text_editor/theme/color_theme", "Adaptive");
 	hints["text_editor/theme/color_theme"] = PropertyInfo(Variant::STRING, "text_editor/theme/color_theme", PROPERTY_HINT_ENUM, "Adaptive,Default,Custom");
 
-	_initial_set("text_editor/theme/line_spacing", 4);
+	_initial_set("text_editor/theme/line_spacing", 6);
 	_initial_set("text_editor/theme/selection_color", Color::html("40808080"));
 
 	_load_default_text_editor_theme();
@@ -410,7 +410,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("text_editor/completion/add_type_hints", false);
 
 	_initial_set("docks/scene_tree/start_create_dialog_fully_expanded", false);
-	_initial_set("docks/scene_tree/draw_relationship_lines", false);
+	_initial_set("docks/scene_tree/draw_relationship_lines", true);
 	_initial_set("docks/scene_tree/relationship_line_color", Color::html("464646"));
 
 	_initial_set("editors/grid_map/pick_distance", 5000.0);

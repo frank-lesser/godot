@@ -629,10 +629,8 @@ Rect2 Viewport::get_visible_rect() const {
 	Rect2 r;
 
 	if (size == Size2()) {
-
-		r = Rect2(Point2(), Size2(OS::get_singleton()->get_window_size().width, OS::get_singleton()->get_window_size().height));
+		r = Rect2(Point2(), OS::get_singleton()->get_window_size());
 	} else {
-
 		r = Rect2(Point2(), size);
 	}
 
@@ -1841,8 +1839,16 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				MenuButton *popup_menu_parent = NULL;
 				MenuButton *menu_button = Object::cast_to<MenuButton>(over);
 
-				if (popup_menu)
+				if (popup_menu) {
 					popup_menu_parent = Object::cast_to<MenuButton>(popup_menu->get_parent());
+					if (!popup_menu_parent) {
+						// Go through the parents to see if there's a MenuButton at the end.
+						while (Object::cast_to<PopupMenu>(popup_menu->get_parent())) {
+							popup_menu = Object::cast_to<PopupMenu>(popup_menu->get_parent());
+						}
+						popup_menu_parent = Object::cast_to<MenuButton>(popup_menu->get_parent());
+					}
+				}
 
 				// If the mouse is over a menu button, this menu will open automatically
 				// if there is already a pop-up menu open at the same hierarchical level.

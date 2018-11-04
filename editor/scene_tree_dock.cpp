@@ -53,6 +53,13 @@ void SceneTreeDock::_nodes_drag_begin() {
 	}
 }
 
+void SceneTreeDock::_quick_open() {
+	Vector<String> files = quick_open->get_selected_files();
+	for (int i = 0; i < files.size(); i++) {
+		instance(files[i]);
+	}
+}
+
 void SceneTreeDock::_input(Ref<InputEvent> p_event) {
 
 	Ref<InputEventMouseButton> mb = p_event;
@@ -319,16 +326,8 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				break;
 			}
 
-			file->set_mode(EditorFileDialog::MODE_OPEN_FILE);
-			List<String> extensions;
-			ResourceLoader::get_recognized_extensions_for_type("PackedScene", &extensions);
-			file->clear_filters();
-			for (int i = 0; i < extensions.size(); i++) {
-
-				file->add_filter("*." + extensions[i] + " ; " + extensions[i].to_upper());
-			}
-
-			file->popup_centered_ratio();
+			quick_open->popup_dialog("PackedScene", true);
+			quick_open->set_title(TTR("Instance Child Scene"));
 
 		} break;
 		case TOOL_REPLACE: {
@@ -359,15 +358,12 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					ScriptLanguage *l = ScriptServer::get_language(i);
 					if (l->get_type() == existing->get_class()) {
 						String name = l->get_global_class_name(existing->get_path());
-						if (ScriptServer::is_global_class(name)) {
-							if (EDITOR_GET("interface/editors/derive_script_globals_by_name").operator bool()) {
-								inherits = editor->get_editor_data().script_class_get_base(name);
-							} else if (l->can_inherit_from_file()) {
-								inherits = "\"" + existing->get_path() + "\"";
-							}
-						} else {
+						if (ScriptServer::is_global_class(name) && EDITOR_GET("interface/editors/derive_script_globals_by_name").operator bool()) {
+							inherits = name;
+						} else if (l->can_inherit_from_file()) {
 							inherits = "\"" + existing->get_path() + "\"";
 						}
+						break;
 					}
 				}
 			}
@@ -1504,6 +1500,7 @@ void SceneTreeDock::_script_created(Ref<Script> p_script) {
 	editor_data->get_undo_redo().commit_action();
 
 	editor->push_item(p_script.operator->());
+	_update_script_button();
 }
 
 void SceneTreeDock::_toggle_editable_children() {
@@ -1619,17 +1616,17 @@ void SceneTreeDock::_delete_confirm() {
 
 void SceneTreeDock::_update_script_button() {
 	if (EditorNode::get_singleton()->get_editor_selection()->get_selection().size() == 1) {
-		button_create_script->show();
 		Node *n = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list()[0];
 		if (n->get_script().is_null()) {
-			button_create_script->set_icon(get_icon("ScriptCreate", "EditorIcons"));
-			button_create_script->set_tooltip(TTR("Attach a new or existing script for the selected node."));
+			button_create_script->show();
+			button_clear_script->hide();
 		} else {
-			button_create_script->set_icon(get_icon("ScriptExtend", "EditorIcons"));
-			button_create_script->set_tooltip(TTR("Extend the selected node's script with a new or existing script."));
+			button_create_script->hide();
+			button_clear_script->show();
 		}
 	} else {
-		button_create_script->hide();
+		button_create_script->show();
+		button_clear_script->hide();
 	}
 }
 
@@ -2074,9 +2071,12 @@ void SceneTreeDock::_tree_rmb(const Vector2 &p_menu_pos) {
 		existing_script = selected->get_script();
 	}
 
-	menu->add_icon_shortcut(get_icon("ScriptCreate", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/attach_script"), TOOL_ATTACH_SCRIPT);
+	if (!existing_script.is_valid()) {
+		menu->add_icon_shortcut(get_icon("ScriptCreate", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/attach_script"), TOOL_ATTACH_SCRIPT);
+	}
 	if (selection.size() > 1 || existing_script.is_valid()) {
 		menu->add_icon_shortcut(get_icon("ScriptRemove", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/clear_script"), TOOL_CLEAR_SCRIPT);
+		menu->add_icon_shortcut(get_icon("ScriptExtend", "EditorIcons"), ED_GET_SHORTCUT("scene_tree/extend_script"), TOOL_ATTACH_SCRIPT);
 	}
 
 	menu->add_separator();
@@ -2303,6 +2303,7 @@ void SceneTreeDock::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_new_scene_from"), &SceneTreeDock::_new_scene_from);
 	ClassDB::bind_method(D_METHOD("_nodes_dragged"), &SceneTreeDock::_nodes_dragged);
 	ClassDB::bind_method(D_METHOD("_files_dropped"), &SceneTreeDock::_files_dropped);
+	ClassDB::bind_method(D_METHOD("_quick_open"), &SceneTreeDock::_quick_open);
 	ClassDB::bind_method(D_METHOD("_script_dropped"), &SceneTreeDock::_script_dropped);
 	ClassDB::bind_method(D_METHOD("_tree_rmb"), &SceneTreeDock::_tree_rmb);
 	ClassDB::bind_method(D_METHOD("_filter_changed"), &SceneTreeDock::_filter_changed);
@@ -2339,6 +2340,7 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 	ED_SHORTCUT("scene_tree/instance_scene", TTR("Instance Child Scene"));
 	ED_SHORTCUT("scene_tree/change_node_type", TTR("Change Type"));
 	ED_SHORTCUT("scene_tree/attach_script", TTR("Attach Script"));
+	ED_SHORTCUT("scene_tree/extend_script", TTR("Extend Script"));
 	ED_SHORTCUT("scene_tree/clear_script", TTR("Clear Script"));
 	ED_SHORTCUT("scene_tree/move_up", TTR("Move Up"), KEY_MASK_CMD | KEY_UP);
 	ED_SHORTCUT("scene_tree/move_down", TTR("Move Down"), KEY_MASK_CMD | KEY_DOWN);
@@ -2370,10 +2372,12 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 	filter->set_h_size_flags(SIZE_EXPAND_FILL);
 	filter->set_placeholder(TTR("Filter nodes"));
 	filter_hbc->add_child(filter);
+	filter->add_constant_override("minimum_spaces", 0);
 	filter->connect("text_changed", this, "_filter_changed");
 
 	tb = memnew(ToolButton);
 	tb->connect("pressed", this, "_tool_selected", make_binds(TOOL_ATTACH_SCRIPT, false));
+	tb->set_tooltip(TTR("Attach a new or existing script for the selected node."));
 	tb->set_shortcut(ED_GET_SHORTCUT("scene_tree/attach_script"));
 	filter_hbc->add_child(tb);
 	tb->hide();
@@ -2452,9 +2456,9 @@ SceneTreeDock::SceneTreeDock(EditorNode *p_editor, Node *p_scene_root, EditorSel
 	accept = memnew(AcceptDialog);
 	add_child(accept);
 
-	file = memnew(EditorFileDialog);
-	add_child(file);
-	file->connect("file_selected", this, "instance");
+	quick_open = memnew(EditorQuickOpen);
+	add_child(quick_open);
+	quick_open->connect("quick_open", this, "_quick_open");
 	set_process_unhandled_key_input(true);
 
 	delete_dialog = memnew(ConfirmationDialog);

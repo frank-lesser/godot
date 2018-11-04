@@ -38,6 +38,7 @@
 #include "editor/editor_about.h"
 #include "editor/editor_data.h"
 #include "editor/editor_export.h"
+#include "editor/editor_folding.h"
 #include "editor/editor_inspector.h"
 #include "editor/editor_log.h"
 #include "editor/editor_name_dialog.h"
@@ -271,6 +272,7 @@ private:
 
 	Ref<Theme> theme;
 
+	EditorDefaultClassValueCache *default_value_cache;
 	PopupMenu *recent_scenes;
 	SceneTreeDock *scene_tree_dock;
 	InspectorDock *inspector_dock;
@@ -385,6 +387,7 @@ private:
 	EditorSelection *editor_selection;
 	ProjectExportDialog *project_export;
 	EditorResourcePreview *resource_preview;
+	EditorFolding editor_folding;
 
 	EditorFileServer *file_server;
 
@@ -600,6 +603,9 @@ private:
 	PrintHandlerList print_handler;
 	static void _print_handler(void *p_this, const String &p_string, bool p_error);
 
+	static void _resource_saved(RES p_resource, const String &p_path);
+	static void _resource_loaded(RES p_resource, const String &p_path);
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -682,7 +688,7 @@ public:
 	void fix_dependencies(const String &p_for_file);
 	void clear_scene() { _cleanup_scene(); }
 	Error load_scene(const String &p_scene, bool p_ignore_broken_deps = false, bool p_set_inherited = false, bool p_clear_errors = true, bool p_force_open_imported = false);
-	Error load_resource(const String &p_scene);
+	Error load_resource(const String &p_resource, bool p_ignore_broken_deps = false);
 
 	bool is_scene_open(const String &p_path);
 
@@ -690,6 +696,7 @@ public:
 	void set_current_scene(int p_idx);
 
 	static EditorData &get_editor_data() { return singleton->editor_data; }
+	static EditorFolding &get_editor_folding() { return singleton->editor_folding; }
 	EditorHistory *get_editor_history() { return &editor_history; }
 
 	static VSplitContainer *get_top_split() { return singleton->top_split; }

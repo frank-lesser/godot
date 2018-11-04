@@ -144,6 +144,17 @@ String EditorExportPreset::get_include_filter() const {
 	return include_filter;
 }
 
+void EditorExportPreset::set_export_path(const String &p_path) {
+
+	export_path = p_path;
+	EditorExport::singleton->save_presets();
+}
+
+String EditorExportPreset::get_export_path() const {
+
+	return export_path;
+}
+
 void EditorExportPreset::set_exclude_filter(const String &p_exclude) {
 
 	exclude_filter = p_exclude;
@@ -213,6 +224,7 @@ String EditorExportPreset::get_custom_features() const {
 
 EditorExportPreset::EditorExportPreset() {
 
+	export_path = "";
 	export_filter = EXPORT_ALL_RESOURCES;
 	runnable = false;
 }
@@ -1034,6 +1046,7 @@ void EditorExport::_save() {
 		}
 		config->set_value(section, "include_filter", preset->get_include_filter());
 		config->set_value(section, "exclude_filter", preset->get_exclude_filter());
+		config->set_value(section, "export_path", preset->get_export_path());
 		config->set_value(section, "patch_list", preset->get_patches());
 
 		String option_section = "preset." + itos(i) + ".options";
@@ -1189,6 +1202,7 @@ void EditorExport::load_config() {
 
 		preset->set_include_filter(config->get_value(section, "include_filter"));
 		preset->set_exclude_filter(config->get_value(section, "exclude_filter"));
+		preset->set_export_path(config->get_value(section, "export_path", ""));
 
 		Vector<String> patch_list = config->get_value(section, "patch_list");
 
@@ -1337,18 +1351,21 @@ bool EditorExportPlatformPC::can_export(const Ref<EditorExportPreset> &p_preset,
 	return valid;
 }
 
-String EditorExportPlatformPC::get_binary_extension(const Ref<EditorExportPreset> &p_preset) const {
+List<String> EditorExportPlatformPC::get_binary_extensions(const Ref<EditorExportPreset> &p_preset) const {
+	List<String> list;
 	for (Map<String, String>::Element *E = extensions.front(); E; E = E->next()) {
 		if (p_preset->get(E->key())) {
-			return extensions[E->key()];
+			list.push_back(extensions[E->key()]);
+			return list;
 		}
 	}
 
 	if (extensions.has("default")) {
-		return extensions["default"];
+		list.push_back(extensions["default"]);
+		return list;
 	}
 
-	return "";
+	return list;
 }
 
 Error EditorExportPlatformPC::export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags) {
