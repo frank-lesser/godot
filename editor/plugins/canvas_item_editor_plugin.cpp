@@ -1696,13 +1696,7 @@ bool CanvasItemEditor::_gui_input_scale(const Ref<InputEvent> &p_event) {
 			if (drag_type == DRAG_SCALE_BOTH) {
 				Size2 scale_factor = drag_to_local / drag_from_local;
 				if (uniform) {
-					if (ABS(offset.x) > ABS(offset.y)) {
-						scale.x *= scale_factor.x;
-						scale.y = scale.x * ratio;
-					} else {
-						scale.y *= scale_factor.y;
-						scale.x = scale.y / ratio;
-					}
+					scale *= (scale_factor.x + scale_factor.y) / 2.0;
 				} else {
 					scale *= scale_factor;
 				}
