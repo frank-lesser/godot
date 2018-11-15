@@ -333,6 +333,7 @@ public:
 		virtual DataType get_datatype() const { return datatype_cache; }
 
 		VariableNode() {
+
 			type = TYPE_VARIABLE;
 			datatype_cache = TYPE_VOID;
 		}
@@ -534,6 +535,7 @@ public:
 	static String get_token_text(Token p_token);
 
 	static bool is_token_datatype(TokenType p_type);
+	static bool is_token_variable_datatype(TokenType p_type);
 	static DataType get_token_datatype(TokenType p_type);
 	static bool is_token_interpolation(TokenType p_type);
 	static DataInterpolation get_token_interpolation(TokenType p_type);
@@ -642,6 +644,12 @@ private:
 		const DataType args[MAX_ARGS];
 	};
 
+	struct BuiltinFuncOutArgs { //arguments used as out in built in funcions
+
+		const char *name;
+		int argument;
+	};
+
 	CompletionType completion_type;
 	int completion_line;
 	BlockNode *completion_block;
@@ -652,6 +660,7 @@ private:
 	bool _get_completable_identifier(BlockNode *p_block, CompletionType p_type, StringName &identifier);
 
 	static const BuiltinFuncDef builtin_func_defs[];
+	static const BuiltinFuncOutArgs builtin_func_out_args[];
 	bool _validate_function_call(BlockNode *p_block, OperatorNode *p_func, DataType *r_ret_type);
 
 	bool _parse_function_arguments(BlockNode *p_block, const Map<StringName, BuiltInInfo> &p_builtin_types, OperatorNode *p_func, int *r_complete_arg = NULL);

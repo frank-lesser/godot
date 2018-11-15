@@ -388,7 +388,7 @@ void Sprite3D::_draw() {
 		return;
 
 	Size2i s;
-	Rect2i src_rect;
+	Rect2 src_rect;
 
 	if (region) {
 
@@ -396,18 +396,18 @@ void Sprite3D::_draw() {
 		src_rect = region_rect;
 	} else {
 		s = texture->get_size();
-		s = s / Size2i(hframes, vframes);
+		s = s / Size2(hframes, vframes);
 
 		src_rect.size = s;
 		src_rect.position.x += (frame % hframes) * s.x;
 		src_rect.position.y += (frame / hframes) * s.y;
 	}
 
-	Point2i ofs = get_offset();
+	Point2 ofs = get_offset();
 	if (is_centered())
 		ofs -= s / 2;
 
-	Rect2i dst_rect(ofs, s);
+	Rect2 dst_rect(ofs, s);
 
 	Rect2 final_rect;
 	Rect2 final_src_rect;
@@ -612,7 +612,7 @@ Rect2 Sprite3D::get_item_rect() const {
 		s = s / Point2(hframes, vframes);
 	}
 
-	Point2i ofs = get_offset();
+	Point2 ofs = get_offset();
 	if (is_centered())
 		ofs -= s / 2;
 
@@ -699,15 +699,15 @@ void AnimatedSprite3D::_draw() {
 		return;
 
 	Size2i s = tsize;
-	Rect2i src_rect;
+	Rect2 src_rect;
 
 	src_rect.size = s;
 
-	Point2i ofs = get_offset();
+	Point2 ofs = get_offset();
 	if (is_centered())
 		ofs -= s / 2;
 
-	Rect2i dst_rect(ofs, s);
+	Rect2 dst_rect(ofs, s);
 
 	Rect2 final_rect;
 	Rect2 final_src_rect;
@@ -1078,10 +1078,10 @@ void AnimatedSprite3D::_bind_methods() {
 
 	ADD_SIGNAL(MethodInfo("frame_changed"));
 
-	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "frames", PROPERTY_HINT_RESOURCE_TYPE, "SpriteFrames"), "set_sprite_frames", "get_sprite_frames");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "frames", PROPERTY_HINT_RESOURCE_TYPE, "SpriteFrames"), "set_sprite_frames", "get_sprite_frames");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "animation"), "set_animation", "get_animation");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::INT, "frame", PROPERTY_HINT_SPRITE_FRAME), "set_frame", "get_frame");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "playing"), "_set_playing", "_is_playing");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "frame", PROPERTY_HINT_SPRITE_FRAME), "set_frame", "get_frame");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "playing"), "_set_playing", "_is_playing");
 }
 
 AnimatedSprite3D::AnimatedSprite3D() {

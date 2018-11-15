@@ -123,8 +123,6 @@ void CanvasItemMaterial::_update_shader() {
 		code += "\tfloat h_frames = float(particles_anim_h_frames);\n";
 		code += "\tfloat v_frames = float(particles_anim_v_frames);\n";
 
-		code += "\tVERTEX.xy /= TEXTURE_PIXEL_SIZE * vec2(h_frames, v_frames);\n";
-
 		code += "\tint total_frames = particles_anim_h_frames * particles_anim_v_frames;\n";
 		code += "\tint frame = int(float(total_frames) * INSTANCE_CUSTOM.z);\n";
 		code += "\tif (particles_anim_loop) {\n";
@@ -965,6 +963,15 @@ RID CanvasItem::get_canvas() const {
 		return get_viewport()->find_world_2d()->get_canvas();
 }
 
+ObjectID CanvasItem::get_canvas_layer_instance_id() const {
+
+	if (canvas_layer) {
+		return canvas_layer->get_instance_id();
+	} else {
+		return 0;
+	}
+}
+
 CanvasItem *CanvasItem::get_toplevel() const {
 
 	CanvasItem *ci = const_cast<CanvasItem *>(this);
@@ -1184,16 +1191,16 @@ void CanvasItem::_bind_methods() {
 	BIND_VMETHOD(MethodInfo("_draw"));
 
 	ADD_GROUP("Visibility", "");
-	ADD_PROPERTYNO(PropertyInfo(Variant::BOOL, "visible"), "set_visible", "is_visible");
-	ADD_PROPERTYNO(PropertyInfo(Variant::COLOR, "modulate"), "set_modulate", "get_modulate");
-	ADD_PROPERTYNO(PropertyInfo(Variant::COLOR, "self_modulate"), "set_self_modulate", "get_self_modulate");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "show_behind_parent"), "set_draw_behind_parent", "is_draw_behind_parent_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "visible"), "set_visible", "is_visible");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "modulate"), "set_modulate", "get_modulate");
+	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "self_modulate"), "set_self_modulate", "get_self_modulate");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_behind_parent"), "set_draw_behind_parent", "is_draw_behind_parent_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_on_top", PROPERTY_HINT_NONE, "", 0), "_set_on_top", "_is_on_top"); //compatibility
-	ADD_PROPERTYNO(PropertyInfo(Variant::INT, "light_mask", PROPERTY_HINT_LAYERS_2D_RENDER), "set_light_mask", "get_light_mask");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "light_mask", PROPERTY_HINT_LAYERS_2D_RENDER), "set_light_mask", "get_light_mask");
 
 	ADD_GROUP("Material", "");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::OBJECT, "material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial,CanvasItemMaterial"), "set_material", "get_material");
-	ADD_PROPERTYNZ(PropertyInfo(Variant::BOOL, "use_parent_material"), "set_use_parent_material", "get_use_parent_material");
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material", PROPERTY_HINT_RESOURCE_TYPE, "ShaderMaterial,CanvasItemMaterial"), "set_material", "get_material");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "use_parent_material"), "set_use_parent_material", "get_use_parent_material");
 	//exporting these things doesn't really make much sense i think
 	// ADD_PROPERTY(PropertyInfo(Variant::BOOL, "toplevel", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR), "set_as_toplevel", "is_set_as_toplevel");
 	// ADD_PROPERTY(PropertyInfo(Variant::BOOL,"transform/notify"),"set_transform_notify","is_transform_notify_enabled");

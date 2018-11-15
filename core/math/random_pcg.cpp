@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  net_solution.h                                                       */
+/*  random_pcg.cpp                                                       */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,31 +28,28 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef NET_SOLUTION_H
-#define NET_SOLUTION_H
+#include "random_pcg.h"
 
-#include "core/map.h"
-#include "core/ustring.h"
+#include "core/os/os.h"
 
-struct NETSolution {
-	String name;
+RandomPCG::RandomPCG(uint64_t seed, uint64_t inc) :
+		pcg() {
+	pcg.state = seed;
+	pcg.inc = inc;
+}
 
-	void add_new_project(const String &p_name, const String &p_guid, const Vector<String> &p_extra_configs = Vector<String>());
+void RandomPCG::randomize() {
+	seed(OS::get_singleton()->get_ticks_usec() * pcg.state + PCG_DEFAULT_INC_64);
+}
 
-	Error save();
+double RandomPCG::random(double from, double to) {
+	unsigned int r = rand();
+	double ret = (double)r / (double)RANDOM_MAX;
+	return (ret) * (to - from) + from;
+}
 
-	bool set_path(const String &p_existing_path);
-
-	NETSolution(const String &p_name);
-
-private:
-	struct ProjectInfo {
-		String guid;
-		Vector<String> configs;
-	};
-
-	String path;
-	Map<String, ProjectInfo> projects;
-};
-
-#endif // NET_SOLUTION_H
+float RandomPCG::random(float from, float to) {
+	unsigned int r = rand();
+	float ret = (float)r / (float)RANDOM_MAX;
+	return (ret) * (to - from) + from;
+}
