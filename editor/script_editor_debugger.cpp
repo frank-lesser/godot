@@ -602,6 +602,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 
 			String n = p_data[ofs + i * 2 + 0];
 			Variant v = p_data[ofs + i * 2 + 1];
+
 			PropertyHint h = PROPERTY_HINT_NONE;
 			String hs = String();
 
@@ -1041,8 +1042,11 @@ void ScriptEditorDebugger::_notification(int p_what) {
 			if (enable_rl) {
 				inspect_scene_tree->add_constant_override("draw_relationship_lines", 1);
 				inspect_scene_tree->add_color_override("relationship_line_color", rl_color);
-			} else
+				inspect_scene_tree->add_constant_override("draw_guides", 0);
+			} else {
 				inspect_scene_tree->add_constant_override("draw_relationship_lines", 0);
+				inspect_scene_tree->add_constant_override("draw_guides", 1);
+			}
 		} break;
 		case NOTIFICATION_PROCESS: {
 

@@ -213,11 +213,11 @@ RasterizerStorageGLES3::Texture *RasterizerCanvasGLES3::_bind_canvas_texture(con
 
 		} else {
 
+			texture = texture->get_ptr();
+
 			if (texture->redraw_if_visible) { //check before proxy, because this is usually used with proxies
 				VisualServerRaster::redraw_request();
 			}
-
-			texture = texture->get_ptr();
 
 			if (texture->render_target)
 				texture->render_target->used_in_frame = true;
@@ -254,11 +254,12 @@ RasterizerStorageGLES3::Texture *RasterizerCanvasGLES3::_bind_canvas_texture(con
 
 		} else {
 
+			normal_map = normal_map->get_ptr();
+
 			if (normal_map->redraw_if_visible) { //check before proxy, because this is usually used with proxies
 				VisualServerRaster::redraw_request();
 			}
 
-			normal_map = normal_map->get_ptr();
 			glActiveTexture(GL_TEXTURE1);
 			glBindTexture(GL_TEXTURE_2D, normal_map->tex_id);
 			state.current_normal = p_normal_map;
@@ -1220,8 +1221,6 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 
 	bool rebind_shader = true;
 
-	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_DISTANCE_FIELD, false);
-
 	glBindBuffer(GL_UNIFORM_BUFFER, state.canvas_item_ubo);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(CanvasItemUBO), &state.canvas_item_ubo_data, GL_DYNAMIC_DRAW);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
@@ -1339,7 +1338,7 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 					last_blend_mode = last_blend_mode != RasterizerStorageGLES3::Shader::CanvasItem::BLEND_MODE_DISABLED ? last_blend_mode : -1;
 				}
 
-				if (shader_ptr != shader_cache) {
+				if (shader_ptr != shader_cache || rebind_shader) {
 
 					if (shader_ptr->canvas_item.uses_time) {
 						VisualServerRaster::redraw_request();
@@ -1385,11 +1384,11 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 						continue;
 					}
 
+					t = t->get_ptr();
+
 					if (t->redraw_if_visible) { //check before proxy, because this is usually used with proxies
 						VisualServerRaster::redraw_request();
 					}
-
-					t = t->get_ptr();
 
 					if (storage->config.srgb_decode_supported && t->using_srgb) {
 						//no srgb in 2D
@@ -1656,6 +1655,14 @@ void RasterizerCanvasGLES3::canvas_render_items(Item *p_item_list, int p_z, cons
 	if (current_clip) {
 		glDisable(GL_SCISSOR_TEST);
 	}
+	//disable states that may have been used
+	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_DISTANCE_FIELD, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_SKELETON, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_INSTANCE_CUSTOM, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_PARTICLES, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_INSTANCING, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_LIGHTING, false);
+	state.canvas_shader.set_conditional(CanvasShaderGLES3::USE_SHADOWS, false);
 }
 
 void RasterizerCanvasGLES3::canvas_debug_viewport_shadows(Light *p_lights_with_shadow) {

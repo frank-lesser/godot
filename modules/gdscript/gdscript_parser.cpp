@@ -3752,6 +3752,19 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 				BlockNode *block = alloc_node<BlockNode>();
 				block->parent_class = p_class;
 
+				FunctionNode *function = alloc_node<FunctionNode>();
+				function->name = name;
+				function->arguments = arguments;
+				function->argument_types = argument_types;
+				function->default_values = default_values;
+				function->_static = _static;
+				function->line = fnline;
+#ifdef DEBUG_ENABLED
+				function->arguments_usage = arguments_usage;
+#endif // DEBUG_ENABLED
+				function->rpc_mode = rpc_mode;
+				rpc_mode = MultiplayerAPI::RPC_MODE_DISABLED;
+
 				if (name == "_init") {
 
 					if (_static) {
@@ -3782,7 +3795,9 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 								parenthesis++;
 								while (true) {
 
+									current_function = function;
 									Node *arg = _parse_and_reduce_expression(p_class, _static);
+									current_function = NULL;
 									cparent->arguments.push_back(arg);
 
 									if (tokenizer->get_token() == GDScriptTokenizer::TK_COMMA) {
@@ -3826,19 +3841,7 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 					return;
 				}
 
-				FunctionNode *function = alloc_node<FunctionNode>();
-				function->name = name;
 				function->return_type = return_type;
-				function->arguments = arguments;
-				function->argument_types = argument_types;
-				function->default_values = default_values;
-				function->_static = _static;
-				function->line = fnline;
-#ifdef DEBUG_ENABLED
-				function->arguments_usage = arguments_usage;
-#endif // DEBUG_ENABLED
-				function->rpc_mode = rpc_mode;
-				rpc_mode = MultiplayerAPI::RPC_MODE_DISABLED;
 
 				if (_static)
 					p_class->static_functions.push_back(function);
@@ -6432,6 +6435,10 @@ bool GDScriptParser::_get_function_signature(DataType &p_base_type, const String
 	StringName native;
 	if (p_base_type.kind == DataType::GDSCRIPT) {
 		base_gdscript = p_base_type.script_type;
+		if (base_gdscript.is_null() || !base_gdscript->is_valid()) {
+			// GDScript wasn't properly compíled, don't bother trying
+			return false;
+		}
 	} else if (p_base_type.kind == DataType::SCRIPT) {
 		base_script = p_base_type.script_type;
 	} else if (p_base_type.kind == DataType::NATIVE) {
@@ -6470,6 +6477,12 @@ bool GDScriptParser::_get_function_signature(DataType &p_base_type, const String
 			return true;
 		}
 		base_script = base_script->get_base_script();
+	}
+
+	if (native == StringName()) {
+		// Empty native class, might happen in some Script implementations
+		// Just ignore it
+		return false;
 	}
 
 #ifdef DEBUG_METHODS_ENABLED
@@ -6914,6 +6927,10 @@ bool GDScriptParser::_get_member_type(const DataType &p_base_type, const StringN
 	Ref<GDScript> gds;
 	if (base_type.kind == DataType::GDSCRIPT) {
 		gds = base_type.script_type;
+		if (gds.is_null() || !gds->is_valid()) {
+			// GDScript wasn't properly compíled, don't bother trying
+			return false;
+		}
 	}
 
 	Ref<Script> scr;
@@ -6974,6 +6991,12 @@ bool GDScriptParser::_get_member_type(const DataType &p_base_type, const StringN
 		base_type = _type_from_variant(scr.operator Variant());
 		native = scr->get_instance_base_type();
 		scr = scr->get_base_script();
+	}
+
+	if (native == StringName()) {
+		// Empty native class, might happen in some Script implementations
+		// Just ignore it
+		return false;
 	}
 
 	// Check ClassDB

@@ -80,7 +80,6 @@ public:
 		TK_TYPE_USAMPLER3D,
 		TK_TYPE_SAMPLERCUBE,
 		TK_INTERPOLATION_FLAT,
-		TK_INTERPOLATION_NO_PERSPECTIVE,
 		TK_INTERPOLATION_SMOOTH,
 		TK_PRECISION_LOW,
 		TK_PRECISION_MID,
@@ -210,7 +209,6 @@ public:
 
 	enum DataInterpolation {
 		INTERPOLATION_FLAT,
-		INTERPOLATION_NO_PERSPECTIVE,
 		INTERPOLATION_SMOOTH,
 	};
 
@@ -550,7 +548,7 @@ public:
 	static int get_cardinality(DataType p_type);
 	static bool is_scalar_type(DataType p_type);
 	static bool is_sampler_type(DataType p_type);
-	static Variant constant_value_to_variant(const Vector<ShaderLanguage::ConstantNode::Value> &p_value, DataType p_type);
+	static Variant constant_value_to_variant(const Vector<ShaderLanguage::ConstantNode::Value> &p_value, DataType p_type, ShaderLanguage::ShaderNode::Uniform::Hint p_hint = ShaderLanguage::ShaderNode::Uniform::HINT_NONE);
 
 	static void get_keyword_list(List<String> *r_keywords);
 	static void get_builtin_funcs(List<String> *r_keywords);

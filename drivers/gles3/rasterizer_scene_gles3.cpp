@@ -1190,11 +1190,12 @@ bool RasterizerSceneGLES3::_setup_material(RasterizerStorageGLES3::Material *p_m
 
 		if (t) {
 
+			t = t->get_ptr(); //resolve for proxies
+
 			if (t->redraw_if_visible) { //must check before proxy because this is often used with proxies
 				VisualServerRaster::redraw_request();
 			}
 
-			t = t->get_ptr(); //resolve for proxies
 #ifdef TOOLS_ENABLED
 			if (t->detect_3d) {
 				t->detect_3d(t->detect_3d_ud);
@@ -2222,7 +2223,6 @@ void RasterizerSceneGLES3::_render_list(RenderList::Element **p_elements, int p_
 
 		_set_cull(e->sort_key & RenderList::SORT_KEY_MIRROR_FLAG, e->sort_key & RenderList::SORT_KEY_CULL_DISABLED_FLAG, p_reverse_cull);
 
-		state.scene_shader.set_uniform(SceneShaderGLES3::NORMAL_MULT, e->instance->mirror ? -1.0 : 1.0);
 		state.scene_shader.set_uniform(SceneShaderGLES3::WORLD_TRANSFORM, e->instance->transform);
 
 		_render_geometry(e);
@@ -3039,20 +3039,17 @@ void RasterizerSceneGLES3::_setup_reflections(RID *p_reflection_probe_cull_resul
 			reflection_ubo.ambient[3] = rpi->probe_ptr->interior_ambient_probe_contrib;
 		} else {
 			Color ambient_linear;
-			// FIXME: contrib was retrieved but never used, is it meant to be set as ambient[3]? (GH-20361)
-			//float contrib = 0;
 			if (p_env) {
 				ambient_linear = p_env->ambient_color.to_linear();
 				ambient_linear.r *= p_env->ambient_energy;
 				ambient_linear.g *= p_env->ambient_energy;
 				ambient_linear.b *= p_env->ambient_energy;
-				//contrib = p_env->ambient_sky_contribution;
 			}
 
 			reflection_ubo.ambient[0] = ambient_linear.r;
 			reflection_ubo.ambient[1] = ambient_linear.g;
 			reflection_ubo.ambient[2] = ambient_linear.b;
-			reflection_ubo.ambient[3] = 0;
+			reflection_ubo.ambient[3] = 0; //not used in exterior mode, since it just blends with regular ambient light
 		}
 
 		int cell_size = reflection_atlas->size / reflection_atlas->subdiv;
@@ -3599,7 +3596,7 @@ void RasterizerSceneGLES3::_post_process(Environment *env, const CameraMatrix &p
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 	}
 
-	if (!env || storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT]) {
+	if (!env || storage->frame.current_rt->flags[RasterizerStorage::RENDER_TARGET_TRANSPARENT] || storage->frame.current_rt->width < 4 || storage->frame.current_rt->height < 4) { //no post process on small render targets
 		//no environment or transparent render, simply return and convert to SRGB
 		glBindFramebuffer(GL_FRAMEBUFFER, storage->frame.current_rt->fbo);
 		glActiveTexture(GL_TEXTURE0);
@@ -4297,8 +4294,10 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 		glClearBufferfv(GL_COLOR, 0, clear_color.components); // specular
 	}
 
+	VS::EnvironmentBG bg_mode = (!env || (probe && env->bg_mode == VS::ENV_BG_CANVAS)) ? VS::ENV_BG_CLEAR_COLOR : env->bg_mode; //if no environment, or canvas while rendering a probe (invalid use case), use color.
+
 	if (env) {
-		switch (env->bg_mode) {
+		switch (bg_mode) {
 			case VS::ENV_BG_COLOR_SKY:
 			case VS::ENV_BG_SKY:
 
@@ -4339,6 +4338,10 @@ void RasterizerSceneGLES3::render_scene(const Transform &p_cam_transform, const 
 				break;
 			default: {}
 		}
+	}
+
+	if (probe && probe->probe_ptr->interior) {
+		env_radiance_tex = 0; //for rendering probe interiors, radiance must not be used.
 	}
 
 	state.texscreen_copied = false;

@@ -131,7 +131,6 @@ const char *ShaderLanguage::token_names[TK_MAX] = {
 	"TYPE_USAMPLER3D",
 	"TYPE_SAMPLERCUBE",
 	"INTERPOLATION_FLAT",
-	"INTERPOLATION_NO_PERSPECTIVE",
 	"INTERPOLATION_SMOOTH",
 	"PRECISION_LOW",
 	"PRECISION_MID",
@@ -271,7 +270,6 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_TYPE_USAMPLER3D, "usampler3D" },
 	{ TK_TYPE_SAMPLERCUBE, "samplerCube" },
 	{ TK_INTERPOLATION_FLAT, "flat" },
-	{ TK_INTERPOLATION_NO_PERSPECTIVE, "noperspective" },
 	{ TK_INTERPOLATION_SMOOTH, "smooth" },
 	{ TK_PRECISION_LOW, "lowp" },
 	{ TK_PRECISION_MID, "mediump" },
@@ -759,7 +757,6 @@ bool ShaderLanguage::is_token_interpolation(TokenType p_type) {
 
 	return (
 			p_type == TK_INTERPOLATION_FLAT ||
-			p_type == TK_INTERPOLATION_NO_PERSPECTIVE ||
 			p_type == TK_INTERPOLATION_SMOOTH);
 }
 
@@ -767,8 +764,6 @@ ShaderLanguage::DataInterpolation ShaderLanguage::get_token_interpolation(TokenT
 
 	if (p_type == TK_INTERPOLATION_FLAT)
 		return INTERPOLATION_FLAT;
-	else if (p_type == TK_INTERPOLATION_NO_PERSPECTIVE)
-		return INTERPOLATION_NO_PERSPECTIVE;
 	else
 		return INTERPOLATION_SMOOTH;
 }
@@ -2353,7 +2348,7 @@ bool ShaderLanguage::is_sampler_type(DataType p_type) {
 		   p_type == TYPE_SAMPLERCUBE;
 }
 
-Variant ShaderLanguage::constant_value_to_variant(const Vector<ShaderLanguage::ConstantNode::Value> &p_value, DataType p_type) {
+Variant ShaderLanguage::constant_value_to_variant(const Vector<ShaderLanguage::ConstantNode::Value> &p_value, DataType p_type, ShaderLanguage::ShaderNode::Uniform::Hint p_hint) {
 	if (p_value.size() > 0) {
 		Variant value;
 		switch (p_type) {
@@ -2397,7 +2392,11 @@ Variant ShaderLanguage::constant_value_to_variant(const Vector<ShaderLanguage::C
 				value = Variant(Vector3(p_value[0].real, p_value[1].real, p_value[2].real));
 				break;
 			case ShaderLanguage::TYPE_VEC4:
-				value = Variant(Plane(p_value[0].real, p_value[1].real, p_value[2].real, p_value[3].real));
+				if (p_hint == ShaderLanguage::ShaderNode::Uniform::HINT_COLOR) {
+					value = Variant(Color(p_value[0].real, p_value[1].real, p_value[2].real, p_value[3].real));
+				} else {
+					value = Variant(Plane(p_value[0].real, p_value[1].real, p_value[2].real, p_value[3].real));
+				}
 				break;
 			case ShaderLanguage::TYPE_MAT2:
 				value = Variant(Transform2D(p_value[0].real, p_value[2].real, p_value[1].real, p_value[3].real, 0.0, 0.0));

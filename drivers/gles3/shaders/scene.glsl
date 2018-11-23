@@ -42,8 +42,6 @@ layout(location = 4) in vec2 uv_attrib;
 layout(location = 5) in vec2 uv2_attrib;
 #endif
 
-uniform float normal_mult;
-
 #ifdef USE_SKELETON
 layout(location = 6) in uvec4 bone_indices; // attrib:6
 layout(location = 7) in vec4 bone_weights; // attrib:7
@@ -280,11 +278,10 @@ void main() {
 	}
 #endif
 
-	vec3 normal = normal_attrib * normal_mult;
+	vec3 normal = normal_attrib;
 
 #if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
 	vec3 tangent = tangent_attrib.xyz;
-	tangent *= normal_mult;
 	float binormalf = tangent_attrib.a;
 #endif
 
@@ -1106,9 +1103,9 @@ LIGHT_SHADER_CODE
 		float Fr = mix(.04, 1.0, cLdotH5);
 		float Gr = G_GGX_2cos(cNdotL, .25) * G_GGX_2cos(cNdotV, .25);
 
-		float specular_brdf_NL = 0.25 * clearcoat * Gr * Fr * Dr * cNdotL;
+		float clearcoat_specular_brdf_NL = 0.25 * clearcoat * Gr * Fr * Dr * cNdotL;
 
-		specular_light += specular_brdf_NL * light_color * specular_blob_intensity * attenuation;
+		specular_light += clearcoat_specular_brdf_NL * light_color * specular_blob_intensity * attenuation;
 #endif
 	}
 
@@ -1507,7 +1504,7 @@ void gi_probe_compute(mediump sampler3D probe, mat4 probe_xform, vec3 bounds, ve
 
 	//irradiance
 
-	vec3 irr_light = voxel_cone_trace(probe, cell_size, probe_pos, environment, blend_ambient, ref_vec, max(min_ref_tan, tan(roughness * 0.5 * M_PI)), max_distance, p_bias);
+	vec3 irr_light = voxel_cone_trace(probe, cell_size, probe_pos, environment, blend_ambient, ref_vec, max(min_ref_tan, tan(roughness * 0.5 * M_PI * 0.99)), max_distance, p_bias);
 
 	irr_light *= multiplier;
 	//irr_light=vec3(0.0);
@@ -1588,24 +1585,24 @@ void main() {
 
 	float alpha = 1.0;
 
-#if defined(DO_SIDE_CHECK)
-	float side = gl_FrontFacing ? 1.0 : -1.0;
-#else
-	float side = 1.0;
-#endif
-
 #if defined(ALPHA_SCISSOR_USED)
 	float alpha_scissor = 0.5;
 #endif
 
 #if defined(ENABLE_TANGENT_INTERP) || defined(ENABLE_NORMALMAP) || defined(LIGHT_USE_ANISOTROPY)
-	vec3 binormal = normalize(binormal_interp) * side;
-	vec3 tangent = normalize(tangent_interp) * side;
+	vec3 binormal = normalize(binormal_interp);// * side;
+	vec3 tangent = normalize(tangent_interp);// * side;
 #else
 	vec3 binormal = vec3(0.0);
 	vec3 tangent = vec3(0.0);
 #endif
-	vec3 normal = normalize(normal_interp) * side;
+	vec3 normal = normalize(normal_interp);
+
+#if defined(DO_SIDE_CHECK)
+	if (!gl_FrontFacing) {
+		normal = -normal;
+	}
+#endif
 
 #if defined(ENABLE_UV_INTERP)
 	vec2 uv = uv_interp;
@@ -1661,7 +1658,7 @@ FRAGMENT_SHADER_CODE
 	normalmap.xy = normalmap.xy * 2.0 - 1.0;
 	normalmap.z = sqrt(max(0.0, 1.0 - dot(normalmap.xy, normalmap.xy))); //always ignore Z, as it can be RG packed, Z may be pos/neg, etc.
 
-	normal = normalize(mix(normal_interp, tangent * normalmap.x + binormal * normalmap.y + normal * normalmap.z, normaldepth)) * side;
+	normal = normalize(mix(normal, tangent * normalmap.x + binormal * normalmap.y + normal * normalmap.z, normaldepth));
 
 #endif
 

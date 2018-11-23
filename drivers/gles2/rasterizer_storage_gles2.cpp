@@ -1497,8 +1497,9 @@ Variant RasterizerStorageGLES2::material_get_param_default(RID p_material, const
 
 	if (material->shader) {
 		if (material->shader->uniforms.has(p_param)) {
-			Vector<ShaderLanguage::ConstantNode::Value> default_value = material->shader->uniforms[p_param].default_value;
-			return ShaderLanguage::constant_value_to_variant(default_value, material->shader->uniforms[p_param].type);
+			ShaderLanguage::ShaderNode::Uniform uniform = material->shader->uniforms[p_param];
+			Vector<ShaderLanguage::ConstantNode::Value> default_value = uniform.default_value;
+			return ShaderLanguage::constant_value_to_variant(default_value, uniform.type, uniform.hint);
 		}
 	}
 	return Variant();
@@ -3839,6 +3840,10 @@ RID RasterizerStorageGLES2::particles_get_draw_pass_mesh(RID p_particles, int p_
 }
 
 void RasterizerStorageGLES2::update_particles() {
+}
+
+bool RasterizerStorageGLES2::particles_is_inactive(RID p_particles) const {
+	return true;
 }
 
 ////////

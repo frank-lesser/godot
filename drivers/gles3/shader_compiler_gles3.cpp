@@ -133,8 +133,7 @@ static String _interpstr(SL::DataInterpolation p_interp) {
 
 	switch (p_interp) {
 		case SL::INTERPOLATION_FLAT: return "flat ";
-		case SL::INTERPOLATION_NO_PERSPECTIVE: return "noperspective ";
-		case SL::INTERPOLATION_SMOOTH: return "smooth ";
+		case SL::INTERPOLATION_SMOOTH: return "";
 	}
 	return "";
 }
@@ -173,10 +172,11 @@ static String _mkid(const String &p_id) {
 
 static String f2sp0(float p_float) {
 
-	if (int(p_float) == p_float)
-		return itos(p_float) + ".0";
-	else
-		return rtoss(p_float);
+	String num = rtoss(p_float);
+	if (num.find(".") == -1 && num.find("e") == -1) {
+		num += ".0";
+	}
+	return num;
 }
 
 static String get_constant_text(SL::DataType p_type, const Vector<SL::ConstantNode::Value> &p_values) {
@@ -229,7 +229,7 @@ static String get_constant_text(SL::DataType p_type, const Vector<SL::ConstantNo
 			text += ")";
 			return text;
 		} break;
-		case SL::TYPE_FLOAT: return f2sp0(p_values[0].real) + "f";
+		case SL::TYPE_FLOAT: return f2sp0(p_values[0].real);
 		case SL::TYPE_VEC2:
 		case SL::TYPE_VEC3:
 		case SL::TYPE_VEC4: {

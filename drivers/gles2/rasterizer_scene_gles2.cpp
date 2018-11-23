@@ -605,7 +605,6 @@ bool RasterizerSceneGLES2::reflection_probe_instance_postprocess_step(RID p_inst
 
 	size >>= 1;
 	int mipmaps = 6;
-	int mm_level = mipmaps - 1;
 
 	storage->shaders.cubemap_filter.set_conditional(CubemapFilterShaderGLES2::USE_SOURCE_PANORAMA, false);
 	storage->shaders.cubemap_filter.bind();
@@ -627,8 +626,6 @@ bool RasterizerSceneGLES2::reflection_probe_instance_postprocess_step(RID p_inst
 		}
 
 		size >>= 1;
-
-		mm_level--;
 
 		lod++;
 	}
@@ -2339,7 +2336,6 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 			state.scene_shader.set_uniform(SceneShaderGLES2::TIME, storage->frame.time[0]);
 
 			state.scene_shader.set_uniform(SceneShaderGLES2::SCREEN_PIXEL_SIZE, screen_pixel_size);
-			state.scene_shader.set_uniform(SceneShaderGLES2::NORMAL_MULT, 1.0); // TODO mirror?
 		}
 
 		if (rebind_light && light) {
@@ -2498,6 +2494,7 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 	Environment *env = NULL;
 
 	int viewport_width, viewport_height;
+	bool probe_interior = false;
 
 	if (p_reflection_probe.is_valid()) {
 		ReflectionProbeInstance *probe = reflection_probe_instance_owner.getornull(p_reflection_probe);
@@ -2514,6 +2511,8 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 
 		viewport_width = probe->probe_ptr->resolution;
 		viewport_height = probe->probe_ptr->resolution;
+
+		probe_interior = probe->probe_ptr->interior;
 
 	} else {
 		state.render_no_shadows = false;
@@ -2623,6 +2622,10 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 		if (sky && sky->panorama.is_valid()) {
 			_draw_sky(sky, p_cam_projection, p_cam_transform, false, env->sky_custom_fov, env->bg_energy);
 		}
+	}
+
+	if (probe_interior) {
+		env_radiance_tex = 0; //do not use radiance texture on interiors
 	}
 
 	// render opaque things first
