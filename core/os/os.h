@@ -242,7 +242,8 @@ public:
 
 	virtual void set_ime_active(const bool p_active) {}
 	virtual void set_ime_position(const Point2 &p_pos) {}
-	virtual void set_ime_intermediate_text_callback(ImeCallback p_callback, void *p_inp) {}
+	virtual Point2 get_ime_selection() const { return Point2(); }
+	virtual String get_ime_text() const { return String(); }
 
 	virtual Error open_dynamic_library(const String p_path, void *&p_library_handle, bool p_also_set_library_path = false) { return ERR_UNAVAILABLE; }
 	virtual Error close_dynamic_library(void *p_library_handle) { return ERR_UNAVAILABLE; }
@@ -480,6 +481,7 @@ public:
 	enum EngineContext {
 		CONTEXT_EDITOR,
 		CONTEXT_PROJECTMAN,
+		CONTEXT_ENGINE,
 	};
 
 	virtual void set_context(int p_context);
