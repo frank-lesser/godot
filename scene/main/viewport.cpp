@@ -435,7 +435,7 @@ void Viewport::_notification(int p_what) {
 						}
 					}
 
-					if (!has_mouse_motion) {
+					if (!has_mouse_motion && physics_has_last_mousepos) {
 						Ref<InputEventMouseMotion> mm;
 						mm.instance();
 						mm->set_global_position(physics_last_mousepos);
@@ -465,6 +465,7 @@ void Viewport::_notification(int p_what) {
 
 						pos = mm->get_position();
 						motion_tested = true;
+						physics_has_last_mousepos = true;
 						physics_last_mousepos = pos;
 						physics_last_mouse_state.alt = mm->get_alt();
 						physics_last_mouse_state.shift = mm->get_shift();
@@ -643,7 +644,7 @@ void Viewport::_notification(int p_what) {
 					}
 				}
 
-				if (!motion_tested && camera && physics_last_mousepos != Vector2(1e20, 1e20)) {
+				if (!motion_tested && camera && physics_has_last_mousepos) {
 
 					//test anyway for mouseenter/exit because objects might move
 					Vector3 from = camera->project_ray_origin(physics_last_mousepos);
@@ -1727,6 +1728,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 
 				gui.mouse_focus = _gui_find_control(pos);
 				gui.mouse_focus_mask = 1 << (mb->get_button_index() - 1);
+				gui.last_mouse_focus = gui.mouse_focus;
 
 				if (!gui.mouse_focus) {
 					return;
@@ -2114,14 +2116,14 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				set_input_as_handled();
 				return;
 			}
-		} else if (gui.mouse_focus) {
+		} else if (touch_event->get_index() == 0 && gui.last_mouse_focus) {
 
-			if (gui.mouse_focus->can_process()) {
+			if (gui.last_mouse_focus->can_process()) {
 
 				touch_event = touch_event->xformed_by(Transform2D()); //make a copy
 				touch_event->set_position(gui.focus_inv_xform.xform(pos));
 
-				_gui_call_input(gui.mouse_focus, touch_event);
+				_gui_call_input(gui.last_mouse_focus, touch_event);
 			}
 			set_input_as_handled();
 			return;
@@ -3104,7 +3106,8 @@ Viewport::Viewport() {
 	physics_object_picking = false;
 	physics_object_capture = 0;
 	physics_object_over = 0;
-	physics_last_mousepos = Vector2(1e20, 1e20);
+	physics_has_last_mousepos = false;
+	physics_last_mousepos = Vector2(Math_INF, Math_INF);
 
 	shadow_atlas_size = 0;
 	for (int i = 0; i < 4; i++) {
