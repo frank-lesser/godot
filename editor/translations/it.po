@@ -1,6 +1,6 @@
 # Italian translation of the Godot Engine editor
-# Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.
-# Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)
+# Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.
+# Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)
 # This file is distributed under the same license as the Godot source code.
 # Alessio Corridori <alessiocorridori@hotmail.com>, 2018.
 # Dario Bonfanti <bonfi.96@hotmail.it>, 2016-2017.
@@ -23,12 +23,14 @@
 # xxssmaoxx <simon.dottor@gmail.com>, 2018.
 # Nicola Gramola <nicola.gramola@gmail.com>, 2018.
 # Davide Wayan Mores <moresdavidewayan@gmail.com>, 2018.
+# Alessandro Zoppi <alessandro.zoppi@live.it>, 2019.
+# Hairic95 <hairic95@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2018-12-13 14:40+0100\n"
-"Last-Translator: Davide Wayan Mores <moresdavidewayan@gmail.com>\n"
+"PO-Revision-Date: 2019-01-19 19:21+0000\n"
+"Last-Translator: Hairic95 <hairic95@gmail.com>\n"
 "Language-Team: Italian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/it/>\n"
 "Language: it\n"
@@ -36,7 +38,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Poedit 2.2\n"
+"X-Generator: Weblate 3.4-dev\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -1019,7 +1021,8 @@ msgid "Uncompressing Assets"
 msgstr "Decompressione Assets"
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
-msgid "Package Installed Successfully!"
+#, fuzzy
+msgid "Package installed successfully!"
 msgstr "Pacchetto Installato Con Successo!"
 
 #: editor/editor_asset_installer.cpp
@@ -1266,7 +1269,7 @@ msgid "Add AutoLoad"
 msgstr "Aggiungi AutoLoad"
 
 #: editor/editor_autoload_settings.cpp editor/editor_file_dialog.cpp
-#: scene/gui/file_dialog.cpp
+#: editor/plugins/animation_tree_editor_plugin.cpp scene/gui/file_dialog.cpp
 msgid "Path:"
 msgstr "Percorso:"
 
@@ -1337,8 +1340,29 @@ msgid "Storing File:"
 msgstr "Memorizzazione File:"
 
 #: editor/editor_export.cpp
+#, fuzzy
+msgid "No export template found at the expected path:"
+msgstr ""
+"Nessun template di esportazione trovato.\n"
+"Scarica ed installa i template di esportazione."
+
+#: editor/editor_export.cpp
 msgid "Packing"
 msgstr "Impacchettando"
+
+#: editor/editor_export.cpp platform/android/export/export.cpp
+#: platform/iphone/export/export.cpp platform/javascript/export/export.cpp
+#: platform/osx/export/export.cpp platform/uwp/export/export.cpp
+#, fuzzy
+msgid "Custom debug template not found."
+msgstr "Pacchetto di debug personalizzato non trovato."
+
+#: editor/editor_export.cpp platform/android/export/export.cpp
+#: platform/iphone/export/export.cpp platform/javascript/export/export.cpp
+#: platform/osx/export/export.cpp platform/uwp/export/export.cpp
+#, fuzzy
+msgid "Custom release template not found."
+msgstr "Pacchetto di release personalizzato non trovato."
 
 #: editor/editor_export.cpp platform/javascript/export/export.cpp
 msgid "Template file not found:"
@@ -2674,12 +2698,17 @@ msgstr "Aggiungi vuoto"
 
 #: editor/editor_properties.cpp editor/plugins/root_motion_editor_plugin.cpp
 #, fuzzy
-msgid "Assign.."
+msgid "Assign..."
 msgstr "Assegna"
 
 #: editor/editor_properties.cpp
+#, fuzzy
+msgid "Invalid RID"
+msgstr "Percorso Invalido"
+
+#: editor/editor_properties.cpp
 msgid ""
-"The selected resource (%s) does not match the type expected for this "
+"The selected resource (%s) does not match any type expected for this "
 "property (%s)."
 msgstr ""
 
@@ -3065,16 +3094,12 @@ msgid "Unable to update dependencies:"
 msgstr "Impossibile aggiornare le dipendenze:"
 
 #: editor/filesystem_dock.cpp editor/scene_tree_editor.cpp
-msgid "No name provided"
-msgstr "Nessun nome fornito"
+msgid "No name provided."
+msgstr "Nessun nome fornito."
 
 #: editor/filesystem_dock.cpp
 msgid "Provided name contains invalid characters"
 msgstr "Il nome fornito contiene caratteri non validi"
-
-#: editor/filesystem_dock.cpp
-msgid "No name provided."
-msgstr "Nessun nome fornito."
 
 #: editor/filesystem_dock.cpp
 msgid "Name contains invalid characters."
@@ -3474,6 +3499,10 @@ msgid "Load an existing resource from disk and edit it."
 msgstr "Carica una risorsa esistente dal disco e modificala."
 
 #: editor/inspector_dock.cpp
+msgid "Save the currently edited resource."
+msgstr "Salva la risorsa in modifica."
+
+#: editor/inspector_dock.cpp
 msgid "Go to the previous edited object in history."
 msgstr "Vai all'ultimo oggetto modificato nella cronologia."
 
@@ -3602,7 +3631,7 @@ msgstr "Aggiungi Animazione"
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
 #: editor/plugins/animation_state_machine_editor.cpp
 #, fuzzy
-msgid "Load.."
+msgid "Load..."
 msgstr "Carica"
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
@@ -3628,6 +3657,11 @@ msgstr ""
 #: editor/plugins/animation_blend_space_1d_editor.cpp
 #: editor/plugins/animation_blend_space_2d_editor.cpp
 msgid "Select and move points, create points with RMB."
+msgstr ""
+
+#: editor/plugins/animation_blend_space_1d_editor.cpp
+#: editor/plugins/animation_blend_space_2d_editor.cpp scene/gui/graph_edit.cpp
+msgid "Enable snap and show grid."
 msgstr ""
 
 #: editor/plugins/animation_blend_space_1d_editor.cpp
@@ -3671,12 +3705,6 @@ msgid "Generate blend triangles automatically (instead of manually)"
 msgstr ""
 
 #: editor/plugins/animation_blend_space_2d_editor.cpp
-#: editor/plugins/polygon_2d_editor_plugin.cpp
-#: editor/plugins/spatial_editor_plugin.cpp
-msgid "Snap"
-msgstr "Snap"
-
-#: editor/plugins/animation_blend_space_2d_editor.cpp
 #: editor/plugins/animation_tree_player_editor_plugin.cpp
 msgid "Blend:"
 msgstr "Blend:"
@@ -3711,8 +3739,9 @@ msgid ""
 msgstr ""
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp
 #, fuzzy
-msgid "Add Node.."
+msgid "Add Node..."
 msgstr "Aggiungi Nodo"
 
 #: editor/plugins/animation_blend_tree_editor_plugin.cpp
@@ -3995,7 +4024,7 @@ msgstr "Connetti A Nodo:"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 #, fuzzy
-msgid "Remove selected node or transition"
+msgid "Remove selected node or transition."
 msgstr "Rimuovi traccia selezionata."
 
 #: editor/plugins/animation_state_machine_editor.cpp
@@ -5060,6 +5089,7 @@ msgid "Populate"
 msgstr "Popola"
 
 #: editor/plugins/navigation_polygon_editor_plugin.cpp
+#: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create Navigation Polygon"
 msgstr "Crea Poligono di Navigazione"
 
@@ -5346,32 +5376,28 @@ msgid "Create Polygon & UV"
 msgstr "Crea Poly"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-msgid "Split point with itself."
+#, fuzzy
+msgid "Create Internal Vertex"
+msgstr "Crea nuova guida orizzontale"
+
+#: editor/plugins/polygon_2d_editor_plugin.cpp
+#, fuzzy
+msgid "Remove Internal Vertex"
+msgstr "Rimuovi Punto In-Control"
+
+#: editor/plugins/polygon_2d_editor_plugin.cpp
+msgid "Invalid Polygon (need 3 different vertices)"
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-msgid "Split can't form an existing edge."
-msgstr ""
+#, fuzzy
+msgid "Add Custom Polygon"
+msgstr "Modifica Poly"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #, fuzzy
-msgid "Split already exists."
-msgstr "L'Azione '%s' esiste già!"
-
-#: editor/plugins/polygon_2d_editor_plugin.cpp
-#, fuzzy
-msgid "Add Split"
-msgstr "Aggiungi punto"
-
-#: editor/plugins/polygon_2d_editor_plugin.cpp
-#, fuzzy
-msgid "Invalid Split: "
-msgstr "Percorso Invalido!"
-
-#: editor/plugins/polygon_2d_editor_plugin.cpp
-#, fuzzy
-msgid "Remove Split"
-msgstr "Rimuovi punto"
+msgid "Remove Custom Polygon"
+msgstr "Rimuovi Poligono e Punto"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Transform UV Map"
@@ -5401,13 +5427,13 @@ msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #, fuzzy
-msgid "Poly"
-msgstr "Modifica Poly"
+msgid "Points"
+msgstr "Sposta Punto"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #, fuzzy
-msgid "Splits"
-msgstr "Dividi Percorso"
+msgid "Polygons"
+msgstr "Poligono->UV"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 #, fuzzy
@@ -5444,13 +5470,14 @@ msgid "Scale Polygon"
 msgstr "Scala Poligono"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-msgid "Connect two points to make a split."
+msgid "Create a custom polygon. Enables custom polygon rendering."
 msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
-#, fuzzy
-msgid "Select a split to erase it."
-msgstr "Prima seleziona un oggetto di impostazione!"
+msgid ""
+"Remove a custom polygon. If none remain, custom polygon rendering is "
+"disabled."
+msgstr ""
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Paint weights with specified intensity."
@@ -5480,6 +5507,11 @@ msgstr "Cancella UV"
 #, fuzzy
 msgid "Grid Settings"
 msgstr "Impostazioni Snap"
+
+#: editor/plugins/polygon_2d_editor_plugin.cpp
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Snap"
+msgstr "Snap"
 
 #: editor/plugins/polygon_2d_editor_plugin.cpp
 msgid "Enable Snap"
@@ -6481,6 +6513,10 @@ msgstr "Pre"
 msgid "Post"
 msgstr "Post"
 
+#: editor/plugins/spatial_editor_plugin.cpp
+msgid "Name-less gizmo"
+msgstr ""
+
 #: editor/plugins/sprite_editor_plugin.cpp
 #, fuzzy
 msgid "Sprite is empty!"
@@ -6908,20 +6944,26 @@ msgid "Display Tile Names (Hold Alt Key)"
 msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-msgid "Remove selected texture and ALL TILES which use it?"
-msgstr ""
+#, fuzzy
+msgid "Remove selected texture? This will remove all tiles which use it."
+msgstr "Rimuovi Punto Percorso"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "You haven't selected a texture to remove."
-msgstr ""
+msgstr "Non hai selezionato una texture da rimuovere."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-msgid "Create from scene?"
-msgstr "Crea da scena?"
+msgid "Create from scene? This will overwrite all current tiles."
+msgstr ""
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Merge from scene?"
 msgstr "Unisci da scena?"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Remove Texture"
+msgstr "Rimuovi Template"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "%s file(s) were not added because was already on the list."
@@ -6980,6 +7022,88 @@ msgstr "Salva la risorsa in modifica."
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 #, fuzzy
+msgid "Set Tile Region"
+msgstr "Imposta Region Rect"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Create Tile"
+msgstr "Crea Cartella"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Set Tile Icon"
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Edit Tile Bitmask"
+msgstr "Modifica Filtri"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Edit Collision Polygon"
+msgstr "Modifica poligono esistente:"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Edit Occlusion Polygon"
+msgstr "Modifica Poly"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Edit Navigation Polygon"
+msgstr "Crea Poligono di Navigazione"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Paste Tile Bitmask"
+msgstr "Incolla Animazione"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Clear Tile Bitmask"
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Remove Tile"
+msgstr "Rimuovi Template"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Remove Collision Polygon"
+msgstr "Rimuovi Poligono e Punto"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Remove Occlusion Polygon"
+msgstr "Crea Poligono di occlusione"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Remove Navigation Polygon"
+msgstr "Crea Poligono di Navigazione"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Edit Tile Priority"
+msgstr "Modifica Filtri"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+msgid "Edit Tile Z Index"
+msgstr ""
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Create Collision Polygon"
+msgstr "Crea Poligono di Navigazione"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
+msgid "Create Occlusion Polygon"
+msgstr "Crea Poligono di occlusione"
+
+#: editor/plugins/tile_set_editor_plugin.cpp
+#, fuzzy
 msgid "This property can't be changed."
 msgstr "Questa operazione non può essere eseguita senza una scena."
 
@@ -7001,11 +7125,6 @@ msgstr "Frammento"
 #, fuzzy
 msgid "Light"
 msgstr "Destra"
-
-#: editor/plugins/visual_shader_editor_plugin.cpp
-#, fuzzy
-msgid "Add Node..."
-msgstr "Aggiungi Nodo"
 
 #: editor/plugins/visual_shader_editor_plugin.cpp
 #, fuzzy
@@ -7112,6 +7231,35 @@ msgstr "Personalizzato (separati da virgola):"
 #, fuzzy
 msgid "Feature List:"
 msgstr "Lista Metodi:"
+
+#: editor/project_export.cpp
+#, fuzzy
+msgid "Script"
+msgstr "Nuovo Script"
+
+#: editor/project_export.cpp
+msgid "Script Export Mode:"
+msgstr "Modalità Esportazione Script:"
+
+#: editor/project_export.cpp
+msgid "Text"
+msgstr "Testo"
+
+#: editor/project_export.cpp
+msgid "Compiled"
+msgstr "Compilato"
+
+#: editor/project_export.cpp
+msgid "Encrypted (Provide Key Below)"
+msgstr "Criptato (Fornisci la Chiave Sotto)"
+
+#: editor/project_export.cpp
+msgid "Invalid Encryption Key (must be 64 characters long)"
+msgstr ""
+
+#: editor/project_export.cpp
+msgid "Script Encryption Key (256-bits as hex):"
+msgstr "Chiave di Crittografia Script (256-bits come esadecimali):"
 
 #: editor/project_export.cpp
 msgid "Export PCK/Zip"
@@ -7270,12 +7418,30 @@ msgstr "Progetto Senza Nome"
 
 #: editor/project_manager.cpp
 #, fuzzy
-msgid "Can't open project"
+msgid "Can't open project at '%s'."
 msgstr "Impossibile connettersi."
 
 #: editor/project_manager.cpp
 msgid "Are you sure to open more than one project?"
 msgstr "Sei sicuro di voler aprire più di un progetto?"
+
+#: editor/project_manager.cpp
+msgid ""
+"The following project settings file was generated by an older engine "
+"version, and needs to be converted for this version:\n"
+"\n"
+"%s\n"
+"\n"
+"Do you want to convert it?\n"
+"Warning: You will not be able to open the project with previous versions of "
+"the engine anymore."
+msgstr ""
+
+#: editor/project_manager.cpp
+msgid ""
+"The project settings were created by a newer engine version, whose settings "
+"are not compatible with this version."
+msgstr ""
 
 #: editor/project_manager.cpp
 #, fuzzy
@@ -7503,7 +7669,7 @@ msgstr "Aggiungi Evento"
 
 #: editor/project_settings_editor.cpp
 msgid "Button"
-msgstr "Pulsante"
+msgstr ""
 
 #: editor/project_settings_editor.cpp
 msgid "Left Button."
@@ -7985,6 +8151,14 @@ msgstr "Sposta Nodi In Genitore"
 #: editor/scene_tree_dock.cpp
 msgid "Duplicate Node(s)"
 msgstr "Duplica Nodo(i)"
+
+#: editor/scene_tree_dock.cpp
+msgid "Node must belong to the edited scene to become root."
+msgstr ""
+
+#: editor/scene_tree_dock.cpp
+msgid "Instantiated scenes can't become root"
+msgstr ""
 
 #: editor/scene_tree_dock.cpp
 msgid "Delete Node(s)?"
@@ -9292,6 +9466,90 @@ msgstr ""
 msgid "Set %s"
 msgstr "Imposta parametri"
 
+#: platform/android/export/export.cpp
+msgid "Package name is missing."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Package segments must be of non-zero length."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "The character '%s' is not allowed in Android application package names."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "A digit cannot be the first character in a package segment."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "The character '%s' cannot be the first character in a package segment."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "The package must have at least one '.' separator."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "ADB executable not configured in the Editor Settings."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "OpenJDK jarsigner not configured in the Editor Settings."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Debug keystore not configured in the Editor Settings nor in the preset."
+msgstr ""
+
+#: platform/android/export/export.cpp
+msgid "Invalid public key for APK expansion."
+msgstr ""
+
+#: platform/android/export/export.cpp
+#, fuzzy
+msgid "Invalid package name:"
+msgstr "Nome classe invalido"
+
+#: platform/iphone/export/export.cpp
+msgid "Identifier is missing."
+msgstr ""
+
+#: platform/iphone/export/export.cpp
+msgid "Identifier segments must be of non-zero length."
+msgstr ""
+
+#: platform/iphone/export/export.cpp
+#, fuzzy
+msgid "The character '%s' is not allowed in Identifier."
+msgstr "Il nome non è un identificatore valido:"
+
+#: platform/iphone/export/export.cpp
+msgid "A digit cannot be the first character in a Identifier segment."
+msgstr ""
+
+#: platform/iphone/export/export.cpp
+msgid ""
+"The character '%s' cannot be the first character in a Identifier segment."
+msgstr ""
+
+#: platform/iphone/export/export.cpp
+msgid "The Identifier must have at least one '.' separator."
+msgstr ""
+
+#: platform/iphone/export/export.cpp
+msgid "App Store Team ID not specified - cannot configure the project."
+msgstr ""
+
+#: platform/iphone/export/export.cpp
+#, fuzzy
+msgid "Invalid Identifier:"
+msgstr "Il nome non è un identificatore valido:"
+
+#: platform/iphone/export/export.cpp
+msgid "Required icon is not specified in the preset."
+msgstr ""
+
 #: platform/javascript/export/export.cpp
 msgid "Run in Browser"
 msgstr "Esegui nel Browser"
@@ -9329,6 +9587,64 @@ msgstr "Impossibile leggere file:\n"
 #, fuzzy
 msgid "Using default boot splash image."
 msgstr "Impossibile leggere file:\n"
+
+#: platform/uwp/export/export.cpp
+#, fuzzy
+msgid "Invalid package unique name."
+msgstr "Nome unico invalido."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid product GUID."
+msgstr "GUID prodotto invalido."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid publisher GUID."
+msgstr "GUID publisher invalido."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid background color."
+msgstr "Colore di background invalido."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid Store Logo image dimensions (should be 50x50)."
+msgstr ""
+"Dimensioni dell'immagine dello Store Logo invalide (dovrebbero essere 50x50)."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid square 44x44 logo image dimensions (should be 44x44)."
+msgstr ""
+"Dimensioni non valide dell'immagine del logo quadrato 44x44 (dovrebbero "
+"essere 44x44)."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid square 71x71 logo image dimensions (should be 71x71)."
+msgstr ""
+"Dimensioni non valide dell'immagine del logo quadrato 71x71 (dovrebbero "
+"essere 71x71)."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid square 150x150 logo image dimensions (should be 150x150)."
+msgstr ""
+"Dimensioni non valide dell'immagine del logo quadrato 150x150 (dovrebbero "
+"essere 150x150)."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid square 310x310 logo image dimensions (should be 310x310)."
+msgstr ""
+"Dimensioni non valide dell'immagine del logo quadrato 310x310 (dovrebbero "
+"essere 310x310)."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid wide 310x150 logo image dimensions (should be 310x150)."
+msgstr ""
+"Dimensioni non valide dell'immagine del logo quadrato 310x150 (dovrebbero "
+"essere 310x150)."
+
+#: platform/uwp/export/export.cpp
+msgid "Invalid splash screen image dimensions (should be 620x300)."
+msgstr ""
+"Dimensioni non valide dell'immagine dello splash screen (dovrebbero essere "
+"620x300)."
 
 #: scene/2d/animated_sprite.cpp
 msgid ""
@@ -9645,16 +9961,9 @@ msgstr ""
 "Path2D."
 
 #: scene/3d/path.cpp
-#, fuzzy
-msgid "OrientedPathFollow only works when set as a child of a Path node."
-msgstr ""
-"PathFollow2D funziona solamente quando impostato come figlio di un nodo "
-"Path2D."
-
-#: scene/3d/path.cpp
 msgid ""
-"OrientedPathFollow requires \"Up Vector\" enabled in its parent Path's Curve "
-"resource."
+"PathFollow ROTATION_ORIENTED requires \"Up Vector\" enabled in its parent "
+"Path's Curve resource."
 msgstr ""
 
 #: scene/3d/physics_body.cpp
@@ -9784,10 +10093,6 @@ msgstr "Attenzione!"
 msgid "Please Confirm..."
 msgstr "Per Favore Conferma..."
 
-#: scene/gui/graph_edit.cpp
-msgid "Enable snap and show grid."
-msgstr ""
-
 #: scene/gui/popup.cpp
 msgid ""
 "Popups will hide by default unless you call popup() or any of the popup*() "
@@ -9875,6 +10180,50 @@ msgstr ""
 msgid "Varyings can only be assigned in vertex function."
 msgstr ""
 
+#, fuzzy
+#~ msgid "OrientedPathFollow only works when set as a child of a Path node."
+#~ msgstr ""
+#~ "PathFollow2D funziona solamente quando impostato come figlio di un nodo "
+#~ "Path2D."
+
+#, fuzzy
+#~ msgid "Split already exists."
+#~ msgstr "L'Azione '%s' esiste già!"
+
+#, fuzzy
+#~ msgid "Add Split"
+#~ msgstr "Aggiungi punto"
+
+#, fuzzy
+#~ msgid "Invalid Split: "
+#~ msgstr "Percorso Invalido!"
+
+#, fuzzy
+#~ msgid "Remove Split"
+#~ msgstr "Rimuovi punto"
+
+#, fuzzy
+#~ msgid "Poly"
+#~ msgstr "Modifica Poly"
+
+#, fuzzy
+#~ msgid "Splits"
+#~ msgstr "Dividi Percorso"
+
+#, fuzzy
+#~ msgid "Select a split to erase it."
+#~ msgstr "Prima seleziona un oggetto di impostazione!"
+
+#~ msgid "No name provided"
+#~ msgstr "Nessun nome fornito"
+
+#, fuzzy
+#~ msgid "Add Node.."
+#~ msgstr "Aggiungi Nodo"
+
+#~ msgid "Create from scene?"
+#~ msgstr "Crea da scena?"
+
 #~ msgid "Create Poly"
 #~ msgstr "Crea Poly"
 
@@ -9899,9 +10248,6 @@ msgstr ""
 #~ msgstr ""
 #~ "Nessuna risorsa OccluderPolygon2D su questo nodo.\n"
 #~ "Crearne una ed assegnarla?"
-
-#~ msgid "Edit existing polygon:"
-#~ msgstr "Modifica poligono esistente:"
 
 #~ msgid "LMB: Move Point."
 #~ msgstr "LMB: Sposta punto."
@@ -10245,9 +10591,6 @@ msgstr ""
 
 #~ msgid "Run Script"
 #~ msgstr "Esegui Script"
-
-#~ msgid "Save the currently edited resource."
-#~ msgstr "Salva la risorsa in modifica."
 
 #~ msgid "Stop Profiling"
 #~ msgstr "Interrrompi Profiling"
@@ -11087,66 +11430,6 @@ msgstr ""
 #~ msgid "Error creating the package signature."
 #~ msgstr "Errore di creazione della firma del pacchetto."
 
-#~ msgid ""
-#~ "No export templates found.\n"
-#~ "Download and install export templates."
-#~ msgstr ""
-#~ "Nessun template di esportazione trovato.\n"
-#~ "Scarica ed installa i template di esportazione."
-
-#~ msgid "Custom debug package not found."
-#~ msgstr "Pacchetto di debug personalizzato non trovato."
-
-#~ msgid "Custom release package not found."
-#~ msgstr "Pacchetto di release personalizzato non trovato."
-
-#~ msgid "Invalid unique name."
-#~ msgstr "Nome unico invalido."
-
-#~ msgid "Invalid product GUID."
-#~ msgstr "GUID prodotto invalido."
-
-#~ msgid "Invalid publisher GUID."
-#~ msgstr "GUID publisher invalido."
-
-#~ msgid "Invalid background color."
-#~ msgstr "Colore di background invalido."
-
-#~ msgid "Invalid Store Logo image dimensions (should be 50x50)."
-#~ msgstr ""
-#~ "Dimensioni dell'immagine dello Store Logo invalide (dovrebbero essere "
-#~ "50x50)."
-
-#~ msgid "Invalid square 44x44 logo image dimensions (should be 44x44)."
-#~ msgstr ""
-#~ "Dimensioni non valide dell'immagine del logo quadrato 44x44 (dovrebbero "
-#~ "essere 44x44)."
-
-#~ msgid "Invalid square 71x71 logo image dimensions (should be 71x71)."
-#~ msgstr ""
-#~ "Dimensioni non valide dell'immagine del logo quadrato 71x71 (dovrebbero "
-#~ "essere 71x71)."
-
-#~ msgid "Invalid square 150x150 logo image dimensions (should be 150x150)."
-#~ msgstr ""
-#~ "Dimensioni non valide dell'immagine del logo quadrato 150x150 (dovrebbero "
-#~ "essere 150x150)."
-
-#~ msgid "Invalid square 310x310 logo image dimensions (should be 310x310)."
-#~ msgstr ""
-#~ "Dimensioni non valide dell'immagine del logo quadrato 310x310 (dovrebbero "
-#~ "essere 310x310)."
-
-#~ msgid "Invalid wide 310x150 logo image dimensions (should be 310x150)."
-#~ msgstr ""
-#~ "Dimensioni non valide dell'immagine del logo quadrato 310x150 (dovrebbero "
-#~ "essere 310x150)."
-
-#~ msgid "Invalid splash screen image dimensions (should be 620x300)."
-#~ msgstr ""
-#~ "Dimensioni non valide dell'immagine dello splash screen (dovrebbero "
-#~ "essere 620x300)."
-
 #~ msgid "RAW Mode"
 #~ msgstr "Modalità RAW"
 
@@ -11391,21 +11674,6 @@ msgstr ""
 
 #~ msgid "Trailing Silence:"
 #~ msgstr "Silenzio di coda:"
-
-#~ msgid "Script Export Mode:"
-#~ msgstr "Modalità Esportazione Script:"
-
-#~ msgid "Text"
-#~ msgstr "Testo"
-
-#~ msgid "Compiled"
-#~ msgstr "Compilato"
-
-#~ msgid "Encrypted (Provide Key Below)"
-#~ msgstr "Criptato (Fornisci la Chiave Sotto)"
-
-#~ msgid "Script Encryption Key (256-bits as hex):"
-#~ msgstr "Chiave di Crittografia Script (256-bits come esadecimali):"
 
 #~ msgid "Export Project PCK"
 #~ msgstr "Esporta Progetto PCK"

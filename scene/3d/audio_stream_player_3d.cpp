@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -33,6 +33,7 @@
 #include "scene/3d/area.h"
 #include "scene/3d/camera.h"
 #include "scene/main/viewport.h"
+
 void AudioStreamPlayer3D::_mix_audio() {
 
 	if (!stream_playback.is_valid() || !active ||
@@ -206,15 +207,15 @@ float AudioStreamPlayer3D::_get_attenuation_db(float p_distance) const {
 	float att = 0;
 	switch (attenuation_model) {
 		case ATTENUATION_INVERSE_DISTANCE: {
-			att = Math::linear2db(1.0 / ((p_distance / unit_size) + 000001));
+			att = Math::linear2db(1.0 / ((p_distance / unit_size) + CMP_EPSILON));
 		} break;
 		case ATTENUATION_INVERSE_SQUARE_DISTANCE: {
 			float d = (p_distance / unit_size);
 			d *= d;
-			att = Math::linear2db(1.0 / (d + 0.00001));
+			att = Math::linear2db(1.0 / (d + CMP_EPSILON));
 		} break;
 		case ATTENUATION_LOGARITHMIC: {
-			att = -20 * Math::log(p_distance / unit_size + 000001);
+			att = -20 * Math::log(p_distance / unit_size + CMP_EPSILON);
 		} break;
 		default: {
 			ERR_PRINT("Unknown attenuation type");

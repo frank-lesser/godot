@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -119,7 +119,6 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 	private boolean use_debug_opengl = false;
 	private boolean mStatePaused;
 	private int mState;
-	private boolean keep_screen_on = true;
 
 	static private Intent mCurrentIntent;
 
@@ -297,31 +296,26 @@ public class Godot extends Activity implements SensorEventListener, IDownloaderC
 		});
 
 		final String[] current_command_line = command_line;
-		final GodotView view = mView;
 		mView.queueEvent(new Runnable() {
 			@Override
 			public void run() {
 				GodotLib.setup(current_command_line);
-				runOnUiThread(new Runnable() {
-					@Override
-					public void run() {
-						view.setKeepScreenOn("True".equals(GodotLib.getGlobal("display/window/energy_saving/keep_screen_on")));
-					}
-				});
+				setKeepScreenOn("True".equals(GodotLib.getGlobal("display/window/energy_saving/keep_screen_on")));
 			}
 		});
 	}
 
 	public void setKeepScreenOn(final boolean p_enabled) {
-		keep_screen_on = p_enabled;
-		if (mView != null) {
-			runOnUiThread(new Runnable() {
-				@Override
-				public void run() {
-					mView.setKeepScreenOn(p_enabled);
+		runOnUiThread(new Runnable() {
+			@Override
+			public void run() {
+				if (p_enabled) {
+					getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+				} else {
+					getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 				}
-			});
-		}
+			}
+		});
 	}
 
 	public void alert(final String message, final String title) {

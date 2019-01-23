@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -524,7 +524,11 @@ bool RasterizerSceneGLES2::reflection_probe_instance_begin_render(RID p_instance
 		glGenerateMipmap(GL_TEXTURE_CUBE_MAP);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, rpi->depth); //resize depth buffer
+#ifdef JAVASCRIPT_ENABLED
+		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, size, size);
+#else
 		glRenderbufferStorage(GL_RENDERBUFFER, _DEPTH_COMPONENT24_OES, size, size);
+#endif
 
 		for (int i = 0; i < 6; i++) {
 			glBindFramebuffer(GL_FRAMEBUFFER, rpi->fbo[i]);
@@ -1244,6 +1248,24 @@ bool RasterizerSceneGLES2::_setup_material(RasterizerStorageGLES2::Material *p_m
 		}
 
 		t = t->get_ptr();
+
+		if (t->redraw_if_visible) { //must check before proxy because this is often used with proxies
+			VisualServerRaster::redraw_request();
+		}
+
+#ifdef TOOLS_ENABLED
+		if (t->detect_3d) {
+			t->detect_3d(t->detect_3d_ud);
+		}
+#endif
+
+#ifdef TOOLS_ENABLED
+		if (t->detect_normal && texture_hints[i] == ShaderLanguage::ShaderNode::Uniform::HINT_NORMAL) {
+			t->detect_normal(t->detect_normal_ud);
+		}
+#endif
+		if (t->render_target)
+			t->render_target->used_in_frame = true;
 
 		glBindTexture(t->target, t->tex_id);
 		if (i == 0) {
@@ -2620,11 +2642,11 @@ void RasterizerSceneGLES2::render_scene(const Transform &p_cam_transform, const 
 		storage->frame.clear_request = false;
 	} else if (!env || env->bg_mode == VS::ENV_BG_CLEAR_COLOR || env->bg_mode == VS::ENV_BG_SKY) {
 		if (storage->frame.clear_request) {
-			clear_color = storage->frame.clear_request_color.to_linear();
+			clear_color = storage->frame.clear_request_color;
 			storage->frame.clear_request = false;
 		}
 	} else if (env->bg_mode == VS::ENV_BG_CANVAS || env->bg_mode == VS::ENV_BG_COLOR || env->bg_mode == VS::ENV_BG_COLOR_SKY) {
-		clear_color = env->bg_color.to_linear();
+		clear_color = env->bg_color;
 		storage->frame.clear_request = false;
 	} else {
 		storage->frame.clear_request = false;
@@ -2855,7 +2877,7 @@ void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 
 		if (light->type == VS::LIGHT_OMNI) {
 			// cubemap only
-			if (light->omni_shadow_mode == VS::LIGHT_OMNI_SHADOW_CUBE) {
+			if (light->omni_shadow_mode == VS::LIGHT_OMNI_SHADOW_CUBE && storage->config.support_write_depth) {
 				int cubemap_index = shadow_cubemaps.size() - 1;
 
 				// find an appropriate cubemap to render to
@@ -2951,7 +2973,7 @@ void RasterizerSceneGLES2::render_shadow(RID p_light, RID p_shadow_atlas, int p_
 	state.scene_shader.set_conditional(SceneShaderGLES2::RENDER_DEPTH_DUAL_PARABOLOID, false);
 
 	// convert cubemap to dual paraboloid if needed
-	if (light->type == VS::LIGHT_OMNI && light->omni_shadow_mode == VS::LIGHT_OMNI_SHADOW_CUBE && p_pass == 5) {
+	if (light->type == VS::LIGHT_OMNI && (light->omni_shadow_mode == VS::LIGHT_OMNI_SHADOW_CUBE && storage->config.support_write_depth) && p_pass == 5) {
 		ShadowAtlas *shadow_atlas = shadow_atlas_owner.getornull(p_shadow_atlas);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, shadow_atlas->fbo);
@@ -3113,7 +3135,7 @@ void RasterizerSceneGLES2::initialize() {
 	}
 
 	// cubemaps for shadows
-	{
+	if (!storage->config.support_write_depth) { //not going to be used
 		int max_shadow_cubemap_sampler_size = 512;
 
 		int cube_size = max_shadow_cubemap_sampler_size;

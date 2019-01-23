@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -380,6 +380,9 @@ bool GodotSharpBuilds::build_project_blocking(const String &p_config) {
 }
 
 bool GodotSharpBuilds::editor_build_callback() {
+
+	if (!FileAccess::exists(GodotSharpDirs::get_project_sln_path()))
+		return true; // No solution to build
 
 	String scripts_metadata_path_editor = GodotSharpDirs::get_res_metadata_dir().plus_file("scripts_metadata.editor");
 	String scripts_metadata_path_player = GodotSharpDirs::get_res_metadata_dir().plus_file("scripts_metadata.editor_player");

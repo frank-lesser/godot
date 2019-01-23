@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -82,10 +82,7 @@ class CSharpScript : public Script {
 
 	Set<Object *> instances;
 
-#ifdef DEBUG_ENABLED
-	Set<ObjectID> pending_reload_instances;
-#endif
-
+#ifdef GD_MONO_HOT_RELOAD
 	struct StateBackup {
 		// TODO
 		// Replace with buffer containing the serialized state of managed scripts.
@@ -93,8 +90,8 @@ class CSharpScript : public Script {
 		List<Pair<StringName, Variant> > properties;
 	};
 
-#ifdef TOOLS_ENABLED
-	Map<ObjectID, CSharpScript::StateBackup> pending_reload_state;
+	Set<ObjectID> pending_reload_instances;
+	Map<ObjectID, StateBackup> pending_reload_state;
 #endif
 
 	String source;
@@ -115,6 +112,7 @@ class CSharpScript : public Script {
 	Map<StringName, Variant> exported_members_defval_cache; // member_default_values_cache
 	Set<PlaceHolderScriptInstance *> placeholders;
 	bool source_changed_cache;
+	bool placeholder_fallback_enabled;
 	bool exports_invalidated;
 	void _update_exports_values(Map<StringName, Variant> &values, List<PropertyInfo> &propnames);
 	virtual void _placeholder_erased(PlaceHolderScriptInstance *p_placeholder);
@@ -179,6 +177,10 @@ public:
 	MethodInfo get_method_info(const StringName &p_method) const;
 
 	virtual int get_member_line(const StringName &p_member) const;
+
+#ifdef TOOLS_ENABLED
+	virtual bool is_placeholder_fallback_enabled() const { return placeholder_fallback_enabled; }
+#endif
 
 	Error load_source_code(const String &p_path);
 
@@ -308,7 +310,7 @@ public:
 	bool debug_break(const String &p_error, bool p_allow_continue = true);
 	bool debug_break_parse(const String &p_file, int p_line, const String &p_error);
 
-#ifdef TOOLS_ENABLED
+#ifdef GD_MONO_HOT_RELOAD
 	bool is_assembly_reloading_needed();
 	void reload_assemblies(bool p_soft_reload);
 #endif

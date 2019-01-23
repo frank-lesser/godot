@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -1565,7 +1565,8 @@ MethodInfo GDScriptFunctions::get_info(Function p_func) {
 		} break;
 		case MATH_LERP: {
 			MethodInfo mi("lerp", PropertyInfo(Variant::NIL, "from"), PropertyInfo(Variant::NIL, "to"), PropertyInfo(Variant::REAL, "weight"));
-			mi.return_val.type = Variant::REAL;
+			mi.return_val.type = Variant::NIL;
+			mi.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
 			return mi;
 		} break;
 		case MATH_INVERSE_LERP: {

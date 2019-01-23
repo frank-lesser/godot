@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -715,9 +715,9 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 			}
 		} else if (p_event->is_action("ui_cancel")) {
 			search_string = "";
-		} else if (p_event->is_action("ui_select")) {
+		} else if (p_event->is_action("ui_select") && select_mode == SELECT_MULTI) {
 
-			if (select_mode == SELECT_MULTI && current >= 0 && current < items.size()) {
+			if (current >= 0 && current < items.size()) {
 				if (items[current].selectable && !items[current].disabled && !items[current].selected) {
 					select(current, false);
 					emit_signal("multi_selected", current, true);

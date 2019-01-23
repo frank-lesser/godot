@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -97,6 +97,7 @@ class GDScript : public Script {
 	Ref<GDScript> base_cache;
 	Set<ObjectID> inheriters_cache;
 	bool source_changed_cache;
+	bool placeholder_fallback_enabled;
 	void _update_exports_values(Map<StringName, Variant> &values, List<PropertyInfo> &propnames);
 
 #endif
@@ -208,6 +209,10 @@ public:
 
 	virtual void get_constants(Map<StringName, Variant> *p_constants);
 	virtual void get_members(Set<StringName> *p_members);
+
+#ifdef TOOLS_ENABLED
+	virtual bool is_placeholder_fallback_enabled() const { return placeholder_fallback_enabled; }
+#endif
 
 	GDScript();
 	~GDScript();

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -39,9 +39,9 @@ class RandomPCG {
 	pcg32_random_t pcg;
 
 public:
-	static const uint64_t DEFAULT_SEED = 12047754176567800795ULL;
+	static const uint64_t DEFAULT_SEED = 12047754176567800795U;
 	static const uint64_t DEFAULT_INC = PCG_DEFAULT_INC_64;
-	static const uint64_t RANDOM_MAX = 4294967295;
+	static const uint64_t RANDOM_MAX = 0xFFFFFFFF;
 
 	RandomPCG(uint64_t seed = DEFAULT_SEED, uint64_t inc = PCG_DEFAULT_INC_64);
 
@@ -50,8 +50,8 @@ public:
 
 	void randomize();
 	_FORCE_INLINE_ uint32_t rand() { return pcg32_random_r(&pcg); }
-	_FORCE_INLINE_ double randf() { return (double)rand() / (double)RANDOM_MAX; }
-	_FORCE_INLINE_ float randd() { return (float)rand() / (float)RANDOM_MAX; }
+	_FORCE_INLINE_ double randd() { return (double)rand() / (double)RANDOM_MAX; }
+	_FORCE_INLINE_ float randf() { return (float)rand() / (float)RANDOM_MAX; }
 
 	double random(double from, double to);
 	float random(float from, float to);

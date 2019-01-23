@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -562,6 +562,26 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 
 			if (node == root)
 				return;
+
+			//check that from node to root, all owners are right
+
+			if (root->get_scene_inherited_state().is_valid()) {
+				accept->set_text(TTR("Can't reparent nodes in inherited scenes, order of nodes can't change."));
+				accept->popup_centered_minsize();
+				return;
+			}
+
+			if (node->get_owner() != root) {
+				accept->set_text(TTR("Node must belong to the edited scene to become root."));
+				accept->popup_centered_minsize();
+				return;
+			}
+
+			if (node->get_filename() != String()) {
+				accept->set_text(TTR("Instantiated scenes can't become root"));
+				accept->popup_centered_minsize();
+				return;
+			}
 
 			editor_data->get_undo_redo().create_action("Make node as Root");
 			editor_data->get_undo_redo().add_do_method(node->get_parent(), "remove_child", node);
@@ -1615,7 +1635,10 @@ void SceneTreeDock::_delete_confirm() {
 }
 
 void SceneTreeDock::_update_script_button() {
-	if (EditorNode::get_singleton()->get_editor_selection()->get_selection().size() == 1) {
+	if (EditorNode::get_singleton()->get_editor_selection()->get_selection().size() == 0) {
+		button_create_script->hide();
+		button_clear_script->hide();
+	} else if (EditorNode::get_singleton()->get_editor_selection()->get_selection().size() == 1) {
 		Node *n = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list()[0];
 		if (n->get_script().is_null()) {
 			button_create_script->show();
@@ -1626,6 +1649,14 @@ void SceneTreeDock::_update_script_button() {
 		}
 	} else {
 		button_create_script->show();
+		List<Node *> selection = EditorNode::get_singleton()->get_editor_selection()->get_selected_node_list();
+		for (List<Node *>::Element *E = selection.front(); E; E = E->next()) {
+			Node *n = E->get();
+			if (!n->get_script().is_null()) {
+				button_clear_script->show();
+				return;
+			}
+		}
 		button_clear_script->hide();
 	}
 }
@@ -1726,24 +1757,28 @@ void SceneTreeDock::_create() {
 	}
 }
 
-void SceneTreeDock::replace_node(Node *p_node, Node *p_by_node) {
+void SceneTreeDock::replace_node(Node *p_node, Node *p_by_node, bool p_keep_properties) {
 
 	Node *n = p_node;
 	Node *newnode = p_by_node;
-	Node *default_oldnode = Object::cast_to<Node>(ClassDB::instance(n->get_class()));
-	List<PropertyInfo> pinfo;
-	n->get_property_list(&pinfo);
 
-	for (List<PropertyInfo>::Element *E = pinfo.front(); E; E = E->next()) {
-		if (!(E->get().usage & PROPERTY_USAGE_STORAGE))
-			continue;
-		if (E->get().name == "__meta__")
-			continue;
-		if (default_oldnode->get(E->get().name) != n->get(E->get().name)) {
-			newnode->set(E->get().name, n->get(E->get().name));
+	if (p_keep_properties) {
+		Node *default_oldnode = Object::cast_to<Node>(ClassDB::instance(n->get_class()));
+		List<PropertyInfo> pinfo;
+		n->get_property_list(&pinfo);
+
+		for (List<PropertyInfo>::Element *E = pinfo.front(); E; E = E->next()) {
+			if (!(E->get().usage & PROPERTY_USAGE_STORAGE))
+				continue;
+			if (E->get().name == "__meta__")
+				continue;
+			if (default_oldnode->get(E->get().name) != n->get(E->get().name)) {
+				newnode->set(E->get().name, n->get(E->get().name));
+			}
 		}
+
+		memdelete(default_oldnode);
 	}
-	memdelete(default_oldnode);
 
 	editor->push_item(NULL);
 

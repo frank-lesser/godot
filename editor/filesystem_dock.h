@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -178,9 +178,10 @@ private:
 	bool import_dock_needs_update;
 
 	Ref<Texture> _get_tree_item_icon(EditorFileSystemDirectory *p_dir, int p_idx);
-	bool _create_tree(TreeItem *p_parent, EditorFileSystemDirectory *p_dir, Vector<String> &uncollapsed_paths);
+	bool _create_tree(TreeItem *p_parent, EditorFileSystemDirectory *p_dir, Vector<String> &uncollapsed_paths, bool p_select_in_favorites);
 	Vector<String> _compute_uncollapsed_paths();
-	void _update_tree(const Vector<String> p_uncollapsed_paths = Vector<String>(), bool p_uncollapse_root = false);
+	void _update_tree(const Vector<String> p_uncollapsed_paths = Vector<String>(), bool p_uncollapse_root = false, bool p_select_in_favorites = false);
+	void _navigate_to_path(const String &p_path, bool p_select_in_favorites = false);
 
 	void _file_list_gui_input(Ref<InputEvent> p_event);
 	void _tree_gui_input(Ref<InputEvent> p_event);
@@ -192,7 +193,7 @@ private:
 
 	void _tree_toggle_collapsed();
 
-	void _select_file(const String p_path);
+	void _select_file(const String p_path, bool p_select_in_favorites = false);
 	void _tree_activate_file();
 	void _file_list_activate_file(int p_idx);
 	void _file_multi_selected(int p_index, bool p_selected);

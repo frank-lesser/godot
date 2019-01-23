@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -50,6 +50,7 @@
 #include "servers/visual/visual_server_raster.h"
 #include "servers/visual/visual_server_wrap_mt.h"
 #include "windows_terminal_logger.h"
+#include <avrt.h>
 
 #include <process.h>
 #include <regstr.h>
@@ -783,7 +784,9 @@ LRESULT OS_Windows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
 		case WM_TIMER: {
 			if (wParam == move_timer_id) {
 				process_key_events();
-				Main::iteration();
+				if (!Main::is_iterating()) {
+					Main::iteration();
+				}
 			}
 		} break;
 
@@ -1370,6 +1373,19 @@ Error OS_Windows::initialize(const VideoMode &p_desired, int p_video_driver, int
 	im_position = Vector2();
 
 	set_ime_active(false);
+
+	if (!OS::get_singleton()->is_in_low_processor_usage_mode()) {
+		//SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+		DWORD index = 0;
+		HANDLE handle = AvSetMmThreadCharacteristics("Games", &index);
+		if (handle)
+			AvSetMmThreadPriority(handle, AVRT_PRIORITY_CRITICAL);
+
+		// This is needed to make sure that background work does not starve the main thread.
+		// This is only setting priority of this thread, not the whole process.
+		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+	}
 
 	return OK;
 }

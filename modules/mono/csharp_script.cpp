@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -607,31 +607,10 @@ struct CSharpScriptDepSort {
 
 void CSharpLanguage::reload_all_scripts() {
 
-#ifdef DEBUG_ENABLED
-
-	List<Ref<CSharpScript> > scripts;
-
-	{
-		SCOPED_MUTEX_LOCK(script_instances_mutex);
-
-		SelfList<CSharpScript> *elem = script_list.first();
-		while (elem) {
-			if (elem->self()->get_path().is_resource_file()) {
-				scripts.push_back(Ref<CSharpScript>(elem->self())); //cast to gdscript to avoid being erased by accident
-			}
-			elem = elem->next();
-		}
+#ifdef GD_MONO_HOT_RELOAD
+	if (is_assembly_reloading_needed()) {
+		reload_assemblies(false);
 	}
-
-	//as scripts are going to be reloaded, must proceed without locking here
-
-	scripts.sort_custom<CSharpScriptDepSort>(); //update in inheritance dependency order
-
-	for (List<Ref<CSharpScript> >::Element *E = scripts.front(); E; E = E->next()) {
-		E->get()->load_source_code(E->get()->get_path());
-		E->get()->reload(true);
-	}
-
 #endif
 }
 
@@ -639,15 +618,20 @@ void CSharpLanguage::reload_tool_script(const Ref<Script> &p_script, bool p_soft
 
 	(void)p_script; // UNUSED
 
+	CRASH_COND(!Engine::get_singleton()->is_editor_hint());
+
 #ifdef TOOLS_ENABLED
 	MonoReloadNode::get_singleton()->restart_reload_timer();
+#endif
+
+#ifdef GD_MONO_HOT_RELOAD
 	if (is_assembly_reloading_needed()) {
 		reload_assemblies(p_soft_reload);
 	}
 #endif
 }
 
-#ifdef TOOLS_ENABLED
+#ifdef GD_MONO_HOT_RELOAD
 bool CSharpLanguage::is_assembly_reloading_needed() {
 
 	if (!gdmono->is_runtime_initialized())
@@ -679,11 +663,13 @@ bool CSharpLanguage::is_assembly_reloading_needed() {
 			return false; // No assembly to load
 	}
 
+#ifdef TOOLS_ENABLED
 	if (!gdmono->get_core_api_assembly() && gdmono->metadata_is_api_assembly_invalidated(APIAssembly::API_CORE))
 		return false; // The core API assembly to load is invalidated
 
 	if (!gdmono->get_editor_api_assembly() && gdmono->metadata_is_api_assembly_invalidated(APIAssembly::API_EDITOR))
 		return false; // The editor API assembly to load is invalidated
+#endif
 
 	return true;
 }
@@ -781,9 +767,11 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 				PlaceHolderScriptInstance *placeholder = scr->placeholder_instance_create(obj);
 				obj->set_script_instance(placeholder);
 
+#ifdef TOOLS_ENABLED
 				// Even though build didn't fail, this tells the placeholder to keep properties and
 				// it allows using property_set_fallback for restoring the state without a valid script.
-				placeholder->set_build_failed(true);
+				scr->placeholder_fallback_enabled = true;
+#endif
 
 				// Restore Variant properties state, it will be kept by the placeholder until the next script reloading
 				for (List<Pair<StringName, Variant> >::Element *G = scr->pending_reload_state[obj_id].properties.front(); G; G = G->next()) {
@@ -799,13 +787,14 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 	for (List<Ref<CSharpScript> >::Element *E = to_reload.front(); E; E = E->next()) {
 
 		Ref<CSharpScript> scr = E->get();
+#ifdef TOOLS_ENABLED
 		scr->exports_invalidated = true;
+#endif
 		scr->signals_invalidated = true;
 		scr->reload(p_soft_reload);
 		scr->update_exports();
 
 		{
-#ifdef DEBUG_ENABLED
 			for (Set<ObjectID>::Element *F = scr->pending_reload_instances.front(); F; F = F->next()) {
 				ObjectID obj_id = F->get();
 				Object *obj = ObjectDB::get_instance(obj_id);
@@ -829,7 +818,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 						CSharpScript::StateBackup &state_backup = scr->pending_reload_state[obj_id];
 
 						// Backup placeholder script instance state before replacing it with a script instance
-						obj->get_script_instance()->get_property_state(state_backup.properties);
+						si->get_property_state(state_backup.properties);
 
 						ScriptInstance *script_instance = scr->instance_create(obj);
 
@@ -864,17 +853,18 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 
 				scr->pending_reload_state.erase(obj_id);
 			}
-#endif
 
 			scr->pending_reload_instances.clear();
 		}
 	}
 
+#ifdef TOOLS_ENABLED
 	// FIXME: Hack to refresh editor in order to display new properties and signals. See if there is a better alternative.
 	if (Engine::get_singleton()->is_editor_hint()) {
 		EditorNode::get_singleton()->get_inspector()->update_tree();
 		NodeDock::singleton->update_lists();
 	}
+#endif
 }
 #endif
 
@@ -1189,7 +1179,7 @@ bool CSharpLanguage::refcount_decremented_instance_binding(Object *p_object) {
 		return refcount == 0;
 	Ref<MonoGCHandle> &gchandle = ((Map<Object *, CSharpScriptBinding>::Element *)data)->get().gchandle;
 
-	if (refcount == 1 && !gchandle->is_weak()) { // The managed side also holds a reference, hence 1 instead of 0
+	if (refcount == 1 && gchandle.is_valid() && !gchandle->is_weak()) { // The managed side also holds a reference, hence 1 instead of 0
 		// If owner owner is no longer referenced by the unmanaged side,
 		// the managed instance takes responsibility of deleting the owner when GCed.
 
@@ -1830,12 +1820,10 @@ void CSharpScript::_update_exports_values(Map<StringName, Variant> &values, List
 bool CSharpScript::_update_exports() {
 
 #ifdef TOOLS_ENABLED
-	if (!valid) {
-		for (Set<PlaceHolderScriptInstance *>::Element *E = placeholders.front(); E; E = E->next()) {
-			E->get()->set_build_failed(true);
-		}
+	placeholder_fallback_enabled = true; // until proven otherwise
+
+	if (!valid)
 		return false;
-	}
 
 	bool changed = false;
 
@@ -1944,6 +1932,8 @@ bool CSharpScript::_update_exports() {
 		tmp_object = NULL;
 	}
 
+	placeholder_fallback_enabled = false;
+
 	if (placeholders.size()) {
 		// Update placeholders if any
 		Map<StringName, Variant> values;
@@ -1951,7 +1941,6 @@ bool CSharpScript::_update_exports() {
 		_update_exports_values(values, propnames);
 
 		for (Set<PlaceHolderScriptInstance *>::Element *E = placeholders.front(); E; E = E->next()) {
-			E->get()->set_build_failed(false);
 			E->get()->update(propnames, values);
 		}
 	}
@@ -2697,6 +2686,7 @@ CSharpScript::CSharpScript() :
 
 #ifdef TOOLS_ENABLED
 	source_changed_cache = false;
+	placeholder_fallback_enabled = false;
 	exports_invalidated = true;
 #endif
 
@@ -2831,9 +2821,11 @@ Error ResourceFormatSaverCSharpScript::save(const String &p_path, const RES &p_r
 	file->close();
 	memdelete(file);
 
+#ifdef TOOLS_ENABLED
 	if (ScriptServer::is_reload_scripts_on_save_enabled()) {
 		CSharpLanguage::get_singleton()->reload_tool_script(p_resource, false);
 	}
+#endif
 
 	return OK;
 }

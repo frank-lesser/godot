@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -549,16 +549,17 @@ void TextEdit::_notification(int p_what) {
 				MessageQueue::get_singleton()->push_call(this, "_cursor_changed_emit");
 			if (text_changed_dirty)
 				MessageQueue::get_singleton()->push_call(this, "_text_changed_emit");
-			update_wrap_at();
+			_update_wrap_at();
 		} break;
 		case NOTIFICATION_RESIZED: {
 
 			_update_scrollbars();
-			update_wrap_at();
+			call_deferred("_update_wrap_at");
 		} break;
 		case NOTIFICATION_THEME_CHANGED: {
 
 			_update_caches();
+			_update_wrap_at();
 		} break;
 		case MainLoop::NOTIFICATION_WM_FOCUS_IN: {
 			window_has_focus = true;
@@ -802,6 +803,7 @@ void TextEdit::_notification(int p_what) {
 			}
 
 			Point2 cursor_pos;
+			int cursor_insert_offset_y = 0;
 
 			// get the highlighted words
 			String highlighted_text = get_selection_text();
@@ -1111,7 +1113,8 @@ void TextEdit::_notification(int p_what) {
 							cursor_pos.y += (get_row_height() - cache.font->get_height()) / 2;
 
 							if (insert_mode) {
-								cursor_pos.y += (cache.font->get_height() - 3);
+								cursor_insert_offset_y = (cache.font->get_height() - 3);
+								cursor_pos.y += cursor_insert_offset_y;
 							}
 
 							int caret_w = (str[j] == '\t') ? cache.font->get_char_size(' ').width : char_w;
@@ -1203,7 +1206,8 @@ void TextEdit::_notification(int p_what) {
 						cursor_pos.y += (get_row_height() - cache.font->get_height()) / 2;
 
 						if (insert_mode) {
-							cursor_pos.y += (cache.font->get_height() - 3);
+							cursor_insert_offset_y = cache.font->get_height() - 3;
+							cursor_pos.y += cursor_insert_offset_y;
 						}
 						if (ime_text.length() > 0) {
 							int ofs = 0;
@@ -1291,9 +1295,9 @@ void TextEdit::_notification(int p_what) {
 				int th = h + csb->get_minimum_size().y;
 
 				if (cursor_pos.y + get_row_height() + th > get_size().height) {
-					completion_rect.position.y = cursor_pos.y - th;
+					completion_rect.position.y = cursor_pos.y - th - (cache.line_spacing / 2.0f) - cursor_insert_offset_y;
 				} else {
-					completion_rect.position.y = cursor_pos.y + get_row_height() + csb->get_offset().y - cache.font->get_height();
+					completion_rect.position.y = cursor_pos.y + cache.font->get_height() + (cache.line_spacing / 2.0f) + csb->get_offset().y - cursor_insert_offset_y;
 					completion_below = true;
 				}
 
@@ -1445,9 +1449,11 @@ void TextEdit::_notification(int p_what) {
 		} break;
 		case MainLoop::NOTIFICATION_OS_IME_UPDATE: {
 
-			ime_text = OS::get_singleton()->get_ime_text();
-			ime_selection = OS::get_singleton()->get_ime_selection();
-			update();
+			if (has_focus()) {
+				ime_text = OS::get_singleton()->get_ime_text();
+				ime_selection = OS::get_singleton()->get_ime_selection();
+				update();
+			}
 		} break;
 	}
 }
@@ -3255,7 +3261,6 @@ void TextEdit::_scroll_down(real_t p_delta) {
 		int max_v_scroll = round(v_scroll->get_max() - v_scroll->get_page());
 		if (target_v_scroll > max_v_scroll) {
 			target_v_scroll = max_v_scroll;
-			v_scroll->set_value(target_v_scroll);
 		}
 		if (Math::abs(target_v_scroll - v_scroll->get_value()) < 1.0) {
 			v_scroll->set_value(target_v_scroll);
@@ -3640,7 +3645,7 @@ int TextEdit::get_total_visible_rows() const {
 	return total_rows;
 }
 
-void TextEdit::update_wrap_at() {
+void TextEdit::_update_wrap_at() {
 
 	wrap_at = get_size().width - cache.style_normal->get_minimum_size().width - cache.line_number_w - cache.breakpoint_gutter_width - cache.fold_gutter_width - wrap_right_offset;
 	update_cursor_wrap_offset();
@@ -3806,7 +3811,6 @@ Vector<String> TextEdit::get_wrap_rows_text(int p_line) const {
 			if (indent_ofs + word_px > wrap_at) {
 				// not enough space; add it anyway
 				wrap_substring += word_str;
-				px += word_px;
 				word_str = "";
 				word_px = 0;
 			}
@@ -6088,6 +6092,7 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_click_selection_held"), &TextEdit::_click_selection_held);
 	ClassDB::bind_method(D_METHOD("_toggle_draw_caret"), &TextEdit::_toggle_draw_caret);
 	ClassDB::bind_method(D_METHOD("_v_scroll_input"), &TextEdit::_v_scroll_input);
+	ClassDB::bind_method(D_METHOD("_update_wrap_at"), &TextEdit::_update_wrap_at);
 
 	BIND_ENUM_CONSTANT(SEARCH_MATCH_CASE);
 	BIND_ENUM_CONSTANT(SEARCH_WHOLE_WORDS);

@@ -185,12 +185,9 @@ VERTEX_SHADER_CODE
 		mat4 bone_matrix = skeleton_transform * transpose(bone_transform) * skeleton_transform_inverse;
 
 		outvec = bone_matrix * outvec;
-
 	}
 
-
 #endif
-
 
 	gl_Position = projection_matrix * outvec;
 
@@ -217,6 +214,26 @@ VERTEX_SHADER_CODE
 
 /* clang-format off */
 [fragment]
+
+#ifndef USE_GLES_OVER_GL
+
+#ifdef GL_EXT_shader_texture_lod
+#extension GL_EXT_shader_texture_lod : enable
+#define texture2DLod(img, coord, lod) texture2DLodEXT(img, coord, lod)
+#define textureCubeLod(img, coord, lod) textureCubeLodEXT(img, coord, lod)
+#endif
+
+#ifdef GL_ARB_shader_texture_lod
+#extension GL_ARB_shader_texture_lod : enable
+#endif
+
+#if !defined(GL_EXT_shader_texture_lod) && !defined(GL_ARB_shader_texture_lod)
+#define texture2DLod(img, coord, lod) texture2D(img, coord, lod)
+#define textureCubeLod(img, coord, lod) textureCube(img, coord, lod)
+#endif
+
+#endif
+
 
 #ifdef USE_GLES_OVER_GL
 #define lowp
@@ -436,19 +453,14 @@ FRAGMENT_SHADER_CODE
 
 #ifdef SHADOW_USE_GRADIENT
 
-#define SHADOW_TEST(m_ofs)                                                    \
-	{                                                                         \
-		highp float sd = SHADOW_DEPTH(shadow_texture, vec2(m_ofs, sh));       \
-		shadow_attenuation += 1.0 - smoothstep(sd, sd + shadow_gradient, sz); \
-	}
+		/* clang-format off */
+		/* GLSL es 100 doesn't support line continuation characters(backslashes) */
+#define SHADOW_TEST(m_ofs) { highp float sd = SHADOW_DEPTH(shadow_texture, vec2(m_ofs, sh)); shadow_attenuation += 1.0 - smoothstep(sd, sd + shadow_gradient, sz); }
 
 #else
 
-#define SHADOW_TEST(m_ofs)                                              \
-	{                                                                   \
-		highp float sd = SHADOW_DEPTH(shadow_texture, vec2(m_ofs, sh)); \
-		shadow_attenuation += step(sz, sd);                             \
-	}
+#define SHADOW_TEST(m_ofs) { highp float sd = SHADOW_DEPTH(shadow_texture, vec2(m_ofs, sh)); shadow_attenuation += step(sz, sd); }
+		/* clang-format on */
 
 #endif
 

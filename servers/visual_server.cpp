@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -2260,6 +2260,9 @@ void VisualServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(MULTIMESH_COLOR_NONE);
 	BIND_ENUM_CONSTANT(MULTIMESH_COLOR_8BIT);
 	BIND_ENUM_CONSTANT(MULTIMESH_COLOR_FLOAT);
+	BIND_ENUM_CONSTANT(MULTIMESH_CUSTOM_DATA_NONE);
+	BIND_ENUM_CONSTANT(MULTIMESH_CUSTOM_DATA_8BIT);
+	BIND_ENUM_CONSTANT(MULTIMESH_CUSTOM_DATA_FLOAT);
 
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ONCE);
 	BIND_ENUM_CONSTANT(REFLECTION_PROBE_UPDATE_ALWAYS);

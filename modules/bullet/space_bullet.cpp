@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -678,19 +678,20 @@ void SpaceBullet::check_ghost_overlaps() {
 		// For each overlapping
 		for (i = ghostOverlaps.size() - 1; 0 <= i; --i) {
 
+			bool hasOverlap = false;
 			btCollisionObject *overlapped_bt_co = ghostOverlaps[i];
 			RigidCollisionObjectBullet *otherObject = static_cast<RigidCollisionObjectBullet *>(overlapped_bt_co->getUserPointer());
 
-			if (!area->is_transform_changed() && !otherObject->is_transform_changed())
-				continue;
+			if (!area->is_transform_changed() && !otherObject->is_transform_changed()) {
+				hasOverlap = true;
+				goto collision_found;
+			}
 
 			if (overlapped_bt_co->getUserIndex() == CollisionObjectBullet::TYPE_AREA) {
 				if (!static_cast<AreaBullet *>(overlapped_bt_co->getUserPointer())->is_monitorable())
 					continue;
 			} else if (overlapped_bt_co->getUserIndex() != CollisionObjectBullet::TYPE_RIGID_BODY)
 				continue;
-
-			bool hasOverlap = false;
 
 			// For each area shape
 			for (y = area->get_shape_count() - 1; 0 <= y; --y) {

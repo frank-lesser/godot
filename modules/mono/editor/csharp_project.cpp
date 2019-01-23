@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -227,6 +227,15 @@ Error generate_scripts_metadata(const String &p_project_path, const String &p_ou
 
 	if (new_dict.size()) {
 		String json = JSON::print(new_dict, "", false);
+
+		String base_dir = p_output_path.get_base_dir();
+
+		if (!DirAccess::exists(base_dir)) {
+			DirAccessRef da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
+
+			Error err = da->make_dir_recursive(base_dir);
+			ERR_FAIL_COND_V(err != OK, ERR_CANT_CREATE);
+		}
 
 		Error ferr;
 		FileAccess *f = FileAccess::open(p_output_path, FileAccess::WRITE, &ferr);

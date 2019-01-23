@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -494,7 +494,7 @@ void EditorNode::_fs_changed() {
 			}
 		}
 
-		get_tree()->quit();
+		_exit_editor();
 	}
 }
 
@@ -1120,7 +1120,7 @@ void EditorNode::save_all_scenes_and_restart() {
 		to_reopen = get_tree()->get_edited_scene_root()->get_filename();
 	}
 
-	get_tree()->quit();
+	_exit_editor();
 	String exec = OS::get_singleton()->get_executable_path();
 
 	List<String> args;
@@ -2356,6 +2356,12 @@ int EditorNode::_next_unsaved_scene(bool p_valid_filename, int p_start) {
 	return -1;
 }
 
+void EditorNode::_exit_editor() {
+	exiting = true;
+	resource_preview->stop(); //stop early to avoid crashes
+	get_tree()->quit();
+}
+
 void EditorNode::_discard_changes(const String &p_str) {
 
 	switch (current_option) {
@@ -2383,14 +2389,13 @@ void EditorNode::_discard_changes(const String &p_str) {
 		case FILE_QUIT: {
 
 			_menu_option_confirm(RUN_STOP, true);
-			exiting = true;
-			get_tree()->quit();
+			_exit_editor();
+
 		} break;
 		case RUN_PROJECT_MANAGER: {
 
 			_menu_option_confirm(RUN_STOP, true);
-			exiting = true;
-			get_tree()->quit();
+			_exit_editor();
 			String exec = OS::get_singleton()->get_executable_path();
 
 			List<String> args;
@@ -3145,6 +3150,7 @@ void EditorNode::register_editor_types() {
 	ClassDB::register_class<EditorFileDialog>();
 	ClassDB::register_virtual_class<EditorSettings>();
 	ClassDB::register_class<EditorSpatialGizmo>();
+	ClassDB::register_class<EditorSpatialGizmoPlugin>();
 	ClassDB::register_virtual_class<EditorResourcePreview>();
 	ClassDB::register_class<EditorResourcePreviewGenerator>();
 	ClassDB::register_virtual_class<EditorFileSystem>();
@@ -4652,6 +4658,8 @@ void EditorNode::_bind_methods() {
 	ClassDB::bind_method("_node_renamed", &EditorNode::_node_renamed);
 	ClassDB::bind_method("edit_node", &EditorNode::edit_node);
 	ClassDB::bind_method("_unhandled_input", &EditorNode::_unhandled_input);
+
+	ClassDB::bind_method(D_METHOD("push_item", "object", "property", "inspector_only"), &EditorNode::push_item, DEFVAL(""), DEFVAL(false));
 
 	ClassDB::bind_method("_get_scene_metadata", &EditorNode::_get_scene_metadata);
 	ClassDB::bind_method("set_edited_scene", &EditorNode::set_edited_scene);

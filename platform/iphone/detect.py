@@ -46,7 +46,7 @@ def configure(env):
     if (env["target"].startswith("release")):
         env.Append(CPPFLAGS=['-DNDEBUG', '-DNS_BLOCK_ASSERTIONS=1'])
         if (env["optimize"] == "speed"): #optimize for speed (default)
-            env.Append(CPPFLAGS=['-O2', '-ftree-vectorize', '-fomit-frame-pointer', '-ffast-math', '-funsafe-math-optimizations'])
+            env.Append(CPPFLAGS=['-O2', '-ftree-vectorize', '-fomit-frame-pointer'])
             env.Append(LINKFLAGS=['-O2'])
         else: #optimize for size
             env.Append(CPPFLAGS=['-Os', '-ftree-vectorize'])
@@ -75,6 +75,10 @@ def configure(env):
         env["bits"] = "64"
 
     ## Compiler configuration
+
+    # Save this in environment for use by other modules
+    if "OSXCROSS_IOS" in os.environ:
+        env["osxcross"] = True
 
     env['ENV']['PATH'] = env['IPHONEPATH'] + "/Developer/usr/bin/:" + env['ENV']['PATH']
 
@@ -169,7 +173,7 @@ def configure(env):
     env['ENV']['CODESIGN_ALLOCATE'] = '/Developer/Platforms/iPhoneOS.platform/Developer/usr/bin/codesign_allocate'
 
     env.Append(CPPPATH=['#platform/iphone'])
-    env.Append(CPPFLAGS=['-DIPHONE_ENABLED', '-DUNIX_ENABLED', '-DGLES_ENABLED', '-DMPC_FIXED_POINT', '-DCOREAUDIO_ENABLED'])
+    env.Append(CPPFLAGS=['-DIPHONE_ENABLED', '-DUNIX_ENABLED', '-DGLES_ENABLED', '-DCOREAUDIO_ENABLED'])
 
     # TODO: Move that to opus module's config
     if 'module_opus_enabled' in env and env['module_opus_enabled']:

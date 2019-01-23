@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -50,6 +50,7 @@ class OS_JavaScript : public OS_Unix {
 	InputDefault *input;
 	Ref<InputEventKey> deferred_key_event;
 	CursorShape cursor_shape;
+	String cursors[CURSOR_MAX];
 	Point2 touches[32];
 
 	Point2i last_click_pos;
@@ -57,6 +58,7 @@ class OS_JavaScript : public OS_Unix {
 	int last_click_button_index;
 
 	MainLoop *main_loop;
+	int video_driver_index;
 	AudioDriverJavaScript audio_driver_javascript;
 
 	bool idb_available;
@@ -83,8 +85,6 @@ class OS_JavaScript : public OS_Unix {
 	static void main_loop_callback();
 
 	static void file_access_close_callback(const String &p_file, int p_flags);
-
-	int video_driver_index;
 
 protected:
 	virtual int get_current_video_driver() const;

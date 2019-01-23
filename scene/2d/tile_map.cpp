@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -377,13 +377,12 @@ void TileMap::update_dirty_quadrants() {
 				r.size = tile_set->autotile_get_size(c.id);
 				r.position += (r.size + Vector2(spacing, spacing)) * Vector2(c.autotile_coord_x, c.autotile_coord_y);
 			}
-			Size2 s = tex->get_size();
 
+			Size2 s;
 			if (r == Rect2())
 				s = tex->get_size();
-			else {
+			else
 				s = r.size;
-			}
 
 			Rect2 rect;
 			rect.position = offset.floor();
@@ -482,7 +481,7 @@ void TileMap::update_dirty_quadrants() {
 						}
 						ps->body_add_shape(q.body, shape->get_rid(), xform);
 						ps->body_set_shape_metadata(q.body, shape_idx, Vector2(E->key().x, E->key().y));
-						ps->body_set_shape_as_one_way_collision(q.body, shape_idx, shapes[i].one_way_collision);
+						ps->body_set_shape_as_one_way_collision(q.body, shape_idx, shapes[i].one_way_collision, shapes[i].one_way_collision_margin);
 						shape_idx++;
 					}
 				}

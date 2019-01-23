@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -141,6 +141,7 @@ public:
 	virtual void light_instance_set_transform(RID p_light_instance, const Transform &p_transform) = 0;
 	virtual void light_instance_set_shadow_transform(RID p_light_instance, const CameraMatrix &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale = 1.0) = 0;
 	virtual void light_instance_mark_visible(RID p_light_instance) = 0;
+	virtual bool light_instances_can_render_shadow_cube() const { return true; }
 
 	virtual RID reflection_atlas_create() = 0;
 	virtual void reflection_atlas_set_size(RID p_ref_atlas, int p_size) = 0;
@@ -656,7 +657,7 @@ public:
 			next_ptr = NULL;
 			mask_next_ptr = NULL;
 			filter_next_ptr = NULL;
-			shadow_buffer_size = 256;
+			shadow_buffer_size = 2048;
 			shadow_gradient_length = 0;
 			shadow_filter = VS::CANVAS_LIGHT_FILTER_NONE;
 			shadow_smooth = 0.0;

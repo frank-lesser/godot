@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -159,7 +159,7 @@ private:
 	void _replace_connections_target(Node *p_new_target);
 
 	void _validate_child_name(Node *p_child, bool p_force_human_readable = false);
-	String _generate_serial_child_name(Node *p_child);
+	void _generate_serial_child_name(const Node *p_child, StringName &name) const;
 
 	void _propagate_reverse_notification(int p_notification);
 	void _propagate_deferred_notification(int p_notification, bool p_reverse);

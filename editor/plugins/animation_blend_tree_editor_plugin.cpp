@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -79,7 +79,7 @@ void AnimationNodeBlendTreeEditor::_update_options_menu() {
 		add_node->get_popup()->add_item(TTR("Paste"), MENU_PASTE);
 	}
 	add_node->get_popup()->add_separator();
-	add_node->get_popup()->add_item(TTR("Load.."), MENU_LOAD_FILE);
+	add_node->get_popup()->add_item(TTR("Load..."), MENU_LOAD_FILE);
 }
 
 Size2 AnimationNodeBlendTreeEditor::get_minimum_size() const {
@@ -87,7 +87,7 @@ Size2 AnimationNodeBlendTreeEditor::get_minimum_size() const {
 	return Size2(10, 200);
 }
 
-void AnimationNodeBlendTreeEditor::_property_changed(const StringName &p_property, const Variant &p_value) {
+void AnimationNodeBlendTreeEditor::_property_changed(const StringName &p_property, const Variant &p_value, const String &p_field, bool p_changing) {
 
 	AnimationTree *tree = AnimationTreeEditor::get_singleton()->get_tree();
 	updating = true;
@@ -134,7 +134,6 @@ void AnimationNodeBlendTreeEditor::_update_graph() {
 		node->set_offset(blend_tree->get_node_position(E->get()) * EDSCALE);
 
 		node->set_title(agnode->get_caption());
-		node->set_human_readable_collision_renaming(false);
 		node->set_name(E->get());
 
 		int base = 0;
@@ -867,7 +866,7 @@ AnimationNodeBlendTreeEditor::AnimationNodeBlendTreeEditor() {
 
 	add_node = memnew(MenuButton);
 	graph->get_zoom_hbox()->add_child(add_node);
-	add_node->set_text(TTR("Add Node.."));
+	add_node->set_text(TTR("Add Node..."));
 	graph->get_zoom_hbox()->move_child(add_node, 0);
 	add_node->get_popup()->connect("id_pressed", this, "_add_node");
 	add_node->connect("about_to_show", this, "_update_options_menu");

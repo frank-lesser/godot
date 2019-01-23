@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -65,6 +65,13 @@ void _collect_ysort_children(VisualServerCanvas::Item *p_canvas_item, Transform2
 
 		if (child_items[i]->sort_y)
 			_collect_ysort_children(child_items[i], p_transform * child_items[i]->xform, r_items, r_index);
+	}
+}
+
+void _mark_ysort_dirty(VisualServerCanvas::Item *ysort_owner, RID_Owner<VisualServerCanvas::Item> &canvas_item_owner) {
+	while (ysort_owner && ysort_owner->sort_y) {
+		ysort_owner->ysort_children_count = -1;
+		ysort_owner = canvas_item_owner.owns(ysort_owner->parent) ? canvas_item_owner.getornull(ysort_owner->parent) : NULL;
 	}
 }
 
@@ -336,11 +343,7 @@ void VisualServerCanvas::canvas_item_set_parent(RID p_item, RID p_parent) {
 			Item *item_owner = canvas_item_owner.get(canvas_item->parent);
 			item_owner->child_items.erase(canvas_item);
 
-			Item *ysort_owner = item_owner;
-			while (ysort_owner && ysort_owner->sort_y) {
-				item_owner->ysort_children_count = -1;
-				ysort_owner = canvas_item_owner.owns(ysort_owner->parent) ? canvas_item_owner.getornull(ysort_owner->parent) : NULL;
-			}
+			_mark_ysort_dirty(item_owner, canvas_item_owner);
 		}
 
 		canvas_item->parent = RID();
@@ -360,11 +363,7 @@ void VisualServerCanvas::canvas_item_set_parent(RID p_item, RID p_parent) {
 			item_owner->child_items.push_back(canvas_item);
 			item_owner->children_order_dirty = true;
 
-			Item *ysort_owner = item_owner;
-			while (ysort_owner && ysort_owner->sort_y) {
-				item_owner->ysort_children_count = -1;
-				ysort_owner = canvas_item_owner.owns(ysort_owner->parent) ? canvas_item_owner.getornull(ysort_owner->parent) : NULL;
-			}
+			_mark_ysort_dirty(item_owner, canvas_item_owner);
 
 		} else {
 
@@ -873,7 +872,8 @@ void VisualServerCanvas::canvas_item_set_sort_children_by_y(RID p_item, bool p_e
 	ERR_FAIL_COND(!canvas_item);
 
 	canvas_item->sort_y = p_enable;
-	canvas_item->ysort_children_count = -1;
+
+	_mark_ysort_dirty(canvas_item, canvas_item_owner);
 }
 void VisualServerCanvas::canvas_item_set_z_index(RID p_item, int p_z) {
 
@@ -1351,11 +1351,7 @@ bool VisualServerCanvas::free(RID p_rid) {
 				Item *item_owner = canvas_item_owner.get(canvas_item->parent);
 				item_owner->child_items.erase(canvas_item);
 
-				Item *ysort_owner = item_owner;
-				while (ysort_owner && ysort_owner->sort_y) {
-					item_owner->ysort_children_count = -1;
-					ysort_owner = canvas_item_owner.owns(ysort_owner->parent) ? canvas_item_owner.getornull(ysort_owner->parent) : NULL;
-				}
+				_mark_ysort_dirty(item_owner, canvas_item_owner);
 			}
 		}
 

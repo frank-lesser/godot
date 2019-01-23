@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -797,7 +797,7 @@ void EditorFileSystem::_scan_fs_changes(EditorFileSystemDirectory *p_dir, const 
 	bool updated_dir = false;
 	String cd = p_dir->get_path();
 
-	if (current_mtime != p_dir->modified_time) {
+	if (current_mtime != p_dir->modified_time || using_fat_32) {
 
 		updated_dir = true;
 		p_dir->modified_time = current_mtime;
@@ -1809,10 +1809,14 @@ EditorFileSystem::EditorFileSystem() {
 	if (da->change_dir("res://.import") != OK) {
 		da->make_dir("res://.import");
 	}
+	//this should probably also work on Unix and use the string it returns for FAT32
+	using_fat_32 = da->get_filesystem_type()=="FAT32";
 	memdelete(da);
 
 	scan_total = 0;
 	update_script_classes_queued = false;
+
+
 }
 
 EditorFileSystem::~EditorFileSystem() {

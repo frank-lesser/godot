@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -304,7 +304,9 @@ static Vector2 get_mouse_pos(NSPoint locationInWindow, CGFloat backingScaleFacto
 	if (OS_OSX::singleton->main_loop) {
 		Main::force_redraw();
 		//Event retrieval blocks until resize is over. Call Main::iteration() directly.
-		Main::iteration();
+		if (!Main::is_iterating()) { //avoid cyclic loop
+			Main::iteration();
+		}
 	}
 
 	/*
@@ -629,6 +631,7 @@ static void _mouseDownEvent(NSEvent *event, int index, int mask, bool pressed) {
 	const Vector2 pos = get_mouse_pos([event locationInWindow], backingScaleFactor);
 	mm->set_position(pos);
 	mm->set_global_position(pos);
+	mm->set_speed(OS_OSX::singleton->input->get_last_mouse_speed());
 	Vector2 relativeMotion = Vector2();
 	relativeMotion.x = [event deltaX] * OS_OSX::singleton -> _mouse_scale(backingScaleFactor);
 	relativeMotion.y = [event deltaY] * OS_OSX::singleton -> _mouse_scale(backingScaleFactor);
@@ -1615,7 +1618,8 @@ void OS_OSX::set_cursor_shape(CursorShape p_shape) {
 			case CURSOR_VSPLIT: [[NSCursor resizeUpDownCursor] set]; break;
 			case CURSOR_HSPLIT: [[NSCursor resizeLeftRightCursor] set]; break;
 			case CURSOR_HELP: [[NSCursor arrowCursor] set]; break;
-			default: {};
+			default: {
+			};
 		}
 	}
 

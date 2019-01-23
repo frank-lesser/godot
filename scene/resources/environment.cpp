@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -334,6 +334,19 @@ void Environment::_validate_property(PropertyInfo &property) const {
 
 	};
 
+	static const char *high_end_prefixes[] = {
+		"auto_exposure_",
+		"tonemap_",
+		"ss_reflections_",
+		"ssao_",
+		"dof_blur_far_",
+		"dof_blur_near_",
+		"glow_",
+		"adjustment_",
+		NULL
+
+	};
+
 	const char **prefixes = hide_prefixes;
 	while (*prefixes) {
 		String prefix = String(*prefixes);
@@ -345,6 +358,20 @@ void Environment::_validate_property(PropertyInfo &property) const {
 		}
 
 		prefixes++;
+	}
+
+	if (VisualServer::get_singleton()->is_low_end()) {
+		prefixes = high_end_prefixes;
+		while (*prefixes) {
+			String prefix = String(*prefixes);
+
+			if (property.name.begins_with(prefix)) {
+				property.usage = PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL;
+				return;
+			}
+
+			prefixes++;
+		}
 	}
 }
 

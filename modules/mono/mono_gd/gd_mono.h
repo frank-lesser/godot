@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -95,7 +95,9 @@ class GDMono {
 #endif
 
 	bool core_api_assembly_out_of_sync;
+#ifdef TOOLS_ENABLED
 	bool editor_api_assembly_out_of_sync;
+#endif
 
 	GDMonoAssembly *corlib_assembly;
 	GDMonoAssembly *core_api_assembly;
@@ -193,7 +195,7 @@ public:
 
 	GDMonoClass *get_class(MonoClass *p_raw_class);
 
-#ifdef TOOLS_ENABLED
+#ifdef GD_MONO_HOT_RELOAD
 	Error reload_scripts_domain();
 #endif
 

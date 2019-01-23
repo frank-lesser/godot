@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -222,10 +222,33 @@ String EditorExportPreset::get_custom_features() const {
 	return custom_features;
 }
 
+void EditorExportPreset::set_script_export_mode(int p_mode) {
+
+	script_mode = p_mode;
+	EditorExport::singleton->save_presets();
+}
+
+int EditorExportPreset::get_script_export_mode() const {
+
+	return script_mode;
+}
+
+void EditorExportPreset::set_script_encryption_key(const String &p_key) {
+
+	script_key = p_key;
+	EditorExport::singleton->save_presets();
+}
+
+String EditorExportPreset::get_script_encryption_key() const {
+
+	return script_key;
+}
+
 EditorExportPreset::EditorExportPreset() :
 		export_filter(EXPORT_ALL_RESOURCES),
 		export_path(""),
-		runnable(false) {
+		runnable(false),
+		script_mode(MODE_SCRIPT_COMPILED) {
 }
 
 ///////////////////////////////////
@@ -355,7 +378,7 @@ String EditorExportPlatform::find_export_template(String template_file_name, Str
 
 	// Not found
 	if (err) {
-		*err += "No export template found at \"" + template_path + "\".";
+		*err += TTR("No export template found at the expected path:") + "\n" + template_path + "\n";
 	}
 	return String();
 }
@@ -472,6 +495,18 @@ void EditorExportPlatform::_edit_filter_list(Set<String> &r_list, const String &
 	ERR_FAIL_NULL(da);
 	_edit_files_with_filter(da, filters, r_list, exclude);
 	memdelete(da);
+}
+
+void EditorExportPlugin::set_export_preset(const Ref<EditorExportPreset> &p_preset) {
+
+	if (p_preset.is_valid()) {
+		export_preset = p_preset;
+	}
+}
+
+Ref<EditorExportPreset> EditorExportPlugin::get_export_preset() const {
+
+	return export_preset;
 }
 
 void EditorExportPlugin::add_file(const String &p_path, const Vector<uint8_t> &p_file, bool p_remap) {
@@ -658,6 +693,9 @@ Error EditorExportPlatform::export_project_files(const Ref<EditorExportPreset> &
 
 	Vector<Ref<EditorExportPlugin> > export_plugins = EditorExport::get_singleton()->get_export_plugins();
 	for (int i = 0; i < export_plugins.size(); i++) {
+
+		export_plugins.write[i]->set_export_preset(p_preset);
+
 		if (p_so_func) {
 			for (int j = 0; j < export_plugins[i]->shared_objects.size(); j++) {
 				p_so_func(p_udata, export_plugins[i]->shared_objects[j]);
@@ -1048,6 +1086,7 @@ void EditorExport::_save() {
 		config->set_value(section, "platform", preset->get_platform()->get_name());
 		config->set_value(section, "runnable", preset->is_runnable());
 		config->set_value(section, "custom_features", preset->get_custom_features());
+
 		bool save_files = false;
 		switch (preset->get_export_filter()) {
 			case EditorExportPreset::EXPORT_ALL_RESOURCES: {
@@ -1071,6 +1110,8 @@ void EditorExport::_save() {
 		config->set_value(section, "exclude_filter", preset->get_exclude_filter());
 		config->set_value(section, "export_path", preset->get_export_path());
 		config->set_value(section, "patch_list", preset->get_patches());
+		config->set_value(section, "script_export_mode", preset->get_script_export_mode());
+		config->set_value(section, "script_encryption_key", preset->get_script_encryption_key());
 
 		String option_section = "preset." + itos(i) + ".options";
 
@@ -1233,6 +1274,13 @@ void EditorExport::load_config() {
 			preset->add_patch(patch_list[i]);
 		}
 
+		if (config->has_section_key(section, "script_export_mode")) {
+			preset->set_script_export_mode(config->get_value(section, "script_export_mode"));
+		}
+		if (config->has_section_key(section, "script_encryption_key")) {
+			preset->set_script_encryption_key(config->get_value(section, "script_encryption_key"));
+		}
+
 		String option_section = "preset." + itos(index) + ".options";
 
 		List<String> options;
@@ -1356,12 +1404,12 @@ bool EditorExportPlatformPC::can_export(const Ref<EditorExportPreset> &p_preset,
 
 	if (!FileAccess::exists(custom_debug_binary)) {
 		dvalid = false;
-		err = "Custom debug binary not found.\n";
+		err += TTR("Custom debug template not found.") + "\n";
 	}
 
 	if (!FileAccess::exists(custom_release_binary)) {
 		rvalid = false;
-		err += "Custom release binary not found.\n";
+		err += TTR("Custom release template not found.") + "\n";
 	}
 
 	if (dvalid || rvalid)

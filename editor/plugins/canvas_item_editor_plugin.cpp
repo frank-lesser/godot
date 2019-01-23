@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -573,10 +573,10 @@ bool CanvasItemEditor::_get_bone_shape(Vector<Vector2> *shape, Vector<Vector2> *
 	Node2D *from_node = Object::cast_to<Node2D>(ObjectDB::get_instance(bone->key().from));
 	Node2D *to_node = Object::cast_to<Node2D>(ObjectDB::get_instance(bone->key().to));
 
-	if (!from_node->is_inside_tree())
-		return false; //may have been removed
 	if (!from_node)
 		return false;
+	if (!from_node->is_inside_tree())
+		return false; //may have been removed
 
 	if (!to_node && bone->get().length == 0)
 		return false;
@@ -2033,16 +2033,19 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 
 			// Find the item to select
 			CanvasItem *canvas_item = NULL;
-			Vector<_SelectResult> selection;
-
-			// Retrieve the items
-			_get_canvas_items_at_pos(click, selection);
 
 			// Retrieve the bones
+			Vector<_SelectResult> selection = Vector<_SelectResult>();
 			_get_bones_at_pos(click, selection);
-
 			if (!selection.empty()) {
 				canvas_item = selection[0].item;
+			} else {
+				// Retrieve the canvas items
+				selection = Vector<_SelectResult>();
+				_get_canvas_items_at_pos(click, selection);
+				if (!selection.empty()) {
+					canvas_item = selection[0].item;
+				}
 			}
 
 			if (!canvas_item) {
@@ -2735,8 +2738,14 @@ void CanvasItemEditor::_draw_selection() {
 
 		if (single && (tool == TOOL_SELECT || tool == TOOL_MOVE || tool == TOOL_SCALE || tool == TOOL_ROTATE || tool == TOOL_EDIT_PIVOT)) { //kind of sucks
 			// Draw the pivot
-			if (canvas_item->_edit_get_pivot() != Vector2() || drag_type == DRAG_PIVOT || tool == TOOL_EDIT_PIVOT) { // This is not really clean :/
-				viewport->draw_texture(pivot_icon, (xform.xform(canvas_item->_edit_get_pivot()) - (pivot_icon->get_size() / 2)).floor());
+			if (canvas_item->_edit_use_pivot()) {
+
+				// Draw the node's pivot
+				Transform2D unscaled_transform = (xform * canvas_item->get_transform().affine_inverse() * Transform2D(canvas_item->_edit_get_rotation(), canvas_item->_edit_get_position())).orthonormalized();
+				Transform2D simple_xform = viewport->get_transform() * unscaled_transform;
+				viewport->draw_set_transform_matrix(simple_xform);
+				viewport->draw_texture(pivot_icon, canvas_item->_edit_get_pivot() - (pivot_icon->get_size() / 2).floor());
+				viewport->draw_set_transform_matrix(viewport->get_transform());
 			}
 
 			// Draw control-related helpers

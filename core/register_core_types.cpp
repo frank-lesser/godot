@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -68,8 +68,8 @@
 static Ref<ResourceFormatSaverBinary> resource_saver_binary;
 static Ref<ResourceFormatLoaderBinary> resource_loader_binary;
 static Ref<ResourceFormatImporter> resource_format_importer;
-
 static Ref<ResourceFormatLoaderImage> resource_format_image;
+static Ref<TranslationLoaderPO> resource_format_po;
 
 static _ResourceLoader *_resource_loader = NULL;
 static _ResourceSaver *_resource_saver = NULL;
@@ -77,7 +77,6 @@ static _OS *_os = NULL;
 static _Engine *_engine = NULL;
 static _ClassDB *_classdb = NULL;
 static _Marshalls *_marshalls = NULL;
-static Ref<TranslationLoaderPO> resource_format_po;
 static _JSON *_json = NULL;
 
 static IP *ip = NULL;
@@ -251,25 +250,17 @@ void unregister_core_types() {
 
 	memdelete(_geometry);
 
-	if (resource_format_image.is_valid()) {
-		ResourceLoader::remove_resource_format_loader(resource_format_image);
-		resource_format_image.unref();
-	}
+	ResourceLoader::remove_resource_format_loader(resource_format_image);
+	resource_format_image.unref();
 
-	if (resource_saver_binary.is_valid()) {
-		ResourceSaver::remove_resource_format_saver(resource_saver_binary);
-		resource_saver_binary.unref();
-	}
+	ResourceSaver::remove_resource_format_saver(resource_saver_binary);
+	resource_saver_binary.unref();
 
-	if (resource_loader_binary.is_valid()) {
-		ResourceLoader::remove_resource_format_loader(resource_loader_binary);
-		resource_loader_binary.unref();
-	}
+	ResourceLoader::remove_resource_format_loader(resource_loader_binary);
+	resource_loader_binary.unref();
 
-	if (resource_format_importer.is_valid()) {
-		ResourceLoader::remove_resource_format_loader(resource_format_importer);
-		resource_format_importer.unref();
-	}
+	ResourceLoader::remove_resource_format_loader(resource_format_importer);
+	resource_format_importer.unref();
 
 	ResourceLoader::remove_resource_format_loader(resource_format_po);
 	resource_format_po.unref();

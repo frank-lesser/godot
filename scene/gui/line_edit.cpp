@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -248,7 +248,9 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 					set_cursor_position(text.length());
 				} break;
 #endif
-				default: { handled = false; }
+				default: {
+					handled = false;
+				}
 			}
 
 			if (handled) {
@@ -860,9 +862,11 @@ void LineEdit::_notification(int p_what) {
 		} break;
 		case MainLoop::NOTIFICATION_OS_IME_UPDATE: {
 
-			ime_text = OS::get_singleton()->get_ime_text();
-			ime_selection = OS::get_singleton()->get_ime_selection();
-			update();
+			if (has_focus()) {
+				ime_text = OS::get_singleton()->get_ime_text();
+				ime_selection = OS::get_singleton()->get_ime_selection();
+				update();
+			}
 		} break;
 	}
 }
@@ -1286,13 +1290,11 @@ int LineEdit::get_max_length() const {
 
 void LineEdit::selection_fill_at_cursor() {
 
-	int aux;
-
 	selection.begin = cursor_pos;
 	selection.end = selection.cursor_start;
 
 	if (selection.end < selection.begin) {
-		aux = selection.end;
+		int aux = selection.end;
 		selection.end = selection.begin;
 		selection.begin = aux;
 	}

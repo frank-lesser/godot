@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -205,8 +205,8 @@ void finalize_physics() {
 void Main::print_help(const char *p_binary) {
 
 	print_line(String(VERSION_NAME) + " v" + get_full_version_string() + " - https://godotengine.org");
-	OS::get_singleton()->print("(c) 2007-2018 Juan Linietsky, Ariel Manzur.\n");
-	OS::get_singleton()->print("(c) 2014-2018 Godot Engine contributors.\n");
+	OS::get_singleton()->print("(c) 2007-2019 Juan Linietsky, Ariel Manzur.\n");
+	OS::get_singleton()->print("(c) 2014-2019 Godot Engine contributors.\n");
 	OS::get_singleton()->print("\n");
 	OS::get_singleton()->print("Usage: %s [options] [path to scene or 'project.godot' file]\n", p_binary);
 	OS::get_singleton()->print("\n");
@@ -879,6 +879,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	GLOBAL_DEF("rendering/quality/driver/driver_fallback", "Best");
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/driver/driver_fallback", PropertyInfo(Variant::STRING, "rendering/quality/driver/driver_fallback", PROPERTY_HINT_ENUM, "Best,Never"));
+
+	// Assigning here even though it's GLES2-specific, to be sure that it appears in docs
+	GLOBAL_DEF("rendering/quality/2d/gles2_use_nvidia_rect_flicker_workaround", false);
 
 	GLOBAL_DEF("display/window/size/width", 1024);
 	ProjectSettings::get_singleton()->set_custom_property_info("display/window/size/width", PropertyInfo(Variant::INT, "display/window/size/width", PROPERTY_HINT_RANGE, "0,7680,or_greater")); // 8K resolution
@@ -1786,12 +1789,20 @@ uint64_t Main::target_ticks = 0;
 uint32_t Main::frames = 0;
 uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
+bool Main::iterating = false;
+bool Main::is_iterating() {
+	return iterating;
+}
 
 // For performance metrics
 static uint64_t physics_process_max = 0;
 static uint64_t idle_process_max = 0;
 
 bool Main::iteration() {
+
+	ERR_FAIL_COND_V(iterating, false);
+
+	iterating = true;
 
 	uint64_t ticks = OS::get_singleton()->get_ticks_usec();
 	Engine::get_singleton()->_frame_ticks = ticks;
@@ -1920,6 +1931,8 @@ bool Main::iteration() {
 		frames = 0;
 	}
 
+	iterating = false;
+
 	if (fixed_fps != -1)
 		return exit;
 
@@ -1932,7 +1945,7 @@ bool Main::iteration() {
 	}
 
 	int target_fps = Engine::get_singleton()->get_target_fps();
-	if (target_fps > 0) {
+	if (target_fps > 0 && !Engine::get_singleton()->is_editor_hint()) {
 		uint64_t time_step = 1000000L / target_fps;
 		target_ticks += time_step;
 		uint64_t current_ticks = OS::get_singleton()->get_ticks_usec();

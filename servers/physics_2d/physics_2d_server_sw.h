@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -80,6 +80,7 @@ public:
 		real_t valid_depth;
 		int max;
 		int amount;
+		int passed;
 		int invalid_by_dir;
 		Vector2 *ptr;
 	};
@@ -188,7 +189,7 @@ public:
 	virtual void body_clear_shapes(RID p_body);
 
 	virtual void body_set_shape_disabled(RID p_body, int p_shape_idx, bool p_disabled);
-	virtual void body_set_shape_as_one_way_collision(RID p_body, int p_shape_idx, bool p_enable);
+	virtual void body_set_shape_as_one_way_collision(RID p_body, int p_shape_idx, bool p_enable, float p_margin);
 
 	virtual void body_attach_object_instance_id(RID p_body, uint32_t p_ID);
 	virtual uint32_t body_get_object_instance_id(RID p_body) const;

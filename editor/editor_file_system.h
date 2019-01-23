@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2018 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2018 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -230,6 +230,8 @@ class EditorFileSystem : public Node {
 	String _get_global_script_class(const String &p_type, const String &p_path, String *r_extends, String *r_icon_path) const;
 
 	static Error _resource_import(const String &p_path);
+
+	bool using_fat_32; //workaround for projects in FAT32 filesystem (pendrives, most of the time)
 
 protected:
 	void _notification(int p_what);
