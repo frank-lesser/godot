@@ -178,6 +178,12 @@ void ImageTexture::_reload_hook(const RID &p_hook) {
 	_change_notify();
 }
 
+bool ImageTexture::keep_images_cached = false;
+
+void ImageTexture::set_keep_images_cached(bool p_enable) {
+	keep_images_cached = p_enable;
+}
+
 void ImageTexture::create(int p_width, int p_height, Image::Format p_format, uint32_t p_flags) {
 
 	flags = p_flags;
@@ -185,6 +191,7 @@ void ImageTexture::create(int p_width, int p_height, Image::Format p_format, uin
 	format = p_format;
 	w = p_width;
 	h = p_height;
+	_change_notify();
 }
 void ImageTexture::create_from_image(const Ref<Image> &p_image, uint32_t p_flags) {
 
@@ -197,6 +204,10 @@ void ImageTexture::create_from_image(const Ref<Image> &p_image, uint32_t p_flags
 	VisualServer::get_singleton()->texture_allocate(texture, p_image->get_width(), p_image->get_height(), 0, p_image->get_format(), VS::TEXTURE_TYPE_2D, p_flags);
 	VisualServer::get_singleton()->texture_set_data(texture, p_image);
 	_change_notify();
+
+	if (keep_images_cached) {
+		image_cache = p_image;
+	}
 }
 
 void ImageTexture::set_flags(uint32_t p_flags) {
@@ -211,6 +222,7 @@ void ImageTexture::set_flags(uint32_t p_flags) {
 		return; //uninitialized, do not set to texture
 	}
 	VisualServer::get_singleton()->texture_set_flags(texture, p_flags);
+	_change_notify("flags");
 }
 
 uint32_t ImageTexture::get_flags() const {
@@ -243,6 +255,10 @@ void ImageTexture::set_data(const Ref<Image> &p_image) {
 
 	_change_notify();
 	alpha_cache.unref();
+
+	if (keep_images_cached) {
+		image_cache = p_image;
+	}
 }
 
 void ImageTexture::_resource_path_changed() {
@@ -252,7 +268,11 @@ void ImageTexture::_resource_path_changed() {
 
 Ref<Image> ImageTexture::get_data() const {
 
-	return VisualServer::get_singleton()->texture_get_data(texture);
+	if (image_cache.is_valid()) {
+		return image_cache;
+	} else {
+		return VisualServer::get_singleton()->texture_get_data(texture);
+	}
 }
 
 int ImageTexture::get_width() const {
@@ -712,6 +732,7 @@ Error StreamTexture::load(const String &p_path) {
 	path_to_file = p_path;
 	format = image->get_format();
 
+	_change_notify();
 	return OK;
 }
 String StreamTexture::get_load_path() const {
@@ -801,6 +822,7 @@ bool StreamTexture::is_pixel_opaque(int p_x, int p_y) const {
 void StreamTexture::set_flags(uint32_t p_flags) {
 	flags = p_flags;
 	VS::get_singleton()->texture_set_flags(texture, flags);
+	_change_notify("flags");
 }
 
 void StreamTexture::reload_from_file() {
@@ -1978,6 +2000,8 @@ void AnimatedTexture::_bind_methods() {
 		ADD_PROPERTYI(PropertyInfo(Variant::OBJECT, "frame_" + itos(i) + "/texture", PROPERTY_HINT_RESOURCE_TYPE, "Texture", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL), "set_frame_texture", "get_frame_texture", i);
 		ADD_PROPERTYI(PropertyInfo(Variant::REAL, "frame_" + itos(i) + "/delay_sec", PROPERTY_HINT_RANGE, "0.0,16.0,0.01", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_INTERNAL), "set_frame_delay", "get_frame_delay", i);
 	}
+
+	BIND_CONSTANT(MAX_FRAMES);
 }
 
 AnimatedTexture::AnimatedTexture() {

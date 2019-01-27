@@ -442,6 +442,9 @@ void OS_JavaScript::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_s
 
 		if (texture.is_valid()) {
 			image = texture->get_data();
+			if (image.is_valid()) {
+				image->duplicate();
+			}
 		}
 
 		if (!image.is_valid() && atlas_texture.is_valid()) {
@@ -467,6 +470,8 @@ void OS_JavaScript::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_s
 		image = texture->get_data();
 
 		ERR_FAIL_COND(!image.is_valid());
+
+		image = image->duplicate();
 
 		if (atlas_texture.is_valid())
 			image->crop_from_point(
@@ -861,8 +866,21 @@ Error OS_JavaScript::initialize(const VideoMode &p_desired, int p_video_driver, 
 	video_driver_index = p_video_driver;
 
 	video_mode = p_desired;
-	// Can't fulfill fullscreen request during start-up due to browser security.
+	// fullscreen_change_callback will correct this if the request is successful.
 	video_mode.fullscreen = false;
+	// Emscripten only attempts fullscreen requests if the user input callback
+	// was registered through one its own functions, so request manually for
+	// start-up fullscreen.
+	if (p_desired.fullscreen) {
+		/* clang-format off */
+		EM_ASM({
+			(canvas.requestFullscreen || canvas.msRequestFullscreen ||
+				canvas.mozRequestFullScreen || canvas.mozRequestFullscreen ||
+				canvas.webkitRequestFullscreen
+			).call(canvas);
+		});
+		/* clang-format on */
+	}
 	/* clang-format off */
 	if (EM_ASM_INT_V({ return Module.resizeCanvasOnStart })) {
 		/* clang-format on */

@@ -195,11 +195,11 @@ Ref<Image> RasterizerStorageGLES2::_get_gl_image_and_format(const Ref<Image> &p_
 		} break;
 		case Image::FORMAT_DXT1: {
 
-			r_compressed = true;
 			if (config.s3tc_supported) {
 				r_gl_internal_format = _EXT_COMPRESSED_RGBA_S3TC_DXT1_EXT;
 				r_gl_format = GL_RGBA;
 				r_gl_type = GL_UNSIGNED_BYTE;
+				r_compressed = true;
 			} else {
 				need_decompress = true;
 			}
@@ -844,6 +844,17 @@ void RasterizerStorageGLES2::texture_set_shrink_all_x2_on_set_data(bool p_enable
 
 void RasterizerStorageGLES2::textures_keep_original(bool p_enable) {
 	config.keep_original_textures = p_enable;
+}
+
+Size2 RasterizerStorageGLES2::texture_size_with_proxy(RID p_texture) const {
+
+	const Texture *texture = texture_owner.getornull(p_texture);
+	ERR_FAIL_COND_V(!texture, Size2());
+	if (texture->proxy) {
+		return Size2(texture->proxy->width, texture->proxy->height);
+	} else {
+		return Size2(texture->width, texture->height);
+	}
 }
 
 void RasterizerStorageGLES2::texture_set_proxy(RID p_texture, RID p_proxy) {
@@ -1713,15 +1724,6 @@ RID RasterizerStorageGLES2::mesh_create() {
 	Mesh *mesh = memnew(Mesh);
 
 	return mesh_owner.make_rid(mesh);
-}
-
-static float Float16ToFloat(short fltInt16) {
-	int fltInt32 = ((fltInt16 & 0x8000) << 16);
-	fltInt32 |= ((fltInt16 & 0x7fff) << 13) + 0x38000000;
-
-	float fRet;
-	memcpy(&fRet, &fltInt32, sizeof(float));
-	return fRet;
 }
 
 static PoolVector<uint8_t> _unpack_half_floats(const PoolVector<uint8_t> &array, uint32_t &format, int p_vertices) {
@@ -4260,7 +4262,8 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// copy texscreen buffers
-	{
+	if (!(rt->flags[RasterizerStorage::RENDER_TARGET_NO_SAMPLING])) {
+
 		int w = rt->width;
 		int h = rt->height;
 
@@ -4268,10 +4271,17 @@ void RasterizerStorageGLES2::_render_target_allocate(RenderTarget *rt) {
 		glBindTexture(GL_TEXTURE_2D, rt->copy_screen_effect.color);
 
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 		glGenFramebuffers(1, &rt->copy_screen_effect.fbo);
 		glBindFramebuffer(GL_FRAMEBUFFER, rt->copy_screen_effect.fbo);
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->color, 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, rt->copy_screen_effect.color, 0);
+
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 		if (status != GL_FRAMEBUFFER_COMPLETE) {
@@ -4632,7 +4642,7 @@ bool RasterizerStorageGLES2::free(RID p_rid) {
 
 		Shader *shader = shader_owner.get(p_rid);
 
-		if (shader->shader) {
+		if (shader->shader && shader->custom_code_id) {
 			shader->shader->free_custom_shader(shader->custom_code_id);
 		}
 
@@ -4869,8 +4879,8 @@ void RasterizerStorageGLES2::initialize() {
 	config.etc1_supported = false;
 #else
 	config.float_texture_supported = config.extensions.has("GL_ARB_texture_float") || config.extensions.has("GL_OES_texture_float");
-	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_s3tc");
-	config.etc1_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture");
+	config.s3tc_supported = config.extensions.has("GL_EXT_texture_compression_s3tc") || config.extensions.has("WEBGL_compressed_texture_s3tc");
+	config.etc1_supported = config.extensions.has("GL_OES_compressed_ETC1_RGB8_texture") || config.extensions.has("WEBGL_compressed_texture_etc1");
 #endif
 #ifdef GLES_OVER_GL
 	config.use_rgba_2d_shadows = false;

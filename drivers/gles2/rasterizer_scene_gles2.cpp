@@ -994,6 +994,12 @@ void RasterizerSceneGLES2::_add_geometry_with_material(RasterizerStorageGLES2::G
 		e->depth_layer = e->instance->depth_layer;
 		e->priority = p_material->render_priority;
 
+		if (has_alpha && p_material->shader->spatial.depth_draw_mode == RasterizerStorageGLES2::Shader::Spatial::DEPTH_DRAW_ALPHA_PREPASS) {
+			//add element to opaque
+			RenderList::Element *eo = render_list.add_element();
+			*eo = *e;
+		}
+
 		int rpsize = e->instance->reflection_probe_instances.size();
 		if (rpsize > 0) {
 			bool first = true;
@@ -3135,7 +3141,7 @@ void RasterizerSceneGLES2::initialize() {
 	}
 
 	// cubemaps for shadows
-	if (!storage->config.support_write_depth) { //not going to be used
+	if (storage->config.support_write_depth) { //not going to be used
 		int max_shadow_cubemap_sampler_size = 512;
 
 		int cube_size = max_shadow_cubemap_sampler_size;

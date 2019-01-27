@@ -242,6 +242,11 @@ ShaderGLES2::Version *ShaderGLES2::get_current_version() {
 	strings.push_back("#define USE_GLES_OVER_GL\n");
 #else
 	strings.push_back("#version 100\n");
+//angle does not like
+#ifdef JAVASCRIPT_ENABLED
+	strings.push_back("#define USE_HIGHP_PRECISION\n");
+#endif
+
 #endif
 
 	int define_line_ofs = 1;
@@ -514,6 +519,10 @@ ShaderGLES2::Version *ShaderGLES2::get_current_version() {
 	glUseProgram(0);
 	v.ok = true;
 
+	if (cc) {
+		cc->versions.insert(conditional_version.version);
+	}
+
 	return &v;
 }
 
@@ -678,9 +687,28 @@ void ShaderGLES2::set_custom_shader(uint32_t p_code_id) {
 }
 
 void ShaderGLES2::free_custom_shader(uint32_t p_code_id) {
+
 	ERR_FAIL_COND(!custom_code_map.has(p_code_id));
-	if (conditional_version.code_version == p_code_id)
-		conditional_version.code_version = 0;
+	if (conditional_version.code_version == p_code_id) {
+		conditional_version.code_version = 0; //do not keep using a version that is going away
+		unbind();
+	}
+
+	VersionKey key;
+	key.code_version = p_code_id;
+	for (Set<uint32_t>::Element *E = custom_code_map[p_code_id].versions.front(); E; E = E->next()) {
+		key.version = E->get();
+		ERR_CONTINUE(!version_map.has(key));
+		Version &v = version_map[key];
+
+		glDeleteShader(v.vert_id);
+		glDeleteShader(v.frag_id);
+		glDeleteProgram(v.id);
+		memdelete_arr(v.uniform_location);
+		v.id = 0;
+
+		version_map.erase(key);
+	}
 
 	custom_code_map.erase(p_code_id);
 }

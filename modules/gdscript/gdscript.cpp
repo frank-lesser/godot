@@ -223,16 +223,21 @@ void GDScript::_placeholder_erased(PlaceHolderScriptInstance *p_placeholder) {
 
 void GDScript::get_script_method_list(List<MethodInfo> *p_list) const {
 
-	for (const Map<StringName, GDScriptFunction *>::Element *E = member_functions.front(); E; E = E->next()) {
-		GDScriptFunction *func = E->get();
-		MethodInfo mi;
-		mi.name = E->key();
-		for (int i = 0; i < func->get_argument_count(); i++) {
-			mi.arguments.push_back(func->get_argument_type(i));
+	const GDScript *current = this;
+	while (current) {
+		for (const Map<StringName, GDScriptFunction *>::Element *E = member_functions.front(); E; E = E->next()) {
+			GDScriptFunction *func = E->get();
+			MethodInfo mi;
+			mi.name = E->key();
+			for (int i = 0; i < func->get_argument_count(); i++) {
+				mi.arguments.push_back(func->get_argument_type(i));
+			}
+
+			mi.return_val = func->get_return_type();
+			p_list->push_back(mi);
 		}
 
-		mi.return_val = func->get_return_type();
-		p_list->push_back(mi);
+		current = current->_base;
 	}
 }
 
@@ -642,7 +647,8 @@ Variant GDScript::call(const StringName &p_method, const Variant **p_args, int p
 		if (E) {
 
 			if (!E->get()->is_static()) {
-				WARN_PRINT(String("Can't call non-static function: '" + String(p_method) + "' in script.").utf8().get_data());
+				ERR_EXPLAIN("Can't call non-static function: '" + String(p_method) + "' in script.");
+				ERR_FAIL_V(Variant());
 			}
 
 			return E->get()->call(NULL, p_args, p_argcount, r_error);

@@ -6,8 +6,8 @@
 #define mediump
 #define highp
 #else
-precision mediump float;
-precision mediump int;
+precision highp float;
+precision highp int;
 #endif
 
 uniform highp mat4 projection_matrix;
@@ -223,16 +223,19 @@ VERTEX_SHADER_CODE
 #define textureCubeLod(img, coord, lod) textureCubeLodEXT(img, coord, lod)
 #endif
 
+#endif
+
 #ifdef GL_ARB_shader_texture_lod
 #extension GL_ARB_shader_texture_lod : enable
 #endif
+
 
 #if !defined(GL_EXT_shader_texture_lod) && !defined(GL_ARB_shader_texture_lod)
 #define texture2DLod(img, coord, lod) texture2D(img, coord, lod)
 #define textureCubeLod(img, coord, lod) textureCube(img, coord, lod)
 #endif
 
-#endif
+
 
 
 #ifdef USE_GLES_OVER_GL
@@ -240,8 +243,13 @@ VERTEX_SHADER_CODE
 #define mediump
 #define highp
 #else
+#if defined(USE_HIGHP_PRECISION)
+precision highp float;
+precision highp int;
+#else
 precision mediump float;
 precision mediump int;
+#endif
 #endif
 
 uniform sampler2D color_texture; // texunit:-1

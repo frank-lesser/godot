@@ -1789,9 +1789,9 @@ uint64_t Main::target_ticks = 0;
 uint32_t Main::frames = 0;
 uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
-bool Main::iterating = false;
+int Main::iterating = 0;
 bool Main::is_iterating() {
-	return iterating;
+	return iterating > 0;
 }
 
 // For performance metrics
@@ -1800,9 +1800,10 @@ static uint64_t idle_process_max = 0;
 
 bool Main::iteration() {
 
-	ERR_FAIL_COND_V(iterating, false);
+	//for now do not error on this
+	//ERR_FAIL_COND_V(iterating, false);
 
-	iterating = true;
+	iterating++;
 
 	uint64_t ticks = OS::get_singleton()->get_ticks_usec();
 	Engine::get_singleton()->_frame_ticks = ticks;
@@ -1931,7 +1932,7 @@ bool Main::iteration() {
 		frames = 0;
 	}
 
-	iterating = false;
+	iterating--;
 
 	if (fixed_fps != -1)
 		return exit;
