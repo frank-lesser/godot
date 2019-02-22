@@ -603,13 +603,13 @@ String String::camelcase_to_underscore(bool lowercase) const {
 			is_next_number = cstr[i + 1] >= '0' && cstr[i + 1] <= '9';
 		}
 
-		const bool a = is_upper && !was_precedent_upper && !was_precedent_number;
-		const bool b = was_precedent_upper && is_upper && are_next_2_lower;
-		const bool c = is_number && !was_precedent_number;
+		const bool cond_a = is_upper && !was_precedent_upper && !was_precedent_number;
+		const bool cond_b = was_precedent_upper && is_upper && are_next_2_lower;
+		const bool cond_c = is_number && !was_precedent_number;
 		const bool can_break_number_letter = is_number && !was_precedent_number && is_next_lower;
 		const bool can_break_letter_number = !is_number && was_precedent_number && (is_next_lower || is_next_number);
 
-		bool should_split = a || b || c || can_break_number_letter || can_break_letter_number;
+		bool should_split = cond_a || cond_b || cond_c || can_break_number_letter || can_break_letter_number;
 		if (should_split) {
 			new_string += this->substr(start_index, i - start_index) + "_";
 			start_index = i;
@@ -2945,11 +2945,11 @@ String String::left(int p_pos) const {
 
 String String::right(int p_pos) const {
 
-	if (p_pos >= size())
-		return *this;
-
-	if (p_pos < 0)
+	if (p_pos >= length())
 		return "";
+
+	if (p_pos <= 0)
+		return *this;
 
 	return substr(p_pos, (length() - p_pos));
 }

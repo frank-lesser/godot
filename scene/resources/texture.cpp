@@ -157,7 +157,7 @@ bool ImageTexture::_get(const StringName &p_name, Variant &r_ret) const {
 void ImageTexture::_get_property_list(List<PropertyInfo> *p_list) const {
 
 	p_list->push_back(PropertyInfo(Variant::INT, "flags", PROPERTY_HINT_FLAGS, "Mipmaps,Repeat,Filter,Anisotropic,sRGB,Mirrored Repeat"));
-	p_list->push_back(PropertyInfo(Variant::OBJECT, "image", PROPERTY_HINT_RESOURCE_TYPE, "Image"));
+	p_list->push_back(PropertyInfo(Variant::OBJECT, "image", PROPERTY_HINT_RESOURCE_TYPE, "Image", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESOURCE_NOT_PERSISTENT));
 	p_list->push_back(PropertyInfo(Variant::VECTOR2, "size", PROPERTY_HINT_NONE, ""));
 }
 
@@ -176,12 +176,6 @@ void ImageTexture::_reload_hook(const RID &p_hook) {
 	VisualServer::get_singleton()->texture_set_data(texture, img);
 
 	_change_notify();
-}
-
-bool ImageTexture::keep_images_cached = false;
-
-void ImageTexture::set_keep_images_cached(bool p_enable) {
-	keep_images_cached = p_enable;
 }
 
 void ImageTexture::create(int p_width, int p_height, Image::Format p_format, uint32_t p_flags) {
@@ -205,9 +199,7 @@ void ImageTexture::create_from_image(const Ref<Image> &p_image, uint32_t p_flags
 	VisualServer::get_singleton()->texture_set_data(texture, p_image);
 	_change_notify();
 
-	if (keep_images_cached) {
-		image_cache = p_image;
-	}
+	image_stored = true;
 }
 
 void ImageTexture::set_flags(uint32_t p_flags) {
@@ -255,10 +247,7 @@ void ImageTexture::set_data(const Ref<Image> &p_image) {
 
 	_change_notify();
 	alpha_cache.unref();
-
-	if (keep_images_cached) {
-		image_cache = p_image;
-	}
+	image_stored = true;
 }
 
 void ImageTexture::_resource_path_changed() {
@@ -268,10 +257,10 @@ void ImageTexture::_resource_path_changed() {
 
 Ref<Image> ImageTexture::get_data() const {
 
-	if (image_cache.is_valid()) {
-		return image_cache;
-	} else {
+	if (image_stored) {
 		return VisualServer::get_singleton()->texture_get_data(texture);
+	} else {
+		return Ref<Image>();
 	}
 }
 
@@ -662,16 +651,16 @@ Error StreamTexture::_load_data(const String &p_path, int &tw, int &th, int &fla
 			int sw = tw;
 			int sh = th;
 
-			int mipmaps = Image::get_image_required_mipmaps(tw, th, format);
+			int mipmaps2 = Image::get_image_required_mipmaps(tw, th, format);
 			int total_size = Image::get_image_data_size(tw, th, format, true);
 			int idx = 0;
 			int ofs = 0;
 
-			while (mipmaps > 1 && p_size_limit > 0 && (sw > p_size_limit || sh > p_size_limit)) {
+			while (mipmaps2 > 1 && p_size_limit > 0 && (sw > p_size_limit || sh > p_size_limit)) {
 
 				sw = MAX(sw >> 1, 1);
 				sh = MAX(sh >> 1, 1);
-				mipmaps--;
+				mipmaps2--;
 				idx++;
 			}
 
@@ -698,7 +687,7 @@ Error StreamTexture::_load_data(const String &p_path, int &tw, int &th, int &fla
 
 				int expected = total_size - ofs;
 				if (bytes < expected) {
-					//this is a compatibility workaround for older format, which saved less mipmaps. It is still recommended the image is reimported.
+					//this is a compatibility workaround for older format, which saved less mipmaps2. It is still recommended the image is reimported.
 					zeromem(w.ptr() + bytes, (expected - bytes));
 				} else if (bytes != expected) {
 					ERR_FAIL_V(ERR_FILE_CORRUPT);

@@ -926,13 +926,12 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		OS::get_singleton()->_allow_hidpi = GLOBAL_DEF("display/window/dpi/allow_hidpi", false);
 	}
 
-	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/allow_per_pixel_transparency", false);
-
 	video_mode.use_vsync = GLOBAL_DEF("display/window/vsync/use_vsync", true);
 	OS::get_singleton()->_use_vsync = video_mode.use_vsync;
 
-	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency", false);
-	video_mode.layered_splash = GLOBAL_DEF("display/window/per_pixel_transparency_splash", false);
+	OS::get_singleton()->_allow_layered = GLOBAL_DEF("display/window/per_pixel_transparency/allowed", false);
+	video_mode.layered = GLOBAL_DEF("display/window/per_pixel_transparency/enabled", false);
+	video_mode.layered_splash = GLOBAL_DEF("display/window/per_pixel_transparency/splash", false);
 
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation", 2);
 	GLOBAL_DEF("rendering/quality/intended_usage/framebuffer_allocation.mobile", 3);
@@ -1148,8 +1147,8 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 		if (boot_logo_path != String()) {
 			boot_logo.instance();
-			Error err = ImageLoader::load_image(boot_logo_path, boot_logo);
-			if (err)
+			Error load_err = ImageLoader::load_image(boot_logo_path, boot_logo);
+			if (load_err)
 				ERR_PRINTS("Non-existing or invalid boot splash at: " + boot_logo_path + ". Loading default splash.");
 		}
 
@@ -1549,8 +1548,8 @@ bool Main::start() {
 						Ref<PackedScene> ps = res;
 						n = ps->instance();
 					} else if (res->is_class("Script")) {
-						Ref<Script> s = res;
-						StringName ibt = s->get_instance_base_type();
+						Ref<Script> script_res = res;
+						StringName ibt = script_res->get_instance_base_type();
 						bool valid_type = ClassDB::is_parent_class(ibt, "Node");
 						ERR_EXPLAIN("Script does not inherit a Node: " + path);
 						ERR_CONTINUE(!valid_type);
@@ -1561,7 +1560,7 @@ bool Main::start() {
 						ERR_CONTINUE(obj == NULL);
 
 						n = Object::cast_to<Node>(obj);
-						n->set_script(s.get_ref_ptr());
+						n->set_script(script_res.get_ref_ptr());
 					}
 
 					ERR_EXPLAIN("Path in autoload not a node or script: " + path);
