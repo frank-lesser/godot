@@ -1743,7 +1743,7 @@ void OS_X11::handle_key_event(XKeyEvent *p_event, bool p_echo) {
 			// is correct, but the xorg developers are
 			// not very helpful today.
 
-			::Time tresh = ABS(peek_event.xkey.time - xkeyevent->time);
+			::Time tresh = ABSDIFF(peek_event.xkey.time, xkeyevent->time);
 			if (peek_event.type == KeyPress && tresh < 5) {
 				KeySym rk;
 				XLookupString((XKeyEvent *)&peek_event, str, 256, &rk, NULL);
@@ -2593,7 +2593,7 @@ Error OS_X11::shell_open(String p_uri) {
 
 bool OS_X11::_check_internal_feature_support(const String &p_feature) {
 
-	return p_feature == "pc" || p_feature == "s3tc" || p_feature == "bptc";
+	return p_feature == "pc";
 }
 
 String OS_X11::get_config_path() const {

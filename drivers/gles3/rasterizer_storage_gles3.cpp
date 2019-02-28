@@ -3620,7 +3620,7 @@ void RasterizerStorageGLES3::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 	}
 
 	mesh->surfaces.push_back(surface);
-	mesh->instance_change_notify(true, false);
+	mesh->instance_change_notify(true, true);
 
 	info.vertex_mem += surface->total_data_size;
 }
@@ -5522,6 +5522,7 @@ void RasterizerStorageGLES3::reflection_probe_set_as_interior(RID p_probe, bool 
 	ERR_FAIL_COND(!reflection_probe);
 
 	reflection_probe->interior = p_enable;
+	reflection_probe->instance_change_notify(true, false);
 }
 void RasterizerStorageGLES3::reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable) {
 
