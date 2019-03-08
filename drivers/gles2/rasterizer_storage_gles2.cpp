@@ -429,7 +429,6 @@ Ref<Image> RasterizerStorageGLES2::_get_gl_image_and_format(const Ref<Image> &p_
 		if (!image.is_null()) {
 
 			image = image->duplicate();
-			print_line("decompressing...");
 			image->decompress();
 			ERR_FAIL_COND_V(image->is_compressed(), image);
 			switch (image->get_format()) {
@@ -1177,18 +1176,20 @@ void RasterizerStorageGLES2::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 	int mipmaps = 6;
 	int lod = 0;
 	int mm_level = mipmaps;
-	size = p_radiance_size;
+	size = p_radiance_size / 4;
 	shaders.cubemap_filter.set_conditional(CubemapFilterShaderGLES2::USE_SOURCE_PANORAMA, true);
 	shaders.cubemap_filter.set_conditional(CubemapFilterShaderGLES2::USE_DIRECT_WRITE, true);
 	shaders.cubemap_filter.bind();
 
 	// third, render to the framebuffer using separate textures, then copy to mipmaps
 	while (size >= 1) {
+
 		//make framebuffer size the texture size, need to use a separate texture for compatibility
 		glActiveTexture(GL_TEXTURE3);
 		glBindTexture(GL_TEXTURE_2D, resources.mipmap_blur_color);
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, size, size, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, resources.mipmap_blur_color, 0);
+
 		if (lod == 1) {
 			//bind panorama for smaller lods
 
@@ -1214,7 +1215,7 @@ void RasterizerStorageGLES2::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-			glCopyTexImage2D(_cube_side_enum[i], lod, GL_RGB, 0, 0, size, size, 0);
+			glCopyTexSubImage2D(_cube_side_enum[i], lod, 0, 0, 0, 0, size, size);
 		}
 
 		size >>= 1;
@@ -2380,7 +2381,7 @@ void RasterizerStorageGLES2::mesh_add_surface(RID p_mesh, uint32_t p_format, VS:
 	surface->total_data_size += surface->array_byte_size + surface->index_array_byte_size;
 
 	for (int i = 0; i < surface->skeleton_bone_used.size(); i++) {
-		surface->skeleton_bone_used.write[i] = surface->skeleton_bone_aabb[i].size.x < 0 || surface->skeleton_bone_aabb[i].size.y < 0 || surface->skeleton_bone_aabb[i].size.z < 0;
+		surface->skeleton_bone_used.write[i] = !(surface->skeleton_bone_aabb[i].size.x < 0 || surface->skeleton_bone_aabb[i].size.y < 0 || surface->skeleton_bone_aabb[i].size.z < 0);
 	}
 
 	for (int i = 0; i < VS::ARRAY_MAX; i++) {
@@ -2688,7 +2689,7 @@ AABB RasterizerStorageGLES2::mesh_get_aabb(RID p_mesh, RID p_skeleton) const {
 						mtx.basis[0].x = texture[base_ofs + 0];
 						mtx.basis[0].y = texture[base_ofs + 1];
 						mtx.origin.x = texture[base_ofs + 3];
-						base_ofs += 256 * 4;
+						base_ofs += 4;
 						mtx.basis[1].x = texture[base_ofs + 0];
 						mtx.basis[1].y = texture[base_ofs + 1];
 						mtx.origin.y = texture[base_ofs + 3];
@@ -2716,12 +2717,12 @@ AABB RasterizerStorageGLES2::mesh_get_aabb(RID p_mesh, RID p_skeleton) const {
 						mtx.basis[0].y = texture[base_ofs + 1];
 						mtx.basis[0].z = texture[base_ofs + 2];
 						mtx.origin.x = texture[base_ofs + 3];
-						base_ofs += 256 * 4;
+						base_ofs += 4;
 						mtx.basis[1].x = texture[base_ofs + 0];
 						mtx.basis[1].y = texture[base_ofs + 1];
 						mtx.basis[1].z = texture[base_ofs + 2];
 						mtx.origin.y = texture[base_ofs + 3];
-						base_ofs += 256 * 4;
+						base_ofs += 4;
 						mtx.basis[2].x = texture[base_ofs + 0];
 						mtx.basis[2].y = texture[base_ofs + 1];
 						mtx.basis[2].z = texture[base_ofs + 2];
@@ -3597,6 +3598,23 @@ void RasterizerStorageGLES2::skeleton_set_base_transform_2d(RID p_skeleton, cons
 	ERR_FAIL_COND(!skeleton);
 
 	skeleton->base_transform_2d = p_base_transform;
+}
+
+void RasterizerStorageGLES2::skeleton_set_world_transform(RID p_skeleton, bool p_enable, const Transform &p_world_transform) {
+
+	Skeleton *skeleton = skeleton_owner.getornull(p_skeleton);
+
+	ERR_FAIL_COND(skeleton->use_2d);
+
+	skeleton->world_transform = p_world_transform;
+	skeleton->use_world_transform = p_enable;
+	if (p_enable) {
+		skeleton->world_transform_inverse = skeleton->world_transform.affine_inverse();
+	}
+
+	if (!skeleton->update_list.in_list()) {
+		skeleton_update_list.add(&skeleton->update_list);
+	}
 }
 
 void RasterizerStorageGLES2::_update_skeleton_transform_buffer(const PoolVector<float> &p_data, size_t p_size) {

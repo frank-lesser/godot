@@ -635,7 +635,7 @@ bool RasterizerSceneGLES2::reflection_probe_instance_postprocess_step(RID p_inst
 	for (int i = 0; i < 6; i++) {
 		glBindFramebuffer(GL_FRAMEBUFFER, rpi->fbo[i]);
 		glViewport(0, 0, size, size);
-		glCopyTexImage2D(_cube_side_enum[i], 0, GL_RGB, 0, 0, size, size, 0);
+		glCopyTexSubImage2D(_cube_side_enum[i], 0, 0, 0, 0, 0, size, size);
 	}
 	//do filtering
 	//vdc cache
@@ -672,7 +672,7 @@ bool RasterizerSceneGLES2::reflection_probe_instance_postprocess_step(RID p_inst
 			storage->shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES2::Z_FLIP, false);
 
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-			glCopyTexImage2D(_cube_side_enum[i], lod, GL_RGB, 0, 0, size, size, 0);
+			glCopyTexSubImage2D(_cube_side_enum[i], lod, 0, 0, 0, 0, size, size);
 		}
 
 		size >>= 1;
@@ -1312,11 +1312,11 @@ bool RasterizerSceneGLES2::_setup_material(RasterizerStorageGLES2::Material *p_m
 			continue;
 		}
 
-		t = t->get_ptr();
-
 		if (t->redraw_if_visible) { //must check before proxy because this is often used with proxies
 			VisualServerRaster::redraw_request();
 		}
+
+		t = t->get_ptr();
 
 #ifdef TOOLS_ENABLED
 		if (t->detect_3d) {
@@ -1671,11 +1671,10 @@ void RasterizerSceneGLES2::_render_geometry(RenderList::Element *p_element) {
 				if (c.texture.is_valid() && storage->texture_owner.owns(c.texture)) {
 					RasterizerStorageGLES2::Texture *t = storage->texture_owner.get(c.texture);
 
-					t = t->get_ptr();
-
 					if (t->redraw_if_visible) {
 						VisualServerRaster::redraw_request();
 					}
+					t = t->get_ptr();
 
 #ifdef TOOLS_ENABLED
 					if (t->detect_3d) {
@@ -2486,6 +2485,12 @@ void RasterizerSceneGLES2::_render_render_list(RenderList::Element **p_elements,
 		}
 
 		state.scene_shader.set_uniform(SceneShaderGLES2::WORLD_TRANSFORM, e->instance->transform);
+
+		if (skeleton) {
+			state.scene_shader.set_uniform(SceneShaderGLES2::SKELETON_IN_WORLD_COORDS, skeleton->use_world_transform);
+			state.scene_shader.set_uniform(SceneShaderGLES2::SKELETON_TRANSFORM, skeleton->world_transform);
+			state.scene_shader.set_uniform(SceneShaderGLES2::SKELETON_TRANSFORM_INVERSE, skeleton->world_transform_inverse);
+		}
 
 		if (use_lightmap_capture) { //this is per instance, must be set always if present
 			glUniform4fv(state.scene_shader.get_uniform_location(SceneShaderGLES2::LIGHTMAP_CAPTURES), 12, (const GLfloat *)e->instance->lightmap_capture_data.ptr());

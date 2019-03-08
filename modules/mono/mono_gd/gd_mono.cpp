@@ -34,6 +34,7 @@
 #include <mono/metadata/mono-config.h>
 #include <mono/metadata/mono-debug.h>
 #include <mono/metadata/mono-gc.h>
+#include <mono/metadata/profiler.h>
 
 #include "core/os/dir_access.h"
 #include "core/os/file_access.h"
@@ -53,6 +54,10 @@
 #include "../editor/godotsharp_editor.h"
 #include "main/main.h"
 #endif
+
+#define OUT_OF_SYNC_ERR_MESSAGE(m_assembly_name) "The assembly '" m_assembly_name "' is out of sync. "                    \
+												 "This error is expected if you just upgraded to a newer Godot version. " \
+												 "Building the project will update the assembly to the correct version."
 
 GDMono *GDMono::singleton = NULL;
 
@@ -77,6 +82,14 @@ void setup_runtime_main_args() {
 	}
 
 	mono_runtime_set_main_args(main_args.size(), main_args.ptrw());
+}
+
+void gdmono_profiler_init() {
+	String profiler_args = GLOBAL_DEF("mono/profiler/args", "log:calls,alloc,sample,output=output.mlpd");
+	bool profiler_enabled = GLOBAL_DEF("mono/profiler/enabled", false);
+	if (profiler_enabled) {
+		mono_profiler_load(profiler_args.utf8());
+	}
 }
 
 #ifdef DEBUG_ENABLED
@@ -265,6 +278,8 @@ void GDMono::initialize() {
 
 	GDMonoAssembly::initialize();
 
+	gdmono_profiler_init();
+
 #ifdef DEBUG_ENABLED
 	gdmono_debug_init();
 #endif
@@ -353,15 +368,15 @@ void GDMono::initialize() {
 			// metadata, so we invalidate the version in the metadata and unload the script domain.
 
 			if (core_api_assembly_out_of_sync) {
-				ERR_PRINT("The loaded Core API assembly is out of sync");
+				ERR_PRINT(OUT_OF_SYNC_ERR_MESSAGE(CORE_API_ASSEMBLY_NAME));
 				metadata_set_api_assembly_invalidated(APIAssembly::API_CORE, true);
 			} else if (!GDMonoUtils::mono_cache.godot_api_cache_updated) {
-				ERR_PRINT("The loaded Core API assembly is in sync, but the cache update failed");
+				ERR_PRINT("The loaded assembly '" CORE_API_ASSEMBLY_NAME "' is in sync, but the cache update failed");
 				metadata_set_api_assembly_invalidated(APIAssembly::API_CORE, true);
 			}
 
 			if (editor_api_assembly_out_of_sync) {
-				ERR_PRINT("The loaded Editor API assembly is out of sync");
+				ERR_PRINT(OUT_OF_SYNC_ERR_MESSAGE(EDITOR_API_ASSEMBLY_NAME));
 				metadata_set_api_assembly_invalidated(APIAssembly::API_EDITOR, true);
 			}
 
@@ -572,6 +587,8 @@ bool GDMono::_load_core_api_assembly() {
 										CS_GLUE_VERSION != api_assembly_ver.cs_glue_version;
 		if (!core_api_assembly_out_of_sync) {
 			GDMonoUtils::update_godot_api_cache();
+
+			_install_trace_listener();
 		}
 #else
 		GDMonoUtils::update_godot_api_cache();
@@ -673,6 +690,23 @@ bool GDMono::_load_api_assemblies() {
 #endif
 
 	return true;
+}
+
+void GDMono::_install_trace_listener() {
+
+#ifdef DEBUG_ENABLED
+	// Install the trace listener now before the project assembly is loaded
+	typedef void (*DebuggingUtils_InstallTraceListener)(MonoObject **);
+	MonoException *exc = NULL;
+	GDMonoClass *debug_utils = core_api_assembly->get_class(BINDINGS_NAMESPACE, "DebuggingUtils");
+	DebuggingUtils_InstallTraceListener install_func =
+			(DebuggingUtils_InstallTraceListener)debug_utils->get_method_thunk("InstallTraceListener");
+	install_func((MonoObject **)&exc);
+	if (exc) {
+		ERR_PRINT("Failed to install System.Diagnostics.Trace listener");
+		GDMonoUtils::debug_print_unhandled_exception(exc);
+	}
+#endif
 }
 
 #ifdef TOOLS_ENABLED
@@ -833,6 +867,8 @@ Error GDMono::reload_scripts_domain() {
 		}
 	}
 
+	CSharpLanguage::get_singleton()->_uninitialize_script_bindings();
+
 	Error err = _load_scripts_domain();
 	if (err != OK) {
 		ERR_PRINT("Mono: Failed to load scripts domain");
@@ -852,7 +888,7 @@ Error GDMono::reload_scripts_domain() {
 			// metadata, so we invalidate the version in the metadata and unload the script domain.
 
 			if (core_api_assembly_out_of_sync) {
-				ERR_PRINT("The loaded Core API assembly is out of sync");
+				ERR_PRINT(OUT_OF_SYNC_ERR_MESSAGE(CORE_API_ASSEMBLY_NAME));
 				metadata_set_api_assembly_invalidated(APIAssembly::API_CORE, true);
 			} else if (!GDMonoUtils::mono_cache.godot_api_cache_updated) {
 				ERR_PRINT("The loaded Core API assembly is in sync, but the cache update failed");
@@ -860,7 +896,7 @@ Error GDMono::reload_scripts_domain() {
 			}
 
 			if (editor_api_assembly_out_of_sync) {
-				ERR_PRINT("The loaded Editor API assembly is out of sync");
+				ERR_PRINT(OUT_OF_SYNC_ERR_MESSAGE(EDITOR_API_ASSEMBLY_NAME));
 				metadata_set_api_assembly_invalidated(APIAssembly::API_EDITOR, true);
 			}
 
