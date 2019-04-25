@@ -4,7 +4,7 @@
 ## assimp
 
 - Upstream: http://github.com/assimp/assimp
-- Version: git (d2b45377e4b09a1f43be95e45553afcc06b03f4b)
+- Version: git (d3d98a7ec0c8d38e1952b46dfe53f7e9233dc92d)
 - License: BSD-3-Clause
 
 
@@ -122,7 +122,7 @@ Use UI font variant if available, because it has tight vertical metrics and good
 ## freetype
 
 - Upstream: https://www.freetype.org
-- Version: 2.9.1
+- Version: 2.10.0
 - License: FreeType License (BSD-like)
 
 Files extracted from upstream source:
@@ -502,21 +502,6 @@ They are marked with `// -- GODOT start --` and `// -- GODOT end --`
 comments and a patch is provided in the squish/ folder.
 
 
-## thekla_atlas
-
-- Upstream: https://github.com/Thekla/thekla_atlas
-- Version: git (80a1430, 2017)
-- License: MIT
-
-Files extracted from the upstream source:
-
-- Relevant sources from src/
-- License.txt
-
-Important: Some files have Godot-made changes, those
-changes are marked with `// -- GODOT --` comments.
-
-
 ## tinyexr
 
 - Upstream: https://github.com/syoyo/tinyexr
@@ -543,6 +528,20 @@ Some downstream changes have been made and are identified by
 `// -- GODOT start --` and `// -- GODOT end --` comments.
 They can be reapplied using the patches included in the `vhacd`
 folder.
+
+
+## xatlas
+
+- Upstream: https://github.com/jpcy/xatlas
+- Version: git (b8ec29b, 2018)
+- License: MIT
+
+Files extracted from upstream source:
+
+- `xatlas.{cpp,h}`
+
+Note: License is marked as Public Domain in the files, but it was
+later clarified upstream to MIT license.
 
 
 ## zlib

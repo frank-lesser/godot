@@ -8,8 +8,6 @@
 	</description>
 	<tutorials>
 	</tutorials>
-	<demos>
-	</demos>
 	<methods>
 		<method name="add_color_region">
 			<return type="void">
@@ -247,7 +245,7 @@
 			<return type="bool">
 			</return>
 			<description>
-				Return true if the selection is active.
+				Return [code]true[/code] if the selection is active.
 			</description>
 		</method>
 		<method name="menu_option">
@@ -418,6 +416,14 @@
 		<signal name="cursor_changed">
 			<description>
 				Emitted when the cursor changes.
+			</description>
+		</signal>
+		<signal name="info_clicked">
+			<argument index="0" name="row" type="int">
+			</argument>
+			<argument index="1" name="info" type="String">
+			</argument>
+			<description>
 			</description>
 		</signal>
 		<signal name="request_completion">
