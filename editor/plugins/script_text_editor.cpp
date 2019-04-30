@@ -79,7 +79,6 @@ void ConnectionInfoDialog::popup_connections(String p_method, Vector<Node *> p_n
 
 ConnectionInfoDialog::ConnectionInfoDialog() {
 	set_title(TTR("Connections to method:"));
-	set_resizable(true);
 
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	vbc->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 8 * EDSCALE);
@@ -89,7 +88,6 @@ ConnectionInfoDialog::ConnectionInfoDialog() {
 	add_child(vbc);
 
 	method = memnew(Label);
-	method->set_text("");
 	method->set_align(Label::ALIGN_CENTER);
 	vbc->add_child(method);
 
@@ -216,6 +214,7 @@ void ScriptTextEditor::_load_theme_settings() {
 	Color member_variable_color = EDITOR_GET("text_editor/highlighting/member_variable_color");
 	Color mark_color = EDITOR_GET("text_editor/highlighting/mark_color");
 	Color breakpoint_color = EDITOR_GET("text_editor/highlighting/breakpoint_color");
+	Color executing_line_color = EDITOR_GET("text_editor/highlighting/executing_line_color");
 	Color code_folding_color = EDITOR_GET("text_editor/highlighting/code_folding_color");
 	Color search_result_color = EDITOR_GET("text_editor/highlighting/search_result_color");
 	Color search_result_border_color = EDITOR_GET("text_editor/highlighting/search_result_border_color");
@@ -247,6 +246,7 @@ void ScriptTextEditor::_load_theme_settings() {
 	text_edit->add_color_override("function_color", function_color);
 	text_edit->add_color_override("member_variable_color", member_variable_color);
 	text_edit->add_color_override("breakpoint_color", breakpoint_color);
+	text_edit->add_color_override("executing_line_color", executing_line_color);
 	text_edit->add_color_override("mark_color", mark_color);
 	text_edit->add_color_override("code_folding_color", code_folding_color);
 	text_edit->add_color_override("search_result_color", search_result_color);
@@ -479,6 +479,14 @@ void ScriptTextEditor::goto_line(int p_line, bool p_with_error) {
 void ScriptTextEditor::goto_line_selection(int p_line, int p_begin, int p_end) {
 
 	code_editor->goto_line_selection(p_line, p_begin, p_end);
+}
+
+void ScriptTextEditor::set_executing_line(int p_line) {
+	code_editor->set_executing_line(p_line);
+}
+
+void ScriptTextEditor::clear_executing_line() {
+	code_editor->clear_executing_line();
 }
 
 void ScriptTextEditor::ensure_focus() {

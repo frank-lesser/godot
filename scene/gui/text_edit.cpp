@@ -965,6 +965,7 @@ void TextEdit::_notification(int p_what) {
 
 						// draw info icons
 						if (draw_info_gutter && text.has_info_icon(line)) {
+							int vertical_gap = (get_row_height() * 40) / 100;
 							int horizontal_gap = (cache.info_gutter_width * 30) / 100;
 							int gutter_left = cache.style_normal->get_margin(MARGIN_LEFT) + cache.breakpoint_gutter_width;
 
@@ -979,12 +980,30 @@ void TextEdit::_notification(int p_what) {
 							}
 
 							Size2i icon_pos;
-							int xofs = horizontal_gap - (info_icon->get_width()) / 2;
-							int yofs = (get_row_height() - info_icon->get_height()) / 2;
+							int xofs = horizontal_gap - (info_icon->get_width() / 4);
+							int yofs = vertical_gap - (info_icon->get_height() / 4);
 							icon_pos.x = gutter_left + xofs + ofs_x;
 							icon_pos.y = ofs_y + yofs;
 
 							draw_texture_rect(info_icon, Rect2(icon_pos, icon_size));
+						}
+
+						// draw execution marker
+						if (executing_line == line) {
+							if (draw_breakpoint_gutter) {
+								int icon_extra_size = 4;
+								int vertical_gap = (get_row_height() * 40) / 100;
+								int horizontal_gap = (cache.breakpoint_gutter_width * 30) / 100;
+								int marker_height = get_row_height() - (vertical_gap * 2) + icon_extra_size;
+								int marker_width = cache.breakpoint_gutter_width - (horizontal_gap * 2) + icon_extra_size;
+								cache.executing_icon->draw_rect(ci, Rect2(cache.style_normal->get_margin(MARGIN_LEFT) + horizontal_gap - 2 - icon_extra_size / 2, ofs_y + vertical_gap - icon_extra_size / 2, marker_width, marker_height), false, Color(cache.executing_line_color.r, cache.executing_line_color.g, cache.executing_line_color.b));
+							} else {
+#ifdef TOOLS_ENABLED
+								VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y + get_row_height() - EDSCALE, xmargin_end - xmargin_beg, EDSCALE), cache.executing_line_color);
+#else
+								VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y, xmargin_end - xmargin_beg, get_row_height()), cache.executing_line_color);
+#endif
+							}
 						}
 
 						// draw fold markers
@@ -4413,6 +4432,7 @@ void TextEdit::_update_caches() {
 	cache.current_line_color = get_color("current_line_color");
 	cache.line_length_guideline_color = get_color("line_length_guideline_color");
 	cache.breakpoint_color = get_color("breakpoint_color");
+	cache.executing_line_color = get_color("executing_line_color");
 	cache.code_folding_color = get_color("code_folding_color");
 	cache.brace_mismatch_color = get_color("brace_mismatch_color");
 	cache.word_highlighted_color = get_color("word_highlighted_color");
@@ -4427,9 +4447,10 @@ void TextEdit::_update_caches() {
 #endif
 	cache.row_height = cache.font->get_height() + cache.line_spacing;
 	cache.tab_icon = get_icon("tab");
-	cache.folded_icon = get_icon("GuiTreeArrowRight", "EditorIcons");
-	cache.can_fold_icon = get_icon("GuiTreeArrowDown", "EditorIcons");
+	cache.folded_icon = get_icon("folded");
+	cache.can_fold_icon = get_icon("fold");
 	cache.folded_eol_icon = get_icon("GuiEllipsis", "EditorIcons");
+	cache.executing_icon = get_icon("MainPlay", "EditorIcons");
 	text.set_font(cache.font);
 
 	if (syntax_highlighter) {
@@ -4995,6 +5016,17 @@ bool TextEdit::is_line_set_as_safe(int p_line) const {
 	return text.is_safe(p_line);
 }
 
+void TextEdit::set_executing_line(int p_line) {
+	ERR_FAIL_INDEX(p_line, text.size());
+	executing_line = p_line;
+	update();
+}
+
+void TextEdit::clear_executing_line() {
+	executing_line = -1;
+	update();
+}
+
 bool TextEdit::is_line_set_as_breakpoint(int p_line) const {
 
 	ERR_FAIL_INDEX_V(p_line, text.size(), false);
@@ -5414,6 +5446,9 @@ void TextEdit::undo() {
 
 	TextOperation op = undo_stack_pos->get();
 	_do_text_op(op, true);
+	if (op.from_line != op.to_line || op.to_column != op.from_column + 1)
+		select(op.from_line, op.from_column, op.to_line, op.to_column);
+
 	current_op.version = op.prev_version;
 	if (undo_stack_pos->get().chain_backward) {
 		while (true) {
@@ -5540,6 +5575,7 @@ int TextEdit::get_indent_size() {
 void TextEdit::set_draw_tabs(bool p_draw) {
 
 	draw_tabs = p_draw;
+	update();
 }
 
 bool TextEdit::is_drawing_tabs() const {
@@ -6258,8 +6294,12 @@ void TextEdit::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_show_line_numbers", "enable"), &TextEdit::set_show_line_numbers);
 	ClassDB::bind_method(D_METHOD("is_show_line_numbers_enabled"), &TextEdit::is_show_line_numbers_enabled);
+	ClassDB::bind_method(D_METHOD("set_draw_tabs"), &TextEdit::set_draw_tabs);
+	ClassDB::bind_method(D_METHOD("is_drawing_tabs"), &TextEdit::is_drawing_tabs);
 	ClassDB::bind_method(D_METHOD("set_breakpoint_gutter_enabled", "enable"), &TextEdit::set_breakpoint_gutter_enabled);
 	ClassDB::bind_method(D_METHOD("is_breakpoint_gutter_enabled"), &TextEdit::is_breakpoint_gutter_enabled);
+	ClassDB::bind_method(D_METHOD("set_draw_fold_gutter"), &TextEdit::set_draw_fold_gutter);
+	ClassDB::bind_method(D_METHOD("is_drawing_fold_gutter"), &TextEdit::is_drawing_fold_gutter);
 
 	ClassDB::bind_method(D_METHOD("set_hiding_enabled", "enable"), &TextEdit::set_hiding_enabled);
 	ClassDB::bind_method(D_METHOD("is_hiding_enabled"), &TextEdit::is_hiding_enabled);
@@ -6306,7 +6346,9 @@ void TextEdit::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "highlight_current_line"), "set_highlight_current_line", "is_highlight_current_line_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "syntax_highlighting"), "set_syntax_coloring", "is_syntax_coloring_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "show_line_numbers"), "set_show_line_numbers", "is_show_line_numbers_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_tabs"), "set_draw_tabs", "is_drawing_tabs");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "breakpoint_gutter"), "set_breakpoint_gutter_enabled", "is_breakpoint_gutter_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fold_gutter"), "set_draw_fold_gutter", "is_drawing_fold_gutter");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "highlight_all_occurrences"), "set_highlight_all_occurrences", "is_highlight_all_occurrences_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "override_selected_font_color"), "set_override_selected_font_color", "is_overriding_selected_font_color");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "context_menu_enabled"), "set_context_menu_enabled", "is_context_menu_enabled");
@@ -6470,6 +6512,8 @@ TextEdit::TextEdit() {
 	menu->add_item(RTR("Redo"), MENU_REDO, KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_Z);
 	menu->connect("id_pressed", this, "menu_option");
 	first_draw = true;
+
+	executing_line = -1;
 }
 
 TextEdit::~TextEdit() {
