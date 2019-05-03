@@ -359,7 +359,9 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_stylebox("focus", "CheckButton", focus);
 
 	theme->set_icon("on", "CheckButton", make_icon(toggle_on_png));
+	theme->set_icon("on_disabled", "CheckButton", make_icon(toggle_on_disabled_png));
 	theme->set_icon("off", "CheckButton", make_icon(toggle_off_png));
+	theme->set_icon("off_disabled", "CheckButton", make_icon(toggle_off_disabled_png));
 
 	theme->set_font("font", "CheckButton", default_font);
 
@@ -832,14 +834,6 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_constant("separation", "VSplitContainer", 12 * scale);
 	theme->set_constant("autohide", "HSplitContainer", 1 * scale);
 	theme->set_constant("autohide", "VSplitContainer", 1 * scale);
-
-	// ReferenceRect
-
-	Ref<StyleBoxTexture> ttnc = make_stylebox(full_panel_bg_png, 8, 8, 8, 8);
-	ttnc->set_draw_center(false);
-
-	theme->set_stylebox("panelnc", "Panel", ttnc);
-	theme->set_stylebox("panelf", "Panel", tc_sb);
 
 	Ref<StyleBoxTexture> sb_pc = make_stylebox(tab_container_bg_png, 4, 4, 4, 4, 7, 7, 7, 7);
 	theme->set_stylebox("panel", "PanelContainer", sb_pc);
