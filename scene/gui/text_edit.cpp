@@ -292,6 +292,7 @@ void TextEdit::Text::insert(int p_at, const String &p_text) {
 	line.marked = false;
 	line.safe = false;
 	line.breakpoint = false;
+	line.bookmark = false;
 	line.hidden = false;
 	line.width_cache = -1;
 	line.wrap_amount_cache = -1;
@@ -346,7 +347,7 @@ void TextEdit::_update_scrollbars() {
 	if (line_numbers)
 		total_width += cache.line_number_w;
 
-	if (draw_breakpoint_gutter) {
+	if (draw_breakpoint_gutter || draw_bookmark_gutter) {
 		total_width += cache.breakpoint_gutter_width;
 	}
 
@@ -605,7 +606,7 @@ void TextEdit::_notification(int p_what) {
 				draw_caret = false;
 			}
 
-			if (draw_breakpoint_gutter) {
+			if (draw_breakpoint_gutter || draw_bookmark_gutter) {
 				breakpoint_gutter_width = (get_row_height() * 55) / 100;
 				cache.breakpoint_gutter_width = breakpoint_gutter_width;
 			} else {
@@ -954,6 +955,16 @@ void TextEdit::_notification(int p_what) {
 #endif
 						}
 
+						// draw bookmark marker
+						if (text.is_bookmark(line)) {
+							if (draw_bookmark_gutter) {
+								int vertical_gap = (get_row_height() * 40) / 100;
+								int horizontal_gap = (cache.breakpoint_gutter_width * 30) / 100;
+								int marker_radius = get_row_height() - (vertical_gap * 2);
+								VisualServer::get_singleton()->canvas_item_add_circle(ci, Point2(cache.style_normal->get_margin(MARGIN_LEFT) + horizontal_gap - 2 + marker_radius / 2, ofs_y + vertical_gap + marker_radius / 2), marker_radius, Color(cache.bookmark_color.r, cache.bookmark_color.g, cache.bookmark_color.b));
+							}
+						}
+
 						// draw breakpoint marker
 						if (text.is_breakpoint(line)) {
 							if (draw_breakpoint_gutter) {
@@ -1095,7 +1106,7 @@ void TextEdit::_notification(int p_what) {
 						if (line == cursor.line && cursor_wrap_index == line_wrap_index && highlight_current_line) {
 							// draw the wrap indent offset highlight
 							if (line_wrap_index != 0 && j == 0) {
-								VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(char_ofs + char_margin - indent_px, ofs_y, (char_ofs + char_margin), get_row_height()), cache.current_line_color);
+								VisualServer::get_singleton()->canvas_item_add_rect(ci, Rect2(char_ofs + char_margin - indent_px, ofs_y, indent_px, get_row_height()), cache.current_line_color);
 							}
 							// if its the last char draw to end of the line
 							if (j == str.length() - 1) {
@@ -4303,17 +4314,22 @@ Control::CursorShape TextEdit::get_cursor_shape(const Point2 &p_pos) const {
 void TextEdit::set_text(String p_text) {
 
 	setting_text = true;
-	_clear();
-	_insert_text_at_cursor(p_text);
-	clear_undo_history();
-	cursor.column = 0;
-	cursor.line = 0;
-	cursor.x_ofs = 0;
-	cursor.line_ofs = 0;
-	cursor.wrap_ofs = 0;
-	cursor.last_fit_x = 0;
-	cursor_set_line(0);
-	cursor_set_column(0);
+	if (!undo_enabled) {
+		_clear();
+		_insert_text_at_cursor(p_text);
+	}
+
+	if (undo_enabled) {
+		cursor_set_line(0);
+		cursor_set_column(0);
+
+		begin_complex_operation();
+		_remove_text(0, 0, MAX(0, get_line_count() - 1), MAX(get_line(MAX(get_line_count() - 1, 0)).size() - 1, 0));
+		_insert_text_at_cursor(p_text);
+		end_complex_operation();
+		selection.active = false;
+	}
+
 	update();
 	setting_text = false;
 
@@ -4499,6 +4515,7 @@ void TextEdit::_update_caches() {
 	cache.mark_color = get_color("mark_color");
 	cache.current_line_color = get_color("current_line_color");
 	cache.line_length_guideline_color = get_color("line_length_guideline_color");
+	cache.bookmark_color = get_color("bookmark_color");
 	cache.breakpoint_color = get_color("breakpoint_color");
 	cache.executing_line_color = get_color("executing_line_color");
 	cache.code_folding_color = get_color("code_folding_color");
@@ -5094,6 +5111,37 @@ void TextEdit::set_executing_line(int p_line) {
 void TextEdit::clear_executing_line() {
 	executing_line = -1;
 	update();
+}
+
+bool TextEdit::is_line_set_as_bookmark(int p_line) const {
+
+	ERR_FAIL_INDEX_V(p_line, text.size(), false);
+	return text.is_bookmark(p_line);
+}
+
+void TextEdit::set_line_as_bookmark(int p_line, bool p_bookmark) {
+
+	ERR_FAIL_INDEX(p_line, text.size());
+	text.set_bookmark(p_line, p_bookmark);
+	update();
+}
+
+void TextEdit::get_bookmarks(List<int> *p_bookmarks) const {
+
+	for (int i = 0; i < text.size(); i++) {
+		if (text.is_bookmark(i))
+			p_bookmarks->push_back(i);
+	}
+}
+
+Array TextEdit::get_bookmarks_array() const {
+
+	Array arr;
+	for (int i = 0; i < text.size(); i++) {
+		if (text.is_bookmark(i))
+			arr.append(i);
+	}
+	return arr;
 }
 
 bool TextEdit::is_line_set_as_breakpoint(int p_line) const {
@@ -6183,6 +6231,15 @@ void TextEdit::set_line_length_guideline_column(int p_column) {
 	update();
 }
 
+void TextEdit::set_bookmark_gutter_enabled(bool p_draw) {
+	draw_bookmark_gutter = p_draw;
+	update();
+}
+
+bool TextEdit::is_bookmark_gutter_enabled() const {
+	return draw_bookmark_gutter;
+}
+
 void TextEdit::set_breakpoint_gutter_enabled(bool p_draw) {
 	draw_breakpoint_gutter = p_draw;
 	update();
@@ -6579,6 +6636,7 @@ TextEdit::TextEdit() {
 	line_numbers_zero_padded = false;
 	line_length_guideline = false;
 	line_length_guideline_col = 80;
+	draw_bookmark_gutter = false;
 	draw_breakpoint_gutter = false;
 	draw_fold_gutter = false;
 	draw_info_gutter = false;
@@ -6603,6 +6661,7 @@ TextEdit::TextEdit() {
 	context_menu_enabled = true;
 	menu = memnew(PopupMenu);
 	add_child(menu);
+	readonly = true; // initialise to opposite first, so we get past the early-out in set_readonly
 	set_readonly(false);
 	menu->connect("id_pressed", this, "menu_option");
 	first_draw = true;

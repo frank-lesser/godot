@@ -161,6 +161,8 @@ void MonoCache::clear_members() {
 
 	methodthunk_MarshalUtils_GenericIEnumerableIsAssignableFromType = NULL;
 	methodthunk_MarshalUtils_GenericIDictionaryIsAssignableFromType = NULL;
+	methodthunk_MarshalUtils_GenericIEnumerableIsAssignableFromType_with_info = NULL;
+	methodthunk_MarshalUtils_GenericIDictionaryIsAssignableFromType_with_info = NULL;
 
 	methodthunk_MarshalUtils_MakeGenericArrayType = NULL;
 	methodthunk_MarshalUtils_MakeGenericDictionaryType = NULL;
@@ -282,8 +284,10 @@ void update_godot_api_cache() {
 	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, ArrayGetElementType, (ArrayGetElementType)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("ArrayGetElementType", 2));
 	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, DictionaryGetKeyValueTypes, (DictionaryGetKeyValueTypes)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("DictionaryGetKeyValueTypes", 3));
 
-	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, GenericIEnumerableIsAssignableFromType, (GenericIEnumerableIsAssignableFromType)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("GenericIEnumerableIsAssignableFromType", 2));
-	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, GenericIDictionaryIsAssignableFromType, (GenericIDictionaryIsAssignableFromType)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("GenericIDictionaryIsAssignableFromType", 3));
+	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, GenericIEnumerableIsAssignableFromType, (GenericIEnumerableIsAssignableFromType)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("GenericIEnumerableIsAssignableFromType", 1));
+	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, GenericIDictionaryIsAssignableFromType, (GenericIDictionaryIsAssignableFromType)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("GenericIDictionaryIsAssignableFromType", 1));
+	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, GenericIEnumerableIsAssignableFromType_with_info, (GenericIEnumerableIsAssignableFromType_with_info)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("GenericIEnumerableIsAssignableFromType", 2));
+	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, GenericIEnumerableIsAssignableFromType_with_info, (GenericIEnumerableIsAssignableFromType_with_info)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("GenericIDictionaryIsAssignableFromType", 3));
 
 	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, MakeGenericArrayType, (MakeGenericArrayType)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("MakeGenericArrayType", 1));
 	CACHE_METHOD_THUNK_AND_CHECK(MarshalUtils, MakeGenericDictionaryType, (MakeGenericDictionaryType)GODOT_API_CLASS(MarshalUtils)->get_method_thunk("MakeGenericDictionaryType", 2));
@@ -300,7 +304,7 @@ void update_godot_api_cache() {
 
 	// TODO Move to CSharpLanguage::init() and do handle disposal
 	MonoObject *task_scheduler = mono_object_new(SCRIPTS_DOMAIN, GODOT_API_CLASS(GodotTaskScheduler)->get_mono_ptr());
-	GDMonoUtils::runtime_object_init(task_scheduler);
+	GDMonoUtils::runtime_object_init(task_scheduler, GODOT_API_CLASS(GodotTaskScheduler));
 	mono_cache.task_scheduler_handle = MonoGCHandle::create_strong(task_scheduler);
 
 	mono_cache.godot_api_cache_updated = true;
@@ -401,11 +405,10 @@ MonoThread *get_current_thread() {
 	return mono_thread_current();
 }
 
-void runtime_object_init(MonoObject *p_this_obj) {
-	GD_MONO_BEGIN_RUNTIME_INVOKE;
-	// FIXME: Do not use mono_runtime_object_init, it aborts if an exception is thrown
-	mono_runtime_object_init(p_this_obj);
-	GD_MONO_END_RUNTIME_INVOKE;
+void runtime_object_init(MonoObject *p_this_obj, GDMonoClass *p_class, MonoException **r_exc) {
+	GDMonoMethod *ctor = p_class->get_method(".ctor", 0);
+	ERR_FAIL_NULL(ctor);
+	ctor->invoke_raw(p_this_obj, NULL, r_exc);
 }
 
 GDMonoClass *get_object_class(MonoObject *p_object) {
@@ -467,7 +470,7 @@ MonoObject *create_managed_for_godot_object(GDMonoClass *p_class, const StringNa
 	CACHED_FIELD(GodotObject, ptr)->set_value_raw(mono_object, p_object);
 
 	// Construct
-	GDMonoUtils::runtime_object_init(mono_object);
+	GDMonoUtils::runtime_object_init(mono_object, p_class);
 
 	return mono_object;
 }
@@ -477,7 +480,7 @@ MonoObject *create_managed_from(const NodePath &p_from) {
 	ERR_FAIL_NULL_V(mono_object, NULL);
 
 	// Construct
-	GDMonoUtils::runtime_object_init(mono_object);
+	GDMonoUtils::runtime_object_init(mono_object, CACHED_CLASS(NodePath));
 
 	CACHED_FIELD(NodePath, ptr)->set_value_raw(mono_object, memnew(NodePath(p_from)));
 
@@ -489,7 +492,7 @@ MonoObject *create_managed_from(const RID &p_from) {
 	ERR_FAIL_NULL_V(mono_object, NULL);
 
 	// Construct
-	GDMonoUtils::runtime_object_init(mono_object);
+	GDMonoUtils::runtime_object_init(mono_object, CACHED_CLASS(RID));
 
 	CACHED_FIELD(RID, ptr)->set_value_raw(mono_object, memnew(RID(p_from)));
 
@@ -788,8 +791,24 @@ void dictionary_get_key_value_types(MonoReflectionType *p_dict_reftype, MonoRefl
 	UNLIKELY_UNHANDLED_EXCEPTION(exc);
 }
 
-MonoBoolean generic_ienumerable_is_assignable_from(MonoReflectionType *p_reftype, MonoReflectionType **r_elem_reftype) {
+MonoBoolean generic_ienumerable_is_assignable_from(MonoReflectionType *p_reftype) {
 	GenericIEnumerableIsAssignableFromType thunk = CACHED_METHOD_THUNK(MarshalUtils, GenericIEnumerableIsAssignableFromType);
+	MonoException *exc = NULL;
+	MonoBoolean res = invoke_method_thunk(thunk, p_reftype, &exc);
+	UNLIKELY_UNHANDLED_EXCEPTION(exc);
+	return res;
+}
+
+MonoBoolean generic_idictionary_is_assignable_from(MonoReflectionType *p_reftype) {
+	GenericIDictionaryIsAssignableFromType thunk = CACHED_METHOD_THUNK(MarshalUtils, GenericIDictionaryIsAssignableFromType);
+	MonoException *exc = NULL;
+	MonoBoolean res = invoke_method_thunk(thunk, p_reftype, &exc);
+	UNLIKELY_UNHANDLED_EXCEPTION(exc);
+	return res;
+}
+
+MonoBoolean generic_ienumerable_is_assignable_from(MonoReflectionType *p_reftype, MonoReflectionType **r_elem_reftype) {
+	GenericIEnumerableIsAssignableFromType_with_info thunk = CACHED_METHOD_THUNK(MarshalUtils, GenericIEnumerableIsAssignableFromType_with_info);
 	MonoException *exc = NULL;
 	MonoBoolean res = invoke_method_thunk(thunk, p_reftype, r_elem_reftype, &exc);
 	UNLIKELY_UNHANDLED_EXCEPTION(exc);
@@ -797,7 +816,7 @@ MonoBoolean generic_ienumerable_is_assignable_from(MonoReflectionType *p_reftype
 }
 
 MonoBoolean generic_idictionary_is_assignable_from(MonoReflectionType *p_reftype, MonoReflectionType **r_key_reftype, MonoReflectionType **r_value_reftype) {
-	GenericIDictionaryIsAssignableFromType thunk = CACHED_METHOD_THUNK(MarshalUtils, GenericIDictionaryIsAssignableFromType);
+	GenericIDictionaryIsAssignableFromType_with_info thunk = CACHED_METHOD_THUNK(MarshalUtils, GenericIDictionaryIsAssignableFromType_with_info);
 	MonoException *exc = NULL;
 	MonoBoolean res = invoke_method_thunk(thunk, p_reftype, r_key_reftype, r_value_reftype, &exc);
 	UNLIKELY_UNHANDLED_EXCEPTION(exc);
