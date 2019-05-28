@@ -1558,7 +1558,15 @@ struct _ScriptEditorItemData {
 
 	bool operator<(const _ScriptEditorItemData &id) const {
 
-		return category == id.category ? sort_key < id.sort_key : category < id.category;
+		if (category == id.category) {
+			if (sort_key == id.sort_key) {
+				return index < id.index;
+			} else {
+				return sort_key < id.sort_key;
+			}
+		} else {
+			return category < id.category;
+		}
 	}
 };
 
@@ -3047,7 +3055,6 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	members_overview->set_custom_minimum_size(Size2(0, 90) * EDSCALE); //need to give a bit of limit to avoid it from disappearing
 	members_overview->set_v_size_flags(SIZE_EXPAND_FILL);
 	members_overview->set_allow_rmb_select(true);
-	members_overview->set_drag_forwarding(this);
 
 	help_overview = memnew(ItemList);
 	overview_vbox->add_child(help_overview);
