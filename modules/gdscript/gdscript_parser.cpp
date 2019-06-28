@@ -847,24 +847,11 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 				if (current_function) {
 					int arg_idx = current_function->arguments.find(identifier);
 					if (arg_idx != -1) {
-						switch (tokenizer->get_token()) {
-							case GDScriptTokenizer::TK_OP_ASSIGN_ADD:
-							case GDScriptTokenizer::TK_OP_ASSIGN_BIT_AND:
-							case GDScriptTokenizer::TK_OP_ASSIGN_BIT_OR:
-							case GDScriptTokenizer::TK_OP_ASSIGN_BIT_XOR:
-							case GDScriptTokenizer::TK_OP_ASSIGN_DIV:
-							case GDScriptTokenizer::TK_OP_ASSIGN_MOD:
-							case GDScriptTokenizer::TK_OP_ASSIGN_MUL:
-							case GDScriptTokenizer::TK_OP_ASSIGN_SHIFT_LEFT:
-							case GDScriptTokenizer::TK_OP_ASSIGN_SHIFT_RIGHT:
-							case GDScriptTokenizer::TK_OP_ASSIGN_SUB:
-							case GDScriptTokenizer::TK_OP_ASSIGN: {
-								// Assignment is not really usage
-								current_function->arguments_usage.write[arg_idx] = current_function->arguments_usage[arg_idx] - 1;
-							} break;
-							default: {
-								current_function->arguments_usage.write[arg_idx] = current_function->arguments_usage[arg_idx] + 1;
-							}
+						if (tokenizer->get_token() == GDScriptTokenizer::TK_OP_ASSIGN) {
+							// Assignment is not really usage
+							current_function->arguments_usage.write[arg_idx] = current_function->arguments_usage[arg_idx] - 1;
+						} else {
+							current_function->arguments_usage.write[arg_idx] = current_function->arguments_usage[arg_idx] + 1;
 						}
 					}
 				}
@@ -1150,7 +1137,7 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 
 		if (!expr) {
 			ERR_EXPLAIN("GDScriptParser bug, couldn't figure out what expression is...");
-			ERR_FAIL_COND_V(!expr, NULL);
+			ERR_FAIL_V(NULL);
 		}
 
 		/******************/
@@ -1493,7 +1480,7 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 		if (next_op == -1) {
 
 			_set_error("Yet another parser bug....");
-			ERR_FAIL_COND_V(next_op == -1, NULL);
+			ERR_FAIL_V(NULL);
 		}
 
 		// OK! create operator..
@@ -5944,11 +5931,8 @@ bool GDScriptParser::_is_type_compatible(const DataType &p_container, const Data
 
 	if (p_container.kind == DataType::BUILTIN && p_container.builtin_type == Variant::OBJECT) {
 		// Object built-in is a special case, it's compatible with any object and with null
-		if (p_expression.kind == DataType::BUILTIN && p_expression.builtin_type == Variant::NIL) {
-			return true;
-		}
 		if (p_expression.kind == DataType::BUILTIN) {
-			return false;
+			return p_expression.builtin_type == Variant::NIL;
 		}
 		// If it's not a built-in, must be an object
 		return true;

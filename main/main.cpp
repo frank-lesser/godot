@@ -812,7 +812,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			int sp = bp.find_last(":");
 			if (sp == -1) {
 				ERR_EXPLAIN("Invalid breakpoint: '" + bp + "', expected file:line format.");
-				ERR_CONTINUE(sp == -1);
+				ERR_CONTINUE(true);
 			}
 
 			script_debugger->insert_breakpoint(bp.substr(sp + 1, bp.length()).to_int(), bp.substr(0, sp));
@@ -1469,7 +1469,7 @@ bool Main::start() {
 				if (obj)
 					memdelete(obj);
 				ERR_EXPLAIN("Can't load script '" + script + "', it does not inherit from a MainLoop type");
-				ERR_FAIL_COND_V(!script_loop, false);
+				ERR_FAIL_V(false);
 			}
 
 			script_loop->set_init_script(script_res);
@@ -1797,6 +1797,7 @@ bool Main::start() {
 			pmanager->add_child(progress_dialog);
 			sml->get_root()->add_child(pmanager);
 			OS::get_singleton()->set_context(OS::CONTEXT_PROJECTMAN);
+			project_manager = true;
 		}
 
 		if (project_manager || editor) {
@@ -1806,6 +1807,10 @@ bool Main::start() {
 				StreamPeerSSL::load_certs_from_file(certs);
 			else
 				StreamPeerSSL::load_certs_from_memory(StreamPeerSSL::get_project_cert_array());
+
+			// Hide console window if requested (Windows-only)
+			bool hide_console = EditorSettings::get_singleton()->get_setting("interface/editor/hide_console_window");
+			OS::get_singleton()->set_console_visible(!hide_console);
 		}
 #endif
 	}

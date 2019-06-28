@@ -47,7 +47,8 @@
 			<argument index="0" name="area" type="Node">
 			</argument>
 			<description>
-				If [code]true[/code], the given area overlaps the Area2D. Note that the result of this test is not immediate after moving objects. For performance, list of overlaps is updated once per frame and before the physics step. Consider using signals instead.
+				If [code]true[/code], the given area overlaps the Area2D.
+				[b]Note:[/b] The result of this test is not immediate after moving objects. For performance, list of overlaps is updated once per frame and before the physics step. Consider using signals instead.
 			</description>
 		</method>
 		<method name="overlaps_body" qualifiers="const">
@@ -56,7 +57,9 @@
 			<argument index="0" name="body" type="Node">
 			</argument>
 			<description>
-				If [code]true[/code], the given body overlaps the Area2D. Note that the result of this test is not immediate after moving objects. For performance, list of overlaps is updated once per frame and before the physics step. Consider using signals instead.
+				If [code]true[/code], the given physics body overlaps the Area2D.
+				[b]Note:[/b] The result of this test is not immediate after moving objects. For performance, list of overlaps is updated once per frame and before the physics step. Consider using signals instead.
+				The [code]body[/code] argument can either be a [PhysicsBody2D] or a [TileMap] instance (while TileMaps are not physics body themselves, they register their tiles with collision shapes as a virtual physics body).
 			</description>
 		</method>
 		<method name="set_collision_layer_bit">
@@ -105,7 +108,7 @@
 			The falloff factor for point gravity. The greater the value, the faster gravity decreases with distance.
 		</member>
 		<member name="gravity_point" type="bool" setter="set_gravity_is_point" getter="is_gravity_a_point">
-			If [code]true[/code], gravity is calculated from a point (set via [member gravity_vec]). Also see [member space_override]. Default value: [code]false[/code].
+			If [code]true[/code], gravity is calculated from a point (set via [member gravity_vec]). See also [member space_override]. Default value: [code]false[/code].
 		</member>
 		<member name="gravity_vec" type="Vector2" setter="set_gravity_vector" getter="get_gravity_vector">
 			The area's gravity vector (not normalized). If gravity is a point (see [member gravity_point]), this will be the point of attraction.
@@ -123,7 +126,7 @@
 			The area's priority. Higher priority areas are processed first. Default value: 0.
 		</member>
 		<member name="space_override" type="int" setter="set_space_override_mode" getter="get_space_override_mode" enum="Area2D.SpaceOverride">
-			Override mode for gravity and damping calculations within this area. See [enum Area2D.SpaceOverride] for possible values.
+			Override mode for gravity and damping calculations within this area. See [enum SpaceOverride] for possible values.
 		</member>
 	</members>
 	<signals>
@@ -168,43 +171,47 @@
 			</description>
 		</signal>
 		<signal name="body_entered">
-			<argument index="0" name="body" type="PhysicsBody2D">
+			<argument index="0" name="body" type="Node">
 			</argument>
 			<description>
-				Emitted when a [PhysicsBody2D] object enters.
+				Emitted when a physics body enters.
+				The [code]body[/code] argument can either be a [PhysicsBody2D] or a [TileMap] instance (while TileMaps are not physics body themselves, they register their tiles with collision shapes as a virtual physics body).
 			</description>
 		</signal>
 		<signal name="body_exited">
-			<argument index="0" name="body" type="PhysicsBody2D">
+			<argument index="0" name="body" type="Node">
 			</argument>
 			<description>
-				Emitted when a [PhysicsBody2D] object exits.
+				Emitted when a physics body exits.
+				The [code]body[/code] argument can either be a [PhysicsBody2D] or a [TileMap] instance (while TileMaps are not physics body themselves, they register their tiles with collision shapes as a virtual physics body).
 			</description>
 		</signal>
 		<signal name="body_shape_entered">
 			<argument index="0" name="body_id" type="int">
 			</argument>
-			<argument index="1" name="body" type="PhysicsBody2D">
+			<argument index="1" name="body" type="Node">
 			</argument>
 			<argument index="2" name="body_shape" type="int">
 			</argument>
 			<argument index="3" name="area_shape" type="int">
 			</argument>
 			<description>
-				Emitted when a [PhysicsBody2D] object enters, reporting which shapes overlapped.
+				Emitted when a physics body enters, reporting which shapes overlapped.
+				The [code]body[/code] argument can either be a [PhysicsBody2D] or a [TileMap] instance (while TileMaps are not physics body themselves, they register their tiles with collision shapes as a virtual physics body).
 			</description>
 		</signal>
 		<signal name="body_shape_exited">
 			<argument index="0" name="body_id" type="int">
 			</argument>
-			<argument index="1" name="body" type="PhysicsBody2D">
+			<argument index="1" name="body" type="Node">
 			</argument>
 			<argument index="2" name="body_shape" type="int">
 			</argument>
 			<argument index="3" name="area_shape" type="int">
 			</argument>
 			<description>
-				Emitted when a [PhysicsBody2D] object exits, reporting which shapes were overlapping.
+				Emitted when a physics body exits, reporting which shapes were overlapping.
+				The [code]body[/code] argument can either be a [PhysicsBody2D] or a [TileMap] instance (while TileMaps are not physics body themselves, they register their tiles with collision shapes as a virtual physics body).
 			</description>
 		</signal>
 	</signals>

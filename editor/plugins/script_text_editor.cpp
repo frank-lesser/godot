@@ -237,7 +237,7 @@ void ScriptTextEditor::_load_theme_settings() {
 	text_edit->add_color_override("safe_line_number_color", safe_line_number_color);
 	text_edit->add_color_override("caret_color", caret_color);
 	text_edit->add_color_override("caret_background_color", caret_background_color);
-	text_edit->add_color_override("font_selected_color", text_selected_color);
+	text_edit->add_color_override("font_color_selected", text_selected_color);
 	text_edit->add_color_override("selection_color", selection_color);
 	text_edit->add_color_override("brace_mismatch_color", brace_mismatch_color);
 	text_edit->add_color_override("current_line_color", current_line_color);
@@ -485,6 +485,11 @@ void ScriptTextEditor::goto_line(int p_line, bool p_with_error) {
 void ScriptTextEditor::goto_line_selection(int p_line, int p_begin, int p_end) {
 
 	code_editor->goto_line_selection(p_line, p_begin, p_end);
+}
+
+void ScriptTextEditor::goto_line_centered(int p_line) {
+
+	code_editor->goto_line_centered(p_line);
 }
 
 void ScriptTextEditor::set_executing_line(int p_line) {

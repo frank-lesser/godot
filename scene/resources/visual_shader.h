@@ -138,6 +138,7 @@ public:
 	Error connect_nodes(Type p_type, int p_from_node, int p_from_port, int p_to_node, int p_to_port);
 	void disconnect_nodes(Type p_type, int p_from_node, int p_from_port, int p_to_node, int p_to_port);
 	void connect_nodes_forced(Type p_type, int p_from_node, int p_from_port, int p_to_node, int p_to_port);
+	bool is_port_types_compatible(int p_a, int p_b) const;
 
 	void rebuild();
 	void get_node_connections(Type p_type, List<Connection> *r_connections) const;
@@ -354,6 +355,8 @@ public:
 
 	void set_outputs(const String &p_outputs);
 	String get_outputs() const;
+
+	bool is_valid_port_name(const String &p_name) const;
 
 	void add_input_port(int p_id, int p_type, const String &p_name);
 	void remove_input_port(int p_id);

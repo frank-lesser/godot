@@ -166,6 +166,8 @@ bool FindReplaceBar::_search(uint32_t p_flags, int p_from_line, int p_from_col) 
 		result_line = -1;
 		result_col = -1;
 		text_edit->set_search_text("");
+		text_edit->set_search_flags(p_flags);
+		text_edit->set_current_search_result(line, col);
 		set_error(text.empty() ? "" : TTR("No Matches"));
 	}
 
@@ -1215,6 +1217,11 @@ void CodeTextEditor::goto_line_selection(int p_line, int p_begin, int p_end) {
 	text_editor->call_deferred("cursor_set_line", p_line);
 	text_editor->call_deferred("cursor_set_column", p_begin);
 	text_editor->select(p_line, p_begin, p_line, p_end);
+}
+
+void CodeTextEditor::goto_line_centered(int p_line) {
+	goto_line(p_line);
+	text_editor->call_deferred("center_viewport_to_cursor");
 }
 
 void CodeTextEditor::set_executing_line(int p_line) {
