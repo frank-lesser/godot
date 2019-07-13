@@ -198,7 +198,7 @@ class VisualShaderEditor : public VBoxContainer {
 	void _node_resized(const Vector2 &p_new_size, int p_type, int p_node);
 
 	void _preview_select_port(int p_node, int p_port);
-	void _graph_gui_input(const Ref<InputEvent> p_event);
+	void _graph_gui_input(const Ref<InputEvent> &p_event);
 
 	void _member_filter_changed(const String &p_text);
 	void _sbox_input(const Ref<InputEvent> &p_ie);
@@ -300,6 +300,15 @@ public:
 	virtual Size2 get_minimum_size() const;
 	void setup(const Ref<VisualShader> &p_shader, VisualShader::Type p_type, int p_node, int p_port);
 	VisualShaderNodePortPreview();
+};
+
+class VisualShaderConversionPlugin : public EditorResourceConversionPlugin {
+	GDCLASS(VisualShaderConversionPlugin, EditorResourceConversionPlugin);
+
+public:
+	virtual String converts_to() const;
+	virtual bool handles(const Ref<Resource> &p_resource) const;
+	virtual Ref<Resource> convert(const Ref<Resource> &p_resource) const;
 };
 
 #endif // VISUAL_SHADER_EDITOR_PLUGIN_H

@@ -199,6 +199,9 @@ private:
 		SETTINGS_HELP,
 		SCENE_TAB_CLOSE,
 
+		EDITOR_SCREENSHOT,
+		EDITOR_OPEN_SCREENSHOT,
+
 		HELP_SEARCH,
 		HELP_DOCS,
 		HELP_QA,
@@ -280,6 +283,8 @@ private:
 	ToolButton *search_button;
 	TextureProgress *audio_vu;
 
+	Timer *screenshot_timer;
+
 	PluginConfigDialog *plugin_config_dialog;
 
 	RichTextLabel *load_errors;
@@ -325,7 +330,7 @@ private:
 	EditorFileDialog *file_export;
 	EditorFileDialog *file_export_lib;
 	EditorFileDialog *file_script;
-	CheckButton *file_export_lib_merge;
+	CheckBox *file_export_lib_merge;
 	LineEdit *file_export_password;
 	String current_path;
 	MenuButton *update_spinner;
@@ -448,6 +453,11 @@ private:
 	void _menu_option(int p_option);
 	void _menu_confirm_current();
 	void _menu_option_confirm(int p_option, bool p_confirmed);
+
+	void _request_screenshot();
+	void _screenshot(bool p_use_utc = false);
+	void _save_screenshot(NodePath p_path);
+
 	void _tool_menu_option(int p_idx);
 	void _update_debug_options();
 
@@ -646,6 +656,7 @@ private:
 
 protected:
 	void _notification(int p_what);
+
 	static void _bind_methods();
 
 protected:
@@ -770,6 +781,8 @@ public:
 
 	void show_accept(const String &p_text, const String &p_title);
 	void show_warning(const String &p_text, const String &p_title = "Warning!");
+
+	void _copy_warning(const String &p_str);
 
 	Error export_preset(const String &p_preset, const String &p_path, bool p_debug, const String &p_password, bool p_quit_after = false);
 

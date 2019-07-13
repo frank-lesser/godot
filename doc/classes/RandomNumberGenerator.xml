@@ -6,6 +6,13 @@
 	<description>
 		RandomNumberGenerator is a class for generating pseudo-random numbers. It currently uses [url=http://www.pcg-random.org/]PCG32[/url].
 		[b]Note:[/b] The underlying algorithm is an implementation detail. As a result, it should not be depended upon for reproducible random streams across Godot versions.
+		To generate a random float number (within a given range) based on a time-dependant seed:
+		[codeblock]
+		var rng = RandomNumberGenerator.new()
+		func _ready():
+		    rng.randomize()
+		    var my_random_number = rng.randf_range(-10.0, 10.0)
+		[/codeblock]
 	</description>
 	<tutorials>
 	</tutorials>
@@ -66,7 +73,7 @@
 		</method>
 	</methods>
 	<members>
-		<member name="seed" type="int" setter="set_seed" getter="get_seed">
+		<member name="seed" type="int" setter="set_seed" getter="get_seed" default="-6398989897141750821">
 			The seed used by the random number generator. A given seed will give a reproducible sequence of pseudo-random numbers.
 			[b]Note:[/b] The RNG does not have an avalanche effect, and can output similar random streams given similar seeds. Consider using a hash function to improve your seed quality if they're sourced externally.
 		</member>

@@ -160,22 +160,25 @@
 		</method>
 	</methods>
 	<members>
-		<member name="origin" type="Vector2" setter="" getter="">
+		<member name="origin" type="Vector2" setter="" getter="" default="Vector2( 0, 0 )">
 			The transform's translation offset.
 		</member>
-		<member name="x" type="Vector2" setter="" getter="">
+		<member name="x" type="Vector2" setter="" getter="" default="Vector2( 1, 0 )">
 			The X axis of 2×2 basis matrix containing 2 [Vector2]s as its columns: X axis and Y axis. These vectors can be interpreted as the basis vectors of local coordinate system traveling with the object.
 		</member>
-		<member name="y" type="Vector2" setter="" getter="">
+		<member name="y" type="Vector2" setter="" getter="" default="Vector2( 0, 1 )">
 			The Y axis of 2×2 basis matrix containing 2 [Vector2]s as its columns: X axis and Y axis. These vectors can be interpreted as the basis vectors of local coordinate system traveling with the object.
 		</member>
 	</members>
 	<constants>
 		<constant name="IDENTITY" value="Transform2D( 1, 0, 0, 1, 0, 0 )">
+			[Transform2D] with no translation, rotation or scaling applied. When applied to other data structures, [constant IDENTITY] performs no transformation.
 		</constant>
 		<constant name="FLIP_X" value="Transform2D( -1, 0, 0, 1, 0, 0 )">
+			[Transform2D] with mirroring applied parallel to the X axis.
 		</constant>
 		<constant name="FLIP_Y" value="Transform2D( 1, 0, 0, -1, 0, 0 )">
+			[Transform2D] with mirroring applied parallel to the Y axis.
 		</constant>
 	</constants>
 </class>
