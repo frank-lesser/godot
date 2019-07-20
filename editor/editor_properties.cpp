@@ -112,12 +112,13 @@ void EditorPropertyMultilineText::_open_big_text() {
 		big_text->set_wrap_enabled(true);
 		big_text_dialog = memnew(AcceptDialog);
 		big_text_dialog->add_child(big_text);
-		big_text_dialog->set_title("Edit Text:");
+		big_text_dialog->set_title(TTR("Edit Text:"));
 		add_child(big_text_dialog);
 	}
 
 	big_text_dialog->popup_centered_ratio();
 	big_text->set_text(text->get_text());
+	big_text->grab_focus();
 }
 
 void EditorPropertyMultilineText::update_property() {
@@ -389,7 +390,7 @@ void EditorPropertyMember::_property_select() {
 				type = Variant::Type(i);
 			}
 		}
-		if (type)
+		if (type != Variant::NIL)
 			selector->select_method_from_basic_type(type, current);
 
 	} else if (hint == MEMBER_METHOD_OF_BASE_TYPE) {
@@ -2412,7 +2413,6 @@ void EditorPropertyResource::_update_menu_items() {
 			menu->add_separator();
 			menu->add_item(TTR("Show in FileSystem"), OBJ_MENU_SHOW_IN_FILE_SYSTEM);
 		}
-	} else {
 	}
 
 	RES cb = EditorSettings::get_singleton()->get_resource_clipboard();

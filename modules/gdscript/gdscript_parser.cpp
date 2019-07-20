@@ -1766,8 +1766,6 @@ GDScriptParser::Node *GDScriptParser::_reduce_expression(Node *p_node, bool p_to
 					cn->value = v;
 					cn->datatype = _type_from_variant(v);
 					return cn;
-
-				} else if (op->arguments[0]->type == Node::TYPE_BUILT_IN_FUNCTION && last_not_constant == 0) {
 				}
 
 				return op; //don't reduce yet
@@ -2211,6 +2209,8 @@ void GDScriptParser::_parse_pattern_block(BlockNode *p_block, Vector<PatternBran
 
 	p_block->has_return = true;
 
+	bool catch_all_appeared = false;
+
 	while (true) {
 
 		while (tokenizer->get_token() == GDScriptTokenizer::TK_NEWLINE && _parse_newline())
@@ -2221,7 +2221,7 @@ void GDScriptParser::_parse_pattern_block(BlockNode *p_block, Vector<PatternBran
 			return;
 
 		if (indent_level > tab_level.back()->get()) {
-			return; // go back a level
+			break; // go back a level
 		}
 
 		if (pending_newline != -1) {
@@ -2236,11 +2236,19 @@ void GDScriptParser::_parse_pattern_block(BlockNode *p_block, Vector<PatternBran
 
 		branch->patterns.push_back(_parse_pattern(p_static));
 		if (!branch->patterns[0]) {
-			return;
+			break;
 		}
 
 		bool has_binding = branch->patterns[0]->pt_type == PatternNode::PT_BIND;
 		bool catch_all = has_binding || branch->patterns[0]->pt_type == PatternNode::PT_WILDCARD;
+
+#ifdef DEBUG_ENABLED
+		// Branches after a wildcard or binding are unreachable
+		if (catch_all_appeared && !current_function->has_unreachable_code) {
+			_add_warning(GDScriptWarning::UNREACHABLE_CODE, -1, current_function->name.operator String());
+			current_function->has_unreachable_code = true;
+		}
+#endif
 
 		while (tokenizer->get_token() == GDScriptTokenizer::TK_COMMA) {
 			tokenizer->advance();
@@ -2259,6 +2267,8 @@ void GDScriptParser::_parse_pattern_block(BlockNode *p_block, Vector<PatternBran
 			catch_all = catch_all || pt == PatternNode::PT_WILDCARD;
 		}
 
+		catch_all_appeared = catch_all_appeared || catch_all;
+
 		if (!_enter_indent_block()) {
 			_set_error("Expected block in pattern branch");
 			return;
@@ -2273,6 +2283,11 @@ void GDScriptParser::_parse_pattern_block(BlockNode *p_block, Vector<PatternBran
 		}
 
 		p_branches.push_back(branch);
+	}
+
+	// Even if all branches return, there is possibility of default fallthrough
+	if (!catch_all_appeared) {
+		p_block->has_return = false;
 	}
 }
 

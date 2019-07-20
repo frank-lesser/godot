@@ -46,7 +46,7 @@ class AnimationTrackKeyEdit : public Object {
 public:
 	bool setting;
 
-	bool _hide_script_from_inspector() {
+	bool _hide_object_properties_from_inspector() {
 		return true;
 	}
 
@@ -58,7 +58,7 @@ public:
 
 		ClassDB::bind_method("_update_obj", &AnimationTrackKeyEdit::_update_obj);
 		ClassDB::bind_method("_key_ofs_changed", &AnimationTrackKeyEdit::_key_ofs_changed);
-		ClassDB::bind_method("_hide_script_from_inspector", &AnimationTrackKeyEdit::_hide_script_from_inspector);
+		ClassDB::bind_method("_hide_object_properties_from_inspector", &AnimationTrackKeyEdit::_hide_object_properties_from_inspector);
 		ClassDB::bind_method("get_root_path", &AnimationTrackKeyEdit::get_root_path);
 		ClassDB::bind_method("_dont_undo_redo", &AnimationTrackKeyEdit::_dont_undo_redo);
 	}
@@ -1274,12 +1274,7 @@ void AnimationTrackEdit::_notification(int p_what) {
 				}
 				text_color.a *= 0.7;
 			} else if (node) {
-				Ref<Texture> icon;
-				if (has_icon(node->get_class(), "EditorIcons")) {
-					icon = get_icon(node->get_class(), "EditorIcons");
-				} else {
-					icon = get_icon("Node", "EditorIcons");
-				}
+				Ref<Texture> icon = EditorNode::get_singleton()->get_object_icon(node, "Node");
 
 				draw_texture(icon, Point2(ofs, int(get_size().height - icon->get_height()) / 2));
 				icon_cache = icon;
@@ -3500,9 +3495,7 @@ void AnimationTrackEditor::_update_tracks() {
 				if (root && root->has_node(base_path)) {
 					Node *n = root->get_node(base_path);
 					if (n) {
-						if (has_icon(n->get_class(), "EditorIcons")) {
-							icon = get_icon(n->get_class(), "EditorIcons");
-						}
+						icon = EditorNode::get_singleton()->get_object_icon(n, "Node");
 						name = n->get_name();
 						tooltip = root->get_path_to(n);
 					}
