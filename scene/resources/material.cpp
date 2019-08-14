@@ -39,10 +39,7 @@
 void Material::set_next_pass(const Ref<Material> &p_pass) {
 
 	for (Ref<Material> pass_child = p_pass; pass_child != NULL; pass_child = pass_child->get_next_pass()) {
-		if (pass_child == this) {
-			ERR_EXPLAIN("Can't set as next_pass one of its parents to prevent crashes due to recursive loop.");
-			ERR_FAIL_COND(pass_child == this);
-		}
+		ERR_FAIL_COND_MSG(pass_child == this, "Can't set as next_pass one of its parents to prevent crashes due to recursive loop.");
 	}
 
 	if (next_pass == p_pass)
@@ -2353,8 +2350,8 @@ SpatialMaterial::SpatialMaterial() :
 
 	set_ao_light_affect(0.0);
 
-	set_metallic_texture_channel(TEXTURE_CHANNEL_BLUE);
-	set_roughness_texture_channel(TEXTURE_CHANNEL_GREEN);
+	set_metallic_texture_channel(TEXTURE_CHANNEL_RED);
+	set_roughness_texture_channel(TEXTURE_CHANNEL_RED);
 	set_ao_texture_channel(TEXTURE_CHANNEL_RED);
 	set_refraction_texture_channel(TEXTURE_CHANNEL_RED);
 

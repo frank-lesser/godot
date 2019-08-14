@@ -255,21 +255,22 @@ public:
 	static _ALWAYS_INLINE_ float round(float p_val) { return (p_val >= 0) ? Math::floor(p_val + 0.5) : -Math::floor(-p_val + 0.5); }
 
 	static _ALWAYS_INLINE_ int64_t wrapi(int64_t value, int64_t min, int64_t max) {
-		int64_t rng = max - min;
-		return (rng != 0) ? min + ((((value - min) % rng) + rng) % rng) : min;
+		int64_t range = max - min;
+		return range == 0 ? min : min + ((((value - min) % range) + range) % range);
 	}
 	static _ALWAYS_INLINE_ double wrapf(double value, double min, double max) {
-		double rng = max - min;
-		return (!is_equal_approx(rng, 0.0)) ? value - (rng * Math::floor((value - min) / rng)) : min;
+		double range = max - min;
+		return is_zero_approx(range) ? min : value - (range * Math::floor((value - min) / range));
 	}
 	static _ALWAYS_INLINE_ float wrapf(float value, float min, float max) {
-		float rng = max - min;
-		return (!is_equal_approx(rng, 0.0f)) ? value - (rng * Math::floor((value - min) / rng)) : min;
+		float range = max - min;
+		return is_zero_approx(range) ? min : value - (range * Math::floor((value - min) / range));
 	}
 
 	// double only, as these functions are mainly used by the editor and not performance-critical,
 	static double ease(double p_x, double p_c);
 	static int step_decimals(double p_step);
+	static int range_step_decimals(double p_step);
 	static double stepify(double p_value, double p_step);
 	static double dectime(double p_value, double p_amount, double p_step);
 

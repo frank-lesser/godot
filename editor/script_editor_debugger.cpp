@@ -418,6 +418,13 @@ int ScriptEditorDebugger::_update_scene_tree(TreeItem *parent, const Array &node
 	}
 	item->set_metadata(0, id);
 
+	// Set current item as collapsed if necessary
+	if (parent) {
+		if (!unfold_cache.has(id)) {
+			item->set_collapsed(true);
+		}
+	}
+
 	int children_count = nodes[current_index];
 	// Tracks the total number of items parsed in nodes, this is used to skips nodes that
 	// are not direct children of the current node since we can't know in advance the total
@@ -1009,7 +1016,10 @@ void ScriptEditorDebugger::_performance_draw() {
 	Ref<Font> graph_font = get_font("font", "TextEdit");
 
 	if (which.empty()) {
-		perf_draw->draw_string(graph_font, Point2(0, graph_font->get_ascent()), TTR("Pick one or more items from the list to display the graph."), get_color("font_color", "Label"), perf_draw->get_size().x);
+		String text = TTR("Pick one or more items from the list to display the graph.");
+
+		perf_draw->draw_string(graph_font, Point2i(MAX(0, perf_draw->get_size().x - graph_font->get_string_size(text).x), perf_draw->get_size().y + graph_font->get_ascent()) / 2, text, get_color("font_color", "Label"), perf_draw->get_size().x);
+
 		return;
 	}
 

@@ -237,6 +237,8 @@ struct _VariantCall {
 	VCALL_LOCALMEM1R(String, casecmp_to);
 	VCALL_LOCALMEM1R(String, nocasecmp_to);
 	VCALL_LOCALMEM0R(String, length);
+	VCALL_LOCALMEM3R(String, count);
+	VCALL_LOCALMEM3R(String, countn);
 	VCALL_LOCALMEM2R(String, substr);
 	VCALL_LOCALMEM2R(String, find);
 	VCALL_LOCALMEM1R(String, find_last);
@@ -912,7 +914,7 @@ struct _VariantCall {
 
 	static void Quat_init2(Variant &r_ret, const Variant **p_args) {
 
-		r_ret = Quat(((Vector3)(*p_args[0])), ((float)(*p_args[1])));
+		r_ret = Quat(((Vector3)(*p_args[0])), ((real_t)(*p_args[1])));
 	}
 
 	static void Quat_init3(Variant &r_ret, const Variant **p_args) {
@@ -1502,6 +1504,9 @@ void register_variant_methods() {
 
 	ADDFUNC2R(STRING, INT, String, find, STRING, "what", INT, "from", varray(0));
 
+	ADDFUNC3R(STRING, INT, String, count, STRING, "what", INT, "from", INT, "to", varray(0, 0));
+	ADDFUNC3R(STRING, INT, String, countn, STRING, "what", INT, "from", INT, "to", varray(0, 0));
+
 	ADDFUNC1R(STRING, INT, String, find_last, STRING, "what", varray());
 	ADDFUNC2R(STRING, INT, String, findn, STRING, "what", INT, "from", varray(0));
 	ADDFUNC2R(STRING, INT, String, rfind, STRING, "what", INT, "from", varray(-1));
@@ -1950,19 +1955,27 @@ void register_variant_methods() {
 	_VariantCall::add_variant_constant(Variant::VECTOR2, "UP", Vector2(0, -1));
 	_VariantCall::add_variant_constant(Variant::VECTOR2, "DOWN", Vector2(0, 1));
 
-	_VariantCall::add_variant_constant(Variant::TRANSFORM2D, "IDENTITY", Transform2D(1, 0, 0, 1, 0, 0));
+	_VariantCall::add_variant_constant(Variant::TRANSFORM2D, "IDENTITY", Transform2D());
 	_VariantCall::add_variant_constant(Variant::TRANSFORM2D, "FLIP_X", Transform2D(-1, 0, 0, 1, 0, 0));
 	_VariantCall::add_variant_constant(Variant::TRANSFORM2D, "FLIP_Y", Transform2D(1, 0, 0, -1, 0, 0));
 
-	Transform identity_transform, transform_x, transform_y, transform_z;
-	identity_transform.set(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0);
+	Transform identity_transform = Transform();
+	Transform flip_x_transform = Transform(-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0);
+	Transform flip_y_transform = Transform(1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0);
+	Transform flip_z_transform = Transform(1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0);
 	_VariantCall::add_variant_constant(Variant::TRANSFORM, "IDENTITY", identity_transform);
-	transform_x.set(-1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0);
-	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_X", transform_x);
-	transform_y.set(1, 0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0);
-	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_Y", transform_y);
-	transform_z.set(1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0);
-	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_Z", transform_z);
+	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_X", flip_x_transform);
+	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_Y", flip_y_transform);
+	_VariantCall::add_variant_constant(Variant::TRANSFORM, "FLIP_Z", flip_z_transform);
+
+	Basis identity_basis = Basis();
+	Basis flip_x_basis = Basis(-1, 0, 0, 0, 1, 0, 0, 0, 1);
+	Basis flip_y_basis = Basis(1, 0, 0, 0, -1, 0, 0, 0, 1);
+	Basis flip_z_basis = Basis(1, 0, 0, 0, 1, 0, 0, 0, -1);
+	_VariantCall::add_variant_constant(Variant::BASIS, "IDENTITY", identity_basis);
+	_VariantCall::add_variant_constant(Variant::BASIS, "FLIP_X", flip_x_basis);
+	_VariantCall::add_variant_constant(Variant::BASIS, "FLIP_Y", flip_y_basis);
+	_VariantCall::add_variant_constant(Variant::BASIS, "FLIP_Z", flip_z_basis);
 
 	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_YZ", Plane(Vector3(1, 0, 0), 0));
 	_VariantCall::add_variant_constant(Variant::PLANE, "PLANE_XZ", Plane(Vector3(0, 1, 0), 0));

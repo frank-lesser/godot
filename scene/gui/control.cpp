@@ -289,7 +289,7 @@ void Control::_update_minimum_size() {
 	Size2 minsize = get_combined_minimum_size();
 	if (minsize.x > data.size_cache.x ||
 			minsize.y > data.size_cache.y) {
-		set_size(data.size_cache);
+		_size_changed();
 	}
 
 	data.updating_last_minimum_size = false;
@@ -850,6 +850,12 @@ Ref<Texture> Control::get_icon(const StringName &p_name, const StringName &p_typ
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_icon(p_name, type)) {
+			return Theme::get_project_default()->get_icon(p_name, type);
+		}
+	}
+
 	return Theme::get_default()->get_icon(p_name, type);
 }
 
@@ -884,6 +890,12 @@ Ref<Shader> Control::get_shader(const StringName &p_name, const StringName &p_ty
 			theme_owner = parent->data.theme_owner;
 		else
 			theme_owner = NULL;
+	}
+
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_shader(p_name, type)) {
+			return Theme::get_project_default()->get_shader(p_name, type);
+		}
 	}
 
 	return Theme::get_default()->get_shader(p_name, type);
@@ -925,6 +937,9 @@ Ref<StyleBox> Control::get_stylebox(const StringName &p_name, const StringName &
 	}
 
 	while (class_name != StringName()) {
+		if (Theme::get_project_default().is_valid() && Theme::get_project_default()->has_stylebox(p_name, type))
+			return Theme::get_project_default()->get_stylebox(p_name, type);
+
 		if (Theme::get_default()->has_stylebox(p_name, class_name))
 			return Theme::get_default()->get_stylebox(p_name, class_name);
 
@@ -1001,6 +1016,11 @@ Color Control::get_color(const StringName &p_name, const StringName &p_type) con
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_color(p_name, type)) {
+			return Theme::get_project_default()->get_color(p_name, type);
+		}
+	}
 	return Theme::get_default()->get_color(p_name, type);
 }
 
@@ -1036,6 +1056,11 @@ int Control::get_constant(const StringName &p_name, const StringName &p_type) co
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_constant(p_name, type)) {
+			return Theme::get_project_default()->get_constant(p_name, type);
+		}
+	}
 	return Theme::get_default()->get_constant(p_name, type);
 }
 
@@ -1106,6 +1131,11 @@ bool Control::has_icon(const StringName &p_name, const StringName &p_type) const
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_color(p_name, type)) {
+			return true;
+		}
+	}
 	return Theme::get_default()->has_icon(p_name, type);
 }
 
@@ -1140,6 +1170,11 @@ bool Control::has_shader(const StringName &p_name, const StringName &p_type) con
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_shader(p_name, type)) {
+			return true;
+		}
+	}
 	return Theme::get_default()->has_shader(p_name, type);
 }
 bool Control::has_stylebox(const StringName &p_name, const StringName &p_type) const {
@@ -1173,6 +1208,11 @@ bool Control::has_stylebox(const StringName &p_name, const StringName &p_type) c
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_stylebox(p_name, type)) {
+			return true;
+		}
+	}
 	return Theme::get_default()->has_stylebox(p_name, type);
 }
 bool Control::has_font(const StringName &p_name, const StringName &p_type) const {
@@ -1206,6 +1246,11 @@ bool Control::has_font(const StringName &p_name, const StringName &p_type) const
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_font(p_name, type)) {
+			return true;
+		}
+	}
 	return Theme::get_default()->has_font(p_name, type);
 }
 
@@ -1240,6 +1285,11 @@ bool Control::has_color(const StringName &p_name, const StringName &p_type) cons
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_color(p_name, type)) {
+			return true;
+		}
+	}
 	return Theme::get_default()->has_color(p_name, type);
 }
 
@@ -1274,6 +1324,11 @@ bool Control::has_constant(const StringName &p_name, const StringName &p_type) c
 			theme_owner = NULL;
 	}
 
+	if (Theme::get_project_default().is_valid()) {
+		if (Theme::get_project_default()->has_constant(p_name, type)) {
+			return true;
+		}
+	}
 	return Theme::get_default()->has_constant(p_name, type);
 }
 
@@ -1717,17 +1772,6 @@ void Control::set_global_position(const Point2 &p_point, bool p_keep_margins) {
 	set_position(inv.xform(p_point), p_keep_margins);
 }
 
-Rect2 Control::_compute_child_rect(const float p_anchors[4], const float p_margins[4]) const {
-
-	Rect2 anchorable = get_parent_anchorable_rect();
-	Rect2 result = anchorable;
-	for (int i = 0; i < 4; i++) {
-		result.grow_margin((Margin)i, p_anchors[i] * anchorable.get_size()[i % 2] + p_margins[i]);
-	}
-
-	return result;
-}
-
 void Control::_compute_anchors(Rect2 p_rect, const float p_margins[4], float (&r_anchors)[4]) {
 
 	Size2 parent_rect_size = get_parent_anchorable_rect().size;
@@ -1951,12 +1995,7 @@ Control *Control::find_next_valid_focus() const {
 			Node *n = get_node(data.focus_next);
 			if (n) {
 				from = Object::cast_to<Control>(n);
-
-				if (!from) {
-
-					ERR_EXPLAIN("Next focus node is not a control: " + n->get_name());
-					ERR_FAIL_V(NULL);
-				}
+				ERR_FAIL_COND_V_MSG(!from, NULL, "Next focus node is not a control: " + n->get_name() + ".");
 			} else {
 				return NULL;
 			}
@@ -2046,12 +2085,7 @@ Control *Control::find_prev_valid_focus() const {
 			Node *n = get_node(data.focus_prev);
 			if (n) {
 				from = Object::cast_to<Control>(n);
-
-				if (!from) {
-
-					ERR_EXPLAIN("Previous focus node is not a control: " + n->get_name());
-					ERR_FAIL_V(NULL);
-				}
+				ERR_FAIL_COND_V_MSG(!from, NULL, "Previous focus node is not a control: " + n->get_name() + ".");
 			} else {
 				return NULL;
 			}
@@ -2333,12 +2367,7 @@ Control *Control::_get_focus_neighbour(Margin p_margin, int p_count) {
 		Node *n = get_node(data.focus_neighbour[p_margin]);
 		if (n) {
 			c = Object::cast_to<Control>(n);
-
-			if (!c) {
-
-				ERR_EXPLAIN("Neighbour focus node is not a control: " + n->get_name());
-				ERR_FAIL_V(NULL);
-			}
+			ERR_FAIL_COND_V_MSG(!c, NULL, "Neighbor focus node is not a control: " + n->get_name() + ".");
 		} else {
 			return NULL;
 		}

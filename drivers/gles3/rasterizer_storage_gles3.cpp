@@ -2522,8 +2522,8 @@ _FORCE_INLINE_ static void _fill_std140_variant_ubo_value(ShaderLanguage::DataTy
 
 			int v = value;
 			GLuint *gui = (GLuint *)data;
-			gui[0] = v & 1 ? GL_TRUE : GL_FALSE;
-			gui[1] = v & 2 ? GL_TRUE : GL_FALSE;
+			gui[0] = (v & 1) ? GL_TRUE : GL_FALSE;
+			gui[1] = (v & 2) ? GL_TRUE : GL_FALSE;
 
 		} break;
 		case ShaderLanguage::TYPE_BVEC3: {
@@ -8093,7 +8093,7 @@ void RasterizerStorageGLES3::initialize() {
 	glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &config.max_texture_image_units);
 	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &config.max_texture_size);
 
-	config.use_rgba_2d_shadows = config.framebuffer_float_supported;
+	config.use_rgba_2d_shadows = !config.framebuffer_float_supported;
 
 	//generic quadie for copying
 
