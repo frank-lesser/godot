@@ -1926,10 +1926,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 	switch (p_option) {
 		case FILE_NEW_SCENE: {
 
-			int idx = editor_data.add_edited_scene(-1);
-			_scene_tab_changed(idx);
-			editor_data.clear_editor_states();
-			_update_scene_tabs();
+			new_scene();
 
 		} break;
 		case FILE_NEW_INHERITED_SCENE:
@@ -2798,8 +2795,7 @@ void EditorNode::select_editor_by_name(const String &p_name) {
 		}
 	}
 
-	ERR_EXPLAIN("The editor name '" + p_name + "' was not found.");
-	ERR_FAIL();
+	ERR_FAIL_MSG("The editor name '" + p_name + "' was not found.");
 }
 
 void EditorNode::add_editor_plugin(EditorPlugin *p_editor, bool p_config_changed) {
@@ -2925,36 +2921,39 @@ void EditorNode::set_addon_plugin_enabled(const String &p_addon, bool p_enabled,
 		return;
 	}
 
-	String path = cf->get_value("plugin", "script");
-	path = String("res://addons").plus_file(p_addon).plus_file(path);
+	String script_path = cf->get_value("plugin", "script");
+	Ref<Script> script; // We need to save it for creating "ep" below.
 
-	Ref<Script> script = ResourceLoader::load(path);
+	// Only try to load the script if it has a name. Else, the plugin has no init script.
+	if (script_path.length() > 0) {
+		script_path = String("res://addons").plus_file(p_addon).plus_file(script_path);
+		script = ResourceLoader::load(script_path);
 
-	if (script.is_null()) {
-		show_warning(vformat(TTR("Unable to load addon script from path: '%s'."), path));
-		return;
-	}
+		if (script.is_null()) {
+			show_warning(vformat(TTR("Unable to load addon script from path: '%s'."), script_path));
+			return;
+		}
 
-	//errors in the script cause the base_type to be ""
-	if (String(script->get_instance_base_type()) == "") {
-		show_warning(vformat(TTR("Unable to load addon script from path: '%s' There seems to be an error in the code, please check the syntax."), path));
-		return;
-	}
+		// Errors in the script cause the base_type to be an empty string.
+		if (String(script->get_instance_base_type()) == "") {
+			show_warning(vformat(TTR("Unable to load addon script from path: '%s' There seems to be an error in the code, please check the syntax."), script_path));
+			return;
+		}
 
-	//could check inheritance..
-	if (String(script->get_instance_base_type()) != "EditorPlugin") {
-		show_warning(vformat(TTR("Unable to load addon script from path: '%s' Base type is not EditorPlugin."), path));
-		return;
-	}
+		// Plugin init scripts must inherit from EditorPlugin and be tools.
+		if (String(script->get_instance_base_type()) != "EditorPlugin") {
+			show_warning(vformat(TTR("Unable to load addon script from path: '%s' Base type is not EditorPlugin."), script_path));
+			return;
+		}
 
-	if (!script->is_tool()) {
-		show_warning(vformat(TTR("Unable to load addon script from path: '%s' Script is not in tool mode."), path));
-		return;
+		if (!script->is_tool()) {
+			show_warning(vformat(TTR("Unable to load addon script from path: '%s' Script is not in tool mode."), script_path));
+			return;
+		}
 	}
 
 	EditorPlugin *ep = memnew(EditorPlugin);
 	ep->set_script(script.get_ref_ptr());
-	ep->set_dir_cache(p_addon);
 	plugin_addons[p_addon] = ep;
 	add_editor_plugin(ep, p_config_changed);
 
@@ -3160,6 +3159,14 @@ bool EditorNode::is_scene_open(const String &p_path) {
 
 void EditorNode::fix_dependencies(const String &p_for_file) {
 	dependency_fixer->edit(p_for_file);
+}
+
+int EditorNode::new_scene() {
+	int idx = editor_data.add_edited_scene(-1);
+	_scene_tab_changed(idx);
+	editor_data.clear_editor_states();
+	_update_scene_tabs();
+	return idx;
 }
 
 Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, bool p_set_inherited, bool p_clear_errors, bool p_force_open_imported) {
@@ -3820,9 +3827,13 @@ void EditorNode::show_accept(const String &p_text, const String &p_title) {
 
 void EditorNode::show_warning(const String &p_text, const String &p_title) {
 
-	warning->set_text(p_text);
-	warning->set_title(p_title);
-	warning->popup_centered_minsize();
+	if (warning->is_inside_tree()) {
+		warning->set_text(p_text);
+		warning->set_title(p_title);
+		warning->popup_centered_minsize();
+	} else {
+		WARN_PRINTS(p_title + " " + p_text);
+	}
 }
 
 void EditorNode::_copy_warning(const String &p_str) {
@@ -4792,8 +4803,7 @@ void EditorNode::remove_control_from_dock(Control *p_control) {
 		}
 	}
 
-	ERR_EXPLAIN("Control was not in dock");
-	ERR_FAIL_COND(!dock);
+	ERR_FAIL_COND_MSG(!dock, "Control was not in dock.");
 
 	dock->remove_child(p_control);
 	_update_dock_slots_visibility();
@@ -5504,6 +5514,9 @@ EditorNode::EditorNode() {
 			} break;
 		}
 	}
+
+	// Define a minimum window size to prevent UI elements from overlapping or being cut off
+	OS::get_singleton()->set_min_window_size(Size2(1024, 600) * EDSCALE);
 
 	ResourceLoader::set_abort_on_missing_resources(false);
 	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("filesystem/file_dialog/show_hidden_files"));
