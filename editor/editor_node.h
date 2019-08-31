@@ -207,6 +207,9 @@ private:
 
 		SET_VIDEO_DRIVER_SAVE_AND_RESTART,
 
+		GLOBAL_NEW_WINDOW,
+		GLOBAL_SCENE,
+
 		IMPORT_PLUGIN_BASE = 100,
 
 		TOOL_MENU_BASE = 1000
@@ -504,6 +507,7 @@ private:
 	void _add_to_recent_scenes(const String &p_scene);
 	void _update_recent_scenes();
 	void _open_recent_scene(int p_idx);
+	void _global_menu_action(const Variant &p_id, const Variant &p_meta);
 	void _dropped_files(const Vector<String> &p_files, int p_screen);
 	void _add_dropped_files_recursive(const Vector<String> &p_files, String to_path);
 	String _recent_scene;
@@ -628,13 +632,6 @@ private:
 
 	static int build_callback_count;
 	static EditorBuildCallback build_callbacks[MAX_BUILD_CALLBACKS];
-
-	bool _dimming;
-	float _dim_time;
-	Timer *_dim_timer;
-
-	void _start_dimming(bool p_dimming);
-	void _dim_timeout();
 
 	void _license_tree_selected();
 
@@ -845,7 +842,7 @@ public:
 	void save_scene_list(Vector<String> p_scene_filenames);
 	void restart_editor();
 
-	void dim_editor(bool p_dimming);
+	void dim_editor(bool p_dimming, bool p_force_dim = false);
 
 	void edit_current() { _edit_current(); };
 

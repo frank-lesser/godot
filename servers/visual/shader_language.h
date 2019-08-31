@@ -125,6 +125,7 @@ public:
 		TK_CF_DO,
 		TK_CF_SWITCH,
 		TK_CF_CASE,
+		TK_CF_DEFAULT,
 		TK_CF_BREAK,
 		TK_CF_CONTINUE,
 		TK_CF_RETURN,
@@ -266,6 +267,8 @@ public:
 		FLOW_OP_DO,
 		FLOW_OP_BREAK,
 		FLOW_OP_SWITCH,
+		FLOW_OP_CASE,
+		FLOW_OP_DEFAULT,
 		FLOW_OP_CONTINUE,
 		FLOW_OP_DISCARD
 	};
@@ -420,6 +423,15 @@ public:
 		FunctionNode *parent_function;
 		BlockNode *parent_block;
 
+		enum BlockType {
+			BLOCK_TYPE_STANDART,
+			BLOCK_TYPE_SWITCH,
+			BLOCK_TYPE_CASE,
+			BLOCK_TYPE_DEFAULT,
+		};
+
+		int block_type;
+
 		struct Variable {
 			DataType type;
 			DataPrecision precision;
@@ -436,6 +448,7 @@ public:
 				Node(TYPE_BLOCK),
 				parent_function(NULL),
 				parent_block(NULL),
+				block_type(BLOCK_TYPE_STANDART),
 				single_statement(false) {}
 	};
 
@@ -736,6 +749,9 @@ private:
 	Node *_parse_and_reduce_expression(BlockNode *p_block, const Map<StringName, BuiltInInfo> &p_builtin_types);
 	Error _parse_block(BlockNode *p_block, const Map<StringName, BuiltInInfo> &p_builtin_types, bool p_just_one = false, bool p_can_break = false, bool p_can_continue = false);
 	Error _parse_shader(const Map<StringName, FunctionInfo> &p_functions, const Vector<StringName> &p_render_modes, const Set<String> &p_shader_types);
+
+	Error _find_last_flow_op_in_block(BlockNode *p_block, FlowOperation p_op);
+	Error _find_last_flow_op_in_op(ControlFlowNode *p_flow, FlowOperation p_op);
 
 public:
 	//static void get_keyword_list(ShaderType p_type,List<String> *p_keywords);

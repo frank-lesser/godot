@@ -135,6 +135,8 @@ void EditorNode::_update_scene_tabs() {
 
 	bool show_rb = EditorSettings::get_singleton()->get("interface/scene_tabs/show_script_button");
 
+	OS::get_singleton()->global_menu_clear("_dock");
+
 	scene_tabs->clear_tabs();
 	Ref<Texture> script_icon = gui_base->get_icon("Script", "EditorIcons");
 	for (int i = 0; i < editor_data.get_edited_scene_count(); i++) {
@@ -149,10 +151,15 @@ void EditorNode::_update_scene_tabs() {
 		bool unsaved = (i == current) ? saved_version != editor_data.get_undo_redo().get_version() : editor_data.get_scene_version(i) != 0;
 		scene_tabs->add_tab(editor_data.get_scene_title(i) + (unsaved ? "(*)" : ""), icon);
 
+		OS::get_singleton()->global_menu_add_item("_dock", editor_data.get_scene_title(i) + (unsaved ? "(*)" : ""), GLOBAL_SCENE, i);
+
 		if (show_rb && editor_data.get_scene_root_script(i).is_valid()) {
 			scene_tabs->set_tab_right_button(i, script_icon);
 		}
 	}
+
+	OS::get_singleton()->global_menu_add_separator("_dock");
+	OS::get_singleton()->global_menu_add_item("_dock", TTR("New Window"), GLOBAL_NEW_WINDOW, Variant());
 
 	scene_tabs->set_current_tab(editor_data.get_edited_scene());
 
@@ -290,6 +297,7 @@ void EditorNode::_notification(int p_what) {
 			get_tree()->get_root()->set_as_audio_listener_2d(false);
 			get_tree()->set_auto_accept_quit(false);
 			get_tree()->connect("files_dropped", this, "_dropped_files");
+			get_tree()->connect("global_menu_action", this, "_global_menu_action");
 
 			/* DO NOT LOAD SCENES HERE, WAIT FOR FILE SCANNING AND REIMPORT TO COMPLETE */
 		} break;
@@ -2624,11 +2632,8 @@ void EditorNode::_exit_editor() {
 	resource_preview->stop(); //stop early to avoid crashes
 	_save_docks();
 
-	// Dim the editor window while it's quitting to make it clearer that it's busy.
-	// No transition is applied, as the effect needs to be visible immediately
-	float c = 0.4f;
-	Color dim_color = Color(c, c, c);
-	gui_base->set_modulate(dim_color);
+	// Dim the editor window while it's quitting to make it clearer that it's busy
+	dim_editor(true, true);
 
 	get_tree()->quit();
 }
@@ -4941,6 +4946,23 @@ void EditorNode::remove_tool_menu_item(const String &p_name) {
 	}
 }
 
+void EditorNode::_global_menu_action(const Variant &p_id, const Variant &p_meta) {
+
+	int id = (int)p_id;
+	if (id == GLOBAL_NEW_WINDOW) {
+		if (OS::get_singleton()->get_main_loop()) {
+			List<String> args;
+			String exec = OS::get_singleton()->get_executable_path();
+
+			OS::ProcessID pid = 0;
+			OS::get_singleton()->execute(exec, args, false, &pid);
+		}
+	} else if (id == GLOBAL_SCENE) {
+		int idx = (int)p_meta;
+		scene_tabs->set_current_tab(idx);
+	}
+}
+
 void EditorNode::_dropped_files(const Vector<String> &p_files, int p_screen) {
 
 	String to_path = ProjectSettings::get_singleton()->globalize_path(get_filesystem_dock()->get_selected_path());
@@ -5108,46 +5130,12 @@ void EditorNode::_open_imported() {
 	load_scene(open_import_request, true, false, true, true);
 }
 
-void EditorNode::dim_editor(bool p_dimming) {
-	static int dim_count = 0;
-	bool dim_ui = EditorSettings::get_singleton()->get("interface/editor/dim_editor_on_dialog_popup");
-	if (p_dimming) {
-		if (dim_ui && dim_count == 0) {
-			_start_dimming(true);
-		}
-		dim_count++;
+void EditorNode::dim_editor(bool p_dimming, bool p_force_dim) {
+	// Dimming can be forced regardless of the editor setting, which is useful when quitting the editor
+	if ((p_force_dim || EditorSettings::get_singleton()->get("interface/editor/dim_editor_on_dialog_popup")) && p_dimming) {
+		gui_base->set_modulate(Color(0.5, 0.5, 0.5));
 	} else {
-		if (dim_count == 1) {
-			_start_dimming(false);
-		}
-		if (dim_count > 0) {
-			dim_count--;
-		} else {
-			ERR_PRINT("Undimmed before dimming!");
-		}
-	}
-}
-
-void EditorNode::_start_dimming(bool p_dimming) {
-	_dimming = p_dimming;
-	_dim_time = 0.0f;
-	_dim_timer->start();
-}
-
-void EditorNode::_dim_timeout() {
-
-	_dim_time += _dim_timer->get_wait_time();
-	float wait_time = 0.08f;
-	float c = 0.4f;
-
-	Color base = _dimming ? Color(1, 1, 1) : Color(c, c, c);
-	Color final = _dimming ? Color(c, c, c) : Color(1, 1, 1);
-
-	if (_dim_time + _dim_timer->get_wait_time() >= wait_time) {
-		gui_base->set_modulate(final);
-		_dim_timer->stop();
-	} else {
-		gui_base->set_modulate(base.linear_interpolate(final, _dim_time / wait_time));
+		gui_base->set_modulate(Color(1, 1, 1));
 	}
 }
 
@@ -5322,6 +5310,7 @@ void EditorNode::_bind_methods() {
 
 	ClassDB::bind_method("_clear_undo_history", &EditorNode::_clear_undo_history);
 	ClassDB::bind_method("_dropped_files", &EditorNode::_dropped_files);
+	ClassDB::bind_method(D_METHOD("_global_menu_action"), &EditorNode::_global_menu_action, DEFVAL(Variant()));
 	ClassDB::bind_method("_toggle_distraction_free_mode", &EditorNode::_toggle_distraction_free_mode);
 	ClassDB::bind_method("edit_item_resource", &EditorNode::edit_item_resource);
 
@@ -5330,7 +5319,6 @@ void EditorNode::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_open_imported"), &EditorNode::_open_imported);
 	ClassDB::bind_method(D_METHOD("_inherit_imported"), &EditorNode::_inherit_imported);
-	ClassDB::bind_method(D_METHOD("_dim_timeout"), &EditorNode::_dim_timeout);
 
 	ClassDB::bind_method("_copy_warning", &EditorNode::_copy_warning);
 
@@ -5792,6 +5780,7 @@ EditorNode::EditorNode() {
 		dock_slot[i]->set_drag_to_rearrange_enabled(true);
 		dock_slot[i]->set_tabs_rearrange_group(1);
 		dock_slot[i]->connect("tab_changed", this, "_dock_tab_changed");
+		dock_slot[i]->set_use_hidden_tabs_for_min_size(true);
 	}
 
 	dock_drag_timer = memnew(Timer);
@@ -6385,13 +6374,13 @@ EditorNode::EditorNode() {
 	gui_base->add_child(custom_build_manage_templates);
 
 	install_android_build_template = memnew(ConfirmationDialog);
-	install_android_build_template->set_text(TTR("This will install the Android project for custom builds.\nNote that, in order to use it, it needs to be enabled per export preset."));
+	install_android_build_template->set_text(TTR("This will set up your project for custom Android builds by installing the source template to \"res://android/build\".\nYou can then apply modifications and build your own custom APK on export (adding modules, changing the AndroidManifest.xml, etc.).\nNote that in order to make custom builds instead of using pre-built APKs, the \"Use Custom Build\" option should be enabled in the Android export preset."));
 	install_android_build_template->get_ok()->set_text(TTR("Install"));
 	install_android_build_template->connect("confirmed", this, "_menu_confirm_current");
 	gui_base->add_child(install_android_build_template);
 
 	remove_android_build_template = memnew(ConfirmationDialog);
-	remove_android_build_template->set_text(TTR("Android build template is already installed and it won't be overwritten.\nRemove the \"build\" directory manually before attempting this operation again."));
+	remove_android_build_template->set_text(TTR("The Android build template is already installed in this project and it won't be overwritten.\nRemove the \"res://android/build\" directory manually before attempting this operation again."));
 	remove_android_build_template->get_ok()->set_text(TTR("Show in File Manager"));
 	remove_android_build_template->connect("confirmed", this, "_menu_option", varray(FILE_EXPLORE_ANDROID_BUILD_TEMPLATES));
 	gui_base->add_child(remove_android_build_template);
@@ -6660,13 +6649,6 @@ EditorNode::EditorNode() {
 	FileAccess::set_file_close_fail_notify_callback(_file_access_close_error_notify);
 
 	waiting_for_first_scan = true;
-
-	_dimming = false;
-	_dim_time = 0.0f;
-	_dim_timer = memnew(Timer);
-	_dim_timer->set_wait_time(0.01666f);
-	_dim_timer->connect("timeout", this, "_dim_timeout");
-	add_child(_dim_timer);
 
 	print_handler.printfunc = _print_handler;
 	print_handler.userdata = this;
