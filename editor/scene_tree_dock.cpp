@@ -759,7 +759,21 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				_delete_confirm();
 
 			} else {
-				delete_dialog->set_text(TTR("Delete Node(s)?"));
+				if (remove_list.size() >= 2) {
+					delete_dialog->set_text(vformat(TTR("Delete %d nodes?"), remove_list.size()));
+				} else if (remove_list.size() == 1 && remove_list[0] == editor_data->get_edited_scene_root()) {
+					delete_dialog->set_text(vformat(TTR("Delete the root node \"%s\"?"), remove_list[0]->get_name()));
+				} else if (remove_list.size() == 1 && remove_list[0]->get_filename() == "" && remove_list[0]->get_child_count() >= 1) {
+					// Display this message only for non-instanced scenes
+					delete_dialog->set_text(vformat(TTR("Delete node \"%s\" and its children?"), remove_list[0]->get_name()));
+				} else {
+					delete_dialog->set_text(vformat(TTR("Delete node \"%s\"?"), remove_list[0]->get_name()));
+				}
+
+				// Resize the dialog to its minimum size.
+				// This prevents the dialog from being too wide after displaying
+				// a deletion confirmation for a node with a long name.
+				delete_dialog->set_size(Size2());
 				delete_dialog->popup_centered_minsize();
 			}
 
@@ -1495,7 +1509,7 @@ bool SceneTreeDock::_validate_no_foreign() {
 
 		// When edited_scene inherits from another one the root Node will be the parent Scene,
 		// we don't want to consider that Node a foreign one otherwise we would not be able to
-		// delete it
+		// delete it.
 		if (edited_scene->get_scene_inherited_state().is_valid() && edited_scene == E->get()) {
 			continue;
 		}
@@ -1519,7 +1533,7 @@ void SceneTreeDock::_node_reparent(NodePath p_path, bool p_keep_global_xform) {
 	List<Node *> selection = editor_selection->get_selected_node_list();
 
 	if (selection.empty())
-		return; //nothing to reparent
+		return; // Nothing to reparent.
 
 	Vector<Node *> nodes;
 
@@ -1535,18 +1549,32 @@ void SceneTreeDock::_do_reparent(Node *p_new_parent, int p_position_in_parent, V
 	Node *new_parent = p_new_parent;
 	ERR_FAIL_COND(!new_parent);
 
+	if (p_nodes.size() == 0)
+		return; // Nothing to reparent.
+
+	p_nodes.sort_custom<Node::Comparator>(); //Makes result reliable.
+
+	bool no_change = true;
+	for (int ni = 0; ni < p_nodes.size(); ni++) {
+
+		if (p_nodes[ni] == p_new_parent)
+			return; // Attempt to reparent to itself.
+
+		if (p_nodes[ni]->get_parent() != p_new_parent || p_position_in_parent + ni != p_nodes[ni]->get_position_in_parent())
+			no_change = false;
+	}
+
+	if (no_change)
+		return; // Position and parent didn't change.
+
 	Node *validate = new_parent;
 	while (validate) {
 
-		ERR_FAIL_COND_MSG(p_nodes.find(validate) != -1, "Selection changed at some point.. can't reparent.");
+		ERR_FAIL_COND_MSG(p_nodes.find(validate) != -1, "Selection changed at some point. Can't reparent.");
 		validate = validate->get_parent();
 	}
-	//ok all valid
 
-	if (p_nodes.size() == 0)
-		return; //nothing to reparent
-
-	//sort by tree order, so re-adding is easy
+	// Sort by tree order, so re-adding is easy.
 	p_nodes.sort_custom<Node::Comparator>();
 
 	editor_data->get_undo_redo().create_action(TTR("Reparent Node"));
@@ -1558,7 +1586,7 @@ void SceneTreeDock::_do_reparent(Node *p_new_parent, int p_position_in_parent, V
 
 	for (int ni = 0; ni < p_nodes.size(); ni++) {
 
-		//no undo for now, sorry
+		// No undo implemented for this yet.
 		Node *node = p_nodes[ni];
 
 		fill_path_renames(node, new_parent, &path_renames);
@@ -1568,14 +1596,11 @@ void SceneTreeDock::_do_reparent(Node *p_new_parent, int p_position_in_parent, V
 		node->get_owned_by(node->get_owner(), &owned);
 		Array owners;
 		for (List<Node *>::Element *E = owned.front(); E; E = E->next()) {
-
 			owners.push_back(E->get());
 		}
 
-		if (new_parent == node->get_parent() && node->get_index() < p_position_in_parent + ni) {
-			//if child will generate a gap when moved, adjust
-			inc--;
-		}
+		if (new_parent == node->get_parent() && node->get_index() < p_position_in_parent + ni)
+			inc--; // If the child will generate a gap when moved, adjust.
 
 		editor_data->get_undo_redo().add_do_method(node->get_parent(), "remove_child", node);
 		editor_data->get_undo_redo().add_do_method(new_parent, "add_child", node);
@@ -1587,17 +1612,17 @@ void SceneTreeDock::_do_reparent(Node *p_new_parent, int p_position_in_parent, V
 		String old_name = former_names[ni];
 		String new_name = new_parent->validate_child_name(node);
 
-		// name was modified, fix the path renames
+		// Name was modified, fix the path renames.
 		if (old_name.casecmp_to(new_name) != 0) {
 
-			// Fix the to name to have the new name
+			// Fix the to name to have the new name.
 			NodePath old_new_name = path_renames[ni].second;
 			NodePath new_path;
 
 			Vector<StringName> unfixed_new_names = old_new_name.get_names();
 			Vector<StringName> fixed_new_names;
 
-			// Get last name and replace with fixed new name
+			// Get last name and replace with fixed new name.
 			for (int a = 0; a < (unfixed_new_names.size() - 1); a++) {
 				fixed_new_names.push_back(unfixed_new_names[a]);
 			}
@@ -1631,8 +1656,7 @@ void SceneTreeDock::_do_reparent(Node *p_new_parent, int p_position_in_parent, V
 		inc++;
 	}
 
-	//add and move in a second step.. (so old order is preserved)
-
+	// Add and move in a second step (so old order is preserved).
 	for (int ni = 0; ni < p_nodes.size(); ni++) {
 
 		Node *node = p_nodes[ni];

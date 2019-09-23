@@ -1209,7 +1209,7 @@ bool KinematicBody2D::move_and_collide(const Vector2 &p_motion, bool p_infinite_
 	return colliding;
 }
 
-//so, if you pass 45 as limit, avoid numerical precision erros when angle is 45.
+//so, if you pass 45 as limit, avoid numerical precision errors when angle is 45.
 #define FLOOR_ANGLE_THRESHOLD 0.01
 
 Vector2 KinematicBody2D::move_and_slide(const Vector2 &p_linear_velocity, const Vector2 &p_floor_direction, bool p_stop_on_slope, int p_max_slides, float p_floor_max_angle, bool p_infinite_inertia) {
@@ -1446,6 +1446,14 @@ void KinematicBody2D::_direct_state_changed(Object *p_state) {
 void KinematicBody2D::_notification(int p_what) {
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 		last_valid_transform = get_global_transform();
+
+		// Reset move_and_slide() data.
+		on_floor = false;
+		on_floor_body = RID();
+		on_ceiling = false;
+		on_wall = false;
+		colliders.clear();
+		floor_velocity = Vector2();
 	}
 
 	if (p_what == NOTIFICATION_LOCAL_TRANSFORM_CHANGED) {

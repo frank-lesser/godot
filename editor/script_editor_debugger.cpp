@@ -33,6 +33,7 @@
 #include "core/io/marshalls.h"
 #include "core/project_settings.h"
 #include "core/ustring.h"
+#include "editor_network_profiler.h"
 #include "editor_node.h"
 #include "editor_profiler.h"
 #include "editor_settings.h"
@@ -199,6 +200,21 @@ void ScriptEditorDebugger::debug_copy() {
 	String msg = reason->get_text();
 	if (msg == "") return;
 	OS::get_singleton()->set_clipboard(msg);
+}
+
+void ScriptEditorDebugger::debug_skip_breakpoints() {
+	skip_breakpoints_value = !skip_breakpoints_value;
+	if (skip_breakpoints_value)
+		skip_breakpoints->set_icon(get_icon("DebugSkipBreakpointsOn", "EditorIcons"));
+	else
+		skip_breakpoints->set_icon(get_icon("DebugSkipBreakpointsOff", "EditorIcons"));
+
+	if (connection.is_valid()) {
+		Array msg;
+		msg.push_back("set_skip_breakpoints");
+		msg.push_back(skip_breakpoints_value);
+		ppeer->put_var(msg);
+	}
 }
 
 void ScriptEditorDebugger::debug_next() {
@@ -417,6 +433,15 @@ int ScriptEditorDebugger::_update_scene_tree(TreeItem *parent, const Array &node
 		item->set_icon(0, icon);
 	}
 	item->set_metadata(0, id);
+
+	if (id == inspected_object_id) {
+		TreeItem *cti = item->get_parent();
+		while (cti) {
+			cti->set_collapsed(false);
+			cti = cti->get_parent();
+		}
+		item->select(0);
+	}
 
 	// Set current item as collapsed if necessary
 	if (parent) {
@@ -977,7 +1002,20 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 			profiler->add_frame_metric(metric, false);
 		else
 			profiler->add_frame_metric(metric, true);
-
+	} else if (p_msg == "network_profile") {
+		int frame_size = 6;
+		for (int i = 0; i < p_data.size(); i += frame_size) {
+			MultiplayerAPI::ProfilingInfo pi;
+			pi.node = p_data[i + 0];
+			pi.node_path = p_data[i + 1];
+			pi.incoming_rpc = p_data[i + 2];
+			pi.incoming_rset = p_data[i + 3];
+			pi.outgoing_rpc = p_data[i + 4];
+			pi.outgoing_rset = p_data[i + 5];
+			network_profiler->add_node_frame_data(pi);
+		}
+	} else if (p_msg == "network_bandwidth") {
+		network_profiler->set_bandwidth(p_data[0], p_data[1]);
 	} else if (p_msg == "kill_me") {
 
 		editor->call_deferred("stop_child_process");
@@ -1013,17 +1051,15 @@ void ScriptEditorDebugger::_performance_draw() {
 			which.push_back(i);
 	}
 
-	Ref<Font> graph_font = get_font("font", "TextEdit");
-
 	if (which.empty()) {
-		String text = TTR("Pick one or more items from the list to display the graph.");
-
-		perf_draw->draw_string(graph_font, Point2i(MAX(0, perf_draw->get_size().x - graph_font->get_string_size(text).x), perf_draw->get_size().y + graph_font->get_ascent()) / 2, text, get_color("font_color", "Label"), perf_draw->get_size().x);
-
+		info_message->show();
 		return;
 	}
 
+	info_message->hide();
+
 	Ref<StyleBox> graph_sb = get_stylebox("normal", "TextEdit");
+	Ref<Font> graph_font = get_font("font", "TextEdit");
 
 	int cols = Math::ceil(Math::sqrt((float)which.size()));
 	int rows = Math::ceil((float)which.size() / cols);
@@ -1083,7 +1119,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 
 			inspector->edit(variables);
-
+			skip_breakpoints->set_icon(get_icon("DebugSkipBreakpointsOff", "EditorIcons"));
 			copy->set_icon(get_icon("ActionCopy", "EditorIcons"));
 
 			step->set_icon(get_icon("DebugStep", "EditorIcons"));
@@ -1092,7 +1128,6 @@ void ScriptEditorDebugger::_notification(int p_what) {
 			forward->set_icon(get_icon("Forward", "EditorIcons"));
 			dobreak->set_icon(get_icon("Pause", "EditorIcons"));
 			docontinue->set_icon(get_icon("DebugContinue", "EditorIcons"));
-			//scene_tree_refresh->set_icon( get_icon("Reload","EditorIcons"));
 			le_set->connect("pressed", this, "_live_edit_set");
 			le_clear->connect("pressed", this, "_live_edit_clear");
 			error_tree->connect("item_selected", this, "_error_selected");
@@ -1164,7 +1199,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 					if (connection.is_null())
 						break;
 
-					EditorNode::get_log()->add_message("** Debug Process Started **");
+					EditorNode::get_log()->add_message("--- Debugging process started ---", EditorLog::MSG_TYPE_EDITOR);
 
 					ppeer->set_stream_peer(connection);
 
@@ -1174,7 +1209,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 					dobreak->set_disabled(false);
 					tabs->set_current_tab(0);
 
-					_set_reason_text(TTR("Child Process Connected"), MESSAGE_SUCCESS);
+					_set_reason_text(TTR("Child process connected."), MESSAGE_SUCCESS);
 					profiler->clear();
 
 					inspect_scene_tree->clear();
@@ -1192,6 +1227,10 @@ void ScriptEditorDebugger::_notification(int p_what) {
 					update_live_edit_root();
 					if (profiler->is_profiling()) {
 						_profiler_activate(true);
+					}
+
+					if (network_profiler->is_profiling()) {
+						_network_profiler_activate(true);
 					}
 				}
 			}
@@ -1358,7 +1397,7 @@ void ScriptEditorDebugger::stop() {
 	ppeer->set_stream_peer(Ref<StreamPeer>());
 
 	if (connection.is_valid()) {
-		EditorNode::get_log()->add_message("** Debug Process Stopped **");
+		EditorNode::get_log()->add_message("--- Debugging process stopped ---", EditorLog::MSG_TYPE_EDITOR);
 		connection.unref();
 
 		reason->set_text("");
@@ -1376,7 +1415,7 @@ void ScriptEditorDebugger::stop() {
 	profiler->set_enabled(true);
 
 	inspect_scene_tree->clear();
-	EditorNode::get_singleton()->edit_current();
+	inspector->edit(NULL);
 	EditorNode::get_singleton()->get_pause_button()->set_pressed(false);
 	EditorNode::get_singleton()->get_pause_button()->set_disabled(true);
 	EditorNode::get_singleton()->get_scene_tree_dock()->hide_remote_tree();
@@ -1409,6 +1448,25 @@ void ScriptEditorDebugger::_profiler_activate(bool p_enable) {
 		msg.push_back("stop_profiling");
 		ppeer->put_var(msg);
 		print_verbose("Ending profiling.");
+	}
+}
+
+void ScriptEditorDebugger::_network_profiler_activate(bool p_enable) {
+
+	if (!connection.is_valid())
+		return;
+
+	if (p_enable) {
+		Array msg;
+		msg.push_back("start_network_profiling");
+		ppeer->put_var(msg);
+		print_verbose("Starting network profiling.");
+
+	} else {
+		Array msg;
+		msg.push_back("stop_network_profiling");
+		ppeer->put_var(msg);
+		print_verbose("Ending network profiling.");
 	}
 }
 
@@ -1785,6 +1843,10 @@ void ScriptEditorDebugger::reload_scripts() {
 	}
 }
 
+bool ScriptEditorDebugger::is_skip_breakpoints() {
+	return skip_breakpoints_value;
+}
+
 void ScriptEditorDebugger::_error_activated() {
 	TreeItem *selected = error_tree->get_selected();
 
@@ -1980,6 +2042,7 @@ void ScriptEditorDebugger::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_stack_dump_frame_selected"), &ScriptEditorDebugger::_stack_dump_frame_selected);
 
+	ClassDB::bind_method(D_METHOD("debug_skip_breakpoints"), &ScriptEditorDebugger::debug_skip_breakpoints);
 	ClassDB::bind_method(D_METHOD("debug_copy"), &ScriptEditorDebugger::debug_copy);
 
 	ClassDB::bind_method(D_METHOD("debug_next"), &ScriptEditorDebugger::debug_next);
@@ -2000,6 +2063,7 @@ void ScriptEditorDebugger::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_expand_errors_list"), &ScriptEditorDebugger::_expand_errors_list);
 	ClassDB::bind_method(D_METHOD("_collapse_errors_list"), &ScriptEditorDebugger::_collapse_errors_list);
 	ClassDB::bind_method(D_METHOD("_profiler_activate"), &ScriptEditorDebugger::_profiler_activate);
+	ClassDB::bind_method(D_METHOD("_network_profiler_activate"), &ScriptEditorDebugger::_network_profiler_activate);
 	ClassDB::bind_method(D_METHOD("_profiler_seeked"), &ScriptEditorDebugger::_profiler_seeked);
 	ClassDB::bind_method(D_METHOD("_clear_errors_list"), &ScriptEditorDebugger::_clear_errors_list);
 
@@ -2064,6 +2128,13 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		reason->set_autowrap(true);
 		reason->set_max_lines_visible(3);
 		reason->set_mouse_filter(Control::MOUSE_FILTER_PASS);
+
+		hbc->add_child(memnew(VSeparator));
+
+		skip_breakpoints = memnew(ToolButton);
+		hbc->add_child(skip_breakpoints);
+		skip_breakpoints->set_tooltip(TTR("Skip Breakpoints"));
+		skip_breakpoints->connect("pressed", this, "debug_skip_breakpoints");
 
 		hbc->add_child(memnew(VSeparator));
 
@@ -2218,6 +2289,13 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		profiler->connect("break_request", this, "_profiler_seeked");
 	}
 
+	{ //network profiler
+		network_profiler = memnew(EditorNetworkProfiler);
+		network_profiler->set_name(TTR("Network Profiler"));
+		tabs->add_child(network_profiler);
+		network_profiler->connect("enable_profiling", this, "_network_profiler_activate");
+	}
+
 	{ //monitors
 
 		HSplitContainer *hsp = memnew(HSplitContainer);
@@ -2227,11 +2305,14 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		perf_monitors->set_column_title(0, TTR("Monitor"));
 		perf_monitors->set_column_title(1, TTR("Value"));
 		perf_monitors->set_column_titles_visible(true);
-		hsp->add_child(perf_monitors);
 		perf_monitors->connect("item_edited", this, "_performance_select");
+		hsp->add_child(perf_monitors);
+
 		perf_draw = memnew(Control);
+		perf_draw->set_clip_contents(true);
 		perf_draw->connect("draw", this, "_performance_draw");
 		hsp->add_child(perf_draw);
+
 		hsp->set_name(TTR("Monitors"));
 		hsp->set_split_offset(340 * EDSCALE);
 		tabs->add_child(hsp);
@@ -2265,6 +2346,14 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 			perf_items.push_back(it);
 			perf_max.write[i] = 0;
 		}
+
+		info_message = memnew(Label);
+		info_message->set_text(TTR("Pick one or more items from the list to display the graph."));
+		info_message->set_valign(Label::VALIGN_CENTER);
+		info_message->set_align(Label::ALIGN_CENTER);
+		info_message->set_autowrap(true);
+		info_message->set_anchors_and_margins_preset(PRESET_WIDE, PRESET_MODE_KEEP_SIZE, 8 * EDSCALE);
+		perf_draw->add_child(info_message);
 	}
 
 	{ //vmem inspect
@@ -2276,7 +2365,7 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		vmem_hb->add_child(memnew(Label(TTR("Total:") + " ")));
 		vmem_total = memnew(LineEdit);
 		vmem_total->set_editable(false);
-		vmem_total->set_custom_minimum_size(Size2(100, 1) * EDSCALE);
+		vmem_total->set_custom_minimum_size(Size2(100, 0) * EDSCALE);
 		vmem_hb->add_child(vmem_total);
 		vmem_refresh = memnew(ToolButton);
 		vmem_hb->add_child(vmem_refresh);

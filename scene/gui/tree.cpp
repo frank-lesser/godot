@@ -328,7 +328,7 @@ void TreeItem::set_collapsed(bool p_collapsed) {
 
 			ci = ci->parent;
 		}
-		if (ci) { // collapsing cursor/selectd, move it!
+		if (ci) { // collapsing cursor/selected, move it!
 
 			if (tree->select_mode == Tree::SELECT_MULTI) {
 
@@ -914,7 +914,6 @@ void Tree::update_cache() {
 	cache.arrow_collapsed = get_icon("arrow_collapsed");
 	cache.arrow = get_icon("arrow");
 	cache.select_arrow = get_icon("select_arrow");
-	cache.select_option = get_icon("select_option");
 	cache.updown = get_icon("updown");
 
 	cache.custom_button = get_stylebox("custom_button");
@@ -930,7 +929,6 @@ void Tree::update_cache() {
 	cache.vseparation = get_constant("vseparation");
 	cache.item_margin = get_constant("item_margin");
 	cache.button_margin = get_constant("button_margin");
-	cache.guide_width = get_constant("guide_width");
 	cache.draw_guides = get_constant("draw_guides");
 	cache.draw_relationship_lines = get_constant("draw_relationship_lines");
 	cache.relationship_line_color = get_color("relationship_line_color");
@@ -1184,23 +1182,22 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 				}
 			}
 
-			if (p_item->cells[i].selected && select_mode != SELECT_ROW) {
-
+			if (select_mode != SELECT_ROW && (p_item->cells[i].selected || selected_item == p_item)) {
 				Rect2i r(cell_rect.position, cell_rect.size);
+
 				if (p_item->cells[i].text.size() > 0) {
 					float icon_width = p_item->cells[i].get_icon_size().width;
 					r.position.x += icon_width;
 					r.size.x -= icon_width;
 				}
 				p_item->set_meta("__focus_rect", Rect2(r.position, r.size));
-				if (has_focus()) {
-					cache.selected_focus->draw(ci, r);
-				} else {
-					cache.selected->draw(ci, r);
-				}
-				if (text_editor->is_visible_in_tree()) {
-					Vector2 ofs2(0, (text_editor->get_size().height - r.size.height) / 2);
-					text_editor->set_position(get_global_position() + r.position - ofs2);
+
+				if (p_item->cells[i].selected) {
+					if (has_focus()) {
+						cache.selected_focus->draw(ci, r);
+					} else {
+						cache.selected->draw(ci, r);
+					}
 				}
 			}
 

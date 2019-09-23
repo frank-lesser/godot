@@ -38,7 +38,7 @@
 #include "editor/animation_track_editor.h"
 #include "editor/editor_settings.h"
 
-// For onion skinning
+// For onion skinning.
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/spatial_editor_plugin.h"
 #include "scene/main/viewport.h"
@@ -477,6 +477,19 @@ void AnimationPlayerEditor::_select_anim_by_name(const String &p_anim) {
 	_animation_selected(idx);
 }
 
+double AnimationPlayerEditor::_get_editor_step() const {
+
+	// Returns the effective snapping value depending on snapping modifiers, or 0 if snapping is disabled.
+	if (track_editor->is_snap_enabled()) {
+		const String current = player->get_assigned_animation();
+		const Ref<Animation> anim = player->get_animation(current);
+		// Use more precise snapping when holding Shift
+		return Input::get_singleton()->is_key_pressed(KEY_SHIFT) ? anim->get_step() * 0.25 : anim->get_step();
+	}
+
+	return 0.0;
+}
+
 void AnimationPlayerEditor::_animation_name_edited() {
 
 	player->stop();
@@ -677,8 +690,10 @@ void AnimationPlayerEditor::set_state(const Dictionary &p_state) {
 
 			if (p_state.has("animation")) {
 				String anim = p_state["animation"];
-				_select_anim_by_name(anim);
-				_animation_edit();
+				if (!anim.empty() && player->has_animation(anim)) {
+					_select_anim_by_name(anim);
+					_animation_edit();
+				}
 			}
 		}
 	}
@@ -1017,7 +1032,7 @@ void AnimationPlayerEditor::_seek_value_changed(float p_value, bool p_set) {
 
 	float pos = CLAMP(anim->get_length() * (p_value / frame->get_max()), 0, anim->get_length());
 	if (track_editor->is_snap_enabled()) {
-		pos = Math::stepify(pos, anim->get_step());
+		pos = Math::stepify(pos, _get_editor_step());
 	}
 
 	if (player->is_valid() && !p_set) {
@@ -1068,25 +1083,11 @@ void AnimationPlayerEditor::_animation_key_editor_seek(float p_pos, bool p_drag)
 	Ref<Animation> anim = player->get_animation(player->get_assigned_animation());
 
 	updating = true;
-	frame->set_value(Math::stepify(p_pos, track_editor->is_snap_enabled() ? anim->get_step() : 0));
+	frame->set_value(Math::stepify(p_pos, _get_editor_step()));
 	updating = false;
 	_seek_value_changed(p_pos, !p_drag);
 
 	EditorNode::get_singleton()->get_inspector()->refresh();
-}
-
-void AnimationPlayerEditor::_hide_anim_editors() {
-
-	player = NULL;
-	hide();
-	set_process(false);
-
-	track_editor->set_animation(Ref<Animation>());
-	track_editor->set_root(NULL);
-	track_editor->show_select_node_warning(true);
-}
-
-void AnimationPlayerEditor::_animation_about_to_show_menu() {
 }
 
 void AnimationPlayerEditor::_animation_tool_menu(int p_option) {
@@ -1476,7 +1477,7 @@ void AnimationPlayerEditor::_prepare_onion_layers_2() {
 	player->seek(cpos, false);
 	player->restore_animated_values(values_backup);
 
-	// Restor state of main editors.
+	// Restore state of main editors.
 	if (SpatialEditor::get_singleton()->is_visible()) {
 		// 3D
 		SpatialEditor::get_singleton()->set_state(spatial_edit_state);
@@ -1506,7 +1507,7 @@ void AnimationPlayerEditor::_stop_onion_skinning() {
 
 		_free_onion_layers();
 
-		// Clean up the overlay
+		// Clean up the overlay.
 		onion.can_overlay = false;
 		plugin->update_overlays();
 	}
@@ -1544,7 +1545,6 @@ void AnimationPlayerEditor::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_list_changed"), &AnimationPlayerEditor::_list_changed);
 	ClassDB::bind_method(D_METHOD("_animation_key_editor_seek"), &AnimationPlayerEditor::_animation_key_editor_seek);
 	ClassDB::bind_method(D_METHOD("_animation_key_editor_anim_len_changed"), &AnimationPlayerEditor::_animation_key_editor_anim_len_changed);
-	ClassDB::bind_method(D_METHOD("_hide_anim_editors"), &AnimationPlayerEditor::_hide_anim_editors);
 	ClassDB::bind_method(D_METHOD("_animation_duplicate"), &AnimationPlayerEditor::_animation_duplicate);
 	ClassDB::bind_method(D_METHOD("_blend_editor_next_changed"), &AnimationPlayerEditor::_blend_editor_next_changed);
 	ClassDB::bind_method(D_METHOD("_unhandled_key_input"), &AnimationPlayerEditor::_unhandled_key_input);
@@ -1763,7 +1763,7 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor, AnimationPlay
 
 	_update_player();
 
-	// Onion skinning
+	// Onion skinning.
 
 	track_editor->connect("visibility_changed", this, "_editor_visibility_changed");
 
