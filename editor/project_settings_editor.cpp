@@ -1007,8 +1007,12 @@ void ProjectSettingsEditor::_copy_to_platform_about_to_show() {
 	presets.insert("pvrtc");
 	presets.insert("debug");
 	presets.insert("release");
+	presets.insert("editor");
+	presets.insert("standalone");
 	presets.insert("32");
 	presets.insert("64");
+	// Not available as an export platform yet, so it needs to be added manually
+	presets.insert("Server");
 
 	for (int i = 0; i < EditorExport::get_singleton()->get_export_platform_count(); i++) {
 		List<String> p;
@@ -1074,7 +1078,7 @@ bool ProjectSettingsEditor::can_drop_data_fw(const Point2 &p_point, const Varian
 
 	TreeItem *selected = input_editor->get_selected();
 	TreeItem *item = input_editor->get_item_at_position(p_point);
-	if (!selected || !item || item->get_parent() == selected)
+	if (!selected || !item || item == selected || item->get_parent() == selected)
 		return false;
 
 	return true;
@@ -1305,7 +1309,7 @@ void ProjectSettingsEditor::_translation_res_option_changed() {
 	ERR_FAIL_COND(!remaps.has(key));
 	PoolStringArray r = remaps[key];
 	ERR_FAIL_INDEX(idx, r.size());
-	if (translation_locales_idxs_remap.size() > 0) {
+	if (translation_locales_idxs_remap.size() > which) {
 		r.set(idx, path + ":" + langs[translation_locales_idxs_remap[which]]);
 	} else {
 		r.set(idx, path + ":" + langs[which]);

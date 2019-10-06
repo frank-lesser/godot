@@ -598,7 +598,7 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 				String dst_path = String("lib").plus_file(abi).plus_file(p_so.path.get_file());
 				Vector<uint8_t> array = FileAccess::get_file_as_array(p_so.path);
 				Error store_err = store_in_apk(ed, dst_path, array);
-				ERR_FAIL_COND_V(store_err, store_err);
+				ERR_FAIL_COND_V_MSG(store_err, store_err, "Cannot store in apk file '" + dst_path + "'.");
 			}
 		}
 		if (!exported) {
@@ -1290,7 +1290,7 @@ public:
 		r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "graphics/xr_mode", PROPERTY_HINT_ENUM, "Regular,Oculus Mobile VR"), 0));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::INT, "graphics/degrees_of_freedom", PROPERTY_HINT_ENUM, "None,3DOF and 6DOF,6DOF"), 0));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "graphics/32_bits_framebuffer"), true));
-		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "one_click_deploy/clear_previous_install"), true));
+		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "one_click_deploy/clear_previous_install"), false));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/debug", PROPERTY_HINT_GLOBAL_FILE, "*.apk"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "custom_package/release", PROPERTY_HINT_GLOBAL_FILE, "*.apk"), ""));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "custom_package/use_custom_build"), false));
@@ -1308,7 +1308,7 @@ public:
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "screen/support_xlarge"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "screen/opengl_debug"), false));
 
-		for (unsigned int i = 0; i < sizeof(launcher_icons) / sizeof(launcher_icons[0]); ++i) {
+		for (uint64_t i = 0; i < sizeof(launcher_icons) / sizeof(launcher_icons[0]); ++i) {
 			r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, launcher_icons[i].option_id, PROPERTY_HINT_FILE, "*.png"), ""));
 		}
 
@@ -1670,7 +1670,7 @@ public:
 
 		DirAccessRef da = DirAccess::open("res://android");
 
-		ERR_FAIL_COND(!da);
+		ERR_FAIL_COND_MSG(!da, "Cannot open directory 'res://android'.");
 		Map<String, List<String> > directory_paths;
 		Map<String, List<String> > manifest_sections;
 		Map<String, List<String> > gradle_sections;
@@ -1875,7 +1875,7 @@ public:
 								new_file += "<!--CHUNK_" + text + "_BEGIN-->\n";
 
 								if (!found) {
-									ERR_PRINTS("No end marker found in AndroidManifest.conf for chunk: " + text);
+									ERR_PRINTS("No end marker found in AndroidManifest.xml for chunk: " + text);
 									f->seek(pos);
 								} else {
 									//add chunk lines
@@ -1894,7 +1894,7 @@ public:
 							String last_tag = "android:icon=\"@drawable/icon\"";
 							int last_tag_pos = l.find(last_tag);
 							if (last_tag_pos == -1) {
-								WARN_PRINTS("No adding of application tags because could not find last tag for <application: " + last_tag);
+								ERR_PRINTS("Not adding application attributes as the expected tag was not found in '<application': " + last_tag);
 								new_file += l + "\n";
 							} else {
 								String base = l.substr(0, last_tag_pos + last_tag.length());
@@ -1946,7 +1946,7 @@ public:
 			//build project if custom build is enabled
 			String sdk_path = EDITOR_GET("export/android/custom_build_sdk_path");
 
-			ERR_FAIL_COND_V(sdk_path == "", ERR_UNCONFIGURED);
+			ERR_FAIL_COND_V_MSG(sdk_path == "", ERR_UNCONFIGURED, "Android SDK path must be configured in Editor Settings at 'export/android/custom_build_sdk_path'.");
 
 			_update_custom_build_project();
 
@@ -1980,9 +1980,9 @@ public:
 				return ERR_CANT_CREATE;
 			}
 			if (p_debug) {
-				src_apk = build_path.plus_file("build/outputs/apk/debug/build-debug-unsigned.apk");
+				src_apk = build_path.plus_file("build/outputs/apk/debug/android_debug.apk");
 			} else {
-				src_apk = build_path.plus_file("build/outputs/apk/release/build-release-unsigned.apk");
+				src_apk = build_path.plus_file("build/outputs/apk/release/android_release.apk");
 			}
 
 			if (!FileAccess::exists(src_apk)) {
@@ -2100,7 +2100,7 @@ public:
 
 			if (file == "res/drawable-nodpi-v4/icon.png") {
 				bool found = false;
-				for (unsigned int i = 0; i < sizeof(launcher_icons) / sizeof(launcher_icons[0]); ++i) {
+				for (uint64_t i = 0; i < sizeof(launcher_icons) / sizeof(launcher_icons[0]); ++i) {
 					String icon_path = String(p_preset->get(launcher_icons[i].option_id)).strip_edges();
 					if (icon_path != "" && icon_path.ends_with(".png")) {
 						FileAccess *f = FileAccess::open(icon_path, FileAccess::READ);
@@ -2226,7 +2226,7 @@ public:
 			APKExportData ed;
 			ed.ep = &ep;
 			ed.apk = unaligned_apk;
-			for (unsigned int i = 0; i < sizeof(launcher_icons) / sizeof(launcher_icons[0]); ++i) {
+			for (uint64_t i = 0; i < sizeof(launcher_icons) / sizeof(launcher_icons[0]); ++i) {
 				String icon_path = String(p_preset->get(launcher_icons[i].option_id)).strip_edges();
 				if (icon_path != "" && icon_path.ends_with(".png") && FileAccess::exists(icon_path)) {
 					Vector<uint8_t> data = FileAccess::get_file_as_array(icon_path);

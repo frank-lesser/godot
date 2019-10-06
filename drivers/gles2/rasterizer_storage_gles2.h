@@ -95,6 +95,7 @@ public:
 		bool support_shadow_cubemaps;
 
 		bool multisample_supported;
+		bool render_to_mipmap_supported;
 
 		GLuint depth_internalformat;
 		GLuint depth_type;
@@ -870,16 +871,12 @@ public:
 		Set<RasterizerScene::InstanceBase *> instances;
 
 		Transform2D base_transform_2d;
-		Transform world_transform;
-		Transform world_transform_inverse;
-		bool use_world_transform;
 
 		Skeleton() :
 				use_2d(false),
 				size(0),
 				tex_id(0),
-				update_list(this),
-				use_world_transform(false) {
+				update_list(this) {
 		}
 	};
 
@@ -897,7 +894,6 @@ public:
 	virtual void skeleton_bone_set_transform_2d(RID p_skeleton, int p_bone, const Transform2D &p_transform);
 	virtual Transform2D skeleton_bone_get_transform_2d(RID p_skeleton, int p_bone) const;
 	virtual void skeleton_set_base_transform_2d(RID p_skeleton, const Transform2D &p_base_transform);
-	virtual void skeleton_set_world_transform(RID p_skeleton, bool p_enable, const Transform &p_world_transform);
 
 	void _update_skeleton_transform_buffer(const PoolVector<float> &p_data, size_t p_size);
 
@@ -1145,12 +1141,6 @@ public:
 		GLuint multisample_depth;
 		bool multisample_active;
 
-		// TODO post processing effects?
-
-		// TODO HDR?
-
-		// TODO this is hardcoded for texscreen copies for now
-
 		struct Effect {
 			GLuint fbo;
 			int width;
@@ -1167,6 +1157,27 @@ public:
 		};
 
 		Effect copy_screen_effect;
+
+		struct MipMaps {
+
+			struct Size {
+				GLuint fbo;
+				GLuint color;
+				int width;
+				int height;
+			};
+
+			Vector<Size> sizes;
+			GLuint color;
+			int levels;
+
+			MipMaps() :
+					color(0),
+					levels(0) {
+			}
+		};
+
+		MipMaps mip_maps[2];
 
 		struct External {
 			GLuint fbo;
@@ -1187,6 +1198,9 @@ public:
 
 		RID texture;
 
+		bool used_dof_blur_near;
+		bool mip_maps_allocated;
+
 		RenderTarget() :
 				fbo(0),
 				color(0),
@@ -1200,7 +1214,9 @@ public:
 				width(0),
 				height(0),
 				used_in_frame(false),
-				msaa(VS::VIEWPORT_MSAA_DISABLED) {
+				msaa(VS::VIEWPORT_MSAA_DISABLED),
+				used_dof_blur_near(false),
+				mip_maps_allocated(false) {
 			for (int i = 0; i < RENDER_TARGET_FLAG_MAX; ++i) {
 				flags[i] = false;
 			}

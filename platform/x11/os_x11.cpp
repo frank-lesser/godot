@@ -1566,7 +1566,7 @@ bool OS_X11::is_window_maximize_allowed() {
 		bool found_wm_act_max_horz = false;
 		bool found_wm_act_max_vert = false;
 
-		for (unsigned int i = 0; i < len; i++) {
+		for (uint64_t i = 0; i < len; i++) {
 			if (atoms[i] == wm_act_max_horz)
 				found_wm_act_max_horz = true;
 			if (atoms[i] == wm_act_max_vert)
@@ -1612,7 +1612,7 @@ bool OS_X11::is_window_maximized() const {
 		bool found_wm_max_horz = false;
 		bool found_wm_max_vert = false;
 
-		for (unsigned int i = 0; i < len; i++) {
+		for (uint64_t i = 0; i < len; i++) {
 			if (atoms[i] == wm_max_horz)
 				found_wm_max_horz = true;
 			if (atoms[i] == wm_max_vert)
@@ -2996,6 +2996,8 @@ void OS_X11::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		CursorShape c = current_cursor;
 		current_cursor = CURSOR_MAX;
 		set_cursor_shape(c);
+
+		cursors_cache.erase(p_shape);
 	}
 }
 
@@ -3028,7 +3030,7 @@ void OS_X11::alert(const String &p_alert, const String &p_title) {
 	String program;
 
 	for (int i = 0; i < path_elems.size(); i++) {
-		for (unsigned int k = 0; k < sizeof(message_programs) / sizeof(char *); k++) {
+		for (uint64_t k = 0; k < sizeof(message_programs) / sizeof(char *); k++) {
 			String tested_path = path_elems[i].plus_file(message_programs[k]);
 
 			if (FileAccess::exists(tested_path)) {

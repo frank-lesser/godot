@@ -256,6 +256,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM2R(String, format);
 	VCALL_LOCALMEM2R(String, replace);
 	VCALL_LOCALMEM2R(String, replacen);
+	VCALL_LOCALMEM1R(String, repeat);
 	VCALL_LOCALMEM2R(String, insert);
 	VCALL_LOCALMEM0R(String, capitalize);
 	VCALL_LOCALMEM3R(String, split);
@@ -283,6 +284,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM0R(String, sha1_buffer);
 	VCALL_LOCALMEM0R(String, sha256_buffer);
 	VCALL_LOCALMEM0R(String, empty);
+	VCALL_LOCALMEM1R(String, humanize_size);
 	VCALL_LOCALMEM0R(String, is_abs_path);
 	VCALL_LOCALMEM0R(String, is_rel_path);
 	VCALL_LOCALMEM0R(String, get_base_dir);
@@ -534,6 +536,7 @@ struct _VariantCall {
 	VCALL_LOCALMEM2R(Array, bsearch);
 	VCALL_LOCALMEM4R(Array, bsearch_custom);
 	VCALL_LOCALMEM1R(Array, duplicate);
+	VCALL_LOCALMEM4R(Array, slice);
 	VCALL_LOCALMEM0(Array, invert);
 	VCALL_LOCALMEM0R(Array, max);
 	VCALL_LOCALMEM0R(Array, min);
@@ -1529,6 +1532,7 @@ void register_variant_methods() {
 	ADDFUNC2R(STRING, STRING, String, format, NIL, "values", STRING, "placeholder", varray("{_}"));
 	ADDFUNC2R(STRING, STRING, String, replace, STRING, "what", STRING, "forwhat", varray());
 	ADDFUNC2R(STRING, STRING, String, replacen, STRING, "what", STRING, "forwhat", varray());
+	ADDFUNC1R(STRING, STRING, String, repeat, INT, "count", varray());
 	ADDFUNC2R(STRING, STRING, String, insert, INT, "position", STRING, "what", varray());
 	ADDFUNC0R(STRING, STRING, String, capitalize, varray());
 	ADDFUNC3R(STRING, POOL_STRING_ARRAY, String, split, STRING, "delimiter", BOOL, "allow_empty", INT, "maxsplit", varray(true, 0));
@@ -1558,6 +1562,7 @@ void register_variant_methods() {
 	ADDFUNC0R(STRING, POOL_BYTE_ARRAY, String, sha1_buffer, varray());
 	ADDFUNC0R(STRING, POOL_BYTE_ARRAY, String, sha256_buffer, varray());
 	ADDFUNC0R(STRING, BOOL, String, empty, varray());
+	ADDFUNC1R(STRING, STRING, String, humanize_size, INT, "size", varray());
 	ADDFUNC0R(STRING, BOOL, String, is_abs_path, varray());
 	ADDFUNC0R(STRING, BOOL, String, is_rel_path, varray());
 	ADDFUNC0R(STRING, STRING, String, get_base_dir, varray());
@@ -1759,6 +1764,7 @@ void register_variant_methods() {
 	ADDFUNC4R(ARRAY, INT, Array, bsearch_custom, NIL, "value", OBJECT, "obj", STRING, "func", BOOL, "before", varray(true));
 	ADDFUNC0NC(ARRAY, NIL, Array, invert, varray());
 	ADDFUNC1R(ARRAY, ARRAY, Array, duplicate, BOOL, "deep", varray(false));
+	ADDFUNC4R(ARRAY, ARRAY, Array, slice, INT, "begin", INT, "end", INT, "step", BOOL, "deep", varray(1, false));
 	ADDFUNC0R(ARRAY, NIL, Array, max, varray());
 	ADDFUNC0R(ARRAY, NIL, Array, min, varray());
 

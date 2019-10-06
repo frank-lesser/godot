@@ -2455,7 +2455,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 	if (mm.is_valid()) {
 
 		if (select_identifiers_enabled) {
-			if (mm->get_command() && mm->get_button_mask() == 0) {
+			if (!dragging_minimap && !dragging_selection && mm->get_command() && mm->get_button_mask() == 0) {
 
 				String new_word = get_word_at_pos(mm->get_position());
 				if (new_word != highlighted_word) {
@@ -2513,7 +2513,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 #endif
 			if (select_identifiers_enabled) {
 
-				if (k->is_pressed()) {
+				if (k->is_pressed() && !dragging_minimap && !dragging_selection) {
 
 					highlighted_word = get_word_at_pos(get_local_mouse_position());
 					update();
@@ -3965,7 +3965,7 @@ void TextEdit::_base_remove_text(int p_from_line, int p_from_column, int p_to_li
 
 void TextEdit::_insert_text(int p_line, int p_char, const String &p_text, int *r_end_line, int *r_end_char) {
 
-	if (!setting_text)
+	if (!setting_text && idle_detect->is_inside_tree())
 		idle_detect->start();
 
 	if (undo_enabled) {
@@ -4019,7 +4019,7 @@ void TextEdit::_insert_text(int p_line, int p_char, const String &p_text, int *r
 
 void TextEdit::_remove_text(int p_from_line, int p_from_column, int p_to_line, int p_to_column) {
 
-	if (!setting_text)
+	if (!setting_text && idle_detect->is_inside_tree())
 		idle_detect->start();
 
 	String text;
@@ -6110,7 +6110,7 @@ bool TextEdit::is_indent_using_spaces() const {
 }
 
 void TextEdit::set_indent_size(const int p_size) {
-	ERR_FAIL_COND(p_size <= 0);
+	ERR_FAIL_COND_MSG(p_size <= 0, "Indend size must be greater than 0.");
 	indent_size = p_size;
 	text.set_indent_size(p_size);
 
