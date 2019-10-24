@@ -217,6 +217,13 @@
 				Returns the path to the current engine executable.
 			</description>
 		</method>
+		<method name="get_granted_permissions">
+			<return type="PoolStringArray">
+			</return>
+			<description>
+				With this function you can get the list of dangerous permissions that have been granted to the Android application.
+			</description>
+		</method>
 		<method name="get_ime_selection" qualifiers="const">
 			<return type="Vector2">
 			</return>
@@ -326,7 +333,7 @@
 			<argument index="0" name="screen" type="int" default="-1">
 			</argument>
 			<description>
-				Returns the dots per inch density of the specified screen.
+				Returns the dots per inch density of the specified screen. If [code]screen[/code] is [/code]-1[/code] (the default value), the current screen will be used.
 				On Android devices, the actual screen densities are grouped into six generalized densities:
 				[codeblock]
 				   ldpi - 120 dpi
@@ -344,7 +351,7 @@
 			<argument index="0" name="screen" type="int" default="-1">
 			</argument>
 			<description>
-				Returns the position of the specified screen by index. If no screen index is provided, the current screen will be used.
+				Returns the position of the specified screen by index. If [code]screen[/code] is [/code]-1[/code] (the default value), the current screen will be used.
 			</description>
 		</method>
 		<method name="get_screen_size" qualifiers="const">
@@ -353,7 +360,7 @@
 			<argument index="0" name="screen" type="int" default="-1">
 			</argument>
 			<description>
-				Returns the dimensions in pixels of the specified screen.
+				Returns the dimensions in pixels of the specified screen. If [code]screen[/code] is [/code]-1[/code] (the default value), the current screen will be used.
 			</description>
 		</method>
 		<method name="get_splash_tick_msec" qualifiers="const">
@@ -742,6 +749,13 @@
 			</argument>
 			<description>
 				At the moment this function is only used by [code]AudioDriverOpenSL[/code] to request permission for [code]RECORD_AUDIO[/code] on Android.
+			</description>
+		</method>
+		<method name="request_permissions">
+			<return type="bool">
+			</return>
+			<description>
+				With this function you can request dangerous permissions since normal permissions are automatically granted at install time in Android application.
 			</description>
 		</method>
 		<method name="set_icon">

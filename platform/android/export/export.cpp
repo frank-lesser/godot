@@ -766,17 +766,9 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 						uint32_t attr_value = decode_uint32(&p_manifest[iofs + 8]);
 						uint32_t attr_resid = decode_uint32(&p_manifest[iofs + 16]);
 
-						String value;
-						if (attr_value != 0xFFFFFFFF)
-							value = string_table[attr_value];
-						else
-							value = "Res #" + itos(attr_resid);
+						const String value = (attr_value != 0xFFFFFFFF) ? string_table[attr_value] : "Res #" + itos(attr_resid);
 						String attrname = string_table[attr_name];
-						String nspace;
-						if (attr_nspace != 0xFFFFFFFF)
-							nspace = string_table[attr_nspace];
-						else
-							nspace = "";
+						const String nspace = (attr_nspace != 0xFFFFFFFF) ? string_table[attr_nspace] : "";
 
 						//replace project information
 						if (tname == "manifest" && attrname == "package") {
@@ -828,14 +820,16 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 							encode_uint32(min_gles3 ? 0x00030000 : 0x00020000, &p_manifest.write[iofs + 16]);
 						}
 
-						if (tname == "meta-data" && attrname == "name" && string_table[attr_value] == "xr_mode_metadata_name") {
+						// FIXME: `attr_value != 0xFFFFFFFF` below added as a stopgap measure for GH-32553,
+						// but the issue should be debugged further and properly addressed.
+						if (tname == "meta-data" && attrname == "name" && value == "xr_mode_metadata_name") {
 							// Update the meta-data 'android:name' attribute based on the selected XR mode.
 							if (xr_mode_index == 1 /* XRMode.OVR */) {
 								string_table.write[attr_value] = "com.samsung.android.vr.application.mode";
 							}
 						}
 
-						if (tname == "meta-data" && attrname == "value" && string_table[attr_value] == "xr_mode_metadata_value") {
+						if (tname == "meta-data" && attrname == "value" && value == "xr_mode_metadata_value") {
 							// Update the meta-data 'android:value' attribute based on the selected XR mode.
 							if (xr_mode_index == 1 /* XRMode.OVR */) {
 								string_table.write[attr_value] = "vr_only";
@@ -1351,7 +1345,7 @@ public:
 		return logo;
 	}
 
-	virtual bool poll_devices() {
+	virtual bool poll_export() {
 
 		bool dc = devices_changed;
 		if (dc) {
@@ -1361,7 +1355,7 @@ public:
 		return dc;
 	}
 
-	virtual int get_device_count() const {
+	virtual int get_options_count() const {
 
 		device_lock->lock();
 		int dc = devices.size();
@@ -1370,20 +1364,31 @@ public:
 		return dc;
 	}
 
-	virtual String get_device_name(int p_device) const {
+	virtual String get_options_tooltip() const {
 
-		ERR_FAIL_INDEX_V(p_device, devices.size(), "");
+		return TTR("Select device from the list");
+	}
+
+	virtual String get_option_label(int p_index) const {
+
+		ERR_FAIL_INDEX_V(p_index, devices.size(), "");
 		device_lock->lock();
-		String s = devices[p_device].name;
+		String s = devices[p_index].name;
 		device_lock->unlock();
 		return s;
 	}
 
-	virtual String get_device_info(int p_device) const {
+	virtual String get_option_tooltip(int p_index) const {
 
-		ERR_FAIL_INDEX_V(p_device, devices.size(), "");
+		ERR_FAIL_INDEX_V(p_index, devices.size(), "");
 		device_lock->lock();
-		String s = devices[p_device].description;
+		String s = devices[p_index].description;
+		if (devices.size() == 1) {
+			// Tooltip will be:
+			// Name
+			// Description
+			s = devices[p_index].name + "\n\n" + s;
+		}
 		device_lock->unlock();
 		return s;
 	}
