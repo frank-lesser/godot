@@ -1801,7 +1801,7 @@ void RasterizerStorageGLES3::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 	glTexParameterf(texture->target, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameterf(texture->target, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameterf(texture->target, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-	glTexParameterf(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+	glTexParameterf(texture->target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if (config.srgb_decode_supported && texture->srgb && !texture->using_srgb) {
 
@@ -1853,7 +1853,7 @@ void RasterizerStorageGLES3::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 
 		// Very large Panoramas require way too much effort to compute irradiance so use a mipmap
 		// level that corresponds to a panorama of 1024x512
-		shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::SOURCE_MIP_LEVEL, MAX(Math::log(float(texture->width)) / Math::log(2.0f) - 10.0f, 0.0f));
+		shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::SOURCE_MIP_LEVEL, MAX(Math::floor(Math::log(float(texture->width)) / Math::log(2.0f)) - 10.0f, 0.0f));
 
 		for (int i = 0; i < 2; i++) {
 			glViewport(0, i * size, size, size);
@@ -2068,7 +2068,7 @@ void RasterizerStorageGLES3::sky_set_texture(RID p_sky, RID p_panorama, int p_ra
 				shaders.cubemap_filter.bind();
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, sky->radiance);
-				shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::SOURCE_MIP_LEVEL, lod - 1); //read from previous to ensure better blur
+				shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::SOURCE_MIP_LEVEL, float(lod - 1)); //read from previous to ensure better blur
 				shaders.cubemap_filter.set_uniform(CubemapFilterShaderGLES3::SOURCE_RESOLUTION, float(size));
 			}
 
