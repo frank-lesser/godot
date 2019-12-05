@@ -411,6 +411,8 @@
 			</argument>
 			<argument index="9" name="normal_map" type="RID">
 			</argument>
+			<argument index="10" name="antialiased" type="bool" default="false">
+			</argument>
 			<description>
 			</description>
 		</method>
@@ -2602,6 +2604,14 @@
 			<argument index="4" name="custom_data_format" type="int" enum="VisualServer.MultimeshCustomDataFormat" default="0">
 			</argument>
 			<description>
+			</description>
+		</method>
+		<method name="multimesh_create">
+			<return type="RID">
+			</return>
+			<description>
+				Creates a new multimesh on the VisualServer and returns an [RID] handle.
+				Once finished with your RID, you will want to free the RID using the VisualServer's [method free_rid] static method.
 			</description>
 		</method>
 		<method name="multimesh_get_aabb" qualifiers="const">
