@@ -17,7 +17,10 @@
 			<argument index="0" name="hint" type="Dictionary">
 			</argument>
 			<description>
-				Adds a custom property info to a property. The dictionary must contain: name:[String](the property's name) and type:[int](see [code]TYPE_*[/code] in [@GlobalScope]), and optionally hint:[int](see [code]PROPERTY_HINT_*[/code] in [@GlobalScope]), hint_string:[String].
+				Adds a custom property info to a property. The dictionary must contain:
+				- [code]name[/code]: [String] (the property's name)
+				- [code]type[/code]: [int] (see [enum Variant.Type])
+				- optionally [code]hint[/code]: [int] (see [enum PropertyHint]) and [code]hint_string[/code]: [String]
 				[b]Example:[/b]
 				[codeblock]
 				ProjectSettings.set("category/property_name", 0)
@@ -345,7 +348,7 @@
 		<member name="debug/gdscript/warnings/unused_argument" type="bool" setter="" getter="" default="true">
 			If [code]true[/code], enables warnings when a function parameter is unused.
 		</member>
-		<member name="debug/gdscript/warnings/unused_class_variable" type="bool" setter="" getter="" default="true">
+		<member name="debug/gdscript/warnings/unused_class_variable" type="bool" setter="" getter="" default="false">
 			If [code]true[/code], enables warnings when a member variable is unused.
 		</member>
 		<member name="debug/gdscript/warnings/unused_signal" type="bool" setter="" getter="" default="true">

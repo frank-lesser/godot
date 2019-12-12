@@ -208,7 +208,7 @@
 			<argument index="1" name="type" type="int">
 			</argument>
 			<description>
-				Converts from a type to another in the best way possible. The [code]type[/code] parameter uses the enum [code]TYPE_*[/code] in [@GlobalScope].
+				Converts from a type to another in the best way possible. The [code]type[/code] parameter uses the [enum Variant.Type] values.
 				[codeblock]
 				a = Vector2(1, 0)
 				# Prints 1
@@ -616,9 +616,10 @@
 				Loads a resource from the filesystem located at [code]path[/code].
 				[b]Note:[/b] Resource paths can be obtained by right-clicking on a resource in the FileSystem dock and choosing [b]Copy Path[/b].
 				[codeblock]
-				# Load a scene called main located in the root of the project directory
+				# Load a scene called main located in the root of the project directory.
 				var main = load("res://main.tscn")
 				[/codeblock]
+				[b]Important:[/b] The path must be absolute, a local path will just return [code]null[/code].
 			</description>
 		</method>
 		<method name="log">
@@ -786,7 +787,7 @@
 				Returns a resource from the filesystem that is loaded during script parsing.
 				[b]Note:[/b] Resource paths can be obtained by right clicking on a resource in the Assets Panel and choosing "Copy Path".
 				[codeblock]
-				# Load a scene called main located in the root of the project directory
+				# Load a scene called main located in the root of the project directory.
 				var main = preload("res://main.tscn")
 				[/codeblock]
 			</description>
@@ -1217,7 +1218,7 @@
 			<argument index="0" name="what" type="Variant">
 			</argument>
 			<description>
-				Returns the internal type of the given Variant object, using the [code]TYPE_*[/code] enum in [@GlobalScope].
+				Returns the internal type of the given Variant object, using the [enum Variant.Type] values.
 				[codeblock]
 				p = parse_json('["a", "b", "c"]')
 				if typeof(p) == TYPE_ARRAY:
@@ -1233,7 +1234,7 @@
 			<argument index="0" name="json" type="String">
 			</argument>
 			<description>
-				Checks that [code]json[/code] is valid JSON data. Returns empty string if valid. Returns error message if not valid.
+				Checks that [code]json[/code] is valid JSON data. Returns an empty string if valid, or an error message otherwise.
 				[codeblock]
 				j = to_json([1, 2, 3])
 				v = validate_json(j)
