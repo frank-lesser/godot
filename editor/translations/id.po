@@ -21,12 +21,13 @@
 # I Dewa Agung Adhinata <agungnata2003@gmail.com>, 2019.
 # herri siagian <herry.it.2007@gmail.com>, 2019.
 # MonsterGila <fikrirazor@outlook.co.id>, 2019.
+# Modeus Darksono <garuga17@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-10-04 03:15+0000\n"
-"Last-Translator: Sofyan Sugianto <sofyanartem@gmail.com>\n"
+"PO-Revision-Date: 2019-12-13 09:38+0000\n"
+"Last-Translator: Modeus Darksono <garuga17@gmail.com>\n"
 "Language-Team: Indonesian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/id/>\n"
 "Language: id\n"
@@ -34,7 +35,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-"X-Generator: Weblate 3.9-dev\n"
+"X-Generator: Weblate 3.10-dev\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -646,7 +647,6 @@ msgid "Scale Ratio:"
 msgstr "Rasio Skala:"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Select Tracks to Copy"
 msgstr "Pilih track untuk disalin:"
 
@@ -660,9 +660,8 @@ msgid "Copy"
 msgstr "Kopy"
 
 #: editor/animation_track_editor.cpp
-#, fuzzy
 msgid "Select All/None"
-msgstr "Pilih Tidak Ada"
+msgstr "Pilih Semua/Tidak Pilih Semua"
 
 #: editor/animation_track_editor_plugins.cpp
 msgid "Add Audio Track Clip"
@@ -748,6 +747,10 @@ msgstr "Perkecil Pandangan"
 #: editor/code_editor.cpp
 msgid "Reset Zoom"
 msgstr "Kebalikan Semula Pandangan"
+
+#: editor/code_editor.cpp
+msgid "Toggle Scripts Panel"
+msgstr "Jungkitkan Panel Skrip"
 
 #: editor/code_editor.cpp
 msgid "Warnings"
@@ -1708,6 +1711,11 @@ msgstr "Nama profil baru:"
 #: editor/editor_feature_profile.cpp
 msgid "Erase Profile"
 msgstr "Hapus Profil"
+
+#: editor/editor_feature_profile.cpp
+#, fuzzy
+msgid "Godot Feature Profile"
+msgstr "Kelola Editor Fitur Profil"
 
 #: editor/editor_feature_profile.cpp
 msgid "Import Profile(s)"
@@ -2674,7 +2682,8 @@ msgstr "Kembalikan Skena"
 msgid "Miscellaneous project or scene-wide tools."
 msgstr "Perkakas macam-macam proyek atau lingkup skena."
 
-#: editor/editor_node.cpp editor/script_create_dialog.cpp
+#: editor/editor_node.cpp editor/project_manager.cpp
+#: editor/script_create_dialog.cpp
 msgid "Project"
 msgstr "Proyek"
 
@@ -3014,6 +3023,11 @@ msgstr ""
 #: editor/editor_node.cpp
 msgid "Import Templates From ZIP File"
 msgstr "Impor Templat dari Berkas ZIP"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Template Package"
+msgstr "Manajer Templat Ekspor"
 
 #: editor/editor_node.cpp editor/project_export.cpp
 msgid "Export Project"
@@ -3514,6 +3528,11 @@ msgstr "Hapus Templat"
 #: editor/export_template_manager.cpp
 msgid "Select Template File"
 msgstr "Pilih berkas templat"
+
+#: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "Memuat Ekspor Template-template."
 
 #: editor/export_template_manager.cpp
 msgid "Export Template Manager"
@@ -4907,6 +4926,32 @@ msgid "Download for this asset is already in progress!"
 msgstr "Unduhan untuk aset ini sedang diproses!"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "Lisensi"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "Lisensi"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
 msgid "First"
 msgstr "Pertama"
 
@@ -5107,6 +5152,87 @@ msgid ""
 msgstr ""
 "Ketika aktif, memindahkan node Control akan mengubah jangkarnya daripada "
 "batasnya."
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Top Left"
+msgstr "Kiri"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Top Right"
+msgstr "Kanan"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Bottom Right"
+msgstr "Putar ke kanan"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Bottom Left"
+msgstr "Tampilan Bawah"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Left"
+msgstr "Indentasi Kiri"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Top"
+msgstr "Seleksi Tengah"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Right"
+msgstr "Indentasi Kanan"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Bottom"
+msgstr "Bawah"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Center"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Left Wide"
+msgstr "Tampilan Kiri"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Top Wide"
+msgstr "Tampilan Atas"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Right Wide"
+msgstr "Tampilan Kanan"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Bottom Wide"
+msgstr "Tampilan Bawah"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "VCenter Wide"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "HCenter Wide"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Full Rect"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Keep Ratio"
+msgstr "Rasio Skala:"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Anchors only"
@@ -6538,10 +6664,6 @@ msgstr "Tutup Dokumentasi"
 msgid "Run"
 msgstr "Jalankan"
 
-#: editor/plugins/script_editor_plugin.cpp
-msgid "Toggle Scripts Panel"
-msgstr "Jungkitkan Panel Skrip"
-
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Step Into"
 msgstr "Masuki"
@@ -7689,6 +7811,11 @@ msgstr "Warna"
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Constant"
 msgstr "Konstan"
+
+#: editor/plugins/theme_editor_plugin.cpp
+#, fuzzy
+msgid "Theme File"
+msgstr "Tema"
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 msgid "Erase Selection"
@@ -9038,6 +9165,15 @@ msgid "Runnable"
 msgstr "Dapat dijalankan"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Add initial export..."
+msgstr "Tambah port masukan"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
 msgid "Delete patch '%s' from list?"
 msgstr "Hapus entri penambalan '%s' dari daftar?"
 
@@ -9148,6 +9284,11 @@ msgid "Make Patch"
 msgstr "Buat Tambalan"
 
 #: editor/project_export.cpp
+#, fuzzy
+msgid "Pack File"
+msgstr " Berkas"
+
+#: editor/project_export.cpp
 msgid "Features"
 msgstr "Fitur"
 
@@ -9198,6 +9339,15 @@ msgstr "Mode ekspor?"
 #: editor/project_export.cpp
 msgid "Export All"
 msgstr "Ekspor Semua"
+
+#: editor/project_export.cpp editor/project_manager.cpp
+#, fuzzy
+msgid "ZIP File"
+msgstr " Berkas"
+
+#: editor/project_export.cpp
+msgid "Godot Game Pack"
+msgstr ""
 
 #: editor/project_export.cpp
 msgid "Export templates for this platform are missing:"
@@ -11378,6 +11528,21 @@ msgstr "Member-member:"
 
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
+msgid "Change Base Type:"
+msgstr "Ubah Tipe Nilai Array"
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
+msgid "Add Nodes..."
+msgstr "Tambah Node..."
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
+msgid "Add Function..."
+msgstr "Tambahkan Fungsi"
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
 msgid "function_name"
 msgstr "Fungsi-fungsi:"
 
@@ -11586,26 +11751,9 @@ msgid "Identifier is missing."
 msgstr ""
 
 #: platform/iphone/export/export.cpp
-msgid "Identifier segments must be of non-zero length."
-msgstr ""
-
-#: platform/iphone/export/export.cpp
 #, fuzzy
 msgid "The character '%s' is not allowed in Identifier."
 msgstr "Nama bukan sebuah pengidentifikasi yang sah:"
-
-#: platform/iphone/export/export.cpp
-msgid "A digit cannot be the first character in a Identifier segment."
-msgstr ""
-
-#: platform/iphone/export/export.cpp
-msgid ""
-"The character '%s' cannot be the first character in a Identifier segment."
-msgstr ""
-
-#: platform/iphone/export/export.cpp
-msgid "The Identifier must have at least one '.' separator."
-msgstr ""
 
 #: platform/iphone/export/export.cpp
 msgid "App Store Team ID not specified - cannot configure the project."
@@ -12260,13 +12408,12 @@ msgid "(Other)"
 msgstr "(Yang Lain)"
 
 #: scene/main/scene_tree.cpp
-#, fuzzy
 msgid ""
 "Default Environment as specified in Project Settings (Rendering -> "
 "Environment -> Default Environment) could not be loaded."
 msgstr ""
 "Lingkungan Baku yang ditetapkan di Pengaturan Proyek (Rendering -> Viewport -"
-"> Lingkungan Baku) tidak dapat dimuat"
+"> Lingkungan Baku) tidak dapat dimuat."
 
 #: scene/main/viewport.cpp
 msgid ""
@@ -12282,14 +12429,12 @@ msgstr ""
 "beberapa node untuk ditampilkan."
 
 #: scene/resources/visual_shader_nodes.cpp
-#, fuzzy
 msgid "Invalid source for preview."
-msgstr "Ukuran font tidak sah."
+msgstr "Sumber tidak sah untuk pratinjau."
 
 #: scene/resources/visual_shader_nodes.cpp
-#, fuzzy
 msgid "Invalid source for shader."
-msgstr "Ukuran font tidak sah."
+msgstr "Sumber tidak sah untuk shader."
 
 #: scene/resources/visual_shader_nodes.cpp
 msgid "Invalid comparison function for that type."
@@ -12950,9 +13095,6 @@ msgstr "Konstanta tidak dapat dimodifikasi."
 
 #~ msgid "Re-Importing"
 #~ msgstr "Mengimpor ulang"
-
-#~ msgid "Loading Export Templates"
-#~ msgstr "Memuat Ekspor Template-template."
 
 #~ msgid "Pick New Name and Location For:"
 #~ msgstr "Tentukan Nama dan Lokasi Baru untuk:"

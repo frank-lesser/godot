@@ -6,12 +6,13 @@
 # Abdullah Zubair <abdullahzubair109@gmail.com>, 2017.
 # Tahmid Karim <tahmidk15@gmail.com>, 2016.
 # Tawhid H. <Tawhidk757@yahoo.com>, 2019.
+# Hasibul Hasan <hasibeng78@gmail.com>, 2019.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-09-26 11:50+0000\n"
-"Last-Translator: Tawhid H. <Tawhidk757@yahoo.com>\n"
+"PO-Revision-Date: 2019-12-13 09:38+0000\n"
+"Last-Translator: Hasibul Hasan <hasibeng78@gmail.com>\n"
 "Language-Team: Bengali <https://hosted.weblate.org/projects/godot-engine/"
 "godot/bn/>\n"
 "Language: bn\n"
@@ -19,7 +20,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Weblate 3.9-dev\n"
+"X-Generator: Weblate 3.10-dev\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -39,7 +40,7 @@ msgstr "অবৈধ ইনপুট %i (পাস করা হয়নি) �
 #: core/math/expression.cpp
 #, fuzzy
 msgid "self can't be used because instance is null (not passed)"
-msgstr "স্ব ব্যবহার করা যাবে না কারণ উদাহরণটি হলো  null(উত্তীর্ণ হয়নি)"
+msgstr "self ব্যবাহার করা যাবে না কারণ instance যুক্তিযুক্ত নয়"
 
 #: core/math/expression.cpp
 #, fuzzy
@@ -775,6 +776,11 @@ msgstr "সংকুচিত করুন (জুম্ আউট)"
 #: editor/code_editor.cpp
 msgid "Reset Zoom"
 msgstr "সম্প্রসারন/সংকোচন অপসারণ করুন (রিসেট জুম্)"
+
+#: editor/code_editor.cpp
+#, fuzzy
+msgid "Toggle Scripts Panel"
+msgstr "ফেবরিট/প্রিয়-সমূহ অদলবদল/টগল করুন"
 
 #: editor/code_editor.cpp
 #, fuzzy
@@ -1799,6 +1805,11 @@ msgstr "নতুন নাম:"
 #, fuzzy
 msgid "Erase Profile"
 msgstr "TileMap মুছে ফেলুন"
+
+#: editor/editor_feature_profile.cpp
+#, fuzzy
+msgid "Godot Feature Profile"
+msgstr "এক্সপোর্ট টেমপ্লেটসমূহ লোড হচ্ছে"
 
 #: editor/editor_feature_profile.cpp
 #, fuzzy
@@ -2828,7 +2839,8 @@ msgstr "দৃশ্য প্রত্যাবৃত্ত করুন"
 msgid "Miscellaneous project or scene-wide tools."
 msgstr "প্রকল্প অথবা দৃশ্যে-ব্যাপী বিবিধ সরঞ্জাম-সমূহ।"
 
-#: editor/editor_node.cpp editor/script_create_dialog.cpp
+#: editor/editor_node.cpp editor/project_manager.cpp
+#: editor/script_create_dialog.cpp
 #, fuzzy
 msgid "Project"
 msgstr "নতুন প্রকল্প"
@@ -3180,6 +3192,11 @@ msgstr ""
 #: editor/editor_node.cpp
 msgid "Import Templates From ZIP File"
 msgstr "ZIP ফাইল হতে টেমপ্লেট-সমূহ ইম্পোর্ট করুন"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid "Template Package"
+msgstr "এক্সপোর্ট টেমপ্লেটসমূহ লোড হচ্ছে"
 
 #: editor/editor_node.cpp editor/project_export.cpp
 msgid "Export Project"
@@ -3726,6 +3743,11 @@ msgstr "বস্তু অপসারণ করুন"
 #, fuzzy
 msgid "Select Template File"
 msgstr "নির্বাচিত ফাইলসমূহ অপসারণ করবেন?"
+
+#: editor/export_template_manager.cpp
+#, fuzzy
+msgid "Godot Export Templates"
+msgstr "এক্সপোর্ট টেমপ্লেটসমূহ লোড হচ্ছে"
 
 #: editor/export_template_manager.cpp
 #, fuzzy
@@ -5257,6 +5279,32 @@ msgid "Download for this asset is already in progress!"
 msgstr "এই অ্যাসেটটি ইতমধ্যে ডাউনলোড হচ্ছে!"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Least Recently Updated"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (A-Z)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+msgid "Name (Z-A)"
+msgstr ""
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (A-Z)"
+msgstr "লাইসেন্স"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
+#, fuzzy
+msgid "License (Z-A)"
+msgstr "লাইসেন্স"
+
+#: editor/plugins/asset_library_editor_plugin.cpp
 #, fuzzy
 msgid "First"
 msgstr "প্রথম"
@@ -5467,6 +5515,88 @@ msgid ""
 "When active, moving Control nodes changes their anchors instead of their "
 "margins."
 msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Top Left"
+msgstr "বাম"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Top Right"
+msgstr "ডান"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Bottom Right"
+msgstr "ডানে সরান"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Bottom Left"
+msgstr "নিম্ন দর্শন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Left"
+msgstr "বামে মাত্রা দিন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Top"
+msgstr "নির্বাচনকে কেন্দ্রীভূত করুন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Right"
+msgstr "ডানে মাত্রা দিন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Center Bottom"
+msgstr "নিম্ন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "Center"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Left Wide"
+msgstr "বাম দর্শন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Top Wide"
+msgstr "শীর্ষ দর্শন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Right Wide"
+msgstr "ডান দর্শন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Bottom Wide"
+msgstr "নিম্ন দর্শন"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "VCenter Wide"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+msgid "HCenter Wide"
+msgstr ""
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Full Rect"
+msgstr "পূর্ণ নাম"
+
+#: editor/plugins/canvas_item_editor_plugin.cpp
+#, fuzzy
+msgid "Keep Ratio"
+msgstr "স্কেল/মাপের অনুপাত:"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 #, fuzzy
@@ -7003,11 +7133,6 @@ msgstr "ডকুমেন্টসমূহ বন্ধ করুন"
 msgid "Run"
 msgstr "চালান"
 
-#: editor/plugins/script_editor_plugin.cpp
-#, fuzzy
-msgid "Toggle Scripts Panel"
-msgstr "ফেবরিট/প্রিয়-সমূহ অদলবদল/টগল করুন"
-
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Step Into"
 msgstr "পদার্পণ করুন"
@@ -8254,6 +8379,11 @@ msgstr "রঙ"
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Constant"
 msgstr "ধ্রুবক/কন্সট্যান্ট"
+
+#: editor/plugins/theme_editor_plugin.cpp
+#, fuzzy
+msgid "Theme File"
+msgstr "থিম"
 
 #: editor/plugins/tile_map_editor_plugin.cpp
 #, fuzzy
@@ -9618,6 +9748,15 @@ msgstr "সক্রিয় করুন"
 
 #: editor/project_export.cpp
 #, fuzzy
+msgid "Add initial export..."
+msgstr "ইনপুট যোগ করুন"
+
+#: editor/project_export.cpp
+msgid "Add previous patches..."
+msgstr ""
+
+#: editor/project_export.cpp
+#, fuzzy
 msgid "Delete patch '%s' from list?"
 msgstr "ইনপুট অপসারণ করুন"
 
@@ -9737,6 +9876,11 @@ msgstr "উদ্দেশ্যিত পথ:"
 
 #: editor/project_export.cpp
 #, fuzzy
+msgid "Pack File"
+msgstr "ফাইল"
+
+#: editor/project_export.cpp
+#, fuzzy
 msgid "Features"
 msgstr "গঠনবিন্যাস"
 
@@ -9791,6 +9935,15 @@ msgstr "এক্সপোর্ট মোড:"
 #, fuzzy
 msgid "Export All"
 msgstr "এক্সপোর্ট"
+
+#: editor/project_export.cpp editor/project_manager.cpp
+#, fuzzy
+msgid "ZIP File"
+msgstr "ফাইল"
+
+#: editor/project_export.cpp
+msgid "Godot Game Pack"
+msgstr ""
 
 #: editor/project_export.cpp
 msgid "Export templates for this platform are missing:"
@@ -12113,6 +12266,21 @@ msgstr "সদস্যগণ (Members):"
 
 #: modules/visual_script/visual_script_editor.cpp
 #, fuzzy
+msgid "Change Base Type:"
+msgstr "ধরণ পরিবর্তন করুন"
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
+msgid "Add Nodes..."
+msgstr "নোড সংযোজন করুন"
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
+msgid "Add Function..."
+msgstr "ফাংশন সংযোজন করুন"
+
+#: modules/visual_script/visual_script_editor.cpp
+#, fuzzy
 msgid "function_name"
 msgstr "ফাংশন:"
 
@@ -12317,26 +12485,9 @@ msgid "Identifier is missing."
 msgstr ""
 
 #: platform/iphone/export/export.cpp
-msgid "Identifier segments must be of non-zero length."
-msgstr ""
-
-#: platform/iphone/export/export.cpp
 #, fuzzy
 msgid "The character '%s' is not allowed in Identifier."
 msgstr "নামটি কার্যকর সনাক্তকারী নয়:"
-
-#: platform/iphone/export/export.cpp
-msgid "A digit cannot be the first character in a Identifier segment."
-msgstr ""
-
-#: platform/iphone/export/export.cpp
-msgid ""
-"The character '%s' cannot be the first character in a Identifier segment."
-msgstr ""
-
-#: platform/iphone/export/export.cpp
-msgid "The Identifier must have at least one '.' separator."
-msgstr ""
 
 #: platform/iphone/export/export.cpp
 msgid "App Store Team ID not specified - cannot configure the project."
@@ -14004,9 +14155,6 @@ msgstr ""
 #~ msgid "Re-Import Changed Resources"
 #~ msgstr "পুন-ইম্পোর্টে রিসোর্স-সমূহ পরিবর্তিত হয়েছে"
 
-#~ msgid "Loading Export Templates"
-#~ msgstr "এক্সপোর্ট টেমপ্লেটসমূহ লোড হচ্ছে"
-
 #, fuzzy
 #~ msgid ""
 #~ "\n"
@@ -14590,9 +14738,6 @@ msgstr ""
 
 #~ msgid "Create Android keystore"
 #~ msgstr "অ্যান্ড্রয়েড কীস্টোর (keystore) তৈরি করুন"
-
-#~ msgid "Full name"
-#~ msgstr "পূর্ণ নাম"
 
 #~ msgid "Organizational unit"
 #~ msgstr "সাংগঠনিক একক (Organizational unit)"

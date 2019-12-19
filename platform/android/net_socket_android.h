@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  register_driver_types.cpp                                            */
+/*  net_socket_android.h                                                 */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,34 +28,51 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "register_driver_types.h"
+#ifndef NET_SOCKET_ANDROID_H
+#define NET_SOCKET_ANDROID_H
 
-#include "drivers/png/image_loader_png.h"
-#include "drivers/png/resource_saver_png.h"
+#include "drivers/unix/net_socket_posix.h"
 
-static ImageLoaderPNG *image_loader_png;
-static Ref<ResourceSaverPNG> resource_saver_png;
+#include <jni.h>
 
-void register_core_driver_types() {
+/**
+ * Specialized NetSocket implementation for Android.
+ *
+ * Some devices requires Android-specific code to acquire a MulticastLock
+ * before sockets are allowed to receive broadcast and multicast packets.
+ * This implementation calls into Java code and automatically acquire/release
+ * the lock when broadcasting is enabled/disabled on a socket, or that socket
+ * joins/leaves a multicast group.
+ */
+class NetSocketAndroid : public NetSocketPosix {
 
-	image_loader_png = memnew(ImageLoaderPNG);
-	ImageLoader::add_image_format_loader(image_loader_png);
+private:
+	static jobject net_utils;
+	static jclass cls;
+	static jmethodID _multicast_lock_acquire;
+	static jmethodID _multicast_lock_release;
 
-	resource_saver_png.instance();
-	ResourceSaver::add_resource_format_saver(resource_saver_png);
-}
+	bool wants_broadcast;
+	int multicast_groups;
 
-void unregister_core_driver_types() {
+	static void multicast_lock_acquire();
+	static void multicast_lock_release();
 
-	if (image_loader_png)
-		memdelete(image_loader_png);
+protected:
+	static NetSocket *_create_func();
 
-	ResourceSaver::remove_resource_format_saver(resource_saver_png);
-	resource_saver_png.unref();
-}
+public:
+	static void make_default();
+	static void setup(jobject p_net_utils);
 
-void register_driver_types() {
-}
+	virtual void close();
 
-void unregister_driver_types() {
-}
+	virtual Error set_broadcasting_enabled(bool p_enabled);
+	virtual Error join_multicast_group(const IP_Address &p_multi_address, String p_if_name);
+	virtual Error leave_multicast_group(const IP_Address &p_multi_address, String p_if_name);
+
+	NetSocketAndroid();
+	~NetSocketAndroid();
+};
+
+#endif
