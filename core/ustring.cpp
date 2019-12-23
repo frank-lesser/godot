@@ -28,6 +28,10 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+#ifdef _MSC_VER
+#define _CRT_SECURE_NO_WARNINGS // to disable build-time warning which suggested to use strcpy_s instead strcpy
+#endif
+
 #include "ustring.h"
 
 #include "core/color.h"
@@ -4053,6 +4057,19 @@ String String::percent_decode() const {
 	}
 
 	return String::utf8(pe.ptr());
+}
+
+String String::property_name_encode() const {
+	// Escape and quote strings with extended ASCII or further Unicode characters
+	// as well as '"', '=' or ' ' (32)
+	const CharType *cstr = c_str();
+	for (int i = 0; cstr[i]; i++) {
+		if (cstr[i] == '=' || cstr[i] == '"' || cstr[i] < 33 || cstr[i] > 126) {
+			return "\"" + c_escape_multiline() + "\"";
+		}
+	}
+	// Keep as is
+	return *this;
 }
 
 String String::get_basename() const {

@@ -1509,7 +1509,7 @@ void CodeTextEditor::_set_show_warnings_panel(bool p_show) {
 }
 
 void CodeTextEditor::_toggle_scripts_pressed() {
-	toggle_scripts_button->set_icon(ScriptEditor::get_singleton()->toggle_scripts_panel(this) ? get_icon("Back", "EditorIcons") : get_icon("Forward", "EditorIcons"));
+	toggle_scripts_button->set_icon(ScriptEditor::get_singleton()->toggle_scripts_panel() ? get_icon("Back", "EditorIcons") : get_icon("Forward", "EditorIcons"));
 }
 
 void CodeTextEditor::_error_pressed(const Ref<InputEvent> &p_event) {
@@ -1573,6 +1573,7 @@ void CodeTextEditor::goto_next_bookmark() {
 	if (line >= bmarks[bmarks.size() - 1]) {
 		text_editor->unfold_line(bmarks[0]);
 		text_editor->cursor_set_line(bmarks[0]);
+		text_editor->center_viewport_to_cursor();
 	} else {
 		for (List<int>::Element *E = bmarks.front(); E; E = E->next()) {
 			int bline = E->get();
@@ -1598,6 +1599,7 @@ void CodeTextEditor::goto_prev_bookmark() {
 	if (line <= bmarks[0]) {
 		text_editor->unfold_line(bmarks[bmarks.size() - 1]);
 		text_editor->cursor_set_line(bmarks[bmarks.size() - 1]);
+		text_editor->center_viewport_to_cursor();
 	} else {
 		for (List<int>::Element *E = bmarks.back(); E; E = E->prev()) {
 			int bline = E->get();
