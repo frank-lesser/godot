@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -2162,9 +2162,8 @@ void Tree::_go_right() {
 		if (selected_item->get_children() != NULL && selected_item->is_collapsed()) {
 			selected_item->set_collapsed(false);
 		} else if (selected_item->get_next_visible()) {
-			selected_item->select(0);
+			selected_col = 0;
 			_go_down();
-			return;
 		}
 	} else {
 		if (select_mode == SELECT_MULTI) {
@@ -3427,7 +3426,10 @@ int Tree::get_item_offset(TreeItem *p_item) const {
 		if (it == p_item)
 			return ofs;
 
-		ofs += compute_item_height(it) + cache.vseparation;
+		ofs += compute_item_height(it);
+		if (it != root || !hide_root) {
+			ofs += cache.vseparation;
+		}
 
 		if (it->children && !it->collapsed) {
 
@@ -3463,8 +3465,13 @@ void Tree::ensure_cursor_is_visible() {
 	int ofs = get_item_offset(selected);
 	if (ofs == -1)
 		return;
+
+	const int tbh = _get_title_button_height();
+	ofs -= tbh;
+
+	const int marginh = cache.bg->get_margin(MARGIN_TOP) + cache.bg->get_margin(MARGIN_BOTTOM);
 	int h = compute_item_height(selected) + cache.vseparation;
-	int screenh = get_size().height - h_scroll->get_combined_minimum_size().height;
+	int screenh = get_size().height - h_scroll->get_combined_minimum_size().height - marginh - tbh;
 
 	if (h > screenh) { //screen size is too small, maybe it was not resized yet.
 		v_scroll->set_value(ofs);
