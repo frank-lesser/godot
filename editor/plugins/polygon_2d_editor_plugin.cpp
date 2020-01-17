@@ -1196,7 +1196,9 @@ void Polygon2DEditor::_uv_draw() {
 
 	rect.position -= uv_edit_draw->get_size();
 	rect.size += uv_edit_draw->get_size() * 2.0;
+
 	updating_uv_scroll = true;
+
 	uv_hscroll->set_min(rect.position.x);
 	uv_hscroll->set_max(rect.position.x + rect.size.x);
 	if (ABS(rect.position.x - (rect.position.x + rect.size.x)) <= uv_edit_draw->get_size().x) {
@@ -1216,6 +1218,14 @@ void Polygon2DEditor::_uv_draw() {
 		uv_vscroll->set_page(uv_edit_draw->get_size().y);
 		uv_vscroll->set_value(uv_draw_ofs.y);
 	}
+
+	Size2 hmin = uv_hscroll->get_combined_minimum_size();
+	Size2 vmin = uv_vscroll->get_combined_minimum_size();
+
+	// Avoid scrollbar overlapping.
+	uv_hscroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, uv_vscroll->is_visible() ? -vmin.width : 0);
+	uv_vscroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, uv_hscroll->is_visible() ? -hmin.height : 0);
+
 	updating_uv_scroll = false;
 }
 
@@ -1467,7 +1477,6 @@ Polygon2DEditor::Polygon2DEditor(EditorNode *p_editor) :
 	uv_hscroll->set_step(0.001);
 	uv_edit_draw->add_child(uv_hscroll);
 	uv_hscroll->set_anchors_and_margins_preset(PRESET_BOTTOM_WIDE);
-	uv_hscroll->set_margin(MARGIN_RIGHT, -uv_vscroll->get_size().x * EDSCALE);
 	uv_hscroll->connect("value_changed", this, "_uv_scroll_changed");
 
 	bone_scroll_main_vb = memnew(VBoxContainer);

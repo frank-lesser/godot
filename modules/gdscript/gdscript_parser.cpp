@@ -4741,10 +4741,6 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 				member.line = tokenizer->get_token_line();
 				member.usages = 0;
 				member.rpc_mode = rpc_mode;
-#ifdef TOOLS_ENABLED
-				Variant::CallError ce;
-				member.default_value = Variant::construct(member._export.type, NULL, 0, ce);
-#endif
 
 				if (current_class->constant_expressions.has(member.identifier)) {
 					_set_error("A constant named \"" + String(member.identifier) + "\" already exists in this class (at line: " +
@@ -4796,6 +4792,32 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 						return;
 					}
 				}
+
+				if (autoexport && member.data_type.has_type) {
+					if (member.data_type.kind == DataType::BUILTIN) {
+						member._export.type = member.data_type.builtin_type;
+					} else if (member.data_type.kind == DataType::NATIVE) {
+						if (ClassDB::is_parent_class(member.data_type.native_type, "Resource")) {
+							member._export.type = Variant::OBJECT;
+							member._export.hint = PROPERTY_HINT_RESOURCE_TYPE;
+							member._export.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
+							member._export.hint_string = member.data_type.native_type;
+							member._export.class_name = member.data_type.native_type;
+						} else {
+							_set_error("Invalid export type. Only built-in and native resource types can be exported.", member.line);
+							return;
+						}
+
+					} else {
+						_set_error("Invalid export type. Only built-in and native resource types can be exported.", member.line);
+						return;
+					}
+				}
+
+#ifdef TOOLS_ENABLED
+				Variant::CallError ce;
+				member.default_value = Variant::construct(member._export.type, NULL, 0, ce);
+#endif
 
 				if (tokenizer->get_token() == GDScriptTokenizer::TK_OP_ASSIGN) {
 
@@ -4928,27 +4950,6 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 					p_class->initializer->statements.push_back(op);
 
 					member.initial_assignment = op;
-				}
-
-				if (autoexport && member.data_type.has_type) {
-					if (member.data_type.kind == DataType::BUILTIN) {
-						member._export.type = member.data_type.builtin_type;
-					} else if (member.data_type.kind == DataType::NATIVE) {
-						if (ClassDB::is_parent_class(member.data_type.native_type, "Resource")) {
-							member._export.type = Variant::OBJECT;
-							member._export.hint = PROPERTY_HINT_RESOURCE_TYPE;
-							member._export.usage |= PROPERTY_USAGE_SCRIPT_VARIABLE;
-							member._export.hint_string = member.data_type.native_type;
-							member._export.class_name = member.data_type.native_type;
-						} else {
-							_set_error("Invalid export type. Only built-in and native resource types can be exported.", member.line);
-							return;
-						}
-
-					} else {
-						_set_error("Invalid export type. Only built-in and native resource types can be exported.", member.line);
-						return;
-					}
 				}
 
 				if (tokenizer->get_token() == GDScriptTokenizer::TK_PR_SETGET) {
@@ -7046,12 +7047,10 @@ GDScriptParser::DataType GDScriptParser::_reduce_function_call_type(const Operat
 
 			return_type = _type_from_property(mi.return_val, false);
 
-#ifdef DEBUG_ENABLED
 			// Check all arguments beforehand to solve warnings
 			for (int i = 1; i < p_call->arguments.size(); i++) {
 				_reduce_node_type(p_call->arguments[i]);
 			}
-#endif // DEBUG_ENABLED
 
 			// Check arguments
 
@@ -7079,12 +7078,10 @@ GDScriptParser::DataType GDScriptParser::_reduce_function_call_type(const Operat
 				ERR_FAIL_V(DataType());
 			}
 
-#ifdef DEBUG_ENABLED
 			// Check all arguments beforehand to solve warnings
 			for (int i = arg_id + 1; i < p_call->arguments.size(); i++) {
 				_reduce_node_type(p_call->arguments[i]);
 			}
-#endif // DEBUG_ENABLED
 
 			IdentifierNode *func_id = static_cast<IdentifierNode *>(p_call->arguments[arg_id]);
 			callee_name = func_id->name;
@@ -8210,12 +8207,10 @@ void GDScriptParser::_check_block_types(BlockNode *p_block) {
 							_add_warning(GDScriptWarning::FUNCTION_MAY_YIELD, op->line, _find_function_name(static_cast<OperatorNode *>(op->arguments[1])));
 						}
 
-						bool type_match = check_types;
 #endif // DEBUG_ENABLED
+						bool type_match = lh_type.has_type && rh_type.has_type;
 						if (check_types && !_is_type_compatible(lh_type, rh_type)) {
-#ifdef DEBUG_ENABLED
 							type_match = false;
-#endif // DEBUG_ENABLED
 
 							// Try supertype test
 							if (_is_type_compatible(rh_type, lh_type)) {
@@ -8247,9 +8242,7 @@ void GDScriptParser::_check_block_types(BlockNode *p_block) {
 
 									op->arguments.write[1] = convert_call;
 
-#ifdef DEBUG_ENABLED
 									type_match = true; // Since we are converting, the type is matching
-#endif // DEBUG_ENABLED
 								}
 #ifdef DEBUG_ENABLED
 								if (lh_type.builtin_type == Variant::INT && rh_type.builtin_type == Variant::REAL) {
@@ -8262,10 +8255,8 @@ void GDScriptParser::_check_block_types(BlockNode *p_block) {
 						if (!rh_type.has_type && (op->op != OperatorNode::OP_ASSIGN || lh_type.has_type || op->arguments[0]->type == Node::TYPE_OPERATOR)) {
 							_mark_line_as_unsafe(op->line);
 						}
-						op->datatype.has_type = type_match;
-#else
-						op->datatype.has_type = false;
 #endif // DEBUG_ENABLED
+						op->datatype.has_type = type_match;
 					} break;
 					case OperatorNode::OP_CALL:
 					case OperatorNode::OP_PARENT_CALL: {

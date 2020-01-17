@@ -219,15 +219,15 @@ void ScrollContainer::_update_scrollbar_position() {
 	Size2 hmin = h_scroll->get_combined_minimum_size();
 	Size2 vmin = v_scroll->get_combined_minimum_size();
 
-	v_scroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, -vmin.width);
-	v_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
-	v_scroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 0);
-	v_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
-
 	h_scroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_BEGIN, 0);
 	h_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
 	h_scroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_END, -hmin.height);
 	h_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
+
+	v_scroll->set_anchor_and_margin(MARGIN_LEFT, ANCHOR_END, -vmin.width);
+	v_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
+	v_scroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 0);
+	v_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
 
 	h_scroll->raise();
 	v_scroll->raise();
@@ -317,6 +317,7 @@ void ScrollContainer::_notification(int p_what) {
 			r.position += ofs;
 			fit_child_in_rect(c, r);
 		}
+
 		update();
 	};
 
@@ -408,13 +409,17 @@ void ScrollContainer::update_scrollbars() {
 
 	Size2 hmin;
 	Size2 vmin;
-	if (scroll_h) hmin = h_scroll->get_combined_minimum_size();
-	if (scroll_v) vmin = v_scroll->get_combined_minimum_size();
+	if (scroll_h) {
+		hmin = h_scroll->get_combined_minimum_size();
+	}
+	if (scroll_v) {
+		vmin = v_scroll->get_combined_minimum_size();
+	}
 
 	Size2 min = child_max_size;
 
-	bool hide_scroll_v = !scroll_v || min.height <= size.height - hmin.height;
-	bool hide_scroll_h = !scroll_h || min.width <= size.width - vmin.width;
+	bool hide_scroll_v = !scroll_v || min.height <= size.height;
+	bool hide_scroll_h = !scroll_h || min.width <= size.width;
 
 	if (hide_scroll_v) {
 
@@ -449,6 +454,10 @@ void ScrollContainer::update_scrollbars() {
 
 		scroll.x = h_scroll->get_value();
 	}
+
+	// Avoid scrollbar overlapping.
+	h_scroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, hide_scroll_v ? 0 : -vmin.width);
+	v_scroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, hide_scroll_h ? 0 : -hmin.height);
 }
 
 void ScrollContainer::_scroll_moved(float) {
@@ -461,8 +470,12 @@ void ScrollContainer::_scroll_moved(float) {
 };
 
 void ScrollContainer::set_enable_h_scroll(bool p_enable) {
+	if (scroll_h == p_enable) {
+		return;
+	}
 
 	scroll_h = p_enable;
+	minimum_size_changed();
 	queue_sort();
 }
 
@@ -472,8 +485,12 @@ bool ScrollContainer::is_h_scroll_enabled() const {
 }
 
 void ScrollContainer::set_enable_v_scroll(bool p_enable) {
+	if (scroll_v == p_enable) {
+		return;
+	}
 
 	scroll_v = p_enable;
+	minimum_size_changed();
 	queue_sort();
 }
 
@@ -593,12 +610,11 @@ ScrollContainer::ScrollContainer() {
 	h_scroll = memnew(HScrollBar);
 	h_scroll->set_name("_h_scroll");
 	add_child(h_scroll);
+	h_scroll->connect("value_changed", this, "_scroll_moved");
 
 	v_scroll = memnew(VScrollBar);
 	v_scroll->set_name("_v_scroll");
 	add_child(v_scroll);
-
-	h_scroll->connect("value_changed", this, "_scroll_moved");
 	v_scroll->connect("value_changed", this, "_scroll_moved");
 
 	drag_speed = Vector2();

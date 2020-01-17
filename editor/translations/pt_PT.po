@@ -6,7 +6,7 @@
 # Carlos Vieira <carlos.vieira@gmail.com>, 2017.
 # João <joao@nogordio.com>, 2018.
 # João Graça <jgraca95@gmail.com>, 2017.
-# João Lopes <linux-man@hotmail.com>, 2017-2018, 2019.
+# João Lopes <linux-man@hotmail.com>, 2017-2018, 2019, 2020.
 # Miguel Gomes <miggas09@gmail.com>, 2017.
 # Paulo Caldeira <paucal@gmail.com>, 2018.
 # Pedro Gomes <pedrogomes1698@gmail.com>, 2017.
@@ -19,7 +19,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2019-12-23 17:08+0000\n"
+"PO-Revision-Date: 2020-01-13 13:36+0000\n"
 "Last-Translator: João Lopes <linux-man@hotmail.com>\n"
 "Language-Team: Portuguese (Portugal) <https://hosted.weblate.org/projects/"
 "godot-engine/godot/pt_PT/>\n"
@@ -28,7 +28,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=n != 1;\n"
-"X-Generator: Weblate 3.10\n"
+"X-Generator: Weblate 3.10.1\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -432,7 +432,7 @@ msgstr "Não é possível adicionar nova pista sem uma raíz"
 
 #: editor/animation_track_editor.cpp
 msgid "Invalid track for Bezier (no suitable sub-properties)"
-msgstr ""
+msgstr "Faixa inválida para Bezier (sub-propriedades não apropriadas)"
 
 #: editor/animation_track_editor.cpp
 msgid "Add Bezier Track"
@@ -1202,8 +1202,20 @@ msgid "Error opening package file, not in ZIP format."
 msgstr "Erro ao abrir ficheiro comprimido, não está no formato ZIP."
 
 #: editor/editor_asset_installer.cpp
+msgid "%s (Already Exists)"
+msgstr "%s (Já Existe)"
+
+#: editor/editor_asset_installer.cpp
 msgid "Uncompressing Assets"
 msgstr "A descompactar Ativos"
+
+#: editor/editor_asset_installer.cpp editor/project_manager.cpp
+msgid "The following files failed extraction from package:"
+msgstr "Falhou a extração  dos seguintes Ficheiros do pacote:"
+
+#: editor/editor_asset_installer.cpp
+msgid "And %s more files."
+msgstr "E mais %s ficheiros."
 
 #: editor/editor_asset_installer.cpp editor/project_manager.cpp
 msgid "Package installed successfully!"
@@ -1213,6 +1225,10 @@ msgstr "Pacote Instalado com sucesso!"
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Success!"
 msgstr "Sucesso!"
+
+#: editor/editor_asset_installer.cpp
+msgid "Package Contents:"
+msgstr "Conteúdo do Pacote:"
 
 #: editor/editor_asset_installer.cpp editor/editor_node.cpp
 msgid "Install"
@@ -1350,6 +1366,10 @@ msgstr "Esquema"
 #: editor/editor_audio_buses.cpp
 msgid "Invalid file, not an audio bus layout."
 msgstr "Ficheiro inválido, não é um Modelo válido de barramento de áudio."
+
+#: editor/editor_audio_buses.cpp
+msgid "Error saving file: %s"
+msgstr "Erro ao guardar ficheiro: %s"
 
 #: editor/editor_audio_buses.cpp
 msgid "Add Bus"
@@ -1881,7 +1901,7 @@ msgstr "Diretorias e Ficheiros:"
 #: editor/plugins/style_box_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp
 msgid "Preview:"
-msgstr "Visualização prévia:"
+msgstr "Pré-visualização:"
 
 #: editor/editor_file_dialog.cpp scene/gui/file_dialog.cpp
 msgid "File:"
@@ -1925,36 +1945,9 @@ msgid "Inherited by:"
 msgstr "Herdado por:"
 
 #: editor/editor_help.cpp
-msgid "Brief Description"
-msgstr "Breve Descrição"
-
-#: editor/editor_help.cpp
-msgid "Properties"
-msgstr "Propriedades"
-
-#: editor/editor_help.cpp
-msgid "Methods"
-msgstr "Métodos"
-
-#: editor/editor_help.cpp
-msgid "Theme Properties"
-msgstr "Propriedades do Tema"
-
-#: editor/editor_help.cpp
-msgid "Enumerations"
-msgstr "Enumerações"
-
-#: editor/editor_help.cpp
-msgid "enum  "
-msgstr "enum  "
-
-#: editor/editor_help.cpp
-msgid "Constants"
-msgstr "Constantes"
-
-#: editor/editor_help.cpp
-msgid "Class Description"
-msgstr "Descrição da Classe"
+#, fuzzy
+msgid "Description"
+msgstr "Descrição:"
 
 #: editor/editor_help.cpp
 msgid "Online Tutorials"
@@ -1971,8 +1964,43 @@ msgstr ""
 "um[/url][/color]."
 
 #: editor/editor_help.cpp
+msgid "Properties"
+msgstr "Propriedades"
+
+#: editor/editor_help.cpp
+#, fuzzy
+msgid "override:"
+msgstr "Sobrepõe"
+
+#: editor/editor_help.cpp
+#, fuzzy
+msgid "default:"
+msgstr "Padrão"
+
+#: editor/editor_help.cpp
+msgid "Methods"
+msgstr "Métodos"
+
+#: editor/editor_help.cpp
+msgid "Theme Properties"
+msgstr "Propriedades do Tema"
+
+#: editor/editor_help.cpp
+msgid "Enumerations"
+msgstr "Enumerações"
+
+#: editor/editor_help.cpp
+msgid "Constants"
+msgstr "Constantes"
+
+#: editor/editor_help.cpp
 msgid "Property Descriptions"
 msgstr "Descrições da Propriedade"
+
+#: editor/editor_help.cpp
+#, fuzzy
+msgid "(value)"
+msgstr "Valor"
 
 #: editor/editor_help.cpp
 msgid ""
@@ -2004,9 +2032,8 @@ msgid "Case Sensitive"
 msgstr "Sensível a maiúsculas"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Show Hierarchy"
-msgstr "Mostrar ajudantes"
+msgstr "Mostrar Hierarquia"
 
 #: editor/editor_help_search.cpp
 msgid "Display All"
@@ -2045,9 +2072,8 @@ msgid "Class"
 msgstr "Classe"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Method"
-msgstr "Métodos"
+msgstr "Método"
 
 #: editor/editor_help_search.cpp editor/plugins/script_text_editor.cpp
 msgid "Signal"
@@ -2058,14 +2084,12 @@ msgid "Constant"
 msgstr "Constante"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Property"
-msgstr "Propriedade:"
+msgstr "Propriedade"
 
 #: editor/editor_help_search.cpp
-#, fuzzy
 msgid "Theme Property"
-msgstr "Propriedades do Tema"
+msgstr "Propriedade do Tema"
 
 #: editor/editor_inspector.cpp editor/project_settings_editor.cpp
 msgid "Property:"
@@ -2146,10 +2170,6 @@ msgstr "RSET enviado"
 #: editor/editor_node.cpp editor/project_manager.cpp
 msgid "New Window"
 msgstr "Nova Janela"
-
-#: editor/editor_node.cpp
-msgid "Project export failed with error code %d."
-msgstr "Exportação do projeto falhou com código de erro %d."
 
 #: editor/editor_node.cpp
 msgid "Imported resources can't be saved."
@@ -3068,10 +3088,6 @@ msgstr "Importar Modelos a partir de um Ficheiro ZIP"
 msgid "Template Package"
 msgstr "Pacote de Modelo"
 
-#: editor/editor_node.cpp editor/project_export.cpp
-msgid "Export Project"
-msgstr "Exportar Projeto"
-
 #: editor/editor_node.cpp
 msgid "Export Library"
 msgstr "Exportar Biblioteca"
@@ -3079,10 +3095,6 @@ msgstr "Exportar Biblioteca"
 #: editor/editor_node.cpp
 msgid "Merge With Existing"
 msgstr "Fundir com o Existente"
-
-#: editor/editor_node.cpp
-msgid "Password:"
-msgstr "Senha:"
 
 #: editor/editor_node.cpp
 msgid "Open & Run a Script"
@@ -3449,11 +3461,12 @@ msgstr "A Importar:"
 
 #: editor/export_template_manager.cpp
 msgid "Error getting the list of mirrors."
-msgstr ""
+msgstr "Erro na receção da lista de mirrors."
 
 #: editor/export_template_manager.cpp
 msgid "Error parsing JSON of mirror list. Please report this issue!"
 msgstr ""
+"Erro ao analisar a lista de mirrors JSON. Por favor comunique o problema!"
 
 #: editor/export_template_manager.cpp
 msgid ""
@@ -4466,7 +4479,7 @@ msgstr "Renomear Animação"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Blend Next Changed"
-msgstr "Misturar seguinte alterado"
+msgstr "Misturar Seguinte Alterado"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Change Blend Time"
@@ -4627,7 +4640,7 @@ msgstr "Tempos de Mistura:"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Next (Auto Queue):"
-msgstr "Próximo (auto-fila):"
+msgstr "Próximo (Auto-Fila):"
 
 #: editor/plugins/animation_player_editor_plugin.cpp
 msgid "Cross-Animation Blend Times"
@@ -4638,9 +4651,8 @@ msgid "Move Node"
 msgstr "Mover Nó"
 
 #: editor/plugins/animation_state_machine_editor.cpp
-#, fuzzy
 msgid "Transition exists!"
-msgstr "Transição: "
+msgstr "Transição existe!"
 
 #: editor/plugins/animation_state_machine_editor.cpp
 msgid "Add Transition"
@@ -5017,7 +5029,7 @@ msgstr "Anterior"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Next"
-msgstr "Proximo"
+msgstr "Próximo"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
 msgid "Last"
@@ -5101,7 +5113,7 @@ msgstr "Consolidar Lightmaps"
 #: editor/plugins/camera_editor_plugin.cpp
 #: editor/plugins/spatial_editor_plugin.cpp editor/rename_dialog.cpp
 msgid "Preview"
-msgstr "Previsualização"
+msgstr "Pré-visualização"
 
 #: editor/plugins/canvas_item_editor_plugin.cpp
 msgid "Configure Snap"
@@ -5713,6 +5725,21 @@ msgstr "Máscara de Emissão"
 
 #: editor/plugins/cpu_particles_2d_editor_plugin.cpp
 #: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Solid Pixels"
+msgstr "Pixeis Sólidos"
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Border Pixels"
+msgstr "Pixeis da Margem"
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
+msgid "Directed Border Pixels"
+msgstr "Pixeis da Margem Dirigidos"
+
+#: editor/plugins/cpu_particles_2d_editor_plugin.cpp
+#: editor/plugins/particles_2d_editor_plugin.cpp
 msgid "Capture from Pixel"
 msgstr "Capturar a partir do pixel"
 
@@ -5938,18 +5965,19 @@ msgstr "Tamanho do contorno:"
 
 #: editor/plugins/mesh_instance_editor_plugin.cpp
 msgid "UV Channel Debug"
-msgstr ""
+msgstr "Debug Canal UV"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Remove item %d?"
 msgstr "Remover item %d?"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
-#, fuzzy
 msgid ""
 "Update from existing scene?:\n"
 "%s"
-msgstr "Atualizar da Cena"
+msgstr ""
+"Atualizar a partir da cena existente?:\n"
+"%s"
 
 #: editor/plugins/mesh_library_editor_plugin.cpp
 msgid "Mesh Library"
@@ -6701,7 +6729,7 @@ msgstr "Histórico Anterior"
 
 #: editor/plugins/script_editor_plugin.cpp
 msgid "History Next"
-msgstr "Histórico seguinte"
+msgstr "Histórico Seguinte"
 
 #: editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/theme_editor_plugin.cpp
@@ -7252,7 +7280,7 @@ msgstr "Ativar Doppler"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Cinematic Preview"
-msgstr "Previsualização cinemática"
+msgstr "Pré-visualização Cinemática"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Freelook Left"
@@ -7495,9 +7523,8 @@ msgid "Create Mesh2D"
 msgstr "Criar Mesh2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "Mesh2D Preview"
-msgstr "A criar pré-visualizações de Malha"
+msgstr "Pré-visualização Mesh2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create Polygon2D"
@@ -7505,25 +7532,23 @@ msgstr "Criar Polygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Polygon2D Preview"
-msgstr ""
+msgstr "Pré-visualização Polygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create CollisionPolygon2D"
 msgstr "Criar CollisionPolygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "CollisionPolygon2D Preview"
-msgstr "Criar CollisionPolygon2D"
+msgstr "Pré-visualização CollisionPolygon2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Create LightOccluder2D"
 msgstr "Criar LightOccluder2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
-#, fuzzy
 msgid "LightOccluder2D Preview"
-msgstr "Criar LightOccluder2D"
+msgstr "Pré-visualização LightOccluder2D"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Sprite is empty!"
@@ -7579,11 +7604,11 @@ msgstr "Encolher (Pixeis): "
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Grow (Pixels): "
-msgstr "Crescer (Pixeis): "
+msgstr "Aumentar (Pixeis): "
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Update Preview"
-msgstr "Atualizar Previsualização"
+msgstr "Atualizar Pré-visualização"
 
 #: editor/plugins/sprite_editor_plugin.cpp
 msgid "Settings:"
@@ -7602,9 +7627,8 @@ msgid "Add Frame"
 msgstr "Adicionar Frame"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
-#, fuzzy
 msgid "Unable to load images"
-msgstr "Falha ao carregar recurso."
+msgstr "Incapaz de carregar imagens"
 
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 msgid "ERROR: Couldn't load frame resource!"
@@ -8292,14 +8316,12 @@ msgid "Edit Tile Z Index"
 msgstr "Editar Índice Z de Tile"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Convex"
-msgstr "Fazer Polígono Convexo"
+msgstr "Fazer Convexo"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
-#, fuzzy
 msgid "Make Concave"
-msgstr "Fazer Polígono Côncavo"
+msgstr "Fazer Côncavo"
 
 #: editor/plugins/tile_set_editor_plugin.cpp
 msgid "Create Collision Polygon"
@@ -9450,6 +9472,10 @@ msgid "Export PCK/Zip"
 msgstr "Exportar PCK/Zip"
 
 #: editor/project_export.cpp
+msgid "Export Project"
+msgstr "Exportar Projeto"
+
+#: editor/project_export.cpp
 msgid "Export mode?"
 msgstr "Modo Exportação?"
 
@@ -9541,10 +9567,6 @@ msgstr "Impossível editar project.godot no Caminho do Projeto."
 #: editor/project_manager.cpp
 msgid "Couldn't create project.godot in project path."
 msgstr "Impossível criar project.godot no Caminho do Projeto."
-
-#: editor/project_manager.cpp
-msgid "The following files failed extraction from package:"
-msgstr "Falhou a extração  dos seguintes Ficheiros do pacote:"
 
 #: editor/project_manager.cpp
 msgid "Rename Project"
@@ -10782,6 +10804,10 @@ msgid "Will load an existing script file."
 msgstr "Vai carregar ficheiro de script existente."
 
 #: editor/script_create_dialog.cpp
+msgid "Script file already exists."
+msgstr "Ficheiro Script já existe."
+
+#: editor/script_create_dialog.cpp
 msgid "Class Name:"
 msgstr "Nome de Classe:"
 
@@ -10859,7 +10885,7 @@ msgstr "Inspecionar instância anterior"
 
 #: editor/script_editor_debugger.cpp
 msgid "Inspect Next Instance"
-msgstr "Inspecionar próxima instância"
+msgstr "Inspecionar Próxima Instância"
 
 #: editor/script_editor_debugger.cpp
 msgid "Stack Frames"
@@ -11133,11 +11159,11 @@ msgstr "Objeto não fornece um comprimento."
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Next Plane"
-msgstr "Plano seguinte"
+msgstr "Plano Seguinte"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Previous Plane"
-msgstr "Plano anterior"
+msgstr "Plano Anterior"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Plane:"
@@ -11232,9 +11258,8 @@ msgid "Cursor Clear Rotation"
 msgstr "Limpar rotação do Cursor"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
-#, fuzzy
 msgid "Paste Selects"
-msgstr "Apagar seleção"
+msgstr "Colar Seleção"
 
 #: modules/gridmap/grid_map_editor_plugin.cpp
 msgid "Clear Selection"
@@ -12451,8 +12476,18 @@ msgid "This node has been deprecated. Use AnimationTree instead."
 msgstr "Este nó foi depreciado. Use AnimationTree em vez disso."
 
 #: scene/gui/color_picker.cpp
-msgid "Pick a color from the screen."
-msgstr "Escolha uma cor do ecrã."
+msgid ""
+"Color: #%s\n"
+"LMB: Set color\n"
+"RMB: Remove preset"
+msgstr ""
+"Cor: #%s\n"
+"LMB: Definir color\n"
+"RMB: Remover predefinição"
+
+#: scene/gui/color_picker.cpp
+msgid "Pick a color from the editor window."
+msgstr "Escolha uma cor através do editor."
 
 #: scene/gui/color_picker.cpp
 msgid "HSV"
@@ -12547,7 +12582,7 @@ msgstr ""
 
 #: scene/resources/visual_shader_nodes.cpp
 msgid "Invalid source for preview."
-msgstr "Fonte inválida para previsualização."
+msgstr "Fonte inválida para pré-visualização."
 
 #: scene/resources/visual_shader_nodes.cpp
 msgid "Invalid source for shader."
@@ -12572,6 +12607,21 @@ msgstr "Variações só podem ser atribuídas na função vértice."
 #: servers/visual/shader_language.cpp
 msgid "Constants cannot be modified."
 msgstr "Constantes não podem ser modificadas."
+
+#~ msgid "enum  "
+#~ msgstr "enum  "
+
+#~ msgid "Brief Description"
+#~ msgstr "Breve Descrição"
+
+#~ msgid "Class Description"
+#~ msgstr "Descrição da Classe"
+
+#~ msgid "Project export failed with error code %d."
+#~ msgstr "Exportação do projeto falhou com código de erro %d."
+
+#~ msgid "Password:"
+#~ msgstr "Senha:"
 
 #~ msgid "Identifier segments must be of non-zero length."
 #~ msgstr ""
@@ -13048,9 +13098,6 @@ msgstr "Constantes não podem ser modificadas."
 #~ msgid "Create folder"
 #~ msgstr "Criar pasta"
 
-#~ msgid "Already existing"
-#~ msgstr "Já existe"
-
 #~ msgid "Custom Node"
 #~ msgstr "Nó Personalizado"
 
@@ -13101,9 +13148,6 @@ msgstr "Constantes não podem ser modificadas."
 
 #~ msgid "Split can't form an existing edge."
 #~ msgstr "Separação não forma uma aresta existente."
-
-#~ msgid "Split already exists."
-#~ msgstr "Separação já existe."
 
 #~ msgid "Add Split"
 #~ msgstr "Adicionar Separação"

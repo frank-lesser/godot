@@ -111,6 +111,7 @@ class GDScript : public Script {
 	String source;
 	String path;
 	String name;
+	String fully_qualified_name;
 	SelfList<GDScript> script_list;
 
 	GDScriptInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Variant::CallError &r_error);
@@ -130,6 +131,8 @@ class GDScript : public Script {
 #endif
 
 	bool _update_exports();
+
+	void _save_orphaned_subclasses();
 
 protected:
 	bool _get(const StringName &p_name, Variant &r_ret) const;
@@ -354,6 +357,8 @@ class GDScriptLanguage : public ScriptLanguage {
 	bool profiling;
 	uint64_t script_frame_time;
 
+	Map<String, ObjectID> orphan_subclasses;
+
 public:
 	int calls;
 
@@ -504,6 +509,9 @@ public:
 
 	virtual bool handles_global_class_type(const String &p_type) const;
 	virtual String get_global_class_name(const String &p_path, String *r_base_type = NULL, String *r_icon_path = NULL) const;
+
+	void add_orphan_subclass(const String &p_qualified_name, const ObjectID &p_subclass);
+	Ref<GDScript> get_orphan_subclass(const String &p_qualified_name);
 
 	GDScriptLanguage();
 	~GDScriptLanguage();

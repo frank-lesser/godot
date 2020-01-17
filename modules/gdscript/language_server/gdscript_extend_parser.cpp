@@ -112,9 +112,10 @@ void ExtendGDScriptParser::update_document_links(const String &p_code) {
 	FileAccessRef fs = FileAccess::create(FileAccess::ACCESS_RESOURCES);
 	tokenizer.set_code(p_code);
 	while (true) {
-		if (tokenizer.get_token() == GDScriptTokenizer::TK_EOF) {
+		GDScriptTokenizerText::Token token = tokenizer.get_token();
+		if (token == GDScriptTokenizer::TK_EOF || token == GDScriptTokenizer::TK_ERROR) {
 			break;
-		} else if (tokenizer.get_token() == GDScriptTokenizer::TK_CONSTANT) {
+		} else if (token == GDScriptTokenizer::TK_CONSTANT) {
 			const Variant &const_val = tokenizer.get_token_constant();
 			if (const_val.get_type() == Variant::STRING) {
 				String path = const_val;
@@ -538,16 +539,16 @@ Error ExtendGDScriptParser::get_left_function_call(const lsp::Position &p_positi
 		}
 
 		while (c >= 0) {
-			const CharType &charactor = line[c];
-			if (charactor == ')') {
+			const CharType &character = line[c];
+			if (character == ')') {
 				++bracket_stack;
-			} else if (charactor == '(') {
+			} else if (character == '(') {
 				--bracket_stack;
 				if (bracket_stack < 0) {
 					found = true;
 				}
 			}
-			if (bracket_stack <= 0 && charactor == ',') {
+			if (bracket_stack <= 0 && character == ',') {
 				++index;
 			}
 			--c;

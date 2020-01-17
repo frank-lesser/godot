@@ -1393,7 +1393,7 @@ void _OS::_bind_methods() {
 	ADD_PROPERTY_DEFAULT("current_screen", 0);
 	ADD_PROPERTY_DEFAULT("exit_code", 0);
 	ADD_PROPERTY_DEFAULT("vsync_enabled", true);
-	ADD_PROPERTY_DEFAULT("vsync_via_compositor", true);
+	ADD_PROPERTY_DEFAULT("vsync_via_compositor", false);
 	ADD_PROPERTY_DEFAULT("low_processor_usage_mode", false);
 	ADD_PROPERTY_DEFAULT("low_processor_usage_mode_sleep_usec", 6900);
 	ADD_PROPERTY_DEFAULT("keep_screen_on", true);
@@ -3024,6 +3024,16 @@ float _Engine::get_frames_per_second() const {
 	return Engine::get_singleton()->get_frames_per_second();
 }
 
+uint64_t _Engine::get_physics_frames() const {
+
+	return Engine::get_singleton()->get_physics_frames();
+}
+
+uint64_t _Engine::get_idle_frames() const {
+
+	return Engine::get_singleton()->get_idle_frames();
+}
+
 void _Engine::set_time_scale(float p_scale) {
 	Engine::get_singleton()->set_time_scale(p_scale);
 }
@@ -3108,6 +3118,8 @@ void _Engine::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_frames_drawn"), &_Engine::get_frames_drawn);
 	ClassDB::bind_method(D_METHOD("get_frames_per_second"), &_Engine::get_frames_per_second);
+	ClassDB::bind_method(D_METHOD("get_physics_frames"), &_Engine::get_physics_frames);
+	ClassDB::bind_method(D_METHOD("get_idle_frames"), &_Engine::get_idle_frames);
 
 	ClassDB::bind_method(D_METHOD("get_main_loop"), &_Engine::get_main_loop);
 
