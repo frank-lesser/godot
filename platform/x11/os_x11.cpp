@@ -1429,11 +1429,15 @@ void OS_X11::set_window_fullscreen(bool p_enabled) {
 		set_window_maximized(true);
 	}
 	set_wm_fullscreen(p_enabled);
-	if (!p_enabled && !current_videomode.always_on_top) {
+	if (!p_enabled && current_videomode.always_on_top) {
 		// Restore
 		set_window_maximized(false);
 	}
-
+	if (!p_enabled) {
+		set_window_position(last_position_before_fs);
+	} else {
+		last_position_before_fs = get_window_position();
+	}
 	current_videomode.fullscreen = p_enabled;
 }
 
@@ -3402,7 +3406,7 @@ Error OS_X11::move_to_trash(const String &p_path) {
 
 	// Issue an error if none of the previous locations is appropriate for the trash can.
 	if (trash_can == "") {
-		ERR_PRINTS("move_to_trash: Could not determine the trash can location");
+		ERR_PRINT("move_to_trash: Could not determine the trash can location");
 		return FAILED;
 	}
 
@@ -3413,7 +3417,7 @@ Error OS_X11::move_to_trash(const String &p_path) {
 
 	// Issue an error if trash can is not created proprely.
 	if (err != OK) {
-		ERR_PRINTS("move_to_trash: Could not create the trash can \"" + trash_can + "\"");
+		ERR_PRINT("move_to_trash: Could not create the trash can \"" + trash_can + "\"");
 		return err;
 	}
 
@@ -3427,7 +3431,7 @@ Error OS_X11::move_to_trash(const String &p_path) {
 
 	// Issue an error if "mv" failed to move the given resource to the trash can.
 	if (err != OK || retval != 0) {
-		ERR_PRINTS("move_to_trash: Could not move the resource \"" + p_path + "\" to the trash can \"" + trash_can + "\"");
+		ERR_PRINT("move_to_trash: Could not move the resource \"" + p_path + "\" to the trash can \"" + trash_can + "\"");
 		return FAILED;
 	}
 
@@ -3502,4 +3506,5 @@ OS_X11::OS_X11() {
 	window_focused = true;
 	xim_style = 0L;
 	mouse_mode = MOUSE_MODE_VISIBLE;
+	last_position_before_fs = Vector2();
 }

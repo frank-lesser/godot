@@ -1266,7 +1266,7 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 			boot_logo.instance();
 			Error load_err = ImageLoader::load_image(boot_logo_path, boot_logo);
 			if (load_err)
-				ERR_PRINTS("Non-existing or invalid boot splash at '" + boot_logo_path + "'. Loading default splash.");
+				ERR_PRINT("Non-existing or invalid boot splash at '" + boot_logo_path + "'. Loading default splash.");
 		}
 
 		Color boot_bg_color = GLOBAL_DEF("application/boot_splash/bg_color", boot_splash_bg_color);
@@ -1900,6 +1900,8 @@ bool Main::start() {
 			ProgressDialog *progress_dialog = memnew(ProgressDialog);
 			pmanager->add_child(progress_dialog);
 			sml->get_root()->add_child(pmanager);
+			// Speed up rendering slightly by disabling 3D features while in the project manager.
+			sml->get_root()->set_usage(Viewport::USAGE_2D_NO_SAMPLING);
 			OS::get_singleton()->set_context(OS::CONTEXT_PROJECTMAN);
 			project_manager = true;
 		}
