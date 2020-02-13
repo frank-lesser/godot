@@ -104,8 +104,8 @@ protected:
 
 public:
 	enum VideoDriver {
-		VIDEO_DRIVER_GLES3,
 		VIDEO_DRIVER_GLES2,
+		VIDEO_DRIVER_VULKAN,
 	};
 
 	enum PowerState {
@@ -642,7 +642,7 @@ public:
 class _Semaphore : public Reference {
 
 	GDCLASS(_Semaphore, Reference);
-	Semaphore *semaphore;
+	SemaphoreOld *semaphore;
 
 	static void _bind_methods();
 

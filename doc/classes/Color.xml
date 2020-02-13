@@ -128,18 +128,6 @@
 				[/codeblock]
 			</description>
 		</method>
-		<method name="gray">
-			<return type="float">
-			</return>
-			<description>
-				Returns the color's grayscale representation.
-				The gray value is calculated as [code](r + g + b) / 3[/code].
-				[codeblock]
-				var c = Color(0.2, 0.45, 0.82)
-				var gray = c.gray() # A value of 0.466667
-				[/codeblock]
-			</description>
-		</method>
 		<method name="inverted">
 			<return type="Color">
 			</return>
@@ -307,9 +295,6 @@
 		</member>
 	</members>
 	<constants>
-		<constant name="gray" value="Color( 0.75, 0.75, 0.75, 1 )">
-			Gray color.
-		</constant>
 		<constant name="aliceblue" value="Color( 0.94, 0.97, 1, 1 )">
 			Alice blue color.
 		</constant>
@@ -459,6 +444,9 @@
 		</constant>
 		<constant name="goldenrod" value="Color( 0.85, 0.65, 0.13, 1 )">
 			Goldenrod color.
+		</constant>
+		<constant name="gray" value="Color( 0.75, 0.75, 0.75, 1 )">
+			Gray color.
 		</constant>
 		<constant name="green" value="Color( 0, 1, 0, 1 )">
 			Green color.

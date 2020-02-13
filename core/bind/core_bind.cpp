@@ -1410,7 +1410,7 @@ void _OS::_bind_methods() {
 	ADD_PROPERTY_DEFAULT("window_size", Vector2());
 
 	BIND_ENUM_CONSTANT(VIDEO_DRIVER_GLES2);
-	BIND_ENUM_CONSTANT(VIDEO_DRIVER_GLES3);
+	BIND_ENUM_CONSTANT(VIDEO_DRIVER_VULKAN);
 
 	BIND_ENUM_CONSTANT(DAY_SUNDAY);
 	BIND_ENUM_CONSTANT(DAY_MONDAY);
@@ -2612,7 +2612,7 @@ void _Semaphore::_bind_methods() {
 
 _Semaphore::_Semaphore() {
 
-	semaphore = Semaphore::create();
+	semaphore = SemaphoreOld::create();
 }
 
 _Semaphore::~_Semaphore() {

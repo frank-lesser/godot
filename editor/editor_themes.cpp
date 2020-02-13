@@ -35,9 +35,13 @@
 #include "editor_icons.gen.h"
 #include "editor_scale.h"
 #include "editor_settings.h"
-#include "modules/svg/image_loader_svg.h"
 
-static Ref<StyleBoxTexture> make_stylebox(Ref<Texture> p_texture, float p_left, float p_top, float p_right, float p_botton, float p_margin_left = -1, float p_margin_top = -1, float p_margin_right = -1, float p_margin_botton = -1, bool p_draw_center = true) {
+#include "modules/modules_enabled.gen.h"
+#ifdef MODULE_SVG_ENABLED
+#include "modules/svg/image_loader_svg.h"
+#endif
+
+static Ref<StyleBoxTexture> make_stylebox(Ref<Texture2D> p_texture, float p_left, float p_top, float p_right, float p_botton, float p_margin_left = -1, float p_margin_top = -1, float p_margin_right = -1, float p_margin_botton = -1, bool p_draw_center = true) {
 	Ref<StyleBoxTexture> style(memnew(StyleBoxTexture));
 	style->set_texture(p_texture);
 	style->set_margin_size(MARGIN_LEFT, p_left * EDSCALE);
@@ -95,10 +99,7 @@ Ref<ImageTexture> editor_generate_icon(int p_index, bool p_convert_color, float 
 	const bool upsample = !Math::is_equal_approx(Math::round(p_scale), p_scale);
 	ImageLoaderSVG::create_image_from_string(img, editor_icons_sources[p_index], p_scale, upsample, p_convert_color);
 
-	if ((p_scale - (float)((int)p_scale)) > 0.0 || is_gizmo || p_force_filter)
-		icon->create_from_image(img); // in this case filter really helps
-	else
-		icon->create_from_image(img, 0);
+	icon->create_from_image(img); // in this case filter really helps
 
 	return icon;
 }
@@ -109,7 +110,7 @@ Ref<ImageTexture> editor_generate_icon(int p_index, bool p_convert_color, float 
 
 void editor_register_and_generate_icons(Ref<Theme> p_theme, bool p_dark_theme = true, int p_thumb_size = 32, bool p_only_thumbs = false) {
 
-#ifdef SVG_ENABLED
+#ifdef MODULE_SVG_ENABLED
 	// The default icon theme is designed to be used for a dark theme.
 	// This dictionary stores color codes to convert to other colors
 	// for better readability on a light theme.
@@ -408,6 +409,11 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_color("error_color", "Editor", error_color);
 	theme->set_color("property_color", "Editor", property_color);
 
+	if (!dark_theme) {
+		theme->set_color("vulkan_color", "Editor", Color::hex(0xad1128ff));
+	} else {
+		theme->set_color("vulkan_color", "Editor", Color(1.0, 0.0, 0.0));
+	}
 	const int thumb_size = EDITOR_GET("filesystem/file_dialog/thumbnail_size");
 	theme->set_constant("scale", "Editor", EDSCALE);
 	theme->set_constant("thumb_size", "Editor", thumb_size);
@@ -927,7 +933,7 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_stylebox("panel", "EditorAbout", style_complex_window);
 
 	// HScrollBar
-	Ref<Texture> empty_icon = memnew(ImageTexture);
+	Ref<Texture2D> empty_icon = memnew(ImageTexture);
 
 	theme->set_stylebox("scroll", "HScrollBar", make_stylebox(theme->get_icon("GuiScrollBg", "EditorIcons"), 5, 5, 5, 5, 0, 0, 0, 0));
 	theme->set_stylebox("scroll_focus", "HScrollBar", make_stylebox(theme->get_icon("GuiScrollBg", "EditorIcons"), 5, 5, 5, 5, 0, 0, 0, 0));

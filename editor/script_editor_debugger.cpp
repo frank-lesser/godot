@@ -33,10 +33,11 @@
 #include "core/io/marshalls.h"
 #include "core/project_settings.h"
 #include "core/ustring.h"
+#include "editor/editor_log.h"
+#include "editor/editor_network_profiler.h"
+#include "editor/editor_visual_profiler.h"
 #include "editor/plugins/canvas_item_editor_plugin.h"
 #include "editor/plugins/spatial_editor_plugin.h"
-#include "editor_log.h"
-#include "editor_network_profiler.h"
 #include "editor_node.h"
 #include "editor_profiler.h"
 #include "editor_scale.h"
@@ -171,7 +172,7 @@ public:
 	}
 
 	String get_title() {
-		if (remote_object_id)
+		if (remote_object_id.is_valid())
 			return TTR("Remote ") + String(type_name) + ": " + itos(remote_object_id);
 		else
 			return "<null>";
@@ -196,7 +197,6 @@ public:
 	}
 
 	ScriptEditorDebuggerInspectedObject() {
-		remote_object_id = 0;
 	}
 };
 
@@ -301,7 +301,7 @@ void ScriptEditorDebugger::_scene_tree_selected() {
 		return;
 	}
 
-	inspected_object_id = item->get_metadata(0);
+	inspected_object_id = item->get_metadata(0).operator ObjectID();
 
 	Array msg;
 	msg.push_back("inspect_object");
@@ -433,8 +433,8 @@ int ScriptEditorDebugger::_update_scene_tree(TreeItem *parent, const Array &node
 	TreeItem *item = inspect_scene_tree->create_item(parent);
 	item->set_text(0, item_text);
 	item->set_tooltip(0, TTR("Type:") + " " + item_type);
-	ObjectID id = ObjectID(nodes[current_index + 3]);
-	Ref<Texture> icon = EditorNode::get_singleton()->get_class_icon(nodes[current_index + 2], "");
+	ObjectID id = nodes[current_index + 3].operator ObjectID();
+	Ref<Texture2D> icon = EditorNode::get_singleton()->get_class_icon(nodes[current_index + 2], "");
 	if (icon.is_valid()) {
 		item->set_icon(0, icon);
 	}
@@ -833,6 +833,32 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		}
 		perf_history.push_front(p);
 		perf_draw->update();
+	} else if (p_msg == "visual_profile") {
+		uint64_t frame = p_data[0];
+		PoolVector<String> names = p_data[1];
+		PoolVector<real_t> values = p_data[2];
+
+		EditorVisualProfiler::Metric metric;
+		metric.areas.resize(names.size());
+		metric.frame_number = frame;
+		metric.valid = true;
+
+		{
+			EditorVisualProfiler::Metric::Area *areas_ptr = metric.areas.ptrw();
+			int metric_count = names.size();
+
+			PoolVector<String>::Read rs = names.read();
+			PoolVector<real_t>::Read rr = values.read();
+
+			for (int i = 0; i < metric_count; i++) {
+
+				areas_ptr[i].name = rs[i];
+				areas_ptr[i].cpu_time = rr[i * 2 + 0];
+				areas_ptr[i].gpu_time = rr[i * 2 + 1];
+			}
+		}
+
+		visual_profiler->add_frame_metric(metric);
 
 	} else if (p_msg == "error") {
 
@@ -1080,7 +1106,7 @@ void ScriptEditorDebugger::_parse_message(const String &p_msg, const Array &p_da
 		int frame_size = 6;
 		for (int i = 0; i < p_data.size(); i += frame_size) {
 			MultiplayerAPI::ProfilingInfo pi;
-			pi.node = p_data[i + 0];
+			pi.node = p_data[i + 0].operator ObjectID();
 			pi.node_path = p_data[i + 1];
 			pi.incoming_rpc = p_data[i + 2];
 			pi.incoming_rset = p_data[i + 3];
@@ -1178,7 +1204,7 @@ void ScriptEditorDebugger::_performance_draw() {
 			h2 = (1.0 - h2) * r.size.y;
 
 			if (E != perf_history.front())
-				perf_draw->draw_line(r.position + Point2(from, h2), r.position + Point2(from + spacing, prev), c, Math::round(EDSCALE), true);
+				perf_draw->draw_line(r.position + Point2(from, h2), r.position + Point2(from + spacing, prev), c, Math::round(EDSCALE));
 			prev = h2;
 			E = E->next();
 			from -= spacing;
@@ -1226,7 +1252,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 				inspect_edited_object_timeout -= get_process_delta_time();
 				if (inspect_edited_object_timeout < 0) {
 					inspect_edited_object_timeout = EditorSettings::get_singleton()->get("debugger/remote_inspect_refresh_interval");
-					if (inspected_object_id) {
+					if (inspected_object_id.is_valid()) {
 						if (ScriptEditorDebuggerInspectedObject *obj = Object::cast_to<ScriptEditorDebuggerInspectedObject>(ObjectDB::get_instance(editor->get_editor_history()->get_current()))) {
 							if (obj->remote_object_id == inspected_object_id) {
 								//take the chance and re-inspect selected object
@@ -1281,8 +1307,8 @@ void ScriptEditorDebugger::_notification(int p_what) {
 				if (error_count == 0 && warning_count == 0) {
 					errors_tab->set_name(TTR("Errors"));
 					debugger_button->set_text(TTR("Debugger"));
-					debugger_button->set_icon(Ref<Texture>());
-					tabs->set_tab_icon(errors_tab->get_index(), Ref<Texture>());
+					debugger_button->set_icon(Ref<Texture2D>());
+					tabs->set_tab_icon(errors_tab->get_index(), Ref<Texture2D>());
 				} else {
 					errors_tab->set_name(TTR("Errors") + " (" + itos(error_count + warning_count) + ")");
 					debugger_button->set_text(TTR("Debugger") + " (" + itos(error_count + warning_count) + ")");
@@ -1565,12 +1591,33 @@ void ScriptEditorDebugger::_profiler_activate(bool p_enable) {
 	}
 }
 
+void ScriptEditorDebugger::_visual_profiler_activate(bool p_enable) {
+
+	if (!connection.is_valid())
+		return;
+
+	if (p_enable) {
+		profiler_signature.clear();
+		Array msg;
+		msg.push_back("start_visual_profiling");
+		ppeer->put_var(msg);
+		print_verbose("Starting visual profiling.");
+
+	} else {
+		Array msg;
+		msg.push_back("stop_visual_profiling");
+		ppeer->put_var(msg);
+		print_verbose("Ending visual profiling.");
+	}
+}
+
 void ScriptEditorDebugger::_network_profiler_activate(bool p_enable) {
 
 	if (!connection.is_valid())
 		return;
 
 	if (p_enable) {
+		profiler_signature.clear();
 		Array msg;
 		msg.push_back("start_network_profiling");
 		ppeer->put_var(msg);
@@ -2224,6 +2271,7 @@ void ScriptEditorDebugger::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_expand_errors_list"), &ScriptEditorDebugger::_expand_errors_list);
 	ClassDB::bind_method(D_METHOD("_collapse_errors_list"), &ScriptEditorDebugger::_collapse_errors_list);
 	ClassDB::bind_method(D_METHOD("_profiler_activate"), &ScriptEditorDebugger::_profiler_activate);
+	ClassDB::bind_method(D_METHOD("_visual_profiler_activate"), &ScriptEditorDebugger::_visual_profiler_activate);
 	ClassDB::bind_method(D_METHOD("_network_profiler_activate"), &ScriptEditorDebugger::_network_profiler_activate);
 	ClassDB::bind_method(D_METHOD("_profiler_seeked"), &ScriptEditorDebugger::_profiler_seeked);
 	ClassDB::bind_method(D_METHOD("_clear_errors_list"), &ScriptEditorDebugger::_clear_errors_list);
@@ -2437,7 +2485,7 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		auto_switch_remote_scene_tree = EDITOR_DEF("debugger/auto_switch_to_remote_scene_tree", false);
 		inspect_scene_tree_timeout = EDITOR_DEF("debugger/remote_scene_tree_refresh_interval", 1.0);
 		inspect_edited_object_timeout = EDITOR_DEF("debugger/remote_inspect_refresh_interval", 0.2);
-		inspected_object_id = 0;
+		inspected_object_id = ObjectID();
 		updating_scene_tree = false;
 	}
 
@@ -2455,11 +2503,20 @@ ScriptEditorDebugger::ScriptEditorDebugger(EditorNode *p_editor) {
 		profiler->connect("break_request", this, "_profiler_seeked");
 	}
 
+	{ //frame profiler
+		visual_profiler = memnew(EditorVisualProfiler);
+		visual_profiler->set_name(TTR("Visual Profiler"));
+		tabs->add_child(visual_profiler);
+		visual_profiler->connect("enable_profiling", this, "_visual_profiler_activate");
+		visual_profiler->connect("break_request", this, "_profiler_seeked");
+	}
+
 	{ //network profiler
 		network_profiler = memnew(EditorNetworkProfiler);
 		network_profiler->set_name(TTR("Network Profiler"));
 		tabs->add_child(network_profiler);
 		network_profiler->connect("enable_profiling", this, "_network_profiler_activate");
+		network_profiler->connect("break_request", this, "_profiler_seeked");
 	}
 
 	{ //monitors
