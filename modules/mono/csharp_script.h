@@ -141,8 +141,8 @@ class CSharpScript : public Script {
 	static int _try_get_member_export_hint(IMonoClassMember *p_member, ManagedType p_type, Variant::Type p_variant_type, bool p_allow_generics, PropertyHint &r_hint, String &r_hint_string);
 #endif
 
-	CSharpInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Variant::CallError &r_error);
-	Variant _new(const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	CSharpInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Callable::CallError &r_error);
+	Variant _new(const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 
 	// Do not use unless you know what you are doing
 	friend void GDMonoInternals::tie_managed_to_unmanaged(MonoObject *, Object *);
@@ -154,7 +154,7 @@ class CSharpScript : public Script {
 protected:
 	static void _bind_methods();
 
-	Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual void _resource_path_changed();
 	bool _get(const StringName &p_name, Variant &r_ret) const;
 	bool _set(const StringName &p_name, const Variant &p_value);
@@ -265,7 +265,7 @@ public:
 
 	/* TODO */ virtual void get_method_list(List<MethodInfo> *p_list) const {}
 	virtual bool has_method(const StringName &p_method) const;
-	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error);
+	virtual Variant call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error);
 	virtual void call_multilevel(const StringName &p_method, const Variant **p_args, int p_argcount);
 	virtual void call_multilevel_reversed(const StringName &p_method, const Variant **p_args, int p_argcount);
 
@@ -432,7 +432,7 @@ public:
 	virtual bool has_named_classes() const;
 	virtual bool supports_builtin_mode() const;
 	/* TODO? */ virtual int find_function(const String &p_function, const String &p_code) const { return -1; }
-	virtual String make_function(const String &p_class, const String &p_name, const PoolStringArray &p_args) const;
+	virtual String make_function(const String &p_class, const String &p_name, const PackedStringArray &p_args) const;
 	virtual String _get_indentation() const;
 	/* TODO? */ virtual void auto_indent_code(String &p_code, int p_from_line, int p_to_line) const {}
 	/* TODO */ virtual void add_global_constant(const StringName &p_variable, const Variant &p_value) {}

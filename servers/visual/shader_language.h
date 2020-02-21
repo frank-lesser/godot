@@ -529,6 +529,7 @@ public:
 
 	struct MemberNode : public Node {
 		DataType basetype;
+		bool basetype_const;
 		StringName base_struct_name;
 		DataPrecision precision;
 		DataType datatype;
@@ -537,6 +538,7 @@ public:
 		StringName name;
 		Node *owner;
 		Node *index_expression;
+		bool has_swizzling_duplicates;
 
 		virtual DataType get_datatype() const { return datatype; }
 		virtual String get_datatype_name() const { return String(struct_name); }
@@ -544,10 +546,12 @@ public:
 		MemberNode() :
 				Node(TYPE_MEMBER),
 				basetype(TYPE_VOID),
+				basetype_const(false),
 				datatype(TYPE_VOID),
 				array_size(0),
 				owner(NULL),
-				index_expression(NULL) {}
+				index_expression(NULL),
+				has_swizzling_duplicates(false) {}
 	};
 
 	struct StructNode : public Node {
@@ -866,6 +870,7 @@ private:
 	Node *_parse_and_reduce_expression(BlockNode *p_block, const Map<StringName, BuiltInInfo> &p_builtin_types);
 	Error _parse_block(BlockNode *p_block, const Map<StringName, BuiltInInfo> &p_builtin_types, bool p_just_one = false, bool p_can_break = false, bool p_can_continue = false);
 	String _get_shader_type_list(const Set<String> &p_shader_types) const;
+	String _get_qualifier_str(ArgumentQualifier p_qualifier) const;
 
 	Error _parse_shader(const Map<StringName, FunctionInfo> &p_functions, const Vector<StringName> &p_render_modes, const Set<String> &p_shader_types);
 

@@ -46,7 +46,7 @@ void MainLoop::_bind_methods() {
 	BIND_VMETHOD(MethodInfo("_initialize"));
 	BIND_VMETHOD(MethodInfo(Variant::BOOL, "_iteration", PropertyInfo(Variant::REAL, "delta")));
 	BIND_VMETHOD(MethodInfo(Variant::BOOL, "_idle", PropertyInfo(Variant::REAL, "delta")));
-	BIND_VMETHOD(MethodInfo("_drop_files", PropertyInfo(Variant::POOL_STRING_ARRAY, "files"), PropertyInfo(Variant::INT, "from_screen")));
+	BIND_VMETHOD(MethodInfo("_drop_files", PropertyInfo(Variant::PACKED_STRING_ARRAY, "files"), PropertyInfo(Variant::INT, "from_screen")));
 	BIND_VMETHOD(MethodInfo("_finalize"));
 
 	BIND_VMETHOD(MethodInfo("_global_menu_action", PropertyInfo(Variant::NIL, "id"), PropertyInfo(Variant::NIL, "meta")));
@@ -95,7 +95,7 @@ void MainLoop::input_event(const Ref<InputEvent> &p_event) {
 void MainLoop::init() {
 
 	if (init_script.is_valid())
-		set_script(init_script.get_ref_ptr());
+		set_script(init_script);
 
 	if (get_script_instance())
 		get_script_instance()->call("_initialize");
@@ -131,6 +131,6 @@ void MainLoop::finish() {
 
 	if (get_script_instance()) {
 		get_script_instance()->call("_finalize");
-		set_script(RefPtr()); //clear script
+		set_script(Variant()); //clear script
 	}
 }

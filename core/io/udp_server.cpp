@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  ref_ptr.cpp                                                          */
+/*  udp_server.cpp                                                       */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,76 +28,92 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "ref_ptr.h"
+#include "udp_server.h"
 
-#include "core/reference.h"
-#include "core/resource.h"
+void UDPServer::_bind_methods() {
 
-void RefPtr::operator=(const RefPtr &p_other) {
-
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	Ref<Reference> *ref_other = reinterpret_cast<Ref<Reference> *>(const_cast<char *>(&p_other.data[0]));
-
-	*ref = *ref_other;
+	ClassDB::bind_method(D_METHOD("listen", "port", "bind_address"), &UDPServer::listen, DEFVAL("*"));
+	ClassDB::bind_method(D_METHOD("is_connection_available"), &UDPServer::is_connection_available);
+	ClassDB::bind_method(D_METHOD("is_listening"), &UDPServer::is_listening);
+	ClassDB::bind_method(D_METHOD("take_connection"), &UDPServer::take_connection);
+	ClassDB::bind_method(D_METHOD("stop"), &UDPServer::stop);
 }
 
-bool RefPtr::operator==(const RefPtr &p_other) const {
+Error UDPServer::listen(uint16_t p_port, const IP_Address &p_bind_address) {
 
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	Ref<Reference> *ref_other = reinterpret_cast<Ref<Reference> *>(const_cast<char *>(&p_other.data[0]));
+	ERR_FAIL_COND_V(!_sock.is_valid(), ERR_UNAVAILABLE);
+	ERR_FAIL_COND_V(_sock->is_open(), ERR_ALREADY_IN_USE);
+	ERR_FAIL_COND_V(!p_bind_address.is_valid() && !p_bind_address.is_wildcard(), ERR_INVALID_PARAMETER);
 
-	return *ref == *ref_other;
+	Error err;
+	IP::Type ip_type = IP::TYPE_ANY;
+
+	if (p_bind_address.is_valid())
+		ip_type = p_bind_address.is_ipv4() ? IP::TYPE_IPV4 : IP::TYPE_IPV6;
+
+	err = _sock->open(NetSocket::TYPE_UDP, ip_type);
+
+	if (err != OK)
+		return ERR_CANT_CREATE;
+
+	_sock->set_blocking_enabled(false);
+	_sock->set_reuse_address_enabled(true);
+	err = _sock->bind(p_bind_address, p_port);
+
+	if (err != OK) {
+		stop();
+		return err;
+	}
+	bind_address = p_bind_address;
+	bind_port = p_port;
+	return OK;
 }
 
-bool RefPtr::operator!=(const RefPtr &p_other) const {
+bool UDPServer::is_listening() const {
+	ERR_FAIL_COND_V(!_sock.is_valid(), false);
 
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	Ref<Reference> *ref_other = reinterpret_cast<Ref<Reference> *>(const_cast<char *>(&p_other.data[0]));
-
-	return *ref != *ref_other;
+	return _sock->is_open();
 }
 
-RefPtr::RefPtr(const RefPtr &p_other) {
+bool UDPServer::is_connection_available() const {
 
-	memnew_placement(&data[0], Ref<Reference>);
+	ERR_FAIL_COND_V(!_sock.is_valid(), false);
 
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	Ref<Reference> *ref_other = reinterpret_cast<Ref<Reference> *>(const_cast<char *>(&p_other.data[0]));
+	if (!_sock->is_open())
+		return false;
 
-	*ref = *ref_other;
+	Error err = _sock->poll(NetSocket::POLL_TYPE_IN, 0);
+	return (err == OK);
 }
 
-bool RefPtr::is_null() const {
+Ref<PacketPeerUDP> UDPServer::take_connection() {
 
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	return ref->is_null();
+	Ref<PacketPeerUDP> conn;
+	if (!is_connection_available()) {
+		return conn;
+	}
+
+	conn = Ref<PacketPeerUDP>(memnew(PacketPeerUDP));
+	conn->connect_socket(_sock);
+	_sock = Ref<NetSocket>(NetSocket::create());
+	listen(bind_port, bind_address);
+	return conn;
 }
 
-RID RefPtr::get_rid() const {
+void UDPServer::stop() {
 
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	if (ref->is_null())
-		return RID();
-	Resource *res = Object::cast_to<Resource>(ref->ptr());
-	if (res)
-		return res->get_rid();
-	return RID();
+	if (_sock.is_valid()) {
+		_sock->close();
+	}
+	bind_port = 0;
+	bind_address = IP_Address();
 }
 
-void RefPtr::unref() {
-
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	ref->unref();
+UDPServer::UDPServer() :
+		_sock(Ref<NetSocket>(NetSocket::create())) {
 }
 
-RefPtr::RefPtr() {
+UDPServer::~UDPServer() {
 
-	ERR_FAIL_COND(sizeof(Ref<Reference>) > DATASIZE);
-	memnew_placement(&data[0], Ref<Reference>);
-}
-
-RefPtr::~RefPtr() {
-
-	Ref<Reference> *ref = reinterpret_cast<Ref<Reference> *>(&data[0]);
-	ref->~Ref<Reference>();
+	stop();
 }

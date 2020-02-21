@@ -112,7 +112,7 @@ void MeshInstance::set_mesh(const Ref<Mesh> &p_mesh) {
 		return;
 
 	if (mesh.is_valid()) {
-		mesh->disconnect(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_mesh_changed);
+		mesh->disconnect_compat(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_mesh_changed);
 		materials.clear();
 	}
 
@@ -129,7 +129,7 @@ void MeshInstance::set_mesh(const Ref<Mesh> &p_mesh) {
 			blend_shape_tracks["blend_shapes/" + String(mesh->get_blend_shape_name(i))] = mt;
 		}
 
-		mesh->connect(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_mesh_changed);
+		mesh->connect_compat(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_mesh_changed);
 		materials.resize(mesh->get_surface_count());
 
 		set_base(mesh->get_rid());
@@ -204,13 +204,13 @@ AABB MeshInstance::get_aabb() const {
 	return AABB();
 }
 
-PoolVector<Face3> MeshInstance::get_faces(uint32_t p_usage_flags) const {
+Vector<Face3> MeshInstance::get_faces(uint32_t p_usage_flags) const {
 
 	if (!(p_usage_flags & (FACES_SOLID | FACES_ENCLOSING)))
-		return PoolVector<Face3>();
+		return Vector<Face3>();
 
 	if (mesh.is_null())
-		return PoolVector<Face3>();
+		return Vector<Face3>();
 
 	return mesh->get_faces();
 }

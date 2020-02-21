@@ -78,14 +78,6 @@ public:
 	typedef void (*ImeCallback)(void *p_inp, String p_text, Point2 p_selection);
 	typedef bool (*HasServerFeatureCallback)(const String &p_feature);
 
-	enum PowerState {
-		POWERSTATE_UNKNOWN, /**< cannot determine power status */
-		POWERSTATE_ON_BATTERY, /**< Not plugged in, running on the battery */
-		POWERSTATE_NO_BATTERY, /**< Plugged in, no battery available */
-		POWERSTATE_CHARGING, /**< Plugged in, charging battery */
-		POWERSTATE_CHARGED /**< Plugged in, battery charged */
-	};
-
 	enum RenderThreadMode {
 
 		RENDER_THREAD_UNSAFE,
@@ -193,7 +185,7 @@ public:
 	virtual int get_audio_driver_count() const;
 	virtual const char *get_audio_driver_name(int p_driver) const;
 
-	virtual PoolStringArray get_connected_midi_inputs();
+	virtual PackedStringArray get_connected_midi_inputs();
 	virtual void open_midi_inputs();
 	virtual void close_midi_inputs();
 
@@ -398,7 +390,6 @@ public:
 
 	virtual uint64_t get_static_memory_usage() const;
 	virtual uint64_t get_static_memory_peak_usage() const;
-	virtual uint64_t get_dynamic_memory_usage() const;
 	virtual uint64_t get_free_static_memory() const;
 
 	RenderThreadMode get_render_thread_mode() const { return _render_thread_mode; }
@@ -517,10 +508,6 @@ public:
 	void set_vsync_via_compositor(bool p_enable);
 	bool is_vsync_via_compositor_enabled() const;
 
-	virtual OS::PowerState get_power_state();
-	virtual int get_power_seconds_left();
-	virtual int get_power_percent_left();
-
 	virtual void force_process_input(){};
 	bool has_feature(const String &p_feature);
 
@@ -541,7 +528,5 @@ public:
 	OS();
 	virtual ~OS();
 };
-
-VARIANT_ENUM_CAST(OS::PowerState);
 
 #endif

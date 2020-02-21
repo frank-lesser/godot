@@ -540,7 +540,7 @@
 			</return>
 			<argument index="0" name="occluder_polygon" type="RID">
 			</argument>
-			<argument index="1" name="shape" type="PoolVector2Array">
+			<argument index="1" name="shape" type="PackedVector2Array">
 			</argument>
 			<argument index="2" name="closed" type="bool">
 			</argument>
@@ -553,7 +553,7 @@
 			</return>
 			<argument index="0" name="occluder_polygon" type="RID">
 			</argument>
-			<argument index="1" name="shape" type="PoolVector2Array">
+			<argument index="1" name="shape" type="PackedVector2Array">
 			</argument>
 			<description>
 				Sets the shape of the occluder polygon as lines.
@@ -590,17 +590,6 @@
 				Creates a directional light and adds it to the VisualServer. It can be accessed with the RID that is returned. This RID can be used in most [code]light_*[/code] VisualServer functions.
 				Once finished with your RID, you will want to free the RID using the VisualServer's [method free_rid] static method.
 				To place in a scene, attach this directional light to an instance using [method instance_set_base] using the returned RID.
-			</description>
-		</method>
-		<method name="draw">
-			<return type="void">
-			</return>
-			<argument index="0" name="swap_buffers" type="bool" default="true">
-			</argument>
-			<argument index="1" name="frame_step" type="float" default="0.0">
-			</argument>
-			<description>
-				Draws a frame. [i]This method is deprecated[/i], please use [method force_draw] instead.
 			</description>
 		</method>
 		<method name="environment_create">
@@ -812,6 +801,30 @@
 				Sets the rotation of the background [Sky] expressed as a [Basis]. Equivalent to [member Environment.sky_rotation], where the rotation vector is used to construct the [Basis].
 			</description>
 		</method>
+		<method name="environment_set_ssao">
+			<return type="void">
+			</return>
+			<argument index="0" name="env" type="RID">
+			</argument>
+			<argument index="1" name="enable" type="bool">
+			</argument>
+			<argument index="2" name="radius" type="float">
+			</argument>
+			<argument index="3" name="intensity" type="float">
+			</argument>
+			<argument index="4" name="bias" type="float">
+			</argument>
+			<argument index="5" name="light_affect" type="float">
+			</argument>
+			<argument index="6" name="ao_channel_affect" type="float">
+			</argument>
+			<argument index="7" name="blur" type="int" enum="VisualServer.EnvironmentSSAOBlur">
+			</argument>
+			<argument index="8" name="bilateral_sharpness" type="float">
+			</argument>
+			<description>
+			</description>
+		</method>
 		<method name="environment_set_ssr">
 			<return type="void">
 			</return>
@@ -942,7 +955,7 @@
 			<return type="bool">
 			</return>
 			<description>
-				Returns [code]true[/code] if changes have been made to the VisualServer's data. [method draw] is usually called if this happens.
+				Returns [code]true[/code] if changes have been made to the VisualServer's data. [method force_draw] is usually called if this happens.
 			</description>
 		</method>
 		<method name="has_feature" qualifiers="const">
@@ -1551,7 +1564,7 @@
 			</description>
 		</method>
 		<method name="lightmap_capture_get_octree" qualifiers="const">
-			<return type="PoolByteArray">
+			<return type="PackedByteArray">
 			</return>
 			<argument index="0" name="capture" type="RID">
 			</argument>
@@ -1604,7 +1617,7 @@
 			</return>
 			<argument index="0" name="capture" type="RID">
 			</argument>
-			<argument index="1" name="octree" type="PoolByteArray">
+			<argument index="1" name="octree" type="PackedByteArray">
 			</argument>
 			<description>
 				Sets the octree to be used by this lightmap capture.
@@ -1889,7 +1902,7 @@
 			</argument>
 			<argument index="2" name="offset" type="int">
 			</argument>
-			<argument index="3" name="data" type="PoolByteArray">
+			<argument index="3" name="data" type="PackedByteArray">
 			</argument>
 			<description>
 				Updates a specific region of a vertex buffer for the specified surface. Warning: this function alters the vertex buffer directly with no safety mechanisms, you can easily corrupt your mesh.
@@ -1930,7 +1943,7 @@
 			</description>
 		</method>
 		<method name="multimesh_get_buffer" qualifiers="const">
-			<return type="PoolRealArray">
+			<return type="PackedRealArray">
 			</return>
 			<argument index="0" name="multimesh" type="RID">
 			</argument>
@@ -2065,7 +2078,7 @@
 			</return>
 			<argument index="0" name="multimesh" type="RID">
 			</argument>
-			<argument index="1" name="buffer" type="PoolRealArray">
+			<argument index="1" name="buffer" type="PackedRealArray">
 			</argument>
 			<description>
 			</description>
@@ -2748,13 +2761,6 @@
 				Creates a spot light and adds it to the VisualServer. It can be accessed with the RID that is returned. This RID can be used in most [code]light_*[/code] VisualServer functions.
 				Once finished with your RID, you will want to free the RID using the VisualServer's [method free_rid] static method.
 				To place in a scene, attach this spot light to an instance using [method instance_set_base] using the returned RID.
-			</description>
-		</method>
-		<method name="sync">
-			<return type="void">
-			</return>
-			<description>
-				Not implemented in Godot 3.x.
 			</description>
 		</method>
 		<method name="texture_2d_create">
@@ -3515,15 +3521,6 @@
 		<constant name="ENV_TONE_MAPPER_ACES" value="3" enum="EnvironmentToneMapper">
 			Use the ACES tonemapper.
 		</constant>
-		<constant name="ENV_SSAO_QUALITY_LOW" value="0" enum="EnvironmentSSAOQuality">
-			Lowest quality of screen space ambient occlusion.
-		</constant>
-		<constant name="ENV_SSAO_QUALITY_MEDIUM" value="1" enum="EnvironmentSSAOQuality">
-			Medium quality screen space ambient occlusion.
-		</constant>
-		<constant name="ENV_SSAO_QUALITY_HIGH" value="2" enum="EnvironmentSSAOQuality">
-			Highest quality screen space ambient occlusion.
-		</constant>
 		<constant name="ENV_SSAO_BLUR_DISABLED" value="0" enum="EnvironmentSSAOBlur">
 			Disables the blur set for SSAO. Will make SSAO look noisier.
 		</constant>
@@ -3535,6 +3532,15 @@
 		</constant>
 		<constant name="ENV_SSAO_BLUR_3x3" value="3" enum="EnvironmentSSAOBlur">
 			Performs a 3x3 blur on the SSAO output. Use this for smoothest SSAO.
+		</constant>
+		<constant name="ENV_SSAO_QUALITY_LOW" value="0" enum="EnvironmentSSAOQuality">
+			Lowest quality of screen space ambient occlusion.
+		</constant>
+		<constant name="ENV_SSAO_QUALITY_MEDIUM" value="1" enum="EnvironmentSSAOQuality">
+			Medium quality screen space ambient occlusion.
+		</constant>
+		<constant name="ENV_SSAO_QUALITY_HIGH" value="2" enum="EnvironmentSSAOQuality">
+			Highest quality screen space ambient occlusion.
 		</constant>
 		<constant name="ENV_SSAO_QUALITY_ULTRA" value="3" enum="EnvironmentSSAOQuality">
 		</constant>
@@ -3635,11 +3641,11 @@
 		</constant>
 		<constant name="CANVAS_ITEM_TEXTURE_FILTER_LINEAR" value="2" enum="CanvasItemTextureFilter">
 		</constant>
-		<constant name="CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS" value="3" enum="CanvasItemTextureFilter">
+		<constant name="CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS" value="3" enum="CanvasItemTextureFilter">
 		</constant>
 		<constant name="CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS" value="4" enum="CanvasItemTextureFilter">
 		</constant>
-		<constant name="CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC" value="5" enum="CanvasItemTextureFilter">
+		<constant name="CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC" value="5" enum="CanvasItemTextureFilter">
 		</constant>
 		<constant name="CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC" value="6" enum="CanvasItemTextureFilter">
 		</constant>

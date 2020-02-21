@@ -903,6 +903,9 @@ bool ShaderLanguage::_find_identifier(const BlockNode *p_block, const Map<String
 		if (r_data_type) {
 			*r_data_type = p_builtin_types[p_identifier].type;
 		}
+		if (r_is_const) {
+			*r_is_const = p_builtin_types[p_identifier].constant;
+		}
 		if (r_type) {
 			*r_type = IDENTIFIER_BUILTIN_VAR;
 		}
@@ -2654,7 +2657,7 @@ PropertyInfo ShaderLanguage::uniform_to_property_info(const ShaderNode::Uniform 
 		case ShaderLanguage::TYPE_UVEC3:
 		case ShaderLanguage::TYPE_UVEC4: {
 
-			pi.type = Variant::POOL_INT_ARRAY;
+			pi.type = Variant::PACKED_INT_ARRAY;
 		} break;
 		case ShaderLanguage::TYPE_FLOAT: {
 			pi.type = Variant::REAL;
@@ -2705,31 +2708,43 @@ PropertyInfo ShaderLanguage::uniform_to_property_info(const ShaderNode::Uniform 
 			pi.hint = PROPERTY_HINT_RESOURCE_TYPE;
 			pi.hint_string = "CubeMap";
 		} break;
+		case ShaderLanguage::TYPE_STRUCT: {
+			// FIXME: Implement this.
+		} break;
 	}
 	return pi;
 }
 
 uint32_t ShaderLanguage::get_type_size(DataType p_type) {
 	switch (p_type) {
+		case TYPE_VOID:
+			return 0;
 		case TYPE_BOOL:
 		case TYPE_INT:
 		case TYPE_UINT:
-		case TYPE_FLOAT: return 4;
+		case TYPE_FLOAT:
+			return 4;
 		case TYPE_BVEC2:
 		case TYPE_IVEC2:
 		case TYPE_UVEC2:
-		case TYPE_VEC2: return 8;
+		case TYPE_VEC2:
+			return 8;
 		case TYPE_BVEC3:
 		case TYPE_IVEC3:
 		case TYPE_UVEC3:
-		case TYPE_VEC3: return 12;
+		case TYPE_VEC3:
+			return 12;
 		case TYPE_BVEC4:
 		case TYPE_IVEC4:
 		case TYPE_UVEC4:
-		case TYPE_VEC4: return 16;
-		case TYPE_MAT2: return 8;
-		case TYPE_MAT3: return 12;
-		case TYPE_MAT4: return 16;
+		case TYPE_VEC4:
+			return 16;
+		case TYPE_MAT2:
+			return 8;
+		case TYPE_MAT3:
+			return 12;
+		case TYPE_MAT4:
+			return 16;
 		case TYPE_SAMPLER2D:
 		case TYPE_ISAMPLER2D:
 		case TYPE_USAMPLER2D:
@@ -2739,7 +2754,11 @@ uint32_t ShaderLanguage::get_type_size(DataType p_type) {
 		case TYPE_SAMPLER3D:
 		case TYPE_ISAMPLER3D:
 		case TYPE_USAMPLER3D:
-		case TYPE_SAMPLERCUBE: return 4; //not really, but useful for indices
+		case TYPE_SAMPLERCUBE:
+			return 4; //not really, but useful for indices
+		case TYPE_STRUCT:
+			// FIXME: Implement.
+			return 0;
 	}
 	return 0;
 }
@@ -2930,6 +2949,13 @@ bool ShaderLanguage::_validate_assign(Node *p_node, const Map<StringName, BuiltI
 	} else if (p_node->type == Node::TYPE_MEMBER) {
 
 		MemberNode *member = static_cast<MemberNode *>(p_node);
+
+		if (member->has_swizzling_duplicates) {
+			if (r_message)
+				*r_message = RTR("Swizzling assignment contains duplicates.");
+			return false;
+		}
+
 		return _validate_assign(member->owner, p_builtin_types, r_message);
 
 	} else if (p_node->type == Node::TYPE_VARIABLE) {
@@ -3065,6 +3091,8 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 		TkPos prepos = _get_tkpos();
 		Token tk = _get_token();
 		TkPos pos = _get_tkpos();
+
+		bool is_const = false;
 
 		if (tk.type == TK_PARENTHESIS_OPEN) {
 			//handle subexpression
@@ -3457,40 +3485,82 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 
 							for (int i = 0; i < call_function->arguments.size(); i++) {
 								int argidx = i + 1;
-								if (argidx < func->arguments.size() && is_sampler_type(call_function->arguments[i].type)) {
-									//let's see where our argument comes from
-									Node *n = func->arguments[argidx];
-									ERR_CONTINUE(n->type != Node::TYPE_VARIABLE); //bug? this should always be a variable
-									VariableNode *vn = static_cast<VariableNode *>(n);
-									StringName varname = vn->name;
-									if (shader->uniforms.has(varname)) {
-										//being sampler, this either comes from a uniform
-										ShaderNode::Uniform *u = &shader->uniforms[varname];
-										ERR_CONTINUE(u->type != call_function->arguments[i].type); //this should have been validated previously
-										//propagate
-										if (!_propagate_function_call_sampler_uniform_settings(name, i, u->filter, u->repeat)) {
-											return NULL;
-										}
-									} else if (p_builtin_types.has(varname)) {
-										//a built-in
-										if (!_propagate_function_call_sampler_builtin_reference(name, i, varname)) {
-											return NULL;
-										}
-									} else {
-										//or this comes from an argument, but nothing else can be a sampler
-										bool found = false;
-										for (int j = 0; j < base_function->arguments.size(); j++) {
-											if (base_function->arguments[j].name == varname) {
-												if (!base_function->arguments[j].tex_argument_connect.has(call_function->name)) {
-													base_function->arguments.write[j].tex_argument_connect[call_function->name] = Set<int>();
+								if (argidx < func->arguments.size()) {
+									if (call_function->arguments[i].qualifier == ArgumentQualifier::ARGUMENT_QUALIFIER_OUT || call_function->arguments[i].qualifier == ArgumentQualifier::ARGUMENT_QUALIFIER_INOUT) {
+										bool error = false;
+										Node *n = func->arguments[argidx];
+										if (n->type == Node::TYPE_CONSTANT || n->type == Node::TYPE_OPERATOR) {
+											error = true;
+										} else if (n->type == Node::TYPE_ARRAY) {
+											ArrayNode *an = static_cast<ArrayNode *>(n);
+											if (an->call_expression != NULL) {
+												error = true;
+											}
+										} else if (n->type == Node::TYPE_VARIABLE) {
+											VariableNode *vn = static_cast<VariableNode *>(n);
+											if (vn->is_const) {
+												error = true;
+											} else {
+												StringName varname = vn->name;
+												if (shader->uniforms.has(varname)) {
+													error = true;
+												} else {
+													if (p_builtin_types.has(varname)) {
+														BuiltInInfo info = p_builtin_types[varname];
+														if (info.constant) {
+															error = true;
+														}
+													}
 												}
-												base_function->arguments.write[j].tex_argument_connect[call_function->name].insert(i);
-												found = true;
-												break;
+											}
+										} else if (n->type == Node::TYPE_MEMBER) {
+											MemberNode *mn = static_cast<MemberNode *>(n);
+											if (mn->basetype_const) {
+												error = true;
 											}
 										}
-										ERR_CONTINUE(!found);
+										if (error) {
+											_set_error(vformat("Constant value cannot be passed for '%s' parameter!", _get_qualifier_str(call_function->arguments[i].qualifier)));
+											return NULL;
+										}
 									}
+									if (is_sampler_type(call_function->arguments[i].type)) {
+										//let's see where our argument comes from
+										Node *n = func->arguments[argidx];
+										ERR_CONTINUE(n->type != Node::TYPE_VARIABLE); //bug? this should always be a variable
+										VariableNode *vn = static_cast<VariableNode *>(n);
+										StringName varname = vn->name;
+										if (shader->uniforms.has(varname)) {
+											//being sampler, this either comes from a uniform
+											ShaderNode::Uniform *u = &shader->uniforms[varname];
+											ERR_CONTINUE(u->type != call_function->arguments[i].type); //this should have been validated previously
+											//propagate
+											if (!_propagate_function_call_sampler_uniform_settings(name, i, u->filter, u->repeat)) {
+												return NULL;
+											}
+										} else if (p_builtin_types.has(varname)) {
+											//a built-in
+											if (!_propagate_function_call_sampler_builtin_reference(name, i, varname)) {
+												return NULL;
+											}
+										} else {
+											//or this comes from an argument, but nothing else can be a sampler
+											bool found = false;
+											for (int j = 0; j < base_function->arguments.size(); j++) {
+												if (base_function->arguments[j].name == varname) {
+													if (!base_function->arguments[j].tex_argument_connect.has(call_function->name)) {
+														base_function->arguments.write[j].tex_argument_connect[call_function->name] = Set<int>();
+													}
+													base_function->arguments.write[j].tex_argument_connect[call_function->name].insert(i);
+													found = true;
+													break;
+												}
+											}
+											ERR_CONTINUE(!found);
+										}
+									}
+								} else {
+									break;
 								}
 							}
 						}
@@ -3504,7 +3574,6 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 
 				DataType data_type;
 				IdentifierType ident_type;
-				bool is_const = false;
 				int array_size = 0;
 				StringName struct_name;
 
@@ -3664,9 +3733,17 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 				String ident = identifier;
 
 				bool ok = true;
+				bool repeated = false;
 				DataType member_type = TYPE_VOID;
 				StringName member_struct_name = "";
 				int array_size = 0;
+
+				Set<char> position_symbols;
+				Set<char> color_symbols;
+				Set<char> texture_symbols;
+
+				bool mix_error = false;
+
 				switch (dt) {
 					case TYPE_STRUCT: {
 						ok = false;
@@ -3712,8 +3789,39 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							switch (c[i]) {
 								case 'r':
 								case 'g':
+									if (position_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!color_symbols.has(c[i])) {
+										color_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
 								case 'x':
 								case 'y':
+									if (color_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!position_symbols.has(c[i])) {
+										position_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
+								case 's':
+								case 't':
+									if (color_symbols.size() > 0 || position_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!texture_symbols.has(c[i])) {
+										texture_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
 									break;
 								default:
 									ok = false;
@@ -3748,9 +3856,41 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 								case 'r':
 								case 'g':
 								case 'b':
+									if (position_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!color_symbols.has(c[i])) {
+										color_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
 								case 'x':
 								case 'y':
 								case 'z':
+									if (color_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!position_symbols.has(c[i])) {
+										position_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
+								case 's':
+								case 't':
+								case 'p':
+									if (color_symbols.size() > 0 || position_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!texture_symbols.has(c[i])) {
+										texture_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
 									break;
 								default:
 									ok = false;
@@ -3786,10 +3926,43 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 								case 'g':
 								case 'b':
 								case 'a':
+									if (position_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!color_symbols.has(c[i])) {
+										color_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
 								case 'x':
 								case 'y':
 								case 'z':
 								case 'w':
+									if (color_symbols.size() > 0 || texture_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!position_symbols.has(c[i])) {
+										position_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
+									break;
+								case 's':
+								case 't':
+								case 'p':
+								case 'q':
+									if (color_symbols.size() > 0 || position_symbols.size() > 0) {
+										mix_error = true;
+										break;
+									}
+									if (!texture_symbols.has(c[i])) {
+										texture_symbols.insert(c[i]);
+									} else {
+										repeated = true;
+									}
 									break;
 								default:
 									ok = false;
@@ -3804,20 +3977,27 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 					}
 				}
 
-				if (!ok) {
+				if (mix_error) {
+					_set_error("Cannot combine symbols from different sets in expression ." + ident);
+					return NULL;
+				}
 
+				if (!ok) {
 					_set_error("Invalid member for " + (dt == TYPE_STRUCT ? st : get_datatype_name(dt)) + " expression: ." + ident);
 					return NULL;
 				}
 
 				MemberNode *mn = alloc_node<MemberNode>();
 				mn->basetype = dt;
+				mn->basetype_const = is_const;
 				mn->datatype = member_type;
 				mn->base_struct_name = st;
 				mn->struct_name = member_struct_name;
 				mn->array_size = array_size;
 				mn->name = ident;
 				mn->owner = expr;
+				mn->has_swizzling_duplicates = repeated;
+
 				if (array_size > 0) {
 
 					tk = _get_token();
@@ -5359,6 +5539,18 @@ String ShaderLanguage::_get_shader_type_list(const Set<String> &p_shader_types) 
 	return valid_types;
 }
 
+String ShaderLanguage::_get_qualifier_str(ArgumentQualifier p_qualifier) const {
+	switch (p_qualifier) {
+		case ArgumentQualifier::ARGUMENT_QUALIFIER_IN:
+			return "in";
+		case ArgumentQualifier::ARGUMENT_QUALIFIER_OUT:
+			return "out";
+		case ArgumentQualifier::ARGUMENT_QUALIFIER_INOUT:
+			return "inout";
+	}
+	return "";
+}
+
 Error ShaderLanguage::_validate_datatype(DataType p_type) {
 	if (VisualServer::get_singleton()->is_low_end()) {
 		bool invalid_type = false;
@@ -5483,7 +5675,7 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 				st.shader_struct = st_node;
 
 				int member_count = 0;
-
+				Set<String> member_names;
 				while (true) { // variables list
 					tk = _get_token();
 					if (tk.type == TK_CURLY_BRACKET_CLOSE) {
@@ -5539,6 +5731,12 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 						member->datatype = type;
 						member->struct_name = struct_name;
 						member->name = tk.text;
+
+						if (member_names.has(member->name)) {
+							_set_error("Redefinition of '" + String(member->name) + "'");
+							return ERR_PARSE_ERROR;
+						}
+						member_names.insert(member->name);
 
 						tk = _get_token();
 						if (tk.type == TK_BRACKET_OPEN) {
@@ -6097,6 +6295,13 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 						return ERR_PARSE_ERROR;
 					}
 
+					if (qualifier == ARGUMENT_QUALIFIER_OUT || qualifier == ARGUMENT_QUALIFIER_INOUT) {
+						if (is_sampler_type(get_token_datatype(tk.type))) {
+							_set_error("Opaque types cannot be output parameters.");
+							return ERR_PARSE_ERROR;
+						}
+					}
+
 					if (is_struct) {
 						ptype = TYPE_STRUCT;
 					} else {
@@ -6625,6 +6830,7 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 
 			const char colv[4] = { 'r', 'g', 'b', 'a' };
 			const char coordv[4] = { 'x', 'y', 'z', 'w' };
+			const char coordt[4] = { 's', 't', 'p', 'q' };
 
 			int limit = 0;
 
@@ -6662,6 +6868,7 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 			for (int i = 0; i < limit; i++) {
 				r_options->push_back(ScriptCodeCompletionOption(String::chr(colv[i]), ScriptCodeCompletionOption::KIND_PLAIN_TEXT));
 				r_options->push_back(ScriptCodeCompletionOption(String::chr(coordv[i]), ScriptCodeCompletionOption::KIND_PLAIN_TEXT));
+				r_options->push_back(ScriptCodeCompletionOption(String::chr(coordt[i]), ScriptCodeCompletionOption::KIND_PLAIN_TEXT));
 			}
 
 		} break;

@@ -153,39 +153,20 @@ MAKE_TYPE_INFO(Transform, Variant::TRANSFORM)
 MAKE_TYPE_INFO(Color, Variant::COLOR)
 MAKE_TYPE_INFO(NodePath, Variant::NODE_PATH)
 MAKE_TYPE_INFO(RID, Variant::_RID)
+MAKE_TYPE_INFO(Callable, Variant::CALLABLE)
+MAKE_TYPE_INFO(Signal, Variant::SIGNAL)
 MAKE_TYPE_INFO(Dictionary, Variant::DICTIONARY)
 MAKE_TYPE_INFO(Array, Variant::ARRAY)
-MAKE_TYPE_INFO(PoolByteArray, Variant::POOL_BYTE_ARRAY)
-MAKE_TYPE_INFO(PoolIntArray, Variant::POOL_INT_ARRAY)
-MAKE_TYPE_INFO(PoolRealArray, Variant::POOL_REAL_ARRAY)
-MAKE_TYPE_INFO(PoolStringArray, Variant::POOL_STRING_ARRAY)
-MAKE_TYPE_INFO(PoolVector2Array, Variant::POOL_VECTOR2_ARRAY)
-MAKE_TYPE_INFO(PoolVector3Array, Variant::POOL_VECTOR3_ARRAY)
-MAKE_TYPE_INFO(PoolColorArray, Variant::POOL_COLOR_ARRAY)
+MAKE_TYPE_INFO(PackedByteArray, Variant::PACKED_BYTE_ARRAY)
+MAKE_TYPE_INFO(PackedIntArray, Variant::PACKED_INT_ARRAY)
+MAKE_TYPE_INFO(PackedRealArray, Variant::PACKED_REAL_ARRAY)
+MAKE_TYPE_INFO(PackedStringArray, Variant::PACKED_STRING_ARRAY)
+MAKE_TYPE_INFO(PackedVector2Array, Variant::PACKED_VECTOR2_ARRAY)
+MAKE_TYPE_INFO(PackedVector3Array, Variant::PACKED_VECTOR3_ARRAY)
+MAKE_TYPE_INFO(PackedColorArray, Variant::PACKED_COLOR_ARRAY)
 
 MAKE_TYPE_INFO(StringName, Variant::STRING)
 MAKE_TYPE_INFO(IP_Address, Variant::STRING)
-
-class BSP_Tree;
-MAKE_TYPE_INFO(BSP_Tree, Variant::DICTIONARY)
-
-//for RefPtr
-template <>
-struct GetTypeInfo<RefPtr> {
-	static const Variant::Type VARIANT_TYPE = Variant::OBJECT;
-	static const GodotTypeInfo::Metadata METADATA = GodotTypeInfo::METADATA_NONE;
-	static inline PropertyInfo get_class_info() {
-		return PropertyInfo(Variant::OBJECT, String(), PROPERTY_HINT_RESOURCE_TYPE, "Reference");
-	}
-};
-template <>
-struct GetTypeInfo<const RefPtr &> {
-	static const Variant::Type VARIANT_TYPE = Variant::OBJECT;
-	static const GodotTypeInfo::Metadata METADATA = GodotTypeInfo::METADATA_NONE;
-	static inline PropertyInfo get_class_info() {
-		return PropertyInfo(Variant::OBJECT, String(), PROPERTY_HINT_RESOURCE_TYPE, "Reference");
-	}
-};
 
 //objectID
 template <>
@@ -234,21 +215,25 @@ struct GetTypeInfo<const Variant &> {
 		}                                                                             \
 	};
 
-MAKE_TEMPLATE_TYPE_INFO(Vector, uint8_t, Variant::POOL_BYTE_ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(Vector, int, Variant::POOL_INT_ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(Vector, float, Variant::POOL_REAL_ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(Vector, String, Variant::POOL_STRING_ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(Vector, Vector2, Variant::POOL_VECTOR2_ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(Vector, Vector3, Variant::POOL_VECTOR3_ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(Vector, Color, Variant::POOL_COLOR_ARRAY)
-
 MAKE_TEMPLATE_TYPE_INFO(Vector, Variant, Variant::ARRAY)
 MAKE_TEMPLATE_TYPE_INFO(Vector, RID, Variant::ARRAY)
 MAKE_TEMPLATE_TYPE_INFO(Vector, Plane, Variant::ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(Vector, StringName, Variant::POOL_STRING_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, Face3, Variant::PACKED_VECTOR3_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, StringName, Variant::PACKED_STRING_ARRAY)
 
-MAKE_TEMPLATE_TYPE_INFO(PoolVector, Plane, Variant::ARRAY)
-MAKE_TEMPLATE_TYPE_INFO(PoolVector, Face3, Variant::POOL_VECTOR3_ARRAY)
+/*
+MAKE_TEMPLATE_TYPE_INFO(Vector, uint8_t, Variant::PACKED_BYTE_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, int, Variant::PACKED_INT_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, float, Variant::PACKED_REAL_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, String, Variant::PACKED_STRING_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, Vector2, Variant::PACKED_VECTOR2_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, Vector3, Variant::PACKED_VECTOR3_ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, Color, Variant::PACKED_COLOR_ARRAY)
+
+
+MAKE_TEMPLATE_TYPE_INFO(Vector, Plane, Variant::ARRAY)
+MAKE_TEMPLATE_TYPE_INFO(Vector, Face3, Variant::PACKED_VECTOR3_ARRAY)
+*/
 
 template <typename T>
 struct GetTypeInfo<T *, typename EnableIf<TypeInherits<Object, T>::value>::type> {

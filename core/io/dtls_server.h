@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  power_osx.h                                                          */
+/*  dtls_server.h                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,32 +28,30 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef POWER_OSX_H
-#define POWER_OSX_H
+#ifndef DTLS_SERVER_H
+#define DTLS_SERVER_H
 
-#include "core/os/file_access.h"
-#include "core/os/os.h"
-#include "dir_access_osx.h"
+#include "core/io/net_socket.h"
+#include "core/io/packet_peer_dtls.h"
 
-#include <CoreFoundation/CoreFoundation.h>
+class DTLSServer : public Reference {
+	GDCLASS(DTLSServer, Reference);
 
-class PowerOSX {
+protected:
+	static DTLSServer *(*_create)();
+	static void _bind_methods();
 
-private:
-	int nsecs_left;
-	int percent_left;
-	OS::PowerState power_state;
-	void checkps(CFDictionaryRef dict, bool *have_ac, bool *have_battery, bool *charging);
-	bool GetPowerInfo_MacOSX(/*PowerState * state, int *seconds, int *percent*/);
-	bool UpdatePowerInfo();
+	static bool available;
 
 public:
-	PowerOSX();
-	virtual ~PowerOSX();
+	static bool is_available();
+	static DTLSServer *create();
 
-	OS::PowerState get_power_state();
-	int get_power_seconds_left();
-	int get_power_percent_left();
+	virtual Error setup(Ref<CryptoKey> p_key, Ref<X509Certificate> p_cert, Ref<X509Certificate> p_ca_chain = Ref<X509Certificate>()) = 0;
+	virtual void stop() = 0;
+	virtual Ref<PacketPeerDTLS> take_connection(Ref<PacketPeerUDP> p_peer) = 0;
+
+	DTLSServer();
 };
 
-#endif // POWER_OSX_H
+#endif // DTLS_SERVER_H

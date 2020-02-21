@@ -327,24 +327,24 @@ void MeshInstanceEditor::_create_uv_lines(int p_layer) {
 			continue;
 		Array a = mesh->surface_get_arrays(i);
 
-		PoolVector<Vector2> uv = a[p_layer == 0 ? Mesh::ARRAY_TEX_UV : Mesh::ARRAY_TEX_UV2];
+		Vector<Vector2> uv = a[p_layer == 0 ? Mesh::ARRAY_TEX_UV : Mesh::ARRAY_TEX_UV2];
 		if (uv.size() == 0) {
 			err_dialog->set_text(TTR("Model has no UV in this layer"));
 			err_dialog->popup_centered_minsize();
 			return;
 		}
 
-		PoolVector<Vector2>::Read r = uv.read();
+		const Vector2 *r = uv.ptr();
 
-		PoolVector<int> indices = a[Mesh::ARRAY_INDEX];
-		PoolVector<int>::Read ri;
+		Vector<int> indices = a[Mesh::ARRAY_INDEX];
+		const int *ri;
 
 		int ic;
 		bool use_indices;
 
 		if (indices.size()) {
 			ic = indices.size();
-			ri = indices.read();
+			ri = indices.ptr();
 			use_indices = true;
 		} else {
 			ic = uv.size();
@@ -469,7 +469,7 @@ MeshInstanceEditor::MeshInstanceEditor() {
 	options->get_popup()->add_item(TTR("View UV2"), MENU_OPTION_DEBUG_UV2);
 	options->get_popup()->add_item(TTR("Unwrap UV2 for Lightmap/AO"), MENU_OPTION_CREATE_UV2);
 
-	options->get_popup()->connect("id_pressed", this, "_menu_option");
+	options->get_popup()->connect_compat("id_pressed", this, "_menu_option");
 
 	outline_dialog = memnew(ConfirmationDialog);
 	outline_dialog->set_title(TTR("Create Outline Mesh"));
@@ -487,7 +487,7 @@ MeshInstanceEditor::MeshInstanceEditor() {
 	outline_dialog_vbc->add_margin_child(TTR("Outline Size:"), outline_size);
 
 	add_child(outline_dialog);
-	outline_dialog->connect("confirmed", this, "_create_outline_mesh");
+	outline_dialog->connect_compat("confirmed", this, "_create_outline_mesh");
 
 	err_dialog = memnew(AcceptDialog);
 	add_child(err_dialog);
@@ -497,7 +497,7 @@ MeshInstanceEditor::MeshInstanceEditor() {
 	add_child(debug_uv_dialog);
 	debug_uv = memnew(Control);
 	debug_uv->set_custom_minimum_size(Size2(600, 600) * EDSCALE);
-	debug_uv->connect("draw", this, "_debug_uv_draw");
+	debug_uv->connect_compat("draw", this, "_debug_uv_draw");
 	debug_uv_dialog->add_child(debug_uv);
 }
 

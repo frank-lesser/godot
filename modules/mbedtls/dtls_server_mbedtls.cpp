@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  power_iphone.h                                                       */
+/*  dtls_server_mbedtls.cpp                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,26 +28,51 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef POWER_IPHONE_H
-#define POWER_IPHONE_H
+#include "dtls_server_mbedtls.h"
+#include "packet_peer_mbed_dtls.h"
 
-#include <os/os.h>
+Error DTLSServerMbedTLS::setup(Ref<CryptoKey> p_key, Ref<X509Certificate> p_cert, Ref<X509Certificate> p_ca_chain) {
+	ERR_FAIL_COND_V(_cookies->setup() != OK, ERR_ALREADY_IN_USE);
+	_key = p_key;
+	_cert = p_cert;
+	_ca_chain = p_ca_chain;
+	return OK;
+}
 
-class PowerIphone {
-private:
-	int nsecs_left;
-	int percent_left;
-	OS::PowerState power_state;
+void DTLSServerMbedTLS::stop() {
+	_cookies->clear();
+}
 
-	bool UpdatePowerInfo();
+Ref<PacketPeerDTLS> DTLSServerMbedTLS::take_connection(Ref<PacketPeerUDP> p_udp_peer) {
+	Ref<PacketPeerMbedDTLS> out;
+	out.instance();
 
-public:
-	PowerIphone();
-	virtual ~PowerIphone();
+	ERR_FAIL_COND_V(!out.is_valid(), out);
+	ERR_FAIL_COND_V(!p_udp_peer.is_valid(), out);
+	out->accept_peer(p_udp_peer, _key, _cert, _ca_chain, _cookies);
+	return out;
+}
 
-	OS::PowerState get_power_state();
-	int get_power_seconds_left();
-	int get_power_percent_left();
-};
+DTLSServer *DTLSServerMbedTLS::_create_func() {
 
-#endif // POWER_IPHONE_H
+	return memnew(DTLSServerMbedTLS);
+}
+
+void DTLSServerMbedTLS::initialize() {
+
+	_create = _create_func;
+	available = true;
+}
+
+void DTLSServerMbedTLS::finalize() {
+	_create = NULL;
+	available = false;
+}
+
+DTLSServerMbedTLS::DTLSServerMbedTLS() {
+	_cookies.instance();
+}
+
+DTLSServerMbedTLS::~DTLSServerMbedTLS() {
+	stop();
+}

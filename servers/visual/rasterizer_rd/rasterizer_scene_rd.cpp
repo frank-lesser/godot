@@ -1406,7 +1406,7 @@ void RasterizerSceneRD::gi_probe_update(RID p_probe, bool p_update_light_instanc
 
 		if (octree_size != Vector3i()) {
 			//can create a 3D texture
-			PoolVector<int> levels = storage->gi_probe_get_level_counts(gi_probe->probe);
+			Vector<int> levels = storage->gi_probe_get_level_counts(gi_probe->probe);
 
 			RD::TextureFormat tf;
 			tf.format = RD::DATA_FORMAT_R8G8B8A8_UNORM;
@@ -2745,7 +2745,6 @@ void RasterizerSceneRD::render_shadow(RID p_light, RID p_shadow_atlas, int p_pas
 
 	Rect2i atlas_rect;
 	RID atlas_fb;
-	int atlas_fb_size;
 
 	bool using_dual_paraboloid = false;
 	bool using_dual_paraboloid_flip = false;
@@ -2816,7 +2815,6 @@ void RasterizerSceneRD::render_shadow(RID p_light, RID p_shadow_atlas, int p_pas
 		render_fb = shadow_map->fb;
 		render_texture = shadow_map->depth;
 		atlas_fb = directional_shadow.fb;
-		atlas_fb_size = directional_shadow.size;
 
 	} else {
 		//set from shadow atlas
@@ -2844,7 +2842,6 @@ void RasterizerSceneRD::render_shadow(RID p_light, RID p_shadow_atlas, int p_pas
 		atlas_rect.size.width = shadow_size;
 		atlas_rect.size.height = shadow_size;
 		atlas_fb = shadow_atlas->fb;
-		atlas_fb_size = shadow_atlas->size;
 
 		zfar = storage->light_get_param(light_instance->light, VS::LIGHT_PARAM_RANGE);
 		bias = storage->light_get_param(light_instance->light, VS::LIGHT_PARAM_SHADOW_BIAS);
@@ -3125,8 +3122,6 @@ RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 }
 
 RasterizerSceneRD::~RasterizerSceneRD() {
-	directional_shadow_atlas_set_size(0);
-
 	for (Map<Vector2i, ShadowMap>::Element *E = shadow_maps.front(); E; E = E->next()) {
 		RD::get_singleton()->free(E->get().depth);
 	}

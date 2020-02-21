@@ -97,7 +97,7 @@ void Tween::_process_pending_commands() {
 
 		// Get the command
 		PendingCommand &cmd = E->get();
-		Variant::CallError err;
+		Callable::CallError err;
 
 		// Grab all of the arguments for the command
 		Variant *arg[10] = {
@@ -309,9 +309,9 @@ Variant Tween::_get_initial_val(const InterpolateData &p_data) const {
 				ERR_FAIL_COND_V(!valid, p_data.initial_val);
 			} else {
 				// Call the method and get the initial value from it
-				Variant::CallError error;
+				Callable::CallError error;
 				initial_val = object->call(p_data.target_key[0], NULL, 0, error);
-				ERR_FAIL_COND_V(error.error != Variant::CallError::CALL_OK, p_data.initial_val);
+				ERR_FAIL_COND_V(error.error != Callable::CallError::CALL_OK, p_data.initial_val);
 			}
 			return initial_val;
 		}
@@ -341,9 +341,9 @@ Variant Tween::_get_final_val(const InterpolateData &p_data) const {
 				ERR_FAIL_COND_V(!valid, p_data.initial_val);
 			} else {
 				// We're looking at a method. Call the method on the target object
-				Variant::CallError error;
+				Callable::CallError error;
 				final_val = target->call(p_data.target_key[0], NULL, 0, error);
-				ERR_FAIL_COND_V(error.error != Variant::CallError::CALL_OK, p_data.initial_val);
+				ERR_FAIL_COND_V(error.error != Callable::CallError::CALL_OK, p_data.initial_val);
 			}
 
 			// If we're looking at an INT value, instead convert it to a REAL
@@ -383,9 +383,9 @@ Variant &Tween::_get_delta_val(InterpolateData &p_data) {
 				ERR_FAIL_COND_V(!valid, p_data.initial_val);
 			} else {
 				// We're looking at a method. Call the method on the target object
-				Variant::CallError error;
+				Callable::CallError error;
 				final_val = target->call(p_data.target_key[0], NULL, 0, error);
-				ERR_FAIL_COND_V(error.error != Variant::CallError::CALL_OK, p_data.initial_val);
+				ERR_FAIL_COND_V(error.error != Callable::CallError::CALL_OK, p_data.initial_val);
 			}
 
 			// If we're looking at an INT value, instead convert it to a REAL
@@ -607,7 +607,7 @@ bool Tween::_apply_tween_value(InterpolateData &p_data, Variant &value) {
 		case FOLLOW_METHOD:
 		case TARGETING_METHOD: {
 			// We want to call the method on the target object
-			Variant::CallError error;
+			Callable::CallError error;
 
 			// Do we have a non-nil value passed in?
 			if (value.get_type() != Variant::NIL) {
@@ -620,7 +620,7 @@ bool Tween::_apply_tween_value(InterpolateData &p_data, Variant &value) {
 			}
 
 			// Did we get an error from the function call?
-			return error.error == Variant::CallError::CALL_OK;
+			return error.error == Callable::CallError::CALL_OK;
 		}
 
 		case INTER_CALLBACK:
@@ -732,7 +732,7 @@ void Tween::_tween_process(float p_delta) {
 					}
 				} else {
 					// Call the function directly with the arguments
-					Variant::CallError error;
+					Callable::CallError error;
 					Variant *arg[5] = {
 						&data.arg[0],
 						&data.arg[1],
@@ -1227,7 +1227,6 @@ bool Tween::_build_interpolation(InterpolateType p_interpolation_type, Object *p
 
 	// Give it the object
 	ERR_FAIL_COND_V_MSG(p_object == NULL, false, "Invalid object provided to Tween.");
-	ERR_FAIL_COND_V_MSG(!ObjectDB::instance_validate(p_object), false, "Invalid object provided to Tween.");
 	data.id = p_object->get_instance_id();
 
 	// Validate the initial and final values
@@ -1328,7 +1327,6 @@ bool Tween::interpolate_callback(Object *p_object, real_t p_duration, String p_c
 
 	// Check that the target object is valid
 	ERR_FAIL_COND_V(p_object == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_object), false);
 
 	// Duration cannot be negative
 	ERR_FAIL_COND_V(p_duration < 0, false);
@@ -1387,7 +1385,6 @@ bool Tween::interpolate_deferred_callback(Object *p_object, real_t p_duration, S
 
 	// Check that the target object is valid
 	ERR_FAIL_COND_V(p_object == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_object), false);
 
 	// No negative durations allowed
 	ERR_FAIL_COND_V(p_duration < 0, false);
@@ -1457,9 +1454,7 @@ bool Tween::follow_property(Object *p_object, NodePath p_property, Variant p_ini
 
 	// Confirm the source and target objects are valid
 	ERR_FAIL_COND_V(p_object == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_object), false);
 	ERR_FAIL_COND_V(p_target == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_target), false);
 
 	// No negative durations
 	ERR_FAIL_COND_V(p_duration < 0, false);
@@ -1521,9 +1516,7 @@ bool Tween::follow_method(Object *p_object, StringName p_method, Variant p_initi
 
 	// Verify the source and target objects are valid
 	ERR_FAIL_COND_V(p_object == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_object), false);
 	ERR_FAIL_COND_V(p_target == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_target), false);
 
 	// No negative durations
 	ERR_FAIL_COND_V(p_duration < 0, false);
@@ -1540,9 +1533,9 @@ bool Tween::follow_method(Object *p_object, StringName p_method, Variant p_initi
 	ERR_FAIL_COND_V_MSG(!p_target->has_method(p_target_method), false, "Target has no method named: " + p_target_method + ".");
 
 	// Call the method to get the target value
-	Variant::CallError error;
+	Callable::CallError error;
 	Variant target_val = p_target->call(p_target_method, NULL, 0, error);
-	ERR_FAIL_COND_V(error.error != Variant::CallError::CALL_OK, false);
+	ERR_FAIL_COND_V(error.error != Callable::CallError::CALL_OK, false);
 
 	// Convert target INT values to REAL as they are better for interpolation
 	if (target_val.get_type() == Variant::INT) target_val = target_val.operator real_t();
@@ -1587,9 +1580,7 @@ bool Tween::targeting_property(Object *p_object, NodePath p_property, Object *p_
 
 	// Verify both objects are valid
 	ERR_FAIL_COND_V(p_object == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_object), false);
 	ERR_FAIL_COND_V(p_initial == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_initial), false);
 
 	// No negative durations
 	ERR_FAIL_COND_V(p_duration < 0, false);
@@ -1655,9 +1646,7 @@ bool Tween::targeting_method(Object *p_object, StringName p_method, Object *p_in
 
 	// Make sure the given objects are valid
 	ERR_FAIL_COND_V(p_object == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_object), false);
 	ERR_FAIL_COND_V(p_initial == NULL, false);
-	ERR_FAIL_COND_V(!ObjectDB::instance_validate(p_initial), false);
 
 	// No negative durations
 	ERR_FAIL_COND_V(p_duration < 0, false);
@@ -1674,9 +1663,9 @@ bool Tween::targeting_method(Object *p_object, StringName p_method, Object *p_in
 	ERR_FAIL_COND_V_MSG(!p_initial->has_method(p_initial_method), false, "Initial Object has no method named: " + p_initial_method + ".");
 
 	// Call the method to get the initial value
-	Variant::CallError error;
+	Callable::CallError error;
 	Variant initial_val = p_initial->call(p_initial_method, NULL, 0, error);
-	ERR_FAIL_COND_V(error.error != Variant::CallError::CALL_OK, false);
+	ERR_FAIL_COND_V(error.error != Callable::CallError::CALL_OK, false);
 
 	// Convert initial INT values to REAL as they aer better for interpolation
 	if (initial_val.get_type() == Variant::INT) initial_val = initial_val.operator real_t();

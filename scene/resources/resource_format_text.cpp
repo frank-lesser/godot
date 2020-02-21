@@ -35,7 +35,7 @@
 #include "core/project_settings.h"
 #include "core/version.h"
 
-//version 2: changed names for basis, aabb, poolvectors, etc.
+//version 2: changed names for basis, aabb, Vectors, etc.
 #define FORMAT_VERSION 2
 
 #include "core/os/dir_access.h"
@@ -1377,7 +1377,7 @@ void ResourceFormatSaverTextInstance::_find_resources(const Variant &p_variant, 
 	switch (p_variant.get_type()) {
 		case Variant::OBJECT: {
 
-			RES res = p_variant.operator RefPtr();
+			RES res = p_variant;
 
 			if (res.is_null() || external_resources.has(res))
 				return;

@@ -95,7 +95,7 @@ void PropertySelector::_update_search() {
 			instance->get_property_list(&props, true);
 		} else if (type != Variant::NIL) {
 			Variant v;
-			Variant::CallError ce;
+			Callable::CallError ce;
 			v = Variant::construct(type, NULL, 0, ce);
 
 			v.get_property_list(&props);
@@ -141,13 +141,13 @@ void PropertySelector::_update_search() {
 			Control::get_icon("Object", "EditorIcons"),
 			Control::get_icon("Dictionary", "EditorIcons"),
 			Control::get_icon("Array", "EditorIcons"),
-			Control::get_icon("PoolByteArray", "EditorIcons"),
-			Control::get_icon("PoolIntArray", "EditorIcons"),
-			Control::get_icon("PoolRealArray", "EditorIcons"),
-			Control::get_icon("PoolStringArray", "EditorIcons"),
-			Control::get_icon("PoolVector2Array", "EditorIcons"),
-			Control::get_icon("PoolVector3Array", "EditorIcons"),
-			Control::get_icon("PoolColorArray", "EditorIcons")
+			Control::get_icon("PackedByteArray", "EditorIcons"),
+			Control::get_icon("PackedIntArray", "EditorIcons"),
+			Control::get_icon("PackedRealArray", "EditorIcons"),
+			Control::get_icon("PackedStringArray", "EditorIcons"),
+			Control::get_icon("PackedVector2Array", "EditorIcons"),
+			Control::get_icon("PackedVector3Array", "EditorIcons"),
+			Control::get_icon("PackedColorArray", "EditorIcons")
 		};
 
 		for (List<PropertyInfo>::Element *E = props.front(); E; E = E->next()) {
@@ -200,7 +200,7 @@ void PropertySelector::_update_search() {
 
 		if (type != Variant::NIL) {
 			Variant v;
-			Variant::CallError ce;
+			Callable::CallError ce;
 			v = Variant::construct(type, NULL, 0, ce);
 			v.get_method_list(&methods);
 		} else {
@@ -393,9 +393,9 @@ void PropertySelector::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_ENTER_TREE) {
 
-		connect("confirmed", this, "_confirmed");
+		connect_compat("confirmed", this, "_confirmed");
 	} else if (p_what == NOTIFICATION_EXIT_TREE) {
-		disconnect("confirmed", this, "_confirmed");
+		disconnect_compat("confirmed", this, "_confirmed");
 	}
 }
 
@@ -557,21 +557,21 @@ PropertySelector::PropertySelector() {
 	//set_child_rect(vbc);
 	search_box = memnew(LineEdit);
 	vbc->add_margin_child(TTR("Search:"), search_box);
-	search_box->connect("text_changed", this, "_text_changed");
-	search_box->connect("gui_input", this, "_sbox_input");
+	search_box->connect_compat("text_changed", this, "_text_changed");
+	search_box->connect_compat("gui_input", this, "_sbox_input");
 	search_options = memnew(Tree);
 	vbc->add_margin_child(TTR("Matches:"), search_options, true);
 	get_ok()->set_text(TTR("Open"));
 	get_ok()->set_disabled(true);
 	register_text_enter(search_box);
 	set_hide_on_ok(false);
-	search_options->connect("item_activated", this, "_confirmed");
-	search_options->connect("cell_selected", this, "_item_selected");
+	search_options->connect_compat("item_activated", this, "_confirmed");
+	search_options->connect_compat("cell_selected", this, "_item_selected");
 	search_options->set_hide_root(true);
 	search_options->set_hide_folding(true);
 	virtuals_only = false;
 
 	help_bit = memnew(EditorHelpBit);
 	vbc->add_margin_child(TTR("Description:"), help_bit);
-	help_bit->connect("request_hide", this, "_closed");
+	help_bit->connect_compat("request_hide", this, "_closed");
 }

@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  ref_ptr.h                                                            */
+/*  dtls_server.cpp                                                      */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,35 +28,27 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef REF_PTR_H
-#define REF_PTR_H
-/**
-	@author Juan Linietsky <reduzio@gmail.com>
- * This class exists to workaround a limitation in C++ but keep the design OK.
- * It's basically an opaque container of a Reference reference, so Variant can use it.
-*/
+#include "dtls_server.h"
+#include "core/os/file_access.h"
+#include "core/project_settings.h"
 
-#include "core/rid.h"
+DTLSServer *(*DTLSServer::_create)() = NULL;
+bool DTLSServer::available = false;
 
-class RefPtr {
+DTLSServer *DTLSServer::create() {
 
-	enum {
+	return _create();
+}
 
-		DATASIZE = sizeof(void *) //*4 -ref was shrunk
-	};
+bool DTLSServer::is_available() {
+	return available;
+}
 
-	mutable char data[DATASIZE]; // too much probably, virtual class + pointer
-public:
-	bool is_null() const;
-	void operator=(const RefPtr &p_other);
-	bool operator==(const RefPtr &p_other) const;
-	bool operator!=(const RefPtr &p_other) const;
-	RID get_rid() const;
-	void unref();
-	_FORCE_INLINE_ void *get_data() const { return data; }
-	RefPtr(const RefPtr &p_other);
-	RefPtr();
-	~RefPtr();
-};
+void DTLSServer::_bind_methods() {
 
-#endif // REF_PTR_H
+	ClassDB::bind_method(D_METHOD("setup", "key", "certificate", "chain"), &DTLSServer::setup, DEFVAL(Ref<X509Certificate>()));
+	ClassDB::bind_method(D_METHOD("take_connection", "udp_peer"), &DTLSServer::take_connection);
+}
+
+DTLSServer::DTLSServer() {
+}

@@ -428,24 +428,24 @@ static String variant_type_to_managed_name(const String &p_var_type_name) {
 	if (p_var_type_name == Variant::get_type_name(Variant::ARRAY))
 		return "Collections.Array";
 
-	if (p_var_type_name == Variant::get_type_name(Variant::POOL_BYTE_ARRAY))
+	if (p_var_type_name == Variant::get_type_name(Variant::PACKED_BYTE_ARRAY))
 		return "byte[]";
-	if (p_var_type_name == Variant::get_type_name(Variant::POOL_INT_ARRAY))
+	if (p_var_type_name == Variant::get_type_name(Variant::PACKED_INT_ARRAY))
 		return "int[]";
-	if (p_var_type_name == Variant::get_type_name(Variant::POOL_REAL_ARRAY)) {
+	if (p_var_type_name == Variant::get_type_name(Variant::PACKED_REAL_ARRAY)) {
 #ifdef REAL_T_IS_DOUBLE
 		return "double[]";
 #else
 		return "float[]";
 #endif
 	}
-	if (p_var_type_name == Variant::get_type_name(Variant::POOL_STRING_ARRAY))
+	if (p_var_type_name == Variant::get_type_name(Variant::PACKED_STRING_ARRAY))
 		return "string[]";
-	if (p_var_type_name == Variant::get_type_name(Variant::POOL_VECTOR2_ARRAY))
+	if (p_var_type_name == Variant::get_type_name(Variant::PACKED_VECTOR2_ARRAY))
 		return "Vector2[]";
-	if (p_var_type_name == Variant::get_type_name(Variant::POOL_VECTOR3_ARRAY))
+	if (p_var_type_name == Variant::get_type_name(Variant::PACKED_VECTOR3_ARRAY))
 		return "Vector3[]";
-	if (p_var_type_name == Variant::get_type_name(Variant::POOL_COLOR_ARRAY))
+	if (p_var_type_name == Variant::get_type_name(Variant::PACKED_COLOR_ARRAY))
 		return "Color[]";
 
 	Variant::Type var_types[] = {
@@ -473,7 +473,7 @@ static String variant_type_to_managed_name(const String &p_var_type_name) {
 	return "object";
 }
 
-String CSharpLanguage::make_function(const String &, const String &p_name, const PoolStringArray &p_args) const {
+String CSharpLanguage::make_function(const String &, const String &p_name, const PackedStringArray &p_args) const {
 	// FIXME
 	// - Due to Godot's API limitation this just appends the function to the end of the file
 	// - Use fully qualified name if there is ambiguity
@@ -491,7 +491,7 @@ String CSharpLanguage::make_function(const String &, const String &p_name, const
 	return s;
 }
 #else
-String CSharpLanguage::make_function(const String &, const String &, const PoolStringArray &) const {
+String CSharpLanguage::make_function(const String &, const String &, const PackedStringArray &) const {
 	return String();
 }
 #endif
@@ -854,7 +854,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 
 		while (script->instances.front()) {
 			Object *obj = script->instances.front()->get();
-			obj->set_script(RefPtr()); // Remove script and existing script instances (placeholder are not removed before domain reload)
+			obj->set_script(REF()); // Remove script and existing script instances (placeholder are not removed before domain reload)
 		}
 
 		script->_clear();
@@ -877,7 +877,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 
 				// Use a placeholder for now to avoid losing the state when saving a scene
 
-				obj->set_script(scr.get_ref_ptr());
+				obj->set_script(scr);
 
 				PlaceHolderScriptInstance *placeholder = scr->placeholder_instance_create(obj);
 				obj->set_script_instance(placeholder);
@@ -1003,7 +1003,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 				CRASH_COND(si != NULL);
 #endif
 				// Re-create script instance
-				obj->set_script(script.get_ref_ptr()); // will create the script instance as well
+				obj->set_script(script); // will create the script instance as well
 			}
 		}
 
@@ -1720,7 +1720,7 @@ bool CSharpInstance::has_method(const StringName &p_method) const {
 	return false;
 }
 
-Variant CSharpInstance::call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant CSharpInstance::call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	ERR_FAIL_COND_V(!script.is_valid(), Variant());
 
@@ -1729,7 +1729,7 @@ Variant CSharpInstance::call(const StringName &p_method, const Variant **p_args,
 	MonoObject *mono_object = get_mono_object();
 
 	if (!mono_object) {
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		ERR_FAIL_V(Variant());
 	}
 
@@ -1741,7 +1741,7 @@ Variant CSharpInstance::call(const StringName &p_method, const Variant **p_args,
 		if (method) {
 			MonoObject *return_value = method->invoke(mono_object, p_args);
 
-			r_error.error = Variant::CallError::CALL_OK;
+			r_error.error = Callable::CallError::CALL_OK;
 
 			if (return_value) {
 				return GDMonoMarshal::mono_object_to_variant(return_value);
@@ -1753,7 +1753,7 @@ Variant CSharpInstance::call(const StringName &p_method, const Variant **p_args,
 		top = top->get_parent_class();
 	}
 
-	r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
+	r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
 
 	return Variant();
 }
@@ -2704,11 +2704,11 @@ void CSharpScript::_clear() {
 	script_class = NULL;
 }
 
-Variant CSharpScript::call(const StringName &p_method, const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant CSharpScript::call(const StringName &p_method, const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	if (unlikely(GDMono::get_singleton() == NULL)) {
 		// Probably not the best error but eh.
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		return Variant();
 	}
 
@@ -2904,7 +2904,7 @@ StringName CSharpScript::get_instance_base_type() const {
 		return StringName();
 }
 
-CSharpInstance *CSharpScript::_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Variant::CallError &r_error) {
+CSharpInstance *CSharpScript::_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Callable::CallError &r_error) {
 
 	GD_MONO_ASSERT_THREAD_ATTACHED;
 
@@ -2968,7 +2968,7 @@ CSharpInstance *CSharpScript::_create_instance(const Variant **p_args, int p_arg
 		CRASH_COND(die == true);
 
 		p_owner->set_script_instance(NULL);
-		r_error.error = Variant::CallError::CALL_ERROR_INSTANCE_IS_NULL;
+		r_error.error = Callable::CallError::CALL_ERROR_INSTANCE_IS_NULL;
 		ERR_FAIL_V_MSG(NULL, "Failed to allocate memory for the object.");
 	}
 
@@ -2994,14 +2994,14 @@ CSharpInstance *CSharpScript::_create_instance(const Variant **p_args, int p_arg
 	return instance;
 }
 
-Variant CSharpScript::_new(const Variant **p_args, int p_argcount, Variant::CallError &r_error) {
+Variant CSharpScript::_new(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 
 	if (!valid) {
-		r_error.error = Variant::CallError::CALL_ERROR_INVALID_METHOD;
+		r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
 		return Variant();
 	}
 
-	r_error.error = Variant::CallError::CALL_OK;
+	r_error.error = Callable::CallError::CALL_OK;
 
 	ERR_FAIL_NULL_V(native, Variant());
 
@@ -3049,7 +3049,7 @@ ScriptInstance *CSharpScript::instance_create(Object *p_this) {
 
 	GD_MONO_SCOPE_THREAD_ATTACH;
 
-	Variant::CallError unchecked_error;
+	Callable::CallError unchecked_error;
 	return _create_instance(NULL, 0, p_this, Object::cast_to<Reference>(p_this) != NULL, unchecked_error);
 }
 

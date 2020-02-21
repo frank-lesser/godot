@@ -35,7 +35,7 @@
 #include "scene/3d/cpu_particles.h"
 #include "scene/resources/particles_material.h"
 
-bool ParticlesEditorBase::_generate(PoolVector<Vector3> &points, PoolVector<Vector3> &normals) {
+bool ParticlesEditorBase::_generate(Vector<Vector3> &points, Vector<Vector3> &normals) {
 
 	bool use_normals = emission_fill->get_selected() == 1;
 
@@ -93,7 +93,7 @@ bool ParticlesEditorBase::_generate(PoolVector<Vector3> &points, PoolVector<Vect
 			return false;
 		}
 
-		PoolVector<Face3>::Read r = geometry.read();
+		const Face3 *r = geometry.ptr();
 
 		AABB aabb;
 
@@ -191,15 +191,13 @@ void ParticlesEditorBase::_node_selected(const NodePath &p_path) {
 	Transform geom_xform = base_node->get_global_transform().affine_inverse() * vi->get_global_transform();
 
 	int gc = geometry.size();
-	PoolVector<Face3>::Write w = geometry.write();
+	Face3 *w = geometry.ptrw();
 
 	for (int i = 0; i < gc; i++) {
 		for (int j = 0; j < 3; j++) {
 			w[i].vertex[j] = geom_xform.xform(w[i].vertex[j]);
 		}
 	}
-
-	w.release();
 
 	emission_dialog->popup_centered(Size2(300, 130));
 }
@@ -231,14 +229,14 @@ ParticlesEditorBase::ParticlesEditorBase() {
 	emd_vb->add_margin_child(TTR("Emission Source: "), emission_fill);
 
 	emission_dialog->get_ok()->set_text(TTR("Create"));
-	emission_dialog->connect("confirmed", this, "_generate_emission_points");
+	emission_dialog->connect_compat("confirmed", this, "_generate_emission_points");
 
 	emission_file_dialog = memnew(EditorFileDialog);
 	add_child(emission_file_dialog);
-	emission_file_dialog->connect("file_selected", this, "_resource_seleted");
+	emission_file_dialog->connect_compat("file_selected", this, "_resource_seleted");
 	emission_tree_dialog = memnew(SceneTreeDialog);
 	add_child(emission_tree_dialog);
-	emission_tree_dialog->connect("selected", this, "_node_selected");
+	emission_tree_dialog->connect_compat("selected", this, "_node_selected");
 
 	List<String> extensions;
 	ResourceLoader::get_recognized_extensions_for_type("Mesh", &extensions);
@@ -264,7 +262,7 @@ void ParticlesEditor::_notification(int p_notification) {
 
 	if (p_notification == NOTIFICATION_ENTER_TREE) {
 		options->set_icon(options->get_popup()->get_icon("Particles", "EditorIcons"));
-		get_tree()->connect("node_removed", this, "_node_removed");
+		get_tree()->connect_compat("node_removed", this, "_node_removed");
 	}
 }
 
@@ -379,8 +377,8 @@ void ParticlesEditor::edit(Particles *p_particles) {
 void ParticlesEditor::_generate_emission_points() {
 
 	/// hacer codigo aca
-	PoolVector<Vector3> points;
-	PoolVector<Vector3> normals;
+	Vector<Vector3> points;
+	Vector<Vector3> normals;
 
 	if (!_generate(points, normals)) {
 		return;
@@ -391,14 +389,14 @@ void ParticlesEditor::_generate_emission_points() {
 	int w = 2048;
 	int h = (point_count / 2048) + 1;
 
-	PoolVector<uint8_t> point_img;
+	Vector<uint8_t> point_img;
 	point_img.resize(w * h * 3 * sizeof(float));
 
 	{
-		PoolVector<uint8_t>::Write iw = point_img.write();
-		zeromem(iw.ptr(), w * h * 3 * sizeof(float));
-		PoolVector<Vector3>::Read r = points.read();
-		float *wf = (float *)iw.ptr();
+		uint8_t *iw = point_img.ptrw();
+		zeromem(iw, w * h * 3 * sizeof(float));
+		const Vector3 *r = points.ptr();
+		float *wf = (float *)iw;
 		for (int i = 0; i < point_count; i++) {
 			wf[i * 3 + 0] = r[i].x;
 			wf[i * 3 + 1] = r[i].y;
@@ -420,14 +418,14 @@ void ParticlesEditor::_generate_emission_points() {
 		material->set_emission_point_count(point_count);
 		material->set_emission_point_texture(tex);
 
-		PoolVector<uint8_t> point_img2;
+		Vector<uint8_t> point_img2;
 		point_img2.resize(w * h * 3 * sizeof(float));
 
 		{
-			PoolVector<uint8_t>::Write iw = point_img2.write();
-			zeromem(iw.ptr(), w * h * 3 * sizeof(float));
-			PoolVector<Vector3>::Read r = normals.read();
-			float *wf = (float *)iw.ptr();
+			uint8_t *iw = point_img2.ptrw();
+			zeromem(iw, w * h * 3 * sizeof(float));
+			const Vector3 *r = normals.ptr();
+			float *wf = (float *)iw;
 			for (int i = 0; i < point_count; i++) {
 				wf[i * 3 + 0] = r[i].x;
 				wf[i * 3 + 1] = r[i].y;
@@ -476,7 +474,7 @@ ParticlesEditor::ParticlesEditor() {
 	options->get_popup()->add_separator();
 	options->get_popup()->add_item(TTR("Restart"), MENU_OPTION_RESTART);
 
-	options->get_popup()->connect("id_pressed", this, "_menu_option");
+	options->get_popup()->connect_compat("id_pressed", this, "_menu_option");
 
 	generate_aabb = memnew(ConfirmationDialog);
 	generate_aabb->set_title(TTR("Generate Visibility AABB"));
@@ -490,7 +488,7 @@ ParticlesEditor::ParticlesEditor() {
 
 	add_child(generate_aabb);
 
-	generate_aabb->connect("confirmed", this, "_generate_aabb");
+	generate_aabb->connect_compat("confirmed", this, "_generate_aabb");
 }
 
 void ParticlesEditorPlugin::edit(Object *p_object) {

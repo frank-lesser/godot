@@ -197,18 +197,18 @@ AABB SpriteBase3D::get_aabb() const {
 
 	return aabb;
 }
-PoolVector<Face3> SpriteBase3D::get_faces(uint32_t p_usage_flags) const {
+Vector<Face3> SpriteBase3D::get_faces(uint32_t p_usage_flags) const {
 
-	return PoolVector<Face3>();
+	return Vector<Face3>();
 }
 
 Ref<TriangleMesh> SpriteBase3D::generate_triangle_mesh() const {
 	if (triangle_mesh.is_valid())
 		return triangle_mesh;
 
-	PoolVector<Vector3> faces;
+	Vector<Vector3> faces;
 	faces.resize(6);
-	PoolVector<Vector3>::Write facesw = faces.write();
+	Vector3 *facesw = faces.ptrw();
 
 	Rect2 final_rect = get_item_rect();
 
@@ -253,8 +253,6 @@ Ref<TriangleMesh> SpriteBase3D::generate_triangle_mesh() const {
 		vtx[y_axis] = vertices[i][1];
 		facesw[j] = vtx;
 	}
-
-	facesw.release();
 
 	triangle_mesh = Ref<TriangleMesh>(memnew(TriangleMesh));
 	triangle_mesh->create(faces);
@@ -533,11 +531,11 @@ void Sprite3D::set_texture(const Ref<Texture2D> &p_texture) {
 	if (p_texture == texture)
 		return;
 	if (texture.is_valid()) {
-		texture->disconnect(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_queue_update);
+		texture->disconnect_compat(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_queue_update);
 	}
 	texture = p_texture;
 	if (texture.is_valid()) {
-		texture->connect(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_queue_update);
+		texture->connect_compat(CoreStringNames::get_singleton()->changed, this, SceneStringNames::get_singleton()->_queue_update);
 	}
 	_queue_update();
 }
@@ -954,10 +952,10 @@ void AnimatedSprite3D::_notification(int p_what) {
 void AnimatedSprite3D::set_sprite_frames(const Ref<SpriteFrames> &p_frames) {
 
 	if (frames.is_valid())
-		frames->disconnect("changed", this, "_res_changed");
+		frames->disconnect_compat("changed", this, "_res_changed");
 	frames = p_frames;
 	if (frames.is_valid())
-		frames->connect("changed", this, "_res_changed");
+		frames->connect_compat("changed", this, "_res_changed");
 
 	if (!frames.is_valid()) {
 		frame = 0;

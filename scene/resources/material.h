@@ -138,9 +138,9 @@ public:
 	enum TextureFilter {
 		TEXTURE_FILTER_NEAREST,
 		TEXTURE_FILTER_LINEAR,
-		TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS,
+		TEXTURE_FILTER_NEAREST_WITH_MIPMAPS,
 		TEXTURE_FILTER_LINEAR_WITH_MIPMAPS,
-		TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC,
+		TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC,
 		TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC,
 		TEXTURE_FILTER_MAX
 	};
@@ -697,6 +697,7 @@ class StandardMaterial3D : public BaseMaterial3D {
 	GDCLASS(StandardMaterial3D, BaseMaterial3D)
 protected:
 #ifndef DISABLE_DEPRECATED
+	// Kept for compatibility from 3.x to 4.0.
 	bool _set(const StringName &p_name, const Variant &p_value);
 #endif
 

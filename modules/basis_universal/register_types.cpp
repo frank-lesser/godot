@@ -52,11 +52,10 @@ enum BasisDecompressFormat {
 
 basist::etc1_global_selector_codebook *sel_codebook = nullptr;
 
-static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Image::UsedChannels p_channels) {
-
-	PoolVector<uint8_t> budata;
-
 #ifdef TOOLS_ENABLED
+static Vector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Image::UsedChannels p_channels) {
+
+	Vector<uint8_t> budata;
 
 	{
 		Ref<Image> image = p_image->duplicate();
@@ -74,10 +73,10 @@ static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Ima
 		basisu::image buimg(image->get_width(), image->get_height());
 
 		{
-			PoolVector<uint8_t> vec = image->get_data();
-			PoolVector<uint8_t>::Read r = vec.read();
+			Vector<uint8_t> vec = image->get_data();
+			const uint8_t *r = vec.ptr();
 
-			memcpy(buimg.get_ptr(), r.ptr(), vec.size());
+			memcpy(buimg.get_ptr(), r, vec.size());
 		}
 
 		//image->save_png("pepeche.png");
@@ -91,7 +90,7 @@ static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Ima
 		//params.m_quality_level = 0;
 		//params.m_disable_hierarchical_endpoint_codebooks = true;
 		//params.m_no_selector_rdo = true;
-		params.m_no_auto_global_sel_pal = true;
+		params.m_auto_global_sel_pal = false;
 
 		basisu::job_pool jpool(OS::get_singleton()->get_processor_count());
 		params.m_pJob_pool = &jpool;
@@ -117,14 +116,10 @@ static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Ima
 #ifdef USE_RG_AS_RGBA
 				image->convert_rg_to_ra_rgba8();
 				decompress_format = BASIS_DECOMPRESS_RG_AS_RA;
-
 #else
-
 				params.m_seperate_rg_to_color_alpha = true;
 				decompress_format = BASIS_DECOMPRESS_RG;
-
 #endif
-
 			} break;
 			case Image::USED_CHANNELS_RGB: {
 				decompress_format = BASIS_DECOMPRESS_RGB;
@@ -145,22 +140,22 @@ static PoolVector<uint8_t> basis_universal_packer(const Ref<Image> &p_image, Ima
 		budata.resize(buvec.size() + 4);
 
 		{
-			PoolVector<uint8_t>::Write w = budata.write();
-			uint32_t *decf = (uint32_t *)w.ptr();
+			uint8_t *w = budata.ptrw();
+			uint32_t *decf = (uint32_t *)w;
 			*decf = decompress_format;
-			memcpy(w.ptr() + 4, &buvec[0], buvec.size());
+			memcpy(w + 4, &buvec[0], buvec.size());
 		}
 	}
 
-#endif
 	return budata;
 }
+#endif // TOOLS_ENABLED
 
-static Ref<Image> basis_universal_unpacker(const PoolVector<uint8_t> &p_buffer) {
+static Ref<Image> basis_universal_unpacker(const Vector<uint8_t> &p_buffer) {
 	Ref<Image> image;
 
-	PoolVector<uint8_t>::Read r = p_buffer.read();
-	const uint8_t *ptr = r.ptr();
+	const uint8_t *r = p_buffer.ptr();
+	const uint8_t *ptr = r;
 	int size = p_buffer.size();
 
 	basist::transcoder_texture_format format;
@@ -170,13 +165,13 @@ static Ref<Image> basis_universal_unpacker(const PoolVector<uint8_t> &p_buffer) 
 		case BASIS_DECOMPRESS_RG: {
 
 			if (VS::get_singleton()->has_os_feature("rgtc")) {
-				format = basist::cTFBC5; // get this from renderer
+				format = basist::transcoder_texture_format::cTFBC5; // get this from renderer
 				imgfmt = Image::FORMAT_RGTC_RG;
 			} else if (VS::get_singleton()->has_os_feature("etc2")) {
 				//unfortunately, basis universal does not support
 				//
 				ERR_FAIL_V(image); //unimplemented here
-				//format = basist::cTFETC1; // get this from renderer
+				//format = basist::transcoder_texture_format::cTFETC1; // get this from renderer
 				//imgfmt = Image::FORMAT_RGTC_RG;
 			} else {
 				//decompress
@@ -184,47 +179,47 @@ static Ref<Image> basis_universal_unpacker(const PoolVector<uint8_t> &p_buffer) 
 		} break;
 		case BASIS_DECOMPRESS_RGB: {
 			if (VS::get_singleton()->has_os_feature("bptc")) {
-				format = basist::cTFBC7_M6_OPAQUE_ONLY; // get this from renderer
+				format = basist::transcoder_texture_format::cTFBC7_M6_OPAQUE_ONLY; // get this from renderer
 				imgfmt = Image::FORMAT_BPTC_RGBA;
 			} else if (VS::get_singleton()->has_os_feature("s3tc")) {
-				format = basist::cTFBC1; // get this from renderer
+				format = basist::transcoder_texture_format::cTFBC1; // get this from renderer
 				imgfmt = Image::FORMAT_DXT1;
 			} else if (VS::get_singleton()->has_os_feature("etc")) {
 
-				format = basist::cTFETC1; // get this from renderer
+				format = basist::transcoder_texture_format::cTFETC1; // get this from renderer
 				imgfmt = Image::FORMAT_ETC;
 			} else {
-				format = basist::cTFBGR565; // get this from renderer
+				format = basist::transcoder_texture_format::cTFBGR565; // get this from renderer
 				imgfmt = Image::FORMAT_RGB565;
 			}
 
 		} break;
 		case BASIS_DECOMPRESS_RGBA: {
 			if (VS::get_singleton()->has_os_feature("bptc")) {
-				format = basist::cTFBC7_M5; // get this from renderer
+				format = basist::transcoder_texture_format::cTFBC7_M5; // get this from renderer
 				imgfmt = Image::FORMAT_BPTC_RGBA;
 			} else if (VS::get_singleton()->has_os_feature("s3tc")) {
-				format = basist::cTFBC3; // get this from renderer
+				format = basist::transcoder_texture_format::cTFBC3; // get this from renderer
 				imgfmt = Image::FORMAT_DXT5;
 			} else if (VS::get_singleton()->has_os_feature("etc2")) {
-				format = basist::cTFETC2; // get this from renderer
+				format = basist::transcoder_texture_format::cTFETC2; // get this from renderer
 				imgfmt = Image::FORMAT_ETC2_RGBA8;
 			} else {
 				//gles2 most likely
-				format = basist::cTFRGBA4444; // get this from renderer
+				format = basist::transcoder_texture_format::cTFRGBA4444; // get this from renderer
 				imgfmt = Image::FORMAT_RGBA4444;
 			}
 		} break;
 		case BASIS_DECOMPRESS_RG_AS_RA: {
 			if (VS::get_singleton()->has_os_feature("s3tc")) {
-				format = basist::cTFBC3; // get this from renderer
+				format = basist::transcoder_texture_format::cTFBC3; // get this from renderer
 				imgfmt = Image::FORMAT_DXT5_RA_AS_RG;
 			} else if (VS::get_singleton()->has_os_feature("etc2")) {
-				format = basist::cTFETC2; // get this from renderer
+				format = basist::transcoder_texture_format::cTFETC2; // get this from renderer
 				imgfmt = Image::FORMAT_ETC2_RGBA8;
 			} else {
 				//gles2 most likely, bad for normalmaps, nothing to do about this.
-				format = basist::cTFRGBA32;
+				format = basist::transcoder_texture_format::cTFRGBA32;
 				imgfmt = Image::FORMAT_RGBA8;
 			}
 		} break;
@@ -241,12 +236,12 @@ static Ref<Image> basis_universal_unpacker(const PoolVector<uint8_t> &p_buffer) 
 	tr.get_image_info(ptr, size, info, 0);
 
 	int block_size = basist::basis_get_bytes_per_block(format);
-	PoolVector<uint8_t> gpudata;
+	Vector<uint8_t> gpudata;
 	gpudata.resize(info.m_total_blocks * block_size);
 
 	{
-		PoolVector<uint8_t>::Write w = gpudata.write();
-		uint8_t *dst = w.ptr();
+		uint8_t *w = gpudata.ptrw();
+		uint8_t *dst = w;
 		for (int i = 0; i < gpudata.size(); i++)
 			dst[i] = 0x00;
 
@@ -286,7 +281,7 @@ void unregister_basis_universal_types() {
 
 #ifdef TOOLS_ENABLED
 	delete sel_codebook;
-#endif
 	Image::basis_universal_packer = NULL;
+#endif
 	Image::basis_universal_unpacker = NULL;
 }

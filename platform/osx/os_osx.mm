@@ -1628,8 +1628,6 @@ Error OS_OSX::initialize(const VideoMode &p_desired, int p_video_driver, int p_a
 	input = memnew(InputDefault);
 	joypad_osx = memnew(JoypadOSX);
 
-	power_manager = memnew(PowerOSX);
-
 	_ensure_user_data_dir();
 
 	restore_rect = Rect2(get_window_position(), get_window_size());
@@ -1894,10 +1892,6 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 		uint8_t *pixels = [imgrep bitmapData];
 
 		int len = int(texture_size.width * texture_size.height);
-		PoolVector<uint8_t> data = image->get_data();
-		PoolVector<uint8_t>::Read r = data.read();
-
-		image->lock();
 
 		for (int i = 0; i < len; i++) {
 			int row_index = floor(i / texture_size.width) + atlas_rect.position.y;
@@ -1916,8 +1910,6 @@ void OS_OSX::set_custom_mouse_cursor(const RES &p_cursor, CursorShape p_shape, c
 			pixels[i * 4 + 2] = ((color)&0xFF) * alpha / 255;
 			pixels[i * 4 + 3] = alpha;
 		}
-
-		image->unlock();
 
 		NSImage *nsimage = [[NSImage alloc] initWithSize:NSMakeSize(texture_size.width, texture_size.height)];
 		[nsimage addRepresentation:imgrep];
@@ -2053,8 +2045,7 @@ void OS_OSX::set_icon(const Ref<Image> &p_icon) {
 	uint8_t *pixels = [imgrep bitmapData];
 
 	int len = img->get_width() * img->get_height();
-	PoolVector<uint8_t> data = img->get_data();
-	PoolVector<uint8_t>::Read r = data.read();
+	const uint8_t *r = img->get_data().ptr();
 
 	/* Premultiply the alpha channel */
 	for (int i = 0; i < len; i++) {
@@ -2971,18 +2962,6 @@ OS::MouseMode OS_OSX::get_mouse_mode() const {
 
 String OS_OSX::get_joy_guid(int p_device) const {
 	return input->get_joy_guid_remapped(p_device);
-}
-
-OS::PowerState OS_OSX::get_power_state() {
-	return power_manager->get_power_state();
-}
-
-int OS_OSX::get_power_seconds_left() {
-	return power_manager->get_power_seconds_left();
-}
-
-int OS_OSX::get_power_percent_left() {
-	return power_manager->get_power_percent_left();
 }
 
 Error OS_OSX::move_to_trash(const String &p_path) {

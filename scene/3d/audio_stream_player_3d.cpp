@@ -45,12 +45,12 @@ private:
 		mutable real_t squared_gain; // temporary
 	};
 
-	PoolVector<Speaker> speakers;
+	Vector<Speaker> speakers;
 
 public:
 	Spcap(unsigned int speaker_count, const Vector3 *speaker_directions) {
 		this->speakers.resize(speaker_count);
-		PoolVector<Speaker>::Write w = this->speakers.write();
+		Speaker *w = this->speakers.ptrw();
 		for (unsigned int speaker_num = 0; speaker_num < speaker_count; speaker_num++) {
 			w[speaker_num].direction = speaker_directions[speaker_num];
 			w[speaker_num].squared_gain = 0.0;
@@ -66,11 +66,11 @@ public:
 	}
 
 	Vector3 get_speaker_direction(unsigned int index) const {
-		return this->speakers.read()[index].direction;
+		return this->speakers.ptr()[index].direction;
 	}
 
 	void calculate(const Vector3 &source_direction, real_t tightness, unsigned int volume_count, real_t *volumes) const {
-		PoolVector<Speaker>::Read r = this->speakers.read();
+		const Speaker *r = this->speakers.ptr();
 		real_t sum_squared_gains = 0.0;
 		for (unsigned int speaker_num = 0; speaker_num < (unsigned int)this->speakers.size(); speaker_num++) {
 			real_t initial_gain = 0.5 * powf(1.0 + r[speaker_num].direction.dot(source_direction), tightness) / r[speaker_num].effective_number_of_speakers;
@@ -1007,7 +1007,7 @@ void AudioStreamPlayer3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "unit_db", PROPERTY_HINT_RANGE, "-80,80"), "set_unit_db", "get_unit_db");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "unit_size", PROPERTY_HINT_RANGE, "0.1,100,0.1"), "set_unit_size", "get_unit_size");
 	ADD_PROPERTY(PropertyInfo(Variant::REAL, "max_db", PROPERTY_HINT_RANGE, "-24,6"), "set_max_db", "get_max_db");
-	ADD_PROPERTY(PropertyInfo(Variant::REAL, "pitch_scale", PROPERTY_HINT_RANGE, "0.01,32,0.01"), "set_pitch_scale", "get_pitch_scale");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "pitch_scale", PROPERTY_HINT_RANGE, "0.01,4,0.01,or_greater"), "set_pitch_scale", "get_pitch_scale");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "playing", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR), "_set_playing", "is_playing");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "autoplay"), "set_autoplay", "is_autoplay_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "stream_paused", PROPERTY_HINT_NONE, ""), "set_stream_paused", "get_stream_paused");
@@ -1068,7 +1068,7 @@ AudioStreamPlayer3D::AudioStreamPlayer3D() {
 	stream_paused_fade_out = false;
 
 	velocity_tracker.instance();
-	AudioServer::get_singleton()->connect("bus_layout_changed", this, "_bus_layout_changed");
+	AudioServer::get_singleton()->connect_compat("bus_layout_changed", this, "_bus_layout_changed");
 	set_disable_scale(true);
 }
 AudioStreamPlayer3D::~AudioStreamPlayer3D() {

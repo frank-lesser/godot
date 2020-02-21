@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  power_windows.h                                                      */
+/*  dtls_server_mbedtls.h                                                */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,31 +28,31 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef POWER_WINDOWS_H
-#define POWER_WINDOWS_H
+#ifndef MBED_DTLS_SERVER_H
+#define MBED_DTLS_SERVER_H
 
-#include "core/os/dir_access.h"
-#include "core/os/file_access.h"
-#include "core/os/os.h"
+#include "core/io/dtls_server.h"
+#include "ssl_context_mbedtls.h"
 
-#include <windows.h>
-
-class PowerWindows {
+class DTLSServerMbedTLS : public DTLSServer {
 
 private:
-	int nsecs_left;
-	int percent_left;
-	OS::PowerState power_state;
-
-	bool GetPowerInfo_Windows();
+	static DTLSServer *_create_func();
+	Ref<CryptoKey> _key;
+	Ref<X509Certificate> _cert;
+	Ref<X509Certificate> _ca_chain;
+	Ref<CookieContextMbedTLS> _cookies;
 
 public:
-	PowerWindows();
-	virtual ~PowerWindows();
+	static void initialize();
+	static void finalize();
 
-	OS::PowerState get_power_state();
-	int get_power_seconds_left();
-	int get_power_percent_left();
+	virtual Error setup(Ref<CryptoKey> p_key, Ref<X509Certificate> p_cert, Ref<X509Certificate> p_ca_chain = Ref<X509Certificate>());
+	virtual void stop();
+	virtual Ref<PacketPeerDTLS> take_connection(Ref<PacketPeerUDP> p_peer);
+
+	DTLSServerMbedTLS();
+	~DTLSServerMbedTLS();
 };
 
-#endif // POWER_WINDOWS_H
+#endif // MBED_DTLS_SERVER_H

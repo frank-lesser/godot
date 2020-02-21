@@ -1208,49 +1208,59 @@ void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
 
 	if (k.is_valid()) {
 		if (k->is_pressed() && !k->get_alt() && !k->get_shift()) {
-			bool handled = true;
+			bool handled = false;
 			switch (k->get_scancode()) {
 				case KEY_PAGEUP: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() - vscroll->get_page());
+						handled = true;
+					}
 				} break;
 				case KEY_PAGEDOWN: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() + vscroll->get_page());
+						handled = true;
+					}
 				} break;
 				case KEY_UP: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() - get_font("normal_font")->get_height());
+						handled = true;
+					}
 				} break;
 				case KEY_DOWN: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_value() + get_font("normal_font")->get_height());
+						handled = true;
+					}
 				} break;
 				case KEY_HOME: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(0);
+						handled = true;
+					}
 				} break;
 				case KEY_END: {
 
-					if (vscroll->is_visible_in_tree())
+					if (vscroll->is_visible_in_tree()) {
 						vscroll->set_value(vscroll->get_max());
+						handled = true;
+					}
 				} break;
 				case KEY_INSERT:
 				case KEY_C: {
 
 					if (k->get_command()) {
 						selection_copy();
-					} else {
-						handled = false;
+						handled = true;
 					}
 
 				} break;
-				default: handled = false;
 			}
 
 			if (handled)
@@ -2664,7 +2674,7 @@ void RichTextLabel::set_effects(const Vector<Variant> &effects) {
 Vector<Variant> RichTextLabel::get_effects() {
 	Vector<Variant> r;
 	for (int i = 0; i < custom_effects.size(); i++) {
-		r.push_back(custom_effects[i].get_ref_ptr());
+		r.push_back(custom_effects[i]);
 	}
 	return r;
 }
@@ -2953,7 +2963,7 @@ RichTextLabel::RichTextLabel() {
 	vscroll->set_anchor_and_margin(MARGIN_TOP, ANCHOR_BEGIN, 0);
 	vscroll->set_anchor_and_margin(MARGIN_BOTTOM, ANCHOR_END, 0);
 	vscroll->set_anchor_and_margin(MARGIN_RIGHT, ANCHOR_END, 0);
-	vscroll->connect("value_changed", this, "_scroll_changed");
+	vscroll->connect_compat("value_changed", this, "_scroll_changed");
 	vscroll->set_step(1);
 	vscroll->hide();
 	current_idx = 1;

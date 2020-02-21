@@ -506,7 +506,7 @@ Object *EditorData::instance_custom_type(const String &p_type, const String &p_i
 				if (ob->is_class("Node")) {
 					ob->call("set_name", p_type);
 				}
-				ob->set_script(script.get_ref_ptr());
+				ob->set_script(script);
 				return ob;
 			}
 		}
@@ -907,7 +907,7 @@ Object *EditorData::script_class_instance(const String &p_class) {
 		if (obj) {
 			Ref<Script> script = script_class_load_script(p_class);
 			if (script.is_valid())
-				obj->set_script(script.get_ref_ptr());
+				obj->set_script(script);
 			return obj;
 		}
 	}
@@ -1024,7 +1024,7 @@ void EditorSelection::add_node(Node *p_node) {
 	}
 	selection[p_node] = meta;
 
-	p_node->connect("tree_exiting", this, "_node_removed", varray(p_node), CONNECT_ONESHOT);
+	p_node->connect_compat("tree_exiting", this, "_node_removed", varray(p_node), CONNECT_ONESHOT);
 
 	//emit_signal("selection_changed");
 }
@@ -1042,7 +1042,7 @@ void EditorSelection::remove_node(Node *p_node) {
 	if (meta)
 		memdelete(meta);
 	selection.erase(p_node);
-	p_node->disconnect("tree_exiting", this, "_node_removed");
+	p_node->disconnect_compat("tree_exiting", this, "_node_removed");
 	//emit_signal("selection_changed");
 }
 bool EditorSelection::is_selected(Node *p_node) const {

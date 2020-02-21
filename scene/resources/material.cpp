@@ -197,7 +197,7 @@ void ShaderMaterial::set_shader(const Ref<Shader> &p_shader) {
 	// This can be a slow operation, and `_change_notify()` (which is called by `_shader_changed()`)
 	// does nothing in non-editor builds anyway. See GH-34741 for details.
 	if (shader.is_valid() && Engine::get_singleton()->is_editor_hint()) {
-		shader->disconnect("changed", this, "_shader_changed");
+		shader->disconnect_compat("changed", this, "_shader_changed");
 	}
 
 	shader = p_shader;
@@ -207,7 +207,7 @@ void ShaderMaterial::set_shader(const Ref<Shader> &p_shader) {
 		rid = shader->get_rid();
 
 		if (Engine::get_singleton()->is_editor_hint()) {
-			shader->connect("changed", this, "_shader_changed");
+			shader->connect_compat("changed", this, "_shader_changed");
 		}
 	}
 
@@ -419,10 +419,11 @@ void BaseMaterial3D::_update_shader() {
 	switch (texture_filter) {
 		case TEXTURE_FILTER_NEAREST: texfilter_str = "filter_nearest"; break;
 		case TEXTURE_FILTER_LINEAR: texfilter_str = "filter_linear"; break;
-		case TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS: texfilter_str = "filter_nearest_mipmap"; break;
+		case TEXTURE_FILTER_NEAREST_WITH_MIPMAPS: texfilter_str = "filter_nearest_mipmap"; break;
 		case TEXTURE_FILTER_LINEAR_WITH_MIPMAPS: texfilter_str = "filter_linear_mipmap"; break;
-		case TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC: texfilter_str = "filter_nearest_mipmap_aniso"; break;
+		case TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC: texfilter_str = "filter_nearest_mipmap_aniso"; break;
 		case TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC: texfilter_str = "filter_linear_mipmap_aniso"; break;
+		case TEXTURE_FILTER_MAX: break; // Internal value, skip.
 	}
 
 	if (flags[FLAG_USE_TEXTURE_REPEAT]) {
@@ -2396,9 +2397,9 @@ void BaseMaterial3D::_bind_methods() {
 
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_LINEAR);
-	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS);
+	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIPMAPS);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_LINEAR_WITH_MIPMAPS);
-	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIMPAMPS_ANISOTROPIC);
+	BIND_ENUM_CONSTANT(TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC);
 	BIND_ENUM_CONSTANT(TEXTURE_FILTER_MAX);
 
@@ -2598,8 +2599,9 @@ BaseMaterial3D::~BaseMaterial3D() {
 }
 
 //////////////////////
-#ifndef DISABLE_DEPRECATED
 
+#ifndef DISABLE_DEPRECATED
+// Kept for compatibility from 3.x to 4.0.
 bool StandardMaterial3D::_set(const StringName &p_name, const Variant &p_value) {
 	if (p_name == "flags_transparent") {
 		bool transparent = p_value;
@@ -2686,5 +2688,4 @@ bool StandardMaterial3D::_set(const StringName &p_name, const Variant &p_value) 
 
 	return false;
 }
-
-#endif
+#endif // DISABLE_DEPRECATED

@@ -80,8 +80,8 @@ void CPUParticlesEditor::edit(CPUParticles *p_particles) {
 void CPUParticlesEditor::_generate_emission_points() {
 
 	/// hacer codigo aca
-	PoolVector<Vector3> points;
-	PoolVector<Vector3> normals;
+	Vector<Vector3> points;
+	Vector<Vector3> normals;
 
 	if (!_generate(points, normals)) {
 		return;
@@ -116,7 +116,7 @@ CPUParticlesEditor::CPUParticlesEditor() {
 	options->get_popup()->add_item(TTR("Create Emission Points From Node"), MENU_OPTION_CREATE_EMISSION_VOLUME_FROM_NODE);
 	options->get_popup()->add_separator();
 	options->get_popup()->add_item(TTR("Restart"), MENU_OPTION_RESTART);
-	options->get_popup()->connect("id_pressed", this, "_menu_option");
+	options->get_popup()->connect_compat("id_pressed", this, "_menu_option");
 }
 
 void CPUParticlesEditorPlugin::edit(Object *p_object) {
