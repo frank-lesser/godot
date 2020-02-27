@@ -346,7 +346,7 @@ static Color _color_from_type(Variant::Type p_type, bool dark_theme = true) {
 
 			case Variant::BOOL: color = Color(0.55, 0.65, 0.94); break;
 			case Variant::INT: color = Color(0.49, 0.78, 0.94); break;
-			case Variant::REAL: color = Color(0.38, 0.85, 0.96); break;
+			case Variant::FLOAT: color = Color(0.38, 0.85, 0.96); break;
 			case Variant::STRING: color = Color(0.42, 0.65, 0.93); break;
 
 			case Variant::VECTOR2: color = Color(0.74, 0.57, 0.95); break;
@@ -367,8 +367,10 @@ static Color _color_from_type(Variant::Type p_type, bool dark_theme = true) {
 
 			case Variant::ARRAY: color = Color(0.88, 0.88, 0.88); break;
 			case Variant::PACKED_BYTE_ARRAY: color = Color(0.67, 0.96, 0.78); break;
-			case Variant::PACKED_INT_ARRAY: color = Color(0.69, 0.86, 0.96); break;
-			case Variant::PACKED_REAL_ARRAY: color = Color(0.59, 0.91, 0.97); break;
+			case Variant::PACKED_INT32_ARRAY: color = Color(0.69, 0.86, 0.96); break;
+			case Variant::PACKED_FLOAT32_ARRAY: color = Color(0.59, 0.91, 0.97); break;
+			case Variant::PACKED_INT64_ARRAY: color = Color(0.69, 0.86, 0.96); break;
+			case Variant::PACKED_FLOAT64_ARRAY: color = Color(0.59, 0.91, 0.97); break;
 			case Variant::PACKED_STRING_ARRAY: color = Color(0.62, 0.77, 0.95); break;
 			case Variant::PACKED_VECTOR2_ARRAY: color = Color(0.82, 0.7, 0.96); break;
 			case Variant::PACKED_VECTOR3_ARRAY: color = Color(0.87, 0.61, 0.95); break;
@@ -383,7 +385,7 @@ static Color _color_from_type(Variant::Type p_type, bool dark_theme = true) {
 
 			case Variant::BOOL: color = Color(0.43, 0.56, 0.92); break;
 			case Variant::INT: color = Color(0.31, 0.7, 0.91); break;
-			case Variant::REAL: color = Color(0.15, 0.8, 0.94); break;
+			case Variant::FLOAT: color = Color(0.15, 0.8, 0.94); break;
 			case Variant::STRING: color = Color(0.27, 0.56, 0.91); break;
 
 			case Variant::VECTOR2: color = Color(0.68, 0.46, 0.93); break;
@@ -404,8 +406,10 @@ static Color _color_from_type(Variant::Type p_type, bool dark_theme = true) {
 
 			case Variant::ARRAY: color = Color(0.45, 0.45, 0.45); break;
 			case Variant::PACKED_BYTE_ARRAY: color = Color(0.38, 0.92, 0.6); break;
-			case Variant::PACKED_INT_ARRAY: color = Color(0.38, 0.73, 0.92); break;
-			case Variant::PACKED_REAL_ARRAY: color = Color(0.25, 0.83, 0.95); break;
+			case Variant::PACKED_INT32_ARRAY: color = Color(0.38, 0.73, 0.92); break;
+			case Variant::PACKED_FLOAT32_ARRAY: color = Color(0.25, 0.83, 0.95); break;
+			case Variant::PACKED_INT64_ARRAY: color = Color(0.38, 0.73, 0.92); break;
+			case Variant::PACKED_FLOAT64_ARRAY: color = Color(0.25, 0.83, 0.95); break;
 			case Variant::PACKED_STRING_ARRAY: color = Color(0.38, 0.62, 0.92); break;
 			case Variant::PACKED_VECTOR2_ARRAY: color = Color(0.62, 0.36, 0.92); break;
 			case Variant::PACKED_VECTOR3_ARRAY: color = Color(0.79, 0.35, 0.92); break;
@@ -521,8 +525,8 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 		Control::get_icon("Dictionary", "EditorIcons"),
 		Control::get_icon("Array", "EditorIcons"),
 		Control::get_icon("PackedByteArray", "EditorIcons"),
-		Control::get_icon("PackedIntArray", "EditorIcons"),
-		Control::get_icon("PackedRealArray", "EditorIcons"),
+		Control::get_icon("PackedInt32Array", "EditorIcons"),
+		Control::get_icon("PackedFloat32Array", "EditorIcons"),
 		Control::get_icon("PackedStringArray", "EditorIcons"),
 		Control::get_icon("PackedVector2Array", "EditorIcons"),
 		Control::get_icon("PackedVector3Array", "EditorIcons"),
@@ -619,16 +623,24 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 					sbf = EditorNode::get_singleton()->get_theme_base()->get_theme()->get_stylebox("comment", "GraphNode");
 
 				Color c = sbf->get_border_color();
+				Color ic = c;
 				c.a = 1;
 				if (EditorSettings::get_singleton()->get("interface/theme/use_graph_node_headers")) {
-					Color mono_color = ((c.r + c.g + c.b) / 3) < 0.7 ? Color(1.0, 1.0, 1.0) : Color(0.0, 0.0, 0.0);
+					Color mono_color;
+					if (((c.r + c.g + c.b) / 3) < 0.7) {
+						mono_color = Color(1.0, 1.0, 1.0);
+						ic = Color(0.0, 0.0, 0.0, 0.7);
+					} else {
+						mono_color = Color(0.0, 0.0, 0.0);
+						ic = Color(1.0, 1.0, 1.0, 0.7);
+					}
 					mono_color.a = 0.85;
 					c = mono_color;
 				}
 				gnode->add_color_override("title_color", c);
 				c.a = 0.7;
 				gnode->add_color_override("close_color", c);
-				gnode->add_color_override("resizer_color", c);
+				gnode->add_color_override("resizer_color", ic);
 				gnode->add_style_override("frame", sbf);
 			}
 
@@ -977,8 +989,8 @@ void VisualScriptEditor::_update_members() {
 		Control::get_icon("Dictionary", "EditorIcons"),
 		Control::get_icon("Array", "EditorIcons"),
 		Control::get_icon("PackedByteArray", "EditorIcons"),
-		Control::get_icon("PackedIntArray", "EditorIcons"),
-		Control::get_icon("PackedRealArray", "EditorIcons"),
+		Control::get_icon("PackedInt32Array", "EditorIcons"),
+		Control::get_icon("PackedFloat32Array", "EditorIcons"),
 		Control::get_icon("PackedStringArray", "EditorIcons"),
 		Control::get_icon("PackedVector2Array", "EditorIcons"),
 		Control::get_icon("PackedVector3Array", "EditorIcons"),
@@ -2910,8 +2922,8 @@ void VisualScriptEditor::_graph_connected(const String &p_from, int p_from_slot,
 		if (to_type != Variant::NIL && from_type != Variant::NIL && to_type != from_type) {
 			// add a constructor node between the ports
 			bool exceptions = false; // true if there are any exceptions
-			exceptions = exceptions || (to_type == Variant::INT && from_type == Variant::REAL);
-			exceptions = exceptions || (to_type == Variant::REAL && from_type == Variant::INT);
+			exceptions = exceptions || (to_type == Variant::INT && from_type == Variant::FLOAT);
+			exceptions = exceptions || (to_type == Variant::FLOAT && from_type == Variant::INT);
 			if (Variant::can_convert(from_type, to_type) && !exceptions) {
 				MethodInfo mi;
 				mi.name = Variant::get_type_name(to_type);
@@ -3906,7 +3918,7 @@ void VisualScriptEditor::_notification(int p_what) {
 		case NOTIFICATION_READY: {
 			variable_editor->connect_compat("changed", this, "_update_members");
 			signal_editor->connect_compat("changed", this, "_update_members");
-			FALLTHROUGH;
+			[[fallthrough]];
 		}
 		case NOTIFICATION_THEME_CHANGED: {
 			if (p_what != NOTIFICATION_READY && !is_visible_in_tree()) {

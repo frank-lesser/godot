@@ -76,6 +76,7 @@
 #include "scene/animation/root_motion_view.h"
 #include "scene/animation/tween.h"
 #include "scene/audio/audio_stream_player.h"
+#include "scene/debugger/scene_debugger.h"
 #include "scene/gui/box_container.h"
 #include "scene/gui/button.h"
 #include "scene/gui/center_container.h"
@@ -487,17 +488,20 @@ void register_scene_types() {
 	ClassDB::register_class<VisualShaderNodeInput>();
 	ClassDB::register_virtual_class<VisualShaderNodeOutput>();
 	ClassDB::register_class<VisualShaderNodeGroupBase>();
-	ClassDB::register_class<VisualShaderNodeScalarConstant>();
+	ClassDB::register_class<VisualShaderNodeFloatConstant>();
+	ClassDB::register_class<VisualShaderNodeIntConstant>();
 	ClassDB::register_class<VisualShaderNodeBooleanConstant>();
 	ClassDB::register_class<VisualShaderNodeColorConstant>();
 	ClassDB::register_class<VisualShaderNodeVec3Constant>();
 	ClassDB::register_class<VisualShaderNodeTransformConstant>();
-	ClassDB::register_class<VisualShaderNodeScalarOp>();
+	ClassDB::register_class<VisualShaderNodeFloatOp>();
+	ClassDB::register_class<VisualShaderNodeIntOp>();
 	ClassDB::register_class<VisualShaderNodeVectorOp>();
 	ClassDB::register_class<VisualShaderNodeColorOp>();
 	ClassDB::register_class<VisualShaderNodeTransformMult>();
 	ClassDB::register_class<VisualShaderNodeTransformVecMult>();
-	ClassDB::register_class<VisualShaderNodeScalarFunc>();
+	ClassDB::register_class<VisualShaderNodeFloatFunc>();
+	ClassDB::register_class<VisualShaderNodeIntFunc>();
 	ClassDB::register_class<VisualShaderNodeVectorFunc>();
 	ClassDB::register_class<VisualShaderNodeColorFunc>();
 	ClassDB::register_class<VisualShaderNodeTransformFunc>();
@@ -526,7 +530,8 @@ void register_scene_types() {
 	ClassDB::register_class<VisualShaderNodeTexture>();
 	ClassDB::register_class<VisualShaderNodeCubemap>();
 	ClassDB::register_virtual_class<VisualShaderNodeUniform>();
-	ClassDB::register_class<VisualShaderNodeScalarUniform>();
+	ClassDB::register_class<VisualShaderNodeFloatUniform>();
+	ClassDB::register_class<VisualShaderNodeIntUniform>();
 	ClassDB::register_class<VisualShaderNodeBooleanUniform>();
 	ClassDB::register_class<VisualShaderNodeColorUniform>();
 	ClassDB::register_class<VisualShaderNodeVec3Uniform>();
@@ -737,6 +742,10 @@ void register_scene_types() {
 	ClassDB::add_compatibility_class("SpatialMaterial", "StandardMaterial3D");
 	ClassDB::add_compatibility_class("Mesh", "ArrayMesh");
 	ClassDB::add_compatibility_class("AnimationTreePlayer", "AnimationTree");
+	ClassDB::add_compatibility_class("VisualShaderNodeScalarConstant", "VisualShaderNodeFloatConstant");
+	ClassDB::add_compatibility_class("VisualShaderNodeScalarUniform", "VisualShaderNodeFloatUniform");
+	ClassDB::add_compatibility_class("VisualShaderNodeScalarOp", "VisualShaderNodeFloatOp");
+	ClassDB::add_compatibility_class("VisualShaderNodeScalarFunc", "VisualShaderNodeFloatFunc");
 #endif
 
 	OS::get_singleton()->yield(); //may take time to init
@@ -777,10 +786,12 @@ void register_scene_types() {
 			ERR_PRINT("Error loading custom theme '" + theme_path + "'");
 		}
 	}
+	SceneDebugger::initialize();
 }
 
 void unregister_scene_types() {
 
+	SceneDebugger::deinitialize();
 	clear_default_theme();
 
 	ResourceLoader::remove_resource_format_loader(resource_loader_dynamic_font);

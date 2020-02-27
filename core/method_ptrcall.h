@@ -125,6 +125,7 @@ MAKE_PTRARG_BY_REFERENCE(AABB);
 MAKE_PTRARG_BY_REFERENCE(Basis);
 MAKE_PTRARG_BY_REFERENCE(Transform);
 MAKE_PTRARG_BY_REFERENCE(Color);
+MAKE_PTRARG(StringName);
 MAKE_PTRARG(NodePath);
 MAKE_PTRARG(RID);
 MAKE_PTRARG(Dictionary);
@@ -132,8 +133,10 @@ MAKE_PTRARG(Callable);
 MAKE_PTRARG(Signal);
 MAKE_PTRARG(Array);
 MAKE_PTRARG(PackedByteArray);
-MAKE_PTRARG(PackedIntArray);
-MAKE_PTRARG(PackedRealArray);
+MAKE_PTRARG(PackedInt32Array);
+MAKE_PTRARG(PackedInt64Array);
+MAKE_PTRARG(PackedFloat32Array);
+MAKE_PTRARG(PackedFloat64Array);
 MAKE_PTRARG(PackedStringArray);
 MAKE_PTRARG(PackedVector2Array);
 MAKE_PTRARG(PackedVector3Array);
@@ -373,29 +376,7 @@ MAKE_VECARR(Plane);
 		}                                                                      \
 	}
 
-//MAKE_DVECARR(Plane);
-//for special case StringName
-
-#define MAKE_STRINGCONV(m_type)                                        \
-	template <>                                                        \
-	struct PtrToArg<m_type> {                                          \
-		_FORCE_INLINE_ static m_type convert(const void *p_ptr) {      \
-			m_type s = *reinterpret_cast<const String *>(p_ptr);       \
-			return s;                                                  \
-		}                                                              \
-		_FORCE_INLINE_ static void encode(m_type p_vec, void *p_ptr) { \
-			String *arr = reinterpret_cast<String *>(p_ptr);           \
-			*arr = p_vec;                                              \
-		}                                                              \
-	};                                                                 \
-                                                                       \
-	template <>                                                        \
-	struct PtrToArg<const m_type &> {                                  \
-		_FORCE_INLINE_ static m_type convert(const void *p_ptr) {      \
-			m_type s = *reinterpret_cast<const String *>(p_ptr);       \
-			return s;                                                  \
-		}                                                              \
-	}
+// Special case for IP_Address.
 
 #define MAKE_STRINGCONV_BY_REFERENCE(m_type)                                  \
 	template <>                                                               \
@@ -418,7 +399,6 @@ MAKE_VECARR(Plane);
 		}                                                                     \
 	}
 
-MAKE_STRINGCONV(StringName);
 MAKE_STRINGCONV_BY_REFERENCE(IP_Address);
 
 template <>

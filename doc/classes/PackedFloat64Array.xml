@@ -1,25 +1,28 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="PackedRealArray" version="4.0">
+<class name="PackedFloat64Array" version="4.0">
 	<brief_description>
-		A packed [Array] of reals ([float]).
+		A packed [Array] of 64-bit floating-point values.
 	</brief_description>
 	<description>
-		An [Array] specifically designed to hold floating-point values ([float]). Packs data tightly, so it saves memory for large array sizes.
+		An [Array] specifically designed to hold 64-bit floating-point values. Packs data tightly, so it saves memory for large array sizes.
 		[b]Note:[/b] This type is passed by value and not by reference.
+		If you only need to pack 32-bit floats tightly, see [PackedFloat32Array] for a more memory-friendly alternative.
 	</description>
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="PackedRealArray">
-			<return type="PackedRealArray">
+		<method name="PackedFloat64Array">
+			<return type="PackedFloat64Array">
 			</return>
 			<argument index="0" name="from" type="Array">
 			</argument>
 			<description>
-				Constructs a new [PackedRealArray]. Optionally, you can pass in a generic [Array] that will be converted.
+				Constructs a new [PackedFloat64Array]. Optionally, you can pass in a generic [Array] that will be converted.
 			</description>
 		</method>
 		<method name="append">
+			<return type="void">
+			</return>
 			<argument index="0" name="value" type="float">
 			</argument>
 			<description>
@@ -27,10 +30,12 @@
 			</description>
 		</method>
 		<method name="append_array">
-			<argument index="0" name="array" type="PackedRealArray">
+			<return type="void">
+			</return>
+			<argument index="0" name="array" type="PackedFloat64Array">
 			</argument>
 			<description>
-				Appends a [PackedRealArray] at the end of this array.
+				Appends a [PackedFloat64Array] at the end of this array.
 			</description>
 		</method>
 		<method name="empty">
@@ -52,11 +57,15 @@
 			</description>
 		</method>
 		<method name="invert">
+			<return type="void">
+			</return>
 			<description>
 				Reverses the order of the elements in the array.
 			</description>
 		</method>
 		<method name="push_back">
+			<return type="void">
+			</return>
 			<argument index="0" name="value" type="float">
 			</argument>
 			<description>
@@ -64,6 +73,8 @@
 			</description>
 		</method>
 		<method name="remove">
+			<return type="void">
+			</return>
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<description>
@@ -71,6 +82,8 @@
 			</description>
 		</method>
 		<method name="resize">
+			<return type="void">
+			</return>
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<description>
@@ -78,6 +91,8 @@
 			</description>
 		</method>
 		<method name="set">
+			<return type="void">
+			</return>
 			<argument index="0" name="idx" type="int">
 			</argument>
 			<argument index="1" name="value" type="float">

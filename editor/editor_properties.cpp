@@ -64,7 +64,11 @@ void EditorPropertyText::_text_changed(const String &p_string) {
 	if (updating)
 		return;
 
-	emit_changed(get_edited_property(), p_string, "", true);
+	if (string_name) {
+		emit_changed(get_edited_property(), StringName(p_string), "", true);
+	} else {
+		emit_changed(get_edited_property(), p_string, "", true);
+	}
 }
 
 void EditorPropertyText::update_property() {
@@ -75,6 +79,9 @@ void EditorPropertyText::update_property() {
 	updating = false;
 }
 
+void EditorPropertyText::set_string_name(bool p_enabled) {
+	string_name = p_enabled;
+}
 void EditorPropertyText::set_placeholder(const String &p_string) {
 	text->set_placeholder(p_string);
 }
@@ -92,6 +99,7 @@ EditorPropertyText::EditorPropertyText() {
 	text->connect_compat("text_changed", this, "_text_changed");
 	text->connect_compat("text_entered", this, "_text_entered");
 
+	string_name = false;
 	updating = false;
 }
 
@@ -172,7 +180,12 @@ EditorPropertyMultilineText::EditorPropertyMultilineText() {
 
 void EditorPropertyTextEnum::_option_selected(int p_which) {
 
-	emit_changed(get_edited_property(), options->get_item_text(p_which));
+	if (string_name) {
+
+		emit_changed(get_edited_property(), StringName(options->get_item_text(p_which)));
+	} else {
+		emit_changed(get_edited_property(), options->get_item_text(p_which));
+	}
 }
 
 void EditorPropertyTextEnum::update_property() {
@@ -187,10 +200,11 @@ void EditorPropertyTextEnum::update_property() {
 	}
 }
 
-void EditorPropertyTextEnum::setup(const Vector<String> &p_options) {
+void EditorPropertyTextEnum::setup(const Vector<String> &p_options, bool p_string_name) {
 	for (int i = 0; i < p_options.size(); i++) {
 		options->add_item(p_options[i], i);
 	}
+	string_name = p_string_name;
 }
 
 void EditorPropertyTextEnum::_bind_methods() {
@@ -202,6 +216,7 @@ EditorPropertyTextEnum::EditorPropertyTextEnum() {
 	options = memnew(OptionButton);
 	options->set_clip_text(true);
 	options->set_flat(true);
+	string_name = false;
 
 	add_child(options);
 	add_focusable(options);
@@ -3024,7 +3039,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 				add_property_editor(p_path, editor);
 			}
 		} break;
-		case Variant::REAL: {
+		case Variant::FLOAT: {
 
 			if (p_hint == PROPERTY_HINT_EXP_EASING) {
 				EditorPropertyEasing *editor = memnew(EditorPropertyEasing);
@@ -3158,7 +3173,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 			editor->setup(min, max, step, hide_slider);
 			add_property_editor(p_path, editor);
 
-		} break; // 5
+		} break;
 		case Variant::RECT2: {
 			EditorPropertyRect2 *editor = memnew(EditorPropertyRect2);
 			double min = -65535, max = 65535, step = default_float_step;
@@ -3245,7 +3260,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 
 			editor->setup(min, max, step, hide_slider);
 			add_property_editor(p_path, editor);
-		} break; // 10
+		} break;
 		case Variant::AABB: {
 			EditorPropertyAABB *editor = memnew(EditorPropertyAABB);
 			double min = -65535, max = 65535, step = default_float_step;
@@ -3305,6 +3320,22 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 			editor->setup(p_hint != PROPERTY_HINT_COLOR_NO_ALPHA);
 			add_property_editor(p_path, editor);
 		} break;
+		case Variant::STRING_NAME: {
+
+			if (p_hint == PROPERTY_HINT_ENUM) {
+				EditorPropertyTextEnum *editor = memnew(EditorPropertyTextEnum);
+				Vector<String> options = p_hint_text.split(",");
+				editor->setup(options, true);
+				add_property_editor(p_path, editor);
+			} else {
+				EditorPropertyText *editor = memnew(EditorPropertyText);
+				if (p_hint == PROPERTY_HINT_PLACEHOLDER_TEXT) {
+					editor->set_placeholder(p_hint_text);
+				}
+				editor->set_string_name(true);
+				add_property_editor(p_path, editor);
+			}
+		} break;
 		case Variant::NODE_PATH: {
 
 			EditorPropertyNodePath *editor = memnew(EditorPropertyNodePath);
@@ -3318,7 +3349,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 			}
 			add_property_editor(p_path, editor);
 
-		} break; // 15
+		} break;
 		case Variant::_RID: {
 			EditorPropertyRID *editor = memnew(EditorPropertyRID);
 			add_property_editor(p_path, editor);
@@ -3357,15 +3388,25 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 			EditorPropertyArray *editor = memnew(EditorPropertyArray);
 			editor->setup(Variant::PACKED_BYTE_ARRAY);
 			add_property_editor(p_path, editor);
-		} break; // 20
-		case Variant::PACKED_INT_ARRAY: {
+		} break;
+		case Variant::PACKED_INT32_ARRAY: {
 			EditorPropertyArray *editor = memnew(EditorPropertyArray);
-			editor->setup(Variant::PACKED_INT_ARRAY);
+			editor->setup(Variant::PACKED_INT32_ARRAY);
 			add_property_editor(p_path, editor);
 		} break;
-		case Variant::PACKED_REAL_ARRAY: {
+		case Variant::PACKED_INT64_ARRAY: {
 			EditorPropertyArray *editor = memnew(EditorPropertyArray);
-			editor->setup(Variant::PACKED_REAL_ARRAY);
+			editor->setup(Variant::PACKED_INT64_ARRAY);
+			add_property_editor(p_path, editor);
+		} break;
+		case Variant::PACKED_FLOAT32_ARRAY: {
+			EditorPropertyArray *editor = memnew(EditorPropertyArray);
+			editor->setup(Variant::PACKED_FLOAT32_ARRAY);
+			add_property_editor(p_path, editor);
+		} break;
+		case Variant::PACKED_FLOAT64_ARRAY: {
+			EditorPropertyArray *editor = memnew(EditorPropertyArray);
+			editor->setup(Variant::PACKED_FLOAT64_ARRAY);
 			add_property_editor(p_path, editor);
 		} break;
 		case Variant::PACKED_STRING_ARRAY: {
@@ -3382,7 +3423,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 			EditorPropertyArray *editor = memnew(EditorPropertyArray);
 			editor->setup(Variant::PACKED_VECTOR3_ARRAY);
 			add_property_editor(p_path, editor);
-		} break; // 25
+		} break;
 		case Variant::PACKED_COLOR_ARRAY: {
 			EditorPropertyArray *editor = memnew(EditorPropertyArray);
 			editor->setup(Variant::PACKED_COLOR_ARRAY);

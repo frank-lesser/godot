@@ -646,10 +646,10 @@ Variant Object::_call_bind(const Variant **p_args, int p_argcount, Callable::Cal
 		return Variant();
 	}
 
-	if (p_args[0]->get_type() != Variant::STRING) {
+	if (p_args[0]->get_type() != Variant::STRING_NAME && p_args[0]->get_type() != Variant::STRING) {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
-		r_error.expected = Variant::STRING;
+		r_error.expected = Variant::STRING_NAME;
 		return Variant();
 	}
 
@@ -666,10 +666,10 @@ Variant Object::_call_deferred_bind(const Variant **p_args, int p_argcount, Call
 		return Variant();
 	}
 
-	if (p_args[0]->get_type() != Variant::STRING) {
+	if (p_args[0]->get_type() != Variant::STRING_NAME && p_args[0]->get_type() != Variant::STRING) {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
-		r_error.expected = Variant::STRING;
+		r_error.expected = Variant::STRING_NAME;
 		return Variant();
 	}
 
@@ -1108,11 +1108,11 @@ Variant Object::_emit_signal(const Variant **p_args, int p_argcount, Callable::C
 	r_error.error = Callable::CallError::CALL_ERROR_TOO_FEW_ARGUMENTS;
 
 	ERR_FAIL_COND_V(p_argcount < 1, Variant());
-	if (p_args[0]->get_type() != Variant::STRING) {
+	if (p_args[0]->get_type() != Variant::STRING_NAME && p_args[0]->get_type() != Variant::STRING) {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
-		r_error.expected = Variant::STRING;
-		ERR_FAIL_COND_V(p_args[0]->get_type() != Variant::STRING, Variant());
+		r_error.expected = Variant::STRING_NAME;
+		ERR_FAIL_COND_V(p_args[0]->get_type() != Variant::STRING_NAME && p_args[0]->get_type() != Variant::STRING, Variant());
 	}
 
 	r_error.error = Callable::CallError::CALL_OK;
@@ -1207,7 +1207,7 @@ Error Object::emit_signal(const StringName &p_name, const Variant **p_args, int 
 				if (ce.error == Callable::CallError::CALL_ERROR_INVALID_METHOD && !ClassDB::class_exists(target->get_class_name())) {
 					//most likely object is not initialized yet, do not throw error.
 				} else {
-					ERR_PRINT("Error calling from signal '" + String(p_name) + "': " + Variant::get_callable_error_text(c.callable, args, argc, ce) + ".");
+					ERR_PRINT("Error calling from signal '" + String(p_name) + "' to callable: " + Variant::get_callable_error_text(c.callable, args, argc, ce) + ".");
 					err = ERR_METHOD_NOT_FOUND;
 				}
 			}
@@ -1405,6 +1405,9 @@ Error Object::connect(const StringName &p_signal, const Callable &p_callable, co
 
 	ERR_FAIL_COND_V(p_callable.is_null(), ERR_INVALID_PARAMETER);
 
+	Object *target_object = p_callable.get_object();
+	ERR_FAIL_COND_V(!target_object, ERR_INVALID_PARAMETER);
+
 	SignalData *s = signal_map.getptr(p_signal);
 	if (!s) {
 		bool signal_is_valid = ClassDB::has_signal(get_class_name(), p_signal);
@@ -1449,7 +1452,7 @@ Error Object::connect(const StringName &p_signal, const Callable &p_callable, co
 	conn.flags = p_flags;
 	conn.binds = p_binds;
 	slot.conn = conn;
-	slot.cE = p_callable.get_object()->connections.push_back(conn);
+	slot.cE = target_object->connections.push_back(conn);
 	if (p_flags & CONNECT_REFERENCE_COUNTED) {
 		slot.reference_count = 1;
 	}
@@ -1498,6 +1501,10 @@ void Object::disconnect(const StringName &p_signal, const Callable &p_callable) 
 void Object::_disconnect(const StringName &p_signal, const Callable &p_callable, bool p_force) {
 
 	ERR_FAIL_COND(p_callable.is_null());
+
+	Object *target_object = p_callable.get_object();
+	ERR_FAIL_COND(!target_object);
+
 	SignalData *s = signal_map.getptr(p_signal);
 	ERR_FAIL_COND_MSG(!s, vformat("Nonexistent signal '%s' in %s.", p_signal, to_string()));
 
@@ -1511,9 +1518,8 @@ void Object::_disconnect(const StringName &p_signal, const Callable &p_callable,
 			return;
 		}
 	}
-	Object *object = p_callable.get_object();
-	ERR_FAIL_COND(!object);
-	object->connections.erase(slot->cE);
+
+	target_object->connections.erase(slot->cE);
 	s->slot_map.erase(p_callable);
 
 	if (s->slot_map.empty() && ClassDB::has_signal(get_class_name(), p_signal)) {
@@ -1663,7 +1669,7 @@ void Object::_bind_methods() {
 	{
 		MethodInfo mi;
 		mi.name = "emit_signal";
-		mi.arguments.push_back(PropertyInfo(Variant::STRING, "signal"));
+		mi.arguments.push_back(PropertyInfo(Variant::STRING_NAME, "signal"));
 
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "emit_signal", &Object::_emit_signal, mi, varray(), false);
 	}
@@ -1671,7 +1677,7 @@ void Object::_bind_methods() {
 	{
 		MethodInfo mi;
 		mi.name = "call";
-		mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
+		mi.arguments.push_back(PropertyInfo(Variant::STRING_NAME, "method"));
 
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "call", &Object::_call_bind, mi);
 	}
@@ -1679,7 +1685,7 @@ void Object::_bind_methods() {
 	{
 		MethodInfo mi;
 		mi.name = "call_deferred";
-		mi.arguments.push_back(PropertyInfo(Variant::STRING, "method"));
+		mi.arguments.push_back(PropertyInfo(Variant::STRING_NAME, "method"));
 
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "call_deferred", &Object::_call_deferred_bind, mi, varray(), false);
 	}
@@ -1713,9 +1719,9 @@ void Object::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("script_changed"));
 
 	BIND_VMETHOD(MethodInfo("_notification", PropertyInfo(Variant::INT, "what")));
-	BIND_VMETHOD(MethodInfo(Variant::BOOL, "_set", PropertyInfo(Variant::STRING, "property"), PropertyInfo(Variant::NIL, "value")));
+	BIND_VMETHOD(MethodInfo(Variant::BOOL, "_set", PropertyInfo(Variant::STRING_NAME, "property"), PropertyInfo(Variant::NIL, "value")));
 #ifdef TOOLS_ENABLED
-	MethodInfo miget("_get", PropertyInfo(Variant::STRING, "property"));
+	MethodInfo miget("_get", PropertyInfo(Variant::STRING_NAME, "property"));
 	miget.return_val.name = "Variant";
 	miget.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
 	BIND_VMETHOD(miget);
