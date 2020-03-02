@@ -2564,9 +2564,9 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 		k = k->duplicate(); // It will be modified later on.
 
 #ifdef OSX_ENABLED
-		if (k->get_scancode() == KEY_META) {
+		if (k->get_keycode() == KEY_META) {
 #else
-		if (k->get_scancode() == KEY_CONTROL) {
+		if (k->get_keycode() == KEY_CONTROL) {
 
 #endif
 			if (select_identifiers_enabled) {
@@ -2597,7 +2597,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			if (valid) {
 
 				if (!k->get_alt()) {
-					if (k->get_scancode() == KEY_UP) {
+					if (k->get_keycode() == KEY_UP) {
 
 						if (completion_index > 0) {
 							completion_index--;
@@ -2611,7 +2611,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						return;
 					}
 
-					if (k->get_scancode() == KEY_DOWN) {
+					if (k->get_keycode() == KEY_DOWN) {
 
 						if (completion_index < completion_options.size() - 1) {
 							completion_index++;
@@ -2625,7 +2625,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						return;
 					}
 
-					if (k->get_scancode() == KEY_PAGEUP) {
+					if (k->get_keycode() == KEY_PAGEUP) {
 
 						completion_index -= get_constant("completion_lines");
 						if (completion_index < 0)
@@ -2636,7 +2636,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						return;
 					}
 
-					if (k->get_scancode() == KEY_PAGEDOWN) {
+					if (k->get_keycode() == KEY_PAGEDOWN) {
 
 						completion_index += get_constant("completion_lines");
 						if (completion_index >= completion_options.size())
@@ -2647,7 +2647,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						return;
 					}
 
-					if (k->get_scancode() == KEY_HOME && completion_index > 0) {
+					if (k->get_keycode() == KEY_HOME && completion_index > 0) {
 
 						completion_index = 0;
 						completion_current = completion_options[completion_index];
@@ -2656,7 +2656,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						return;
 					}
 
-					if (k->get_scancode() == KEY_END && completion_index < completion_options.size() - 1) {
+					if (k->get_keycode() == KEY_END && completion_index < completion_options.size() - 1) {
 
 						completion_index = completion_options.size() - 1;
 						completion_current = completion_options[completion_index];
@@ -2665,14 +2665,14 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						return;
 					}
 
-					if (k->get_scancode() == KEY_KP_ENTER || k->get_scancode() == KEY_ENTER || k->get_scancode() == KEY_TAB) {
+					if (k->get_keycode() == KEY_KP_ENTER || k->get_keycode() == KEY_ENTER || k->get_keycode() == KEY_TAB) {
 
 						_confirm_completion();
 						accept_event();
 						return;
 					}
 
-					if (k->get_scancode() == KEY_BACKSPACE) {
+					if (k->get_keycode() == KEY_BACKSPACE) {
 
 						_reset_caret_blink_timer();
 
@@ -2682,7 +2682,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 						return;
 					}
 
-					if (k->get_scancode() == KEY_SHIFT) {
+					if (k->get_keycode() == KEY_SHIFT) {
 						accept_event();
 						return;
 					}
@@ -2726,20 +2726,20 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 		/* TEST CONTROL FIRST! */
 
 		// Some remaps for duplicate functions.
-		if (k->get_command() && !k->get_shift() && !k->get_alt() && !k->get_metakey() && k->get_scancode() == KEY_INSERT) {
+		if (k->get_command() && !k->get_shift() && !k->get_alt() && !k->get_metakey() && k->get_keycode() == KEY_INSERT) {
 
-			k->set_scancode(KEY_C);
+			k->set_keycode(KEY_C);
 		}
-		if (!k->get_command() && k->get_shift() && !k->get_alt() && !k->get_metakey() && k->get_scancode() == KEY_INSERT) {
+		if (!k->get_command() && k->get_shift() && !k->get_alt() && !k->get_metakey() && k->get_keycode() == KEY_INSERT) {
 
-			k->set_scancode(KEY_V);
+			k->set_keycode(KEY_V);
 			k->set_command(true);
 			k->set_shift(false);
 		}
 #ifdef APPLE_STYLE_KEYS
 		if (k->get_control() && !k->get_shift() && !k->get_alt() && !k->get_command()) {
 			uint32_t remap_key = KEY_UNKNOWN;
-			switch (k->get_scancode()) {
+			switch (k->get_keycode()) {
 				case KEY_F: {
 					remap_key = KEY_RIGHT;
 				} break;
@@ -2761,7 +2761,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			}
 
 			if (remap_key != KEY_UNKNOWN) {
-				k->set_scancode(remap_key);
+				k->set_keycode(remap_key);
 				k->set_control(false);
 			}
 		}
@@ -2779,7 +2779,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			bool unselect = false;
 			bool dobreak = false;
 
-			switch (k->get_scancode()) {
+			switch (k->get_keycode()) {
 
 				case KEY_TAB: {
 					if (k->get_shift()) {
@@ -2853,11 +2853,11 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 		selection.selecting_text = false;
 
-		bool scancode_handled = true;
+		bool keycode_handled = true;
 
-		// Special scancode test.
+		// Special keycode test.
 
-		switch (k->get_scancode()) {
+		switch (k->get_keycode()) {
 
 			case KEY_KP_ENTER:
 			case KEY_ENTER: {
@@ -2979,7 +2979,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					completion_hint = "";
 					update();
 				} else {
-					scancode_handled = false;
+					keycode_handled = false;
 				}
 			} break;
 			case KEY_TAB: {
@@ -3052,7 +3052,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				if (k->get_alt() && cursor.column > 1) {
 #else
 				if (k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				} else if (k->get_command() && cursor.column > 1) {
 #endif
@@ -3109,7 +3109,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_4: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3145,7 +3145,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				} else if (k->get_alt()) {
 #else
 				if (k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				} else if (k->get_command()) {
 #endif
@@ -3185,7 +3185,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_6: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3207,7 +3207,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				} else if (k->get_alt()) {
 #else
 				if (k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				} else if (k->get_command()) {
 #endif
@@ -3246,7 +3246,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_8: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3254,7 +3254,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			case KEY_UP: {
 
 				if (k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 #ifndef APPLE_STYLE_KEYS
@@ -3299,7 +3299,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_2: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3307,7 +3307,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			case KEY_DOWN: {
 
 				if (k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 #ifndef APPLE_STYLE_KEYS
@@ -3367,7 +3367,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				if (k->get_alt() && cursor.column < curline_len - 1) {
 #else
 				if (k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				} else if (k->get_command() && cursor.column < curline_len - 1) {
 #endif
@@ -3422,7 +3422,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_7: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3483,7 +3483,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_1: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3530,7 +3530,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_9: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3553,7 +3553,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			} break;
 			case KEY_KP_3: {
 				if (k->get_unicode() != 0) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				[[fallthrough]];
@@ -3578,7 +3578,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 #ifndef APPLE_STYLE_KEYS
 				if (!k->get_control() || k->get_shift() || k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				if (is_shortcut_keys_enabled()) {
@@ -3586,7 +3586,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				}
 #else
 				if ((!k->get_command() && !k->get_control())) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				if (!k->get_shift() && k->get_command() && is_shortcut_keys_enabled())
@@ -3617,7 +3617,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			case KEY_E: {
 
 				if (!k->get_control() || k->get_command() || k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 
@@ -3642,7 +3642,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					break;
 				}
 				if (!k->get_command() || k->get_shift() || k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 				if (is_shortcut_keys_enabled()) {
@@ -3653,7 +3653,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			case KEY_C: {
 
 				if (!k->get_command() || k->get_shift() || k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 
@@ -3669,7 +3669,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				}
 
 				if (!k->get_command()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 
@@ -3687,7 +3687,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				}
 
 				if (!k->get_command()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 
@@ -3700,7 +3700,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					break;
 				}
 				if (!k->get_command() || k->get_shift() || k->get_alt()) {
-					scancode_handled = false;
+					keycode_handled = false;
 					break;
 				}
 
@@ -3717,9 +3717,9 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 #endif
 
 					query_code_comple();
-					scancode_handled = true;
+					keycode_handled = true;
 				} else {
-					scancode_handled = false;
+					keycode_handled = false;
 				}
 
 			} break;
@@ -3736,20 +3736,20 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 			default: {
 
-				scancode_handled = false;
+				keycode_handled = false;
 			} break;
 		}
 
-		if (scancode_handled)
+		if (keycode_handled)
 			accept_event();
 
-		if (k->get_scancode() == KEY_INSERT) {
+		if (k->get_keycode() == KEY_INSERT) {
 			set_insert_mode(!insert_mode);
 			accept_event();
 			return;
 		}
 
-		if (!scancode_handled && !k->get_command()) { // For German keyboards.
+		if (!keycode_handled && !k->get_command()) { // For German keyboards.
 
 			if (k->get_unicode() >= 32) {
 
@@ -7044,13 +7044,8 @@ PopupMenu *TextEdit::get_menu() const {
 void TextEdit::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_gui_input"), &TextEdit::_gui_input);
-	ClassDB::bind_method(D_METHOD("_scroll_moved"), &TextEdit::_scroll_moved);
 	ClassDB::bind_method(D_METHOD("_cursor_changed_emit"), &TextEdit::_cursor_changed_emit);
 	ClassDB::bind_method(D_METHOD("_text_changed_emit"), &TextEdit::_text_changed_emit);
-	ClassDB::bind_method(D_METHOD("_push_current_op"), &TextEdit::_push_current_op);
-	ClassDB::bind_method(D_METHOD("_click_selection_held"), &TextEdit::_click_selection_held);
-	ClassDB::bind_method(D_METHOD("_toggle_draw_caret"), &TextEdit::_toggle_draw_caret);
-	ClassDB::bind_method(D_METHOD("_v_scroll_input"), &TextEdit::_v_scroll_input);
 	ClassDB::bind_method(D_METHOD("_update_wrap_at"), &TextEdit::_update_wrap_at);
 
 	BIND_ENUM_CONSTANT(SEARCH_MATCH_CASE);
@@ -7272,10 +7267,10 @@ TextEdit::TextEdit() {
 	updating_scrolls = false;
 	selection.active = false;
 
-	h_scroll->connect_compat("value_changed", this, "_scroll_moved");
-	v_scroll->connect_compat("value_changed", this, "_scroll_moved");
+	h_scroll->connect("value_changed", callable_mp(this, &TextEdit::_scroll_moved));
+	v_scroll->connect("value_changed", callable_mp(this, &TextEdit::_scroll_moved));
 
-	v_scroll->connect_compat("scrolling", this, "_v_scroll_input");
+	v_scroll->connect("scrolling", callable_mp(this, &TextEdit::_v_scroll_input));
 
 	cursor_changed_dirty = false;
 	text_changed_dirty = false;
@@ -7292,7 +7287,7 @@ TextEdit::TextEdit() {
 	caret_blink_timer = memnew(Timer);
 	add_child(caret_blink_timer);
 	caret_blink_timer->set_wait_time(0.65);
-	caret_blink_timer->connect_compat("timeout", this, "_toggle_draw_caret");
+	caret_blink_timer->connect("timeout", callable_mp(this, &TextEdit::_toggle_draw_caret));
 	cursor_set_blink_enabled(false);
 	right_click_moves_caret = true;
 
@@ -7300,12 +7295,12 @@ TextEdit::TextEdit() {
 	add_child(idle_detect);
 	idle_detect->set_one_shot(true);
 	idle_detect->set_wait_time(GLOBAL_GET("gui/timers/text_edit_idle_detect_sec"));
-	idle_detect->connect_compat("timeout", this, "_push_current_op");
+	idle_detect->connect("timeout", callable_mp(this, &TextEdit::_push_current_op));
 
 	click_select_held = memnew(Timer);
 	add_child(click_select_held);
 	click_select_held->set_wait_time(0.05);
-	click_select_held->connect_compat("timeout", this, "_click_selection_held");
+	click_select_held->connect("timeout", callable_mp(this, &TextEdit::_click_selection_held));
 
 	current_op.type = TextOperation::TYPE_NONE;
 	undo_enabled = true;
@@ -7364,7 +7359,7 @@ TextEdit::TextEdit() {
 	add_child(menu);
 	readonly = true; // Initialise to opposite first, so we get past the early-out in set_readonly.
 	set_readonly(false);
-	menu->connect_compat("id_pressed", this, "menu_option");
+	menu->connect("id_pressed", callable_mp(this, &TextEdit::menu_option));
 	first_draw = true;
 
 	executing_line = -1;

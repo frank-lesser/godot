@@ -653,8 +653,11 @@ void RasterizerSceneRD::reflection_atlas_set_size(RID p_ref_atlas, int p_reflect
 		//clear and invalidate everything
 		RD::get_singleton()->free(ra->reflection);
 		ra->reflection = RID();
+		RD::get_singleton()->free(ra->depth_buffer);
+		ra->depth_buffer = RID();
 
 		for (int i = 0; i < ra->reflections.size(); i++) {
+			_clear_reflection_data(ra->reflections.write[i].data);
 			if (ra->reflections[i].owner.is_null()) {
 				continue;
 			}
@@ -886,7 +889,6 @@ void RasterizerSceneRD::shadow_atlas_set_size(RID p_atlas, int p_size) {
 	ERR_FAIL_COND(!shadow_atlas);
 	ERR_FAIL_COND(p_size < 0);
 	p_size = next_power_of_2(p_size);
-	p_size = MAX(p_size, 1 << roughness_layers); // TODO: use a number related to shadows rather than reflections
 
 	if (p_size == shadow_atlas->size)
 		return;
