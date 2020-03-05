@@ -4182,7 +4182,10 @@ RenderingDeviceVulkan::DescriptorPool *RenderingDeviceVulkan::_descriptor_pool_a
 		descriptor_pool_create_info.poolSizeCount = sizes.size();
 		descriptor_pool_create_info.pPoolSizes = sizes.ptr();
 		VkResult res = vkCreateDescriptorPool(device, &descriptor_pool_create_info, NULL, &pool->pool);
-		ERR_FAIL_COND_V(res, NULL);
+		if (res) {
+			memdelete(pool);
+			ERR_FAIL_COND_V(res, NULL);
+		}
 		descriptor_pools[p_key].insert(pool);
 	}
 
@@ -6862,7 +6865,7 @@ void RenderingDeviceVulkan::initialize(VulkanContext *p_context) {
 	max_descriptors_per_pool = GLOBAL_DEF("rendering/vulkan/descriptor_pools/max_descriptors_per_pool", 64);
 
 	//check to make sure DescriptorPoolKey is good
-	ERR_FAIL_COND(sizeof(uint64_t) * 3 < UNIFORM_TYPE_MAX * sizeof(uint16_t));
+	static_assert(sizeof(uint64_t) * 3 >= UNIFORM_TYPE_MAX * sizeof(uint16_t));
 
 	draw_list = NULL;
 	draw_list_count = 0;

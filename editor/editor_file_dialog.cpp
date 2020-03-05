@@ -199,7 +199,10 @@ Vector<String> EditorFileDialog::get_selected_files() const {
 
 void EditorFileDialog::update_dir() {
 
-	dir->set_text(dir_access->get_current_dir());
+	if (drives->is_visible()) {
+		drives->select(dir_access->get_current_drive());
+	}
+	dir->set_text(dir_access->get_current_dir(false));
 
 	// Disable "Open" button only when selecting file(s) mode.
 	get_ok()->set_disabled(_is_open_should_be_disabled());
@@ -691,7 +694,7 @@ void EditorFileDialog::update_file_name() {
 		String base_name = file_str.get_basename();
 		Vector<String> filter_substr = filter_str.split(";");
 		if (filter_substr.size() >= 2) {
-			file_str = base_name + "." + filter_substr[1].strip_edges().to_lower();
+			file_str = base_name + "." + filter_substr[0].strip_edges().lstrip("*.").to_lower();
 		} else {
 			file_str = base_name + "." + filter_str.get_extension().strip_edges().to_lower();
 		}
@@ -946,7 +949,7 @@ void EditorFileDialog::add_filter(const String &p_filter) {
 
 String EditorFileDialog::get_current_dir() const {
 
-	return dir->get_text();
+	return dir_access->get_current_dir();
 }
 String EditorFileDialog::get_current_file() const {
 
@@ -954,7 +957,7 @@ String EditorFileDialog::get_current_file() const {
 }
 String EditorFileDialog::get_current_path() const {
 
-	return dir->get_text().plus_file(file->get_text());
+	return dir_access->get_current_dir().plus_file(file->get_text());
 }
 void EditorFileDialog::set_current_dir(const String &p_dir) {
 
@@ -1149,6 +1152,12 @@ void EditorFileDialog::_update_drives() {
 		drives->hide();
 	} else {
 		drives->clear();
+		Node *dp = drives->get_parent();
+		if (dp) {
+			dp->remove_child(drives);
+		}
+		dp = dir_access->drives_are_shortcuts() ? shortcuts_container : drives_container;
+		dp->add_child(drives);
 		drives->show();
 
 		for (int i = 0; i < dir_access->get_drive_count(); i++) {
@@ -1383,6 +1392,7 @@ void EditorFileDialog::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_showing_hidden_files"), &EditorFileDialog::is_showing_hidden_files);
 	ClassDB::bind_method(D_METHOD("_update_file_name"), &EditorFileDialog::update_file_name);
 	ClassDB::bind_method(D_METHOD("_update_dir"), &EditorFileDialog::update_dir);
+	ClassDB::bind_method(D_METHOD("_update_file_list"), &EditorFileDialog::update_file_list);
 	ClassDB::bind_method(D_METHOD("_thumbnail_done"), &EditorFileDialog::_thumbnail_done);
 	ClassDB::bind_method(D_METHOD("set_display_mode", "mode"), &EditorFileDialog::set_display_mode);
 	ClassDB::bind_method(D_METHOD("get_display_mode"), &EditorFileDialog::get_display_mode);
@@ -1517,6 +1527,9 @@ EditorFileDialog::EditorFileDialog() {
 
 	pathhb->add_child(memnew(Label(TTR("Path:"))));
 
+	drives_container = memnew(HBoxContainer);
+	pathhb->add_child(drives_container);
+
 	dir = memnew(LineEdit);
 	pathhb->add_child(dir);
 	dir->set_h_size_flags(SIZE_EXPAND_FILL);
@@ -1560,8 +1573,10 @@ EditorFileDialog::EditorFileDialog() {
 	mode_list->set_tooltip(TTR("View items as a list."));
 	pathhb->add_child(mode_list);
 
+	shortcuts_container = memnew(HBoxContainer);
+	pathhb->add_child(shortcuts_container);
+
 	drives = memnew(OptionButton);
-	pathhb->add_child(drives);
 	drives->connect("item_selected", callable_mp(this, &EditorFileDialog::_select_drive));
 
 	makedir = memnew(Button);
