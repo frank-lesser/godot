@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  semaphore_posix.h                                                    */
+/*  VkRenderer.kt                                                        */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,31 +28,72 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef SEMAPHORE_POSIX_H
-#define SEMAPHORE_POSIX_H
+@file:JvmName("VkRenderer")
+package org.godotengine.godot.vulkan
 
-#include "core/os/semaphore.h"
+import android.view.Surface
 
-#if (defined(UNIX_ENABLED) || defined(PTHREAD_ENABLED)) && !defined(OSX_ENABLED) && !defined(IPHONE_ENABLED)
+/**
+ * Responsible to setting up and driving the Vulkan rendering logic.
+ *
+ * <h3>Threading</h3>
+ * The renderer will be called on a separate thread, so that rendering
+ * performance is decoupled from the UI thread. Clients typically need to
+ * communicate with the renderer from the UI thread, because that's where
+ * input events are received. Clients can communicate using any of the
+ * standard Java techniques for cross-thread communication, or they can
+ * use the  [VkSurfaceView.queueOnVkThread] convenience method.
+ *
+ * @see [VkSurfaceView.startRenderer]
+ */
+internal class VkRenderer {
 
-#include <semaphore.h>
+	/**
+	 * Called when the surface is created and signals the beginning of rendering.
+	 */
+	fun onVkSurfaceCreated(surface: Surface) {
+		nativeOnVkSurfaceCreated(surface)
+	}
 
-class SemaphorePosix : public SemaphoreOld {
+	/**
+	 * Called after the surface is created and whenever its size changes.
+	 */
+	fun onVkSurfaceChanged(surface: Surface, width: Int, height: Int) {
+		nativeOnVkSurfaceChanged(surface, width, height)
+	}
 
-	mutable sem_t sem;
+	/**
+	 * Called to draw the current frame.
+	 */
+	fun onVkDrawFrame() {
+		nativeOnVkDrawFrame()
+	}
 
-	static SemaphoreOld *create_semaphore_posix();
+	/**
+	 * Called when the rendering thread is resumed.
+	 */
+	fun onVkResume() {
+		nativeOnVkResume()
+	}
 
-public:
-	virtual Error wait();
-	virtual Error post();
-	virtual int get() const;
+	/**
+	 * Called when the rendering thread is paused.
+	 */
+	fun onVkPause() {
+		nativeOnVkPause()
+	}
 
-	static void make_default();
-	SemaphorePosix();
+	/**
+	 * Called when the rendering thread is destroyed and used as signal to tear down the Vulkan logic.
+	 */
+	fun onVkDestroy() {
+		nativeOnVkDestroy()
+	}
 
-	~SemaphorePosix();
-};
-
-#endif
-#endif
+	private external fun nativeOnVkSurfaceCreated(surface: Surface)
+	private external fun nativeOnVkSurfaceChanged(surface: Surface, width: Int, height: Int)
+	private external fun nativeOnVkResume()
+	private external fun nativeOnVkDrawFrame()
+	private external fun nativeOnVkPause()
+	private external fun nativeOnVkDestroy()
+}

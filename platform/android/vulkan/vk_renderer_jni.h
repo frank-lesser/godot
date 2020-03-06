@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  semaphore_iphone.cpp                                                 */
+/*  vk_renderer_jni.h                                                    */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,85 +28,19 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "semaphore_iphone.h"
+#ifndef VK_RENDERER_JNI_H
+#define VK_RENDERER_JNI_H
 
-#include <fcntl.h>
-#include <unistd.h>
+#include <android/log.h>
+#include <jni.h>
 
-void cgsem_init(cgsem_t *);
-void cgsem_post(cgsem_t *);
-void cgsem_wait(cgsem_t *);
-void cgsem_destroy(cgsem_t *);
-
-void cgsem_init(cgsem_t *cgsem) {
-	int flags, fd, i;
-
-	pipe(cgsem->pipefd);
-
-	/* Make the pipes FD_CLOEXEC to allow them to close should we call
-	 * execv on restart. */
-	for (i = 0; i < 2; i++) {
-		fd = cgsem->pipefd[i];
-		flags = fcntl(fd, F_GETFD, 0);
-		flags |= FD_CLOEXEC;
-		fcntl(fd, F_SETFD, flags);
-	}
+extern "C" {
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkSurfaceCreated(JNIEnv *env, jobject obj, jobject j_surface);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkSurfaceChanged(JNIEnv *env, jobject object, jobject j_surface, jint width, jint height);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkResume(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkDrawFrame(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkPause(JNIEnv *env, jobject obj);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkDestroy(JNIEnv *env, jobject obj);
 }
 
-void cgsem_post(cgsem_t *cgsem) {
-	const char buf = 1;
-
-	write(cgsem->pipefd[1], &buf, 1);
-}
-
-void cgsem_wait(cgsem_t *cgsem) {
-	char buf;
-
-	read(cgsem->pipefd[0], &buf, 1);
-}
-
-void cgsem_destroy(cgsem_t *cgsem) {
-	close(cgsem->pipefd[1]);
-	close(cgsem->pipefd[0]);
-}
-
-#include "core/os/memory.h"
-
-#include <errno.h>
-
-Error SemaphoreIphone::wait() {
-
-	cgsem_wait(&sem);
-	return OK;
-}
-
-Error SemaphoreIphone::post() {
-
-	cgsem_post(&sem);
-
-	return OK;
-}
-int SemaphoreIphone::get() const {
-
-	return 0;
-}
-
-SemaphoreOld *SemaphoreIphone::create_semaphore_iphone() {
-
-	return memnew(SemaphoreIphone);
-}
-
-void SemaphoreIphone::make_default() {
-
-	create_func = create_semaphore_iphone;
-}
-
-SemaphoreIphone::SemaphoreIphone() {
-
-	cgsem_init(&sem);
-}
-
-SemaphoreIphone::~SemaphoreIphone() {
-
-	cgsem_destroy(&sem);
-}
+#endif // VK_RENDERER_JNI_H

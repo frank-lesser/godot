@@ -1,12 +1,12 @@
 /*************************************************************************/
-/*  semaphore_iphone.h                                                   */
+/*  GodotPaymentInterface.java                                           */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2019 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2019 Godot Engine contributors (cf. AUTHORS.md)    */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -28,32 +28,70 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef SEMAPHORE_IPHONE_H
-#define SEMAPHORE_IPHONE_H
+package org.godotengine.godot.payments;
 
-struct cgsem {
-	int pipefd[2];
-};
+public interface GodotPaymentInterface {
+	void purchase(String sku, String transactionId);
 
-typedef struct cgsem cgsem_t;
+	void consumeUnconsumedPurchases();
 
-#include "core/os/semaphore.h"
+	String getSignature();
 
-class SemaphoreIphone : public SemaphoreOld {
+	void callbackSuccess(String ticket, String signature, String sku);
 
-	mutable cgsem_t sem;
+	void callbackSuccessProductMassConsumed(String ticket, String signature, String sku);
 
-	static SemaphoreOld *create_semaphore_iphone();
+	void callbackSuccessNoUnconsumedPurchases();
 
-public:
-	virtual Error wait();
-	virtual Error post();
-	virtual int get() const;
+	void callbackFailConsume(String message);
 
-	static void make_default();
-	SemaphoreIphone();
+	void callbackFail(String message);
 
-	~SemaphoreIphone();
-};
+	void callbackCancel();
 
-#endif // SEMAPHORE_IPHONE_H
+	void callbackAlreadyOwned(String sku);
+
+	int getPurchaseCallbackId();
+
+	void setPurchaseCallbackId(int purchaseCallbackId);
+
+	String getPurchaseValidationUrlPrefix();
+
+	void setPurchaseValidationUrlPrefix(String url);
+
+	String getAccessToken();
+
+	void setAccessToken(String accessToken);
+
+	void setTransactionId(String transactionId);
+
+	String getTransactionId();
+
+	// request purchased items are not consumed
+	void requestPurchased();
+
+	// callback for requestPurchased()
+	void callbackPurchased(String receipt, String signature, String sku);
+
+	void callbackDisconnected();
+
+	void callbackConnected();
+
+	// true if connected, false otherwise
+	boolean isConnected();
+
+	// consume item automatically after purchase. default is true.
+	void setAutoConsume(boolean autoConsume);
+
+	// consume a specific item
+	void consume(String sku);
+
+	// query in app item detail info
+	void querySkuDetails(String[] list);
+
+	void addSkuDetail(String itemJson);
+
+	void completeSkuDetail();
+
+	void errorSkuDetail(String errorMessage);
+}

@@ -9,8 +9,19 @@ Subcategories (`###` level) where needed are separated by a single empty line.
 ## assimp
 
 - Upstream: http://github.com/assimp/assimp
-- Version: git (308db73d0b3c2d1870cd3e465eaa283692a4cf23)
+- Version: git (0201fc57dca48910ca7f9fdf7457534ea6a57efc, 2020)
 - License: BSD-3-Clause
+
+Files extracted from upstream source:
+
+- Run `cmake .` in root folder to generate files
+- `code/{CApi,Common,FBX,Material,PostProcessing}/`
+- `contrib/utf8cpp/source/`
+- `include/`
+- `revision.h`
+- `CREDITS` and `LICENSE` files
+- `rm -f code/Common/ZipArchiveIOSystem.cpp include/assimp/ZipArchiveIOSystem.h
+   include/assimp/irrXMLWrapper.h`
 
 
 ## basis_universal
@@ -281,7 +292,7 @@ changes are marked with `// -- GODOT --` comments.
 ## mbedtls
 
 - Upstream: https://tls.mbed.org/
-- Version: 2.16.4
+- Version: 2.16.5
 - License: Apache 2.0
 
 File extracted from upstream release tarball (`-apache.tgz` variant):
@@ -291,9 +302,6 @@ File extracted from upstream release tarball (`-apache.tgz` variant):
 - LICENSE and apache-2.0.txt files
 - Applied the patch in `thirdparty/mbedtls/patches/1453.diff` (PR 1453).
   Soon to be merged upstream. Check it out at next update.
-- Applied the patch in `thirdparty/mbedtls/patches/padlock.diff`. This disables VIA
-  padlock support which defines a symbol `unsupported` which clashes with
-  a symbol in libwebsockets.
 - Added 2 files `godot_core_mbedtls_platform.{c,h}` providing configuration
   for light bundling with core.
 

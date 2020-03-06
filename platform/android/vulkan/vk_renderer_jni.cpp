@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  semaphore_windows.cpp                                                */
+/*  vk_renderer_jni.cpp                                                  */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,71 +28,31 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "semaphore_windows.h"
+#include "vk_renderer_jni.h"
 
-#if defined(WINDOWS_ENABLED)
+extern "C" {
 
-#include "core/os/memory.h"
-
-Error SemaphoreWindows::wait() {
-
-	WaitForSingleObjectEx(semaphore, INFINITE, false);
-	return OK;
-}
-Error SemaphoreWindows::post() {
-
-	ReleaseSemaphore(semaphore, 1, NULL);
-	return OK;
-}
-int SemaphoreWindows::get() const {
-	long previous;
-	switch (WaitForSingleObjectEx(semaphore, 0, false)) {
-		case WAIT_OBJECT_0: {
-			ERR_FAIL_COND_V(!ReleaseSemaphore(semaphore, 1, &previous), -1);
-			return previous + 1;
-		} break;
-		case WAIT_TIMEOUT: {
-			return 0;
-		} break;
-		default: {
-		}
-	}
-
-	ERR_FAIL_V(-1);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkSurfaceCreated(JNIEnv *env, jobject obj, jobject j_surface) {
+	// TODO: complete
 }
 
-SemaphoreOld *SemaphoreWindows::create_semaphore_windows() {
-
-	return memnew(SemaphoreWindows);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkSurfaceChanged(JNIEnv *env, jobject object, jobject j_surface, jint width, jint height) {
+	// TODO: complete
 }
 
-void SemaphoreWindows::make_default() {
-
-	create_func = create_semaphore_windows;
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkResume(JNIEnv *env, jobject obj) {
+	// TODO: complete
 }
 
-SemaphoreWindows::SemaphoreWindows() {
-
-#ifdef UWP_ENABLED
-	semaphore = CreateSemaphoreEx(
-			NULL,
-			0,
-			0xFFFFFFF, //wathever
-			NULL,
-			0,
-			SEMAPHORE_ALL_ACCESS);
-#else
-	semaphore = CreateSemaphore(
-			NULL,
-			0,
-			0xFFFFFFF, //wathever
-			NULL);
-#endif
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkDrawFrame(JNIEnv *env, jobject obj) {
+	// TODO: complete
 }
 
-SemaphoreWindows::~SemaphoreWindows() {
-
-	CloseHandle(semaphore);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkPause(JNIEnv *env, jobject obj) {
+	// TODO: complete
 }
 
-#endif
+JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkDestroy(JNIEnv *env, jobject obj) {
+	// TODO: complete
+}
+}

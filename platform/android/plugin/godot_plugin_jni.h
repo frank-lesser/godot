@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  semaphore_windows.h                                                  */
+/*  godot_plugin_jni.h                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,31 +28,16 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef SEMAPHORE_WINDOWS_H
-#define SEMAPHORE_WINDOWS_H
+#ifndef GODOT_PLUGIN_JNI_H
+#define GODOT_PLUGIN_JNI_H
 
-#include "core/os/semaphore.h"
+#include <android/log.h>
+#include <jni.h>
 
-#ifdef WINDOWS_ENABLED
+extern "C" {
+JNIEXPORT void JNICALL Java_org_godotengine_godot_plugin_GodotPlugin_nativeRegisterSingleton(JNIEnv *env, jobject obj, jstring name);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_plugin_GodotPlugin_nativeRegisterMethod(JNIEnv *env, jobject obj, jstring sname, jstring name, jstring ret, jobjectArray args);
+JNIEXPORT void JNICALL Java_org_godotengine_godot_plugin_GodotPlugin_nativeRegisterGDNativeLibraries(JNIEnv *env, jobject obj, jobjectArray gdnlib_paths);
+}
 
-#include <windows.h>
-
-class SemaphoreWindows : public SemaphoreOld {
-
-	mutable HANDLE semaphore;
-
-	static SemaphoreOld *create_semaphore_windows();
-
-public:
-	virtual Error wait();
-	virtual Error post();
-	virtual int get() const;
-
-	static void make_default();
-	SemaphoreWindows();
-
-	~SemaphoreWindows();
-};
-
-#endif
-#endif
+#endif // GODOT_PLUGIN_JNI_H
