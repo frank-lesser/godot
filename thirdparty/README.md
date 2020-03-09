@@ -9,7 +9,7 @@ Subcategories (`###` level) where needed are separated by a single empty line.
 ## assimp
 
 - Upstream: http://github.com/assimp/assimp
-- Version: git (0201fc57dca48910ca7f9fdf7457534ea6a57efc, 2020)
+- Version: git (308db73d0b3c2d1870cd3e465eaa283692a4cf23, 2019)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -162,11 +162,21 @@ the GLES version Godot targets.
 ## glslang
 
 - Upstream: https://github.com/KhronosGroup/glslang
-- Version: rev.3226
+- Version: git (4fc7a33910fb8e40b970d160e1b38ab3f67fe0f3, 2020)
 - License: glslang
 
-Important: File `glslang/glslang/Include/Common.h` has
-Godot-made change marked with `// -- GODOT --` comments.
+Version should be kept in sync with the one of the used Vulkan SDK (see `vulkan`
+section). Check Vulkan-ValidationLayers at the matching SDK tag for the known
+good glslang commit: https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/scripts/known_good.json
+
+Files extracted from upstream source:
+
+- `glslang`, `OGLCompilersDLL`, `SPIRV`
+- `LICENSE.txt`
+- Unnecessary files like `CMakeLists.txt`, `revision.template` and
+  `updateGrammar` removed.
+
+Patches in the `patches` directory should be re-applied after updates.
 
 
 ## jpeg-compressor
@@ -309,7 +319,7 @@ File extracted from upstream release tarball (`-apache.tgz` variant):
 ## miniupnpc
 
 - Upstream: https://github.com/miniupnp/miniupnp/tree/master/miniupnpc
-- Version: git (0ab1d67, 2019)
+- Version: git (4436632, 2020)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
@@ -539,7 +549,7 @@ folder.
 ## vulkan
 
 - Upstream: https://github.com/KhronosGroup/Vulkan-Loader
-- Version: 1.1.127
+- Version: sdk-1.2.131.2
 - License: Apache 2.0
 
 Unless there is a specific reason to package a more recent version, please stick
@@ -555,10 +565,11 @@ Files extracted from upstream source:
   `loader/` folder
 - `LICENSE.txt`
 
-`vk_enum_string_helper.h` is taken from the match `Vulkan-ValidationLayers` SDK
-release: https://github.com/KhronosGroup/Vulkan-Loader/tree/master/loader/generated
+`vk_enum_string_helper.h` is taken from the matching `Vulkan-ValidationLayers`
+SDK release: https://github.com/KhronosGroup/Vulkan-ValidationLayers/blob/master/layers/generated/vk_enum_string_helper.h
 
 `vk_mem_alloc.h` is taken from https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator
+Version: 2.3.0
 
 
 ## wslay
