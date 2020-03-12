@@ -252,10 +252,12 @@ Ref<Shape> Mesh::create_trimesh_shape() const {
 	Vector<Vector3> face_points;
 	face_points.resize(faces.size() * 3);
 
-	for (int i = 0; i < face_points.size(); i++) {
+	for (int i = 0; i < face_points.size(); i += 3) {
 
 		Face3 f = faces.get(i / 3);
-		face_points.set(i, f.vertex[i % 3]);
+		face_points.set(i, f.vertex[0]);
+		face_points.set(i + 1, f.vertex[1]);
+		face_points.set(i + 2, f.vertex[2]);
 	}
 
 	Ref<ConcavePolygonShape> shape = memnew(ConcavePolygonShape);
@@ -543,15 +545,9 @@ Vector<Ref<Shape> > Mesh::convex_decompose() const {
 
 	ERR_FAIL_COND_V(!convex_composition_function, Vector<Ref<Shape> >());
 
-	Vector<Face3> faces = get_faces();
-	Vector<Face3> f3;
-	f3.resize(faces.size());
-	const Face3 *f = faces.ptr();
-	for (int i = 0; i < f3.size(); i++) {
-		f3.write[i] = f[i];
-	}
+	const Vector<Face3> faces = get_faces();
 
-	Vector<Vector<Face3> > decomposed = convex_composition_function(f3);
+	Vector<Vector<Face3> > decomposed = convex_composition_function(faces);
 
 	Vector<Ref<Shape> > ret;
 
