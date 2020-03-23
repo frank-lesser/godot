@@ -48,6 +48,8 @@ void Shader::set_code(const String &p_code) {
 		mode = MODE_CANVAS_ITEM;
 	} else if (type == "particles") {
 		mode = MODE_PARTICLES;
+	} else if (type == "sky") {
+		mode = MODE_SKY;
 	} else {
 		mode = MODE_SPATIAL;
 	}
@@ -121,7 +123,7 @@ Ref<Texture2D> Shader::get_default_texture_param(const StringName &p_param) cons
 
 void Shader::get_default_texture_param_list(List<StringName> *r_textures) const {
 
-	for (const Map<StringName, Ref<Texture2D> >::Element *E = default_textures.front(); E; E = E->next()) {
+	for (const Map<StringName, Ref<Texture2D>>::Element *E = default_textures.front(); E; E = E->next()) {
 
 		r_textures->push_back(E->key());
 	}
@@ -158,6 +160,7 @@ void Shader::_bind_methods() {
 	BIND_ENUM_CONSTANT(MODE_SPATIAL);
 	BIND_ENUM_CONSTANT(MODE_CANVAS_ITEM);
 	BIND_ENUM_CONSTANT(MODE_PARTICLES);
+	BIND_ENUM_CONSTANT(MODE_SKY);
 }
 
 Shader::Shader() {

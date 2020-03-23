@@ -1093,7 +1093,11 @@ void LineEdit::set_cursor_at_pixel_pos(int p_x) {
 
 		int char_w = 0;
 		if (font != NULL) {
-			char_w = font->get_char_size(text[ofs]).width;
+			if (is_secret()) {
+				char_w = font->get_char_size(secret_character[0]).width;
+			} else {
+				char_w = font->get_char_size(text[ofs]).width;
+			}
 		}
 		pixel_ofs += char_w;
 
@@ -1710,13 +1714,11 @@ void LineEdit::update_cached_width() {
 }
 
 void LineEdit::update_placeholder_width() {
-	if ((max_length <= 0) || (placeholder_translated.length() <= max_length)) {
-		Ref<Font> font = get_font("font");
-		cached_placeholder_width = 0;
-		if (font != NULL) {
-			for (int i = 0; i < placeholder_translated.length(); i++) {
-				cached_placeholder_width += font->get_char_size(placeholder_translated[i]).width;
-			}
+	Ref<Font> font = get_font("font");
+	cached_placeholder_width = 0;
+	if (font != NULL) {
+		for (int i = 0; i < placeholder_translated.length(); i++) {
+			cached_placeholder_width += font->get_char_size(placeholder_translated[i]).width;
 		}
 	}
 }

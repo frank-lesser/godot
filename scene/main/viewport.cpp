@@ -422,7 +422,7 @@ void Viewport::_notification(int p_what) {
 					// if no mouse event exists, create a motion one. This is necessary because objects or camera may have moved.
 					// while this extra event is sent, it is checked if both camera and last object and last ID did not move. If nothing changed, the event is discarded to avoid flooding with unnecessary motion events every frame
 					bool has_mouse_event = false;
-					for (List<Ref<InputEvent> >::Element *E = physics_picking_events.front(); E; E = E->next()) {
+					for (List<Ref<InputEvent>>::Element *E = physics_picking_events.front(); E; E = E->next()) {
 						Ref<InputEventMouse> m = E->get();
 						if (m.is_valid()) {
 							has_mouse_event = true;
@@ -2948,12 +2948,14 @@ Control *Viewport::get_modal_stack_top() const {
 }
 
 String Viewport::get_configuration_warning() const {
-
 	/*if (get_parent() && !Object::cast_to<Control>(get_parent()) && !render_target) {
 
 		return TTR("This viewport is not set as render target. If you intend for it to display its contents directly to the screen, make it a child of a Control so it can obtain a size. Otherwise, make it a RenderTarget and assign its internal texture to some node for display.");
 	}*/
 
+	if (size.x == 0 || size.y == 0) {
+		return TTR("Viewport size must be greater than 0 to render anything.");
+	}
 	return String();
 }
 

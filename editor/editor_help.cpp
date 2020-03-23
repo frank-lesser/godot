@@ -433,7 +433,7 @@ void EditorHelp::_update_doc() {
 		class_desc->push_color(text_color);
 		class_desc->push_font(doc_bold_font);
 		class_desc->push_indent(1);
-		_add_text(cd.brief_description);
+		_add_text(DTR(cd.brief_description));
 		class_desc->pop();
 		class_desc->pop();
 		class_desc->pop();
@@ -458,7 +458,7 @@ void EditorHelp::_update_doc() {
 		class_desc->push_color(text_color);
 		class_desc->push_font(doc_font);
 		class_desc->push_indent(1);
-		_add_text(cd.description);
+		_add_text(DTR(cd.description));
 		class_desc->pop();
 		class_desc->pop();
 		class_desc->pop();
@@ -480,7 +480,7 @@ void EditorHelp::_update_doc() {
 		class_desc->add_newline();
 
 		for (int i = 0; i < cd.tutorials.size(); i++) {
-			const String link = cd.tutorials[i];
+			const String link = DTR(cd.tutorials[i]);
 			String linktxt = link;
 			const int seppos = linktxt.find("//");
 			if (seppos != -1) {
@@ -726,7 +726,7 @@ void EditorHelp::_update_doc() {
 				class_desc->push_font(doc_font);
 				class_desc->add_text("  ");
 				class_desc->push_color(comment_color);
-				_add_text(cd.theme_properties[i].description);
+				_add_text(DTR(cd.theme_properties[i].description));
 				class_desc->pop();
 				class_desc->pop();
 			}
@@ -796,7 +796,7 @@ void EditorHelp::_update_doc() {
 				class_desc->push_font(doc_font);
 				class_desc->push_color(comment_color);
 				class_desc->push_indent(1);
-				_add_text(cd.signals[i].description);
+				_add_text(DTR(cd.signals[i].description));
 				class_desc->pop(); // indent
 				class_desc->pop();
 				class_desc->pop(); // font
@@ -812,7 +812,7 @@ void EditorHelp::_update_doc() {
 	// Constants and enums
 	if (cd.constants.size()) {
 
-		Map<String, Vector<DocData::ConstantDoc> > enums;
+		Map<String, Vector<DocData::ConstantDoc>> enums;
 		Vector<DocData::ConstantDoc> constants;
 
 		for (int i = 0; i < cd.constants.size(); i++) {
@@ -842,7 +842,7 @@ void EditorHelp::_update_doc() {
 
 			class_desc->add_newline();
 
-			for (Map<String, Vector<DocData::ConstantDoc> >::Element *E = enums.front(); E; E = E->next()) {
+			for (Map<String, Vector<DocData::ConstantDoc>>::Element *E = enums.front(); E; E = E->next()) {
 
 				enum_line[E->key()] = class_desc->get_line_count() - 2;
 
@@ -893,7 +893,7 @@ void EditorHelp::_update_doc() {
 						//class_desc->add_text("  ");
 						class_desc->push_indent(1);
 						class_desc->push_color(comment_color);
-						_add_text(enum_list[i].description);
+						_add_text(DTR(enum_list[i].description));
 						class_desc->pop();
 						class_desc->pop();
 						class_desc->pop(); // indent
@@ -959,7 +959,7 @@ void EditorHelp::_update_doc() {
 					class_desc->push_font(doc_font);
 					class_desc->push_indent(1);
 					class_desc->push_color(comment_color);
-					_add_text(constants[i].description);
+					_add_text(DTR(constants[i].description));
 					class_desc->pop();
 					class_desc->pop();
 					class_desc->pop(); // indent
@@ -1070,7 +1070,7 @@ void EditorHelp::_update_doc() {
 			class_desc->push_font(doc_font);
 			class_desc->push_indent(1);
 			if (cd.properties[i].description.strip_edges() != String()) {
-				_add_text(cd.properties[i].description);
+				_add_text(DTR(cd.properties[i].description));
 			} else {
 				class_desc->add_image(get_icon("Error", "EditorIcons"));
 				class_desc->add_text(" ");
@@ -1123,7 +1123,7 @@ void EditorHelp::_update_doc() {
 				class_desc->push_font(doc_font);
 				class_desc->push_indent(1);
 				if (methods_filtered[i].description.strip_edges() != String()) {
-					_add_text(methods_filtered[i].description);
+					_add_text(DTR(methods_filtered[i].description));
 				} else {
 					class_desc->add_image(get_icon("Error", "EditorIcons"));
 					class_desc->add_text(" ");
@@ -1188,7 +1188,7 @@ void EditorHelp::_help_callback(const String &p_topic) {
 		if (constant_line.has(name))
 			line = constant_line[name];
 		else {
-			Map<String, Map<String, int> >::Element *iter = enum_values_line.front();
+			Map<String, Map<String, int>>::Element *iter = enum_values_line.front();
 			while (true) {
 				if (iter->value().has(name)) {
 					line = iter->value()[name];
@@ -1449,7 +1449,6 @@ static void _add_text_to_rt(const String &p_bbcode, RichTextLabel *p_rt) {
 }
 
 void EditorHelp::_add_text(const String &p_bbcode) {
-
 	_add_text_to_rt(p_bbcode, class_desc);
 }
 
@@ -1489,8 +1488,8 @@ void EditorHelp::go_to_class(const String &p_class, int p_scroll) {
 	_goto_desc(p_class, p_scroll);
 }
 
-Vector<Pair<String, int> > EditorHelp::get_sections() {
-	Vector<Pair<String, int> > sections;
+Vector<Pair<String, int>> EditorHelp::get_sections() {
+	Vector<Pair<String, int>> sections;
 
 	for (int i = 0; i < section_line.size(); i++) {
 		sections.push_back(Pair<String, int>(section_line[i].first, i));

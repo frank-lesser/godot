@@ -58,6 +58,7 @@ public:
 	void sky_set_mode(RID p_sky, VS::SkyMode p_samples) {}
 	void sky_set_texture(RID p_sky, RID p_panorama) {}
 	void sky_set_texture(RID p_sky, RID p_cube_map, int p_radiance_size) {}
+	void sky_set_material(RID p_sky, RID p_material) {}
 
 	/* ENVIRONMENT API */
 
@@ -167,7 +168,7 @@ public:
 		Vector<uint8_t> index_array;
 		int index_count;
 		AABB aabb;
-		Vector<Vector<uint8_t> > blend_shapes;
+		Vector<Vector<uint8_t>> blend_shapes;
 		Vector<AABB> bone_aabbs;
 	};
 
@@ -181,8 +182,8 @@ public:
 	mutable RID_PtrOwner<DummyMesh> mesh_owner;
 
 	virtual RID texture_2d_create(const Ref<Image> &p_image) { return RID(); }
-	virtual RID texture_2d_layered_create(const Vector<Ref<Image> > &p_layers, VS::TextureLayeredType p_layered_type) { return RID(); }
-	virtual RID texture_3d_create(const Vector<Ref<Image> > &p_slices) { return RID(); }
+	virtual RID texture_2d_layered_create(const Vector<Ref<Image>> &p_layers, VS::TextureLayeredType p_layered_type) { return RID(); }
+	virtual RID texture_3d_create(const Vector<Ref<Image>> &p_slices) { return RID(); }
 	virtual RID texture_proxy_create(RID p_base) { return RID(); }
 
 	virtual void texture_2d_update_immediate(RID p_texture, const Ref<Image> &p_image, int p_layer = 0) {}
@@ -312,6 +313,11 @@ public:
 	virtual Size2 texture_size_with_proxy(RID p_texture) const { return Size2(); }
 	void texture_set_force_redraw_if_visible(RID p_texture, bool p_enable) {}
 #endif
+
+	/* SKY API */
+
+	RID sky_create() { return RID(); }
+	void sky_set_texture(RID p_sky, RID p_cube_map, int p_radiance_size) {}
 
 	/* SHADER API */
 

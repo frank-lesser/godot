@@ -45,13 +45,13 @@
 
 Array EditorInterface::_make_mesh_previews(const Array &p_meshes, int p_preview_size) {
 
-	Vector<Ref<Mesh> > meshes;
+	Vector<Ref<Mesh>> meshes;
 
 	for (int i = 0; i < p_meshes.size(); i++) {
 		meshes.push_back(p_meshes[i]);
 	}
 
-	Vector<Ref<Texture2D> > textures = make_mesh_previews(meshes, NULL, p_preview_size);
+	Vector<Ref<Texture2D>> textures = make_mesh_previews(meshes, NULL, p_preview_size);
 	Array ret;
 	for (int i = 0; i < textures.size(); i++) {
 		ret.push_back(textures[i]);
@@ -60,7 +60,7 @@ Array EditorInterface::_make_mesh_previews(const Array &p_meshes, int p_preview_
 	return ret;
 }
 
-Vector<Ref<Texture2D> > EditorInterface::make_mesh_previews(const Vector<Ref<Mesh> > &p_meshes, Vector<Transform> *p_transforms, int p_preview_size) {
+Vector<Ref<Texture2D>> EditorInterface::make_mesh_previews(const Vector<Ref<Mesh>> &p_meshes, Vector<Transform> *p_transforms, int p_preview_size) {
 
 	int size = p_preview_size;
 
@@ -86,7 +86,7 @@ Vector<Ref<Texture2D> > EditorInterface::make_mesh_previews(const Vector<Ref<Mes
 
 	EditorProgress ep("mlib", TTR("Creating Mesh Previews"), p_meshes.size());
 
-	Vector<Ref<Texture2D> > textures;
+	Vector<Ref<Texture2D>> textures;
 
 	for (int i = 0; i < p_meshes.size(); i++) {
 
@@ -226,6 +226,10 @@ EditorFileSystem *EditorInterface::get_resource_file_system() {
 	return EditorFileSystem::get_singleton();
 }
 
+FileSystemDock *EditorInterface::get_file_system_dock() {
+	return EditorNode::get_singleton()->get_filesystem_dock();
+}
+
 EditorSelection *EditorInterface::get_selection() {
 	return EditorNode::get_singleton()->get_editor_selection();
 }
@@ -295,6 +299,7 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("select_file", "file"), &EditorInterface::select_file);
 	ClassDB::bind_method(D_METHOD("get_selected_path"), &EditorInterface::get_selected_path);
 	ClassDB::bind_method(D_METHOD("get_current_path"), &EditorInterface::get_current_path);
+	ClassDB::bind_method(D_METHOD("get_file_system_dock"), &EditorInterface::get_file_system_dock);
 
 	ClassDB::bind_method(D_METHOD("set_plugin_enabled", "plugin", "enabled"), &EditorInterface::set_plugin_enabled);
 	ClassDB::bind_method(D_METHOD("is_plugin_enabled", "plugin"), &EditorInterface::is_plugin_enabled);

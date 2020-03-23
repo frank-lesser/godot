@@ -977,7 +977,7 @@ void ConnectionsDock::update_tree() {
 				String descr;
 				bool found = false;
 
-				Map<StringName, Map<StringName, String> >::Element *G = descr_cache.find(base);
+				Map<StringName, Map<StringName, String>>::Element *G = descr_cache.find(base);
 				if (G) {
 					Map<StringName, String>::Element *F = G->get().find(signal_name);
 					if (F) {
@@ -992,7 +992,7 @@ void ConnectionsDock::update_tree() {
 					while (F && descr == String()) {
 						for (int i = 0; i < F->get().signals.size(); i++) {
 							if (F->get().signals[i].name == signal_name.operator String()) {
-								descr = F->get().signals[i].description.strip_edges();
+								descr = DTR(F->get().signals[i].description.strip_edges());
 								break;
 							}
 						}

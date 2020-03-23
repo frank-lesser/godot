@@ -1085,10 +1085,10 @@ void FileSystemDock::_try_duplicate_item(const FileOrFolder &p_item, const Strin
 
 void FileSystemDock::_update_resource_paths_after_move(const Map<String, String> &p_renames) const {
 	// Rename all resources loaded, be it subresources or actual resources.
-	List<Ref<Resource> > cached;
+	List<Ref<Resource>> cached;
 	ResourceCache::get_cached_resources(&cached);
 
-	for (List<Ref<Resource> >::Element *E = cached.front(); E; E = E->next()) {
+	for (List<Ref<Resource>>::Element *E = cached.front(); E; E = E->next()) {
 		Ref<Resource> r = E->get();
 
 		String base_path = r->get_path();
@@ -1287,12 +1287,12 @@ void FileSystemDock::_make_scene_confirm() {
 	editor->get_editor_data().set_scene_path(idx, scene_name);
 }
 
-void FileSystemDock::_file_deleted(String p_file) {
-	emit_signal("file_deleted", p_file);
+void FileSystemDock::_file_removed(String p_file) {
+	emit_signal("file_removed", p_file);
 }
 
-void FileSystemDock::_folder_deleted(String p_folder) {
-	emit_signal("folder_deleted", p_folder);
+void FileSystemDock::_folder_removed(String p_folder) {
+	emit_signal("folder_removed", p_folder);
 }
 
 void FileSystemDock::_rename_operation_confirm() {
@@ -2613,8 +2613,8 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	add_child(owners_editor);
 
 	remove_dialog = memnew(DependencyRemoveDialog);
-	remove_dialog->connect("file_removed", callable_mp(this, &FileSystemDock::_file_deleted));
-	remove_dialog->connect("folder_removed", callable_mp(this, &FileSystemDock::_folder_deleted));
+	remove_dialog->connect("file_removed", callable_mp(this, &FileSystemDock::_file_removed));
+	remove_dialog->connect("folder_removed", callable_mp(this, &FileSystemDock::_folder_removed));
 	add_child(remove_dialog);
 
 	move_dialog = memnew(EditorDirDialog);

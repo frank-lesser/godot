@@ -151,8 +151,8 @@ public:
 
 	//these go pass-through, as they can be called from any thread
 	BIND1R(RID, texture_2d_create, const Ref<Image> &)
-	BIND2R(RID, texture_2d_layered_create, const Vector<Ref<Image> > &, TextureLayeredType)
-	BIND1R(RID, texture_3d_create, const Vector<Ref<Image> > &)
+	BIND2R(RID, texture_2d_layered_create, const Vector<Ref<Image>> &, TextureLayeredType)
+	BIND1R(RID, texture_3d_create, const Vector<Ref<Image>> &)
 	BIND1R(RID, texture_proxy_create, RID)
 
 	//goes pass-through
@@ -507,7 +507,7 @@ public:
 	BIND0R(RID, sky_create)
 	BIND2(sky_set_radiance_size, RID, int)
 	BIND2(sky_set_mode, RID, SkyMode)
-	BIND2(sky_set_texture, RID, RID)
+	BIND2(sky_set_material, RID, RID)
 
 	BIND0R(RID, environment_create)
 

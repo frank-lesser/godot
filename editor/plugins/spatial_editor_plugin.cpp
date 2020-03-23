@@ -496,7 +496,7 @@ ObjectID SpatialEditorViewport::_select_ray(const Point2 &p_pos, bool p_append, 
 	Vector2 shrinked_pos = p_pos / viewport_container->get_stretch_shrink();
 
 	Vector<ObjectID> instances = VisualServer::get_singleton()->instances_cull_ray(pos, ray, get_tree()->get_root()->get_world()->get_scenario());
-	Set<Ref<EditorSpatialGizmo> > found_gizmos;
+	Set<Ref<EditorSpatialGizmo>> found_gizmos;
 
 	Node *edited_scene = get_tree()->get_edited_scene_root();
 	ObjectID closest;
@@ -563,7 +563,7 @@ void SpatialEditorViewport::_find_items_at_pos(const Point2 &p_pos, bool &r_incl
 	Vector3 pos = _get_ray_pos(p_pos);
 
 	Vector<ObjectID> instances = VisualServer::get_singleton()->instances_cull_ray(pos, ray, get_tree()->get_root()->get_world()->get_scenario());
-	Set<Ref<EditorSpatialGizmo> > found_gizmos;
+	Set<Ref<EditorSpatialGizmo>> found_gizmos;
 
 	r_includes_current = false;
 
@@ -2419,9 +2419,10 @@ void SpatialEditorViewport::_notification(int p_what) {
 			Transform t = sp->get_global_gizmo_transform();
 
 			exist = true;
-			if (se->last_xform == t)
+			if (se->last_xform == t && !se->last_xform_dirty)
 				continue;
 			changed = true;
+			se->last_xform_dirty = false;
 			se->last_xform = t;
 
 			VisualInstance *vi = Object::cast_to<VisualInstance>(sp);
@@ -3477,7 +3478,7 @@ Vector3 SpatialEditorViewport::_get_instance_position(const Point2 &p_pos) const
 	Vector3 world_pos = _get_ray_pos(p_pos);
 
 	Vector<ObjectID> instances = VisualServer::get_singleton()->instances_cull_ray(world_pos, world_ray, get_tree()->get_root()->get_world()->get_scenario());
-	Set<Ref<EditorSpatialGizmo> > found_gizmos;
+	Set<Ref<EditorSpatialGizmo>> found_gizmos;
 
 	float closest_dist = MAX_DISTANCE;
 
@@ -6471,7 +6472,7 @@ void EditorSpatialGizmoPlugin::create_material(const String &p_name, const Color
 
 	Color instanced_color = EDITOR_DEF("editors/3d_gizmos/gizmo_colors/instanced", Color(0.7, 0.7, 0.7, 0.6));
 
-	Vector<Ref<StandardMaterial3D> > mats;
+	Vector<Ref<StandardMaterial3D>> mats;
 
 	for (int i = 0; i < 4; i++) {
 		bool selected = i % 2 == 1;
@@ -6513,7 +6514,7 @@ void EditorSpatialGizmoPlugin::create_icon_material(const String &p_name, const 
 
 	Color instanced_color = EDITOR_DEF("editors/3d_gizmos/gizmo_colors/instanced", Color(0.7, 0.7, 0.7, 0.6));
 
-	Vector<Ref<StandardMaterial3D> > icons;
+	Vector<Ref<StandardMaterial3D>> icons;
 
 	for (int i = 0; i < 4; i++) {
 		bool selected = i % 2 == 1;
@@ -6568,12 +6569,12 @@ void EditorSpatialGizmoPlugin::create_handle_material(const String &p_name, bool
 		handle_material->set_on_top_of_alpha();
 	}
 
-	materials[p_name] = Vector<Ref<StandardMaterial3D> >();
+	materials[p_name] = Vector<Ref<StandardMaterial3D>>();
 	materials[p_name].push_back(handle_material);
 }
 
 void EditorSpatialGizmoPlugin::add_material(const String &p_name, Ref<StandardMaterial3D> p_material) {
-	materials[p_name] = Vector<Ref<StandardMaterial3D> >();
+	materials[p_name] = Vector<Ref<StandardMaterial3D>>();
 	materials[p_name].push_back(p_material);
 }
 

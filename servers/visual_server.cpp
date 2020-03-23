@@ -1020,7 +1020,7 @@ Error VisualServer::mesh_create_surface_data_from_arrays(SurfaceData *r_surface_
 	Error err = _surface_set_data(p_arrays, format, offsets, total_elem_size, vertex_array, array_len, index_array, index_array_len, aabb, bone_aabb);
 	ERR_FAIL_COND_V_MSG(err != OK, ERR_INVALID_DATA, "Invalid array format for surface.");
 
-	Vector<Vector<uint8_t> > blend_shape_data;
+	Vector<Vector<uint8_t>> blend_shape_data;
 
 	for (int i = 0; i < p_blend_shapes.size(); i++) {
 
@@ -1517,7 +1517,7 @@ Array VisualServer::mesh_surface_get_blend_shape_arrays(RID p_mesh, int p_surfac
 	SurfaceData sd = mesh_get_surface(p_mesh, p_surface);
 	ERR_FAIL_COND_V(sd.vertex_count == 0, Array());
 
-	Vector<Vector<uint8_t> > blend_shape_data = sd.blend_shapes;
+	Vector<Vector<uint8_t>> blend_shape_data = sd.blend_shapes;
 
 	if (blend_shape_data.size() > 0) {
 		int vertex_len = sd.vertex_count;
@@ -1578,7 +1578,7 @@ void VisualServer::_bind_methods() {
 
 #ifndef _3D_DISABLED
 	ClassDB::bind_method(D_METHOD("sky_create"), &VisualServer::sky_create);
-	ClassDB::bind_method(D_METHOD("sky_set_texture", "sky", "panorama"), &VisualServer::sky_set_texture);
+	ClassDB::bind_method(D_METHOD("sky_set_material", "sky", "material"), &VisualServer::sky_set_material);
 #endif
 	ClassDB::bind_method(D_METHOD("shader_create"), &VisualServer::shader_create);
 	ClassDB::bind_method(D_METHOD("shader_set_code", "shader", "code"), &VisualServer::shader_set_code);
@@ -1971,6 +1971,7 @@ void VisualServer::_bind_methods() {
 	BIND_ENUM_CONSTANT(SHADER_SPATIAL);
 	BIND_ENUM_CONSTANT(SHADER_CANVAS_ITEM);
 	BIND_ENUM_CONSTANT(SHADER_PARTICLES);
+	BIND_ENUM_CONSTANT(SHADER_SKY);
 	BIND_ENUM_CONSTANT(SHADER_MAX);
 
 	BIND_ENUM_CONSTANT(ARRAY_VERTEX);
@@ -2311,13 +2312,13 @@ VisualServer::VisualServer() {
 	GLOBAL_DEF("rendering/quality/shadows/filter_mode.mobile", 0);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/shadows/filter_mode", PropertyInfo(Variant::INT, "rendering/quality/shadows/filter_mode", PROPERTY_HINT_ENUM, "Disabled (Fastest),PCF5,PCF13 (Slowest)"));
 
-	GLOBAL_DEF("rendering/quality/reflections/roughness_layers", 6);
+	GLOBAL_DEF("rendering/quality/reflections/roughness_layers", 8);
 	GLOBAL_DEF("rendering/quality/reflections/texture_array_reflections", true);
 	GLOBAL_DEF("rendering/quality/reflections/texture_array_reflections.mobile", false);
 	GLOBAL_DEF("rendering/quality/reflections/ggx_samples", 1024);
 	GLOBAL_DEF("rendering/quality/reflections/ggx_samples.mobile", 128);
 	GLOBAL_DEF("rendering/quality/reflections/fast_filter_high_quality", false);
-	GLOBAL_DEF("rendering/quality/reflection_atlas/reflection_size", 128);
+	GLOBAL_DEF("rendering/quality/reflection_atlas/reflection_size", 256);
 	GLOBAL_DEF("rendering/quality/reflection_atlas/reflection_size.mobile", 128);
 	GLOBAL_DEF("rendering/quality/reflection_atlas/reflection_count", 64);
 

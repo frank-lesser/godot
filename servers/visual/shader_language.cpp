@@ -896,7 +896,7 @@ void ShaderLanguage::clear() {
 	}
 }
 
-bool ShaderLanguage::_find_identifier(const BlockNode *p_block, const Map<StringName, BuiltInInfo> &p_builtin_types, const StringName &p_identifier, DataType *r_data_type, IdentifierType *r_type, bool *r_is_const, int *r_array_size, StringName *r_struct_name) {
+bool ShaderLanguage::_find_identifier(const BlockNode *p_block, bool p_allow_reassign, const Map<StringName, BuiltInInfo> &p_builtin_types, const StringName &p_identifier, DataType *r_data_type, IdentifierType *r_type, bool *r_is_const, int *r_array_size, StringName *r_struct_name) {
 
 	if (p_builtin_types.has(p_identifier)) {
 
@@ -941,6 +941,9 @@ bool ShaderLanguage::_find_identifier(const BlockNode *p_block, const Map<String
 			function = p_block->parent_function;
 			break;
 		} else {
+			if (p_allow_reassign) {
+				break;
+			}
 			ERR_FAIL_COND_V(!p_block->parent_block, false);
 			p_block = p_block->parent_block;
 		}
@@ -2114,7 +2117,7 @@ const ShaderLanguage::BuiltinFuncOutArgs ShaderLanguage::builtin_func_out_args[]
 	{ NULL, 0 }
 };
 
-bool ShaderLanguage::_validate_function_call(BlockNode *p_block, OperatorNode *p_func, DataType *r_ret_type, StringName *r_ret_type_str) {
+bool ShaderLanguage::_validate_function_call(BlockNode *p_block, const Map<StringName, BuiltInInfo> &p_builtin_types, OperatorNode *p_func, DataType *r_ret_type, StringName *r_ret_type_str) {
 
 	ERR_FAIL_COND_V(p_func->op != OP_CALL && p_func->op != OP_CONSTRUCT, false);
 
@@ -2185,16 +2188,68 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, OperatorNode *p
 
 							if (arg_idx < argcount) {
 
-								if (p_func->arguments[arg_idx + 1]->type != Node::TYPE_VARIABLE) {
-									_set_error("Argument " + itos(arg_idx + 1) + " of function '" + String(name) + "' is not a variable");
+								if (p_func->arguments[arg_idx + 1]->type != Node::TYPE_VARIABLE && p_func->arguments[arg_idx + 1]->type != Node::TYPE_MEMBER && p_func->arguments[arg_idx + 1]->type != Node::TYPE_ARRAY) {
+									_set_error("Argument " + itos(arg_idx + 1) + " of function '" + String(name) + "' is not a variable, array or member.");
 									return false;
 								}
-								StringName var_name = static_cast<const VariableNode *>(p_func->arguments[arg_idx + 1])->name;
 
+								if (p_func->arguments[arg_idx + 1]->type == Node::TYPE_ARRAY) {
+									ArrayNode *mn = static_cast<ArrayNode *>(p_func->arguments[arg_idx + 1]);
+									if (mn->is_const) {
+										fail = true;
+									}
+								} else if (p_func->arguments[arg_idx + 1]->type == Node::TYPE_MEMBER) {
+									MemberNode *mn = static_cast<MemberNode *>(p_func->arguments[arg_idx + 1]);
+									if (mn->basetype_const) {
+										fail = true;
+									}
+								} else { // TYPE_VARIABLE
+									VariableNode *vn = static_cast<VariableNode *>(p_func->arguments[arg_idx + 1]);
+									if (vn->is_const) {
+										fail = true;
+									} else {
+										StringName varname = vn->name;
+										if (shader->uniforms.has(varname)) {
+											fail = true;
+										} else {
+											if (p_builtin_types.has(varname)) {
+												BuiltInInfo info = p_builtin_types[varname];
+												if (info.constant) {
+													fail = true;
+												}
+											}
+										}
+									}
+								}
+								if (fail) {
+									_set_error(vformat("Constant value cannot be passed for '%s' parameter!", "out"));
+									return false;
+								}
+
+								StringName var_name;
+								if (p_func->arguments[arg_idx + 1]->type == Node::TYPE_ARRAY) {
+									var_name = static_cast<const ArrayNode *>(p_func->arguments[arg_idx + 1])->name;
+								} else if (p_func->arguments[arg_idx + 1]->type == Node::TYPE_MEMBER) {
+									Node *n = static_cast<const MemberNode *>(p_func->arguments[arg_idx + 1])->owner;
+									while (n->type == Node::TYPE_MEMBER) {
+										n = static_cast<const MemberNode *>(n)->owner;
+									}
+									if (n->type != Node::TYPE_VARIABLE && n->type != Node::TYPE_ARRAY) {
+										_set_error("Argument " + itos(arg_idx + 1) + " of function '" + String(name) + "' is not a variable, array or member.");
+										return false;
+									}
+									if (n->type == Node::TYPE_VARIABLE) {
+										var_name = static_cast<const VariableNode *>(n)->name;
+									} else { // TYPE_ARRAY
+										var_name = static_cast<const ArrayNode *>(n)->name;
+									}
+								} else { // TYPE_VARIABLE
+									var_name = static_cast<const VariableNode *>(p_func->arguments[arg_idx + 1])->name;
+								}
 								const BlockNode *b = p_block;
 								bool valid = false;
 								while (b) {
-									if (b->variables.has(var_name)) {
+									if (b->variables.has(var_name) || p_builtin_types.has(var_name)) {
 										valid = true;
 										break;
 									}
@@ -2210,7 +2265,7 @@ bool ShaderLanguage::_validate_function_call(BlockNode *p_block, OperatorNode *p
 								}
 
 								if (!valid) {
-									_set_error("Argument " + itos(arg_idx + 1) + " of function '" + String(name) + "' can only take a local variable");
+									_set_error("Argument " + itos(arg_idx + 1) + " of function '" + String(name) + "' can only take a local variable, array or member.");
 									return false;
 								}
 							}
@@ -3038,7 +3093,7 @@ bool ShaderLanguage::_propagate_function_call_sampler_uniform_settings(StringNam
 				arg->tex_argument_check = true;
 				arg->tex_argument_filter = p_filter;
 				arg->tex_argument_repeat = p_repeat;
-				for (Map<StringName, Set<int> >::Element *E = arg->tex_argument_connect.front(); E; E = E->next()) {
+				for (Map<StringName, Set<int>>::Element *E = arg->tex_argument_connect.front(); E; E = E->next()) {
 					for (Set<int>::Element *F = E->get().front(); F; F = F->next()) {
 						if (!_propagate_function_call_sampler_uniform_settings(E->key(), F->get(), p_filter, p_repeat)) {
 							return false;
@@ -3073,7 +3128,7 @@ bool ShaderLanguage::_propagate_function_call_sampler_builtin_reference(StringNa
 				arg->tex_builtin_check = true;
 				arg->tex_builtin = p_builtin;
 
-				for (Map<StringName, Set<int> >::Element *E = arg->tex_argument_connect.front(); E; E = E->next()) {
+				for (Map<StringName, Set<int>>::Element *E = arg->tex_argument_connect.front(); E; E = E->next()) {
 					for (Set<int>::Element *F = E->get().front(); F; F = F->next()) {
 						if (!_propagate_function_call_sampler_builtin_reference(E->key(), F->get(), p_builtin)) {
 							return false;
@@ -3197,7 +3252,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 			if (!ok)
 				return NULL;
 
-			if (!_validate_function_call(p_block, func, &func->return_cache, &func->struct_name)) {
+			if (!_validate_function_call(p_block, p_builtin_types, func, &func->return_cache, &func->struct_name)) {
 				_set_error("No matching constructor found for: '" + String(funcname->name) + "'");
 				return NULL;
 			}
@@ -3461,7 +3516,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 					if (!ok)
 						return NULL;
 
-					if (!_validate_function_call(p_block, func, &func->return_cache, &func->struct_name)) {
+					if (!_validate_function_call(p_block, p_builtin_types, func, &func->return_cache, &func->struct_name)) {
 						_set_error("No matching function found for: '" + String(funcname->name) + "'");
 						return NULL;
 					}
@@ -3602,7 +3657,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 					}
 				} else {
 
-					if (!_find_identifier(p_block, p_builtin_types, identifier, &data_type, &ident_type, &is_const, &array_size, &struct_name)) {
+					if (!_find_identifier(p_block, false, p_builtin_types, identifier, &data_type, &ident_type, &is_const, &array_size, &struct_name)) {
 						_set_error("Unknown identifier in expression: " + String(identifier));
 						return NULL;
 					}
@@ -4697,7 +4752,7 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const Map<StringName, Bui
 
 				StringName name = tk.text;
 				ShaderLanguage::IdentifierType itype;
-				if (_find_identifier(p_block, p_builtin_types, name, (ShaderLanguage::DataType *)0, &itype)) {
+				if (_find_identifier(p_block, true, p_builtin_types, name, (ShaderLanguage::DataType *)0, &itype)) {
 					if (itype != IDENTIFIER_FUNCTION) {
 						_set_error("Redefinition of '" + String(name) + "'");
 						return ERR_PARSE_ERROR;
@@ -5028,7 +5083,9 @@ Error ShaderLanguage::_parse_block(BlockNode *p_block, const Map<StringName, Bui
 			//a sub block, just because..
 			BlockNode *block = alloc_node<BlockNode>();
 			block->parent_block = p_block;
-			_parse_block(block, p_builtin_types, false, p_can_break, p_can_continue);
+			if (_parse_block(block, p_builtin_types, false, p_can_break, p_can_continue) != OK) {
+				return ERR_PARSE_ERROR;
+			}
 			p_block->statements.push_back(block);
 		} else if (tk.type == TK_CF_IF) {
 			//if () {}
@@ -5836,7 +5893,7 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 
 				name = tk.text;
 
-				if (_find_identifier(NULL, Map<StringName, BuiltInInfo>(), name)) {
+				if (_find_identifier(NULL, false, Map<StringName, BuiltInInfo>(), name)) {
 					_set_error("Redefinition of '" + String(name) + "'");
 					return ERR_PARSE_ERROR;
 				}
@@ -6136,7 +6193,7 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 					return ERR_PARSE_ERROR;
 				}
 
-				if (_find_identifier(NULL, Map<StringName, BuiltInInfo>(), name)) {
+				if (_find_identifier(NULL, false, Map<StringName, BuiltInInfo>(), name)) {
 					_set_error("Redefinition of '" + String(name) + "'");
 					return ERR_PARSE_ERROR;
 				}
@@ -6204,7 +6261,7 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 							}
 
 							name = tk.text;
-							if (_find_identifier(NULL, Map<StringName, BuiltInInfo>(), name)) {
+							if (_find_identifier(NULL, false, Map<StringName, BuiltInInfo>(), name)) {
 								_set_error("Redefinition of '" + String(name) + "'");
 								return ERR_PARSE_ERROR;
 							}
@@ -6230,6 +6287,12 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 				Map<StringName, BuiltInInfo> builtin_types;
 				if (p_functions.has(name)) {
 					builtin_types = p_functions[name].built_ins;
+				}
+
+				if (p_functions.has("global")) { // Adds global variables: 'TIME'
+					for (Map<StringName, BuiltInInfo>::Element *E = p_functions["global"].built_ins.front(); E; E = E->next()) {
+						builtin_types.insert(E->key(), E->value());
+					}
 				}
 
 				ShaderNode::Function function;
@@ -6337,7 +6400,7 @@ Error ShaderLanguage::_parse_shader(const Map<StringName, FunctionInfo> &p_funct
 					pname = tk.text;
 
 					ShaderLanguage::IdentifierType itype;
-					if (_find_identifier(func_node->body, builtin_types, pname, (ShaderLanguage::DataType *)0, &itype)) {
+					if (_find_identifier(func_node->body, false, builtin_types, pname, (ShaderLanguage::DataType *)0, &itype)) {
 						if (itype != IDENTIFIER_FUNCTION) {
 							_set_error("Redefinition of '" + String(pname) + "'");
 							return ERR_PARSE_ERROR;
@@ -6664,18 +6727,27 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 					block = block->parent_block;
 				}
 
-				if (comp_ident && skip_function != StringName() && p_functions.has(skip_function)) {
-
-					for (Map<StringName, BuiltInInfo>::Element *E = p_functions[skip_function].built_ins.front(); E; E = E->next()) {
-						ScriptCodeCompletionOption::Kind kind = ScriptCodeCompletionOption::KIND_MEMBER;
-						if (E->get().constant) {
-							kind = ScriptCodeCompletionOption::KIND_CONSTANT;
-						}
-						matches.insert(E->key(), kind);
-					}
-				}
-
 				if (comp_ident) {
+					if (p_functions.has("global")) {
+						for (Map<StringName, BuiltInInfo>::Element *E = p_functions["global"].built_ins.front(); E; E = E->next()) {
+							ScriptCodeCompletionOption::Kind kind = ScriptCodeCompletionOption::KIND_MEMBER;
+							if (E->get().constant) {
+								kind = ScriptCodeCompletionOption::KIND_CONSTANT;
+							}
+							matches.insert(E->key(), kind);
+						}
+					}
+
+					if (skip_function != StringName() && p_functions.has(skip_function)) {
+						for (Map<StringName, BuiltInInfo>::Element *E = p_functions[skip_function].built_ins.front(); E; E = E->next()) {
+							ScriptCodeCompletionOption::Kind kind = ScriptCodeCompletionOption::KIND_MEMBER;
+							if (E->get().constant) {
+								kind = ScriptCodeCompletionOption::KIND_CONSTANT;
+							}
+							matches.insert(E->key(), kind);
+						}
+					}
+
 					for (const Map<StringName, ShaderNode::Varying>::Element *E = shader->varyings.front(); E; E = E->next()) {
 						matches.insert(E->key(), ScriptCodeCompletionOption::KIND_VARIABLE);
 					}
@@ -6753,6 +6825,14 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 							calltip += CharType(0xFFFF);
 						}
 
+						if (shader->functions[i].function->arguments[j].qualifier != ArgumentQualifier::ARGUMENT_QUALIFIER_IN) {
+							if (shader->functions[i].function->arguments[j].qualifier == ArgumentQualifier::ARGUMENT_QUALIFIER_OUT) {
+								calltip += "out ";
+							} else { // ArgumentQualifier::ARGUMENT_QUALIFIER_INOUT
+								calltip += "inout ";
+							}
+						}
+
 						calltip += get_datatype_name(shader->functions[i].function->arguments[j].type);
 						calltip += " ";
 						calltip += shader->functions[i].function->arguments[j].name;
@@ -6783,6 +6863,16 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 					continue;
 				}
 
+				int idx2 = 0;
+				int out_arg = -1;
+				while (builtin_func_out_args[idx2].name != nullptr) {
+					if (builtin_func_out_args[idx2].name == builtin_func_defs[idx].name) {
+						out_arg = builtin_func_out_args[idx2].argument;
+						break;
+					}
+					idx2++;
+				}
+
 				if (completion_function == builtin_func_defs[idx].name) {
 
 					if (builtin_func_defs[idx].tag != completion_class) {
@@ -6811,6 +6901,10 @@ Error ShaderLanguage::complete(const String &p_code, const Map<StringName, Funct
 
 						if (i == completion_argument) {
 							calltip += CharType(0xFFFF);
+						}
+
+						if (out_arg >= 0 && i == out_arg) {
+							calltip += "out ";
 						}
 
 						calltip += get_datatype_name(builtin_func_defs[idx].args[i]);

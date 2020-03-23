@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  register_types.h                                                     */
+/*  PaymentsCache.java                                                   */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,5 +28,44 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-void register_vorbis_types();
-void unregister_vorbis_types();
+package org.godotengine.godot.plugin.payment;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+
+public class PaymentsCache {
+
+	public Context context;
+
+	public PaymentsCache(Context context) {
+		this.context = context;
+	}
+
+	public void setConsumableFlag(String set, String sku, Boolean flag) {
+		SharedPreferences sharedPref = context.getSharedPreferences("consumables_" + set, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putBoolean(sku, flag);
+		editor.apply();
+	}
+
+	public boolean getConsumableFlag(String set, String sku) {
+		SharedPreferences sharedPref = context.getSharedPreferences(
+				"consumables_" + set, Context.MODE_PRIVATE);
+		return sharedPref.getBoolean(sku, false);
+	}
+
+	public void setConsumableValue(String set, String sku, String value) {
+		SharedPreferences sharedPref = context.getSharedPreferences("consumables_" + set, Context.MODE_PRIVATE);
+		SharedPreferences.Editor editor = sharedPref.edit();
+		editor.putString(sku, value);
+		//Log.d("XXX", "Setting asset: consumables_" + set + ":" + sku);
+		editor.apply();
+	}
+
+	public String getConsumableValue(String set, String sku) {
+		SharedPreferences sharedPref = context.getSharedPreferences(
+				"consumables_" + set, Context.MODE_PRIVATE);
+		//Log.d("XXX", "Getting asset: consumables_" + set + ":" + sku);
+		return sharedPref.getString(sku, null);
+	}
+}

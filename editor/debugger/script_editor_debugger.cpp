@@ -165,7 +165,7 @@ void ScriptEditorDebugger::_file_selected(const String &p_file) {
 	file->store_csv_line(line);
 
 	// values
-	List<Vector<float> >::Element *E = perf_history.back();
+	List<Vector<float>>::Element *E = perf_history.back();
 	while (E) {
 
 		Vector<float> &perf_data = E->get();
@@ -178,7 +178,7 @@ void ScriptEditorDebugger::_file_selected(const String &p_file) {
 	}
 	file->store_string("\n");
 
-	Vector<Vector<String> > profiler_data = profiler->get_data_as_csv();
+	Vector<Vector<String>> profiler_data = profiler->get_data_as_csv();
 	for (int i = 0; i < profiler_data.size(); i++) {
 		file->store_csv_line(profiler_data[i]);
 	}
@@ -728,7 +728,7 @@ void ScriptEditorDebugger::_performance_draw() {
 		float spacing = point_sep / float(cols);
 		float from = r.size.width;
 
-		List<Vector<float> >::Element *E = perf_history.front();
+		List<Vector<float>>::Element *E = perf_history.front();
 		float prev = -1;
 		while (from >= 0 && E) {
 
@@ -810,7 +810,7 @@ void ScriptEditorDebugger::_notification(int p_what) {
 
 			const uint64_t until = OS::get_singleton()->get_ticks_msec() + 20;
 
-			while (peer->has_message()) {
+			while (peer.is_valid() && peer->has_message()) {
 
 				Array arr = peer->get_message();
 				if (arr.size() != 2 || arr[0].get_type() != Variant::STRING || arr[1].get_type() != Variant::ARRAY) {

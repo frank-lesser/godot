@@ -585,7 +585,7 @@ RID RasterizerStorageRD::texture_2d_create(const Ref<Image> &p_image) {
 		rd_view.swizzle_a = ret_format.swizzle_a;
 	}
 	Vector<uint8_t> data = image->get_data(); //use image data
-	Vector<Vector<uint8_t> > data_slices;
+	Vector<Vector<uint8_t>> data_slices;
 	data_slices.push_back(data);
 	texture.rd_texture = RD::get_singleton()->texture_create(rd_format, rd_view, data_slices);
 	ERR_FAIL_COND_V(texture.rd_texture.is_null(), RID());
@@ -608,11 +608,11 @@ RID RasterizerStorageRD::texture_2d_create(const Ref<Image> &p_image) {
 	return texture_owner.make_rid(texture);
 }
 
-RID RasterizerStorageRD::texture_2d_layered_create(const Vector<Ref<Image> > &p_layers, VS::TextureLayeredType p_layered_type) {
+RID RasterizerStorageRD::texture_2d_layered_create(const Vector<Ref<Image>> &p_layers, VS::TextureLayeredType p_layered_type) {
 
 	return RID();
 }
-RID RasterizerStorageRD::texture_3d_create(const Vector<Ref<Image> > &p_slices) {
+RID RasterizerStorageRD::texture_3d_create(const Vector<Ref<Image>> &p_slices) {
 
 	return RID();
 }
@@ -881,6 +881,8 @@ void RasterizerStorageRD::shader_set_code(RID p_shader, const String &p_code) {
 		new_type = SHADER_TYPE_PARTICLES;
 	else if (mode_string == "spatial")
 		new_type = SHADER_TYPE_3D;
+	else if (mode_string == "sky")
+		new_type = SHADER_TYPE_SKY;
 	else
 		new_type = SHADER_TYPE_MAX;
 
@@ -3597,7 +3599,7 @@ void RasterizerStorageRD::gi_probe_allocate(RID p_gi_probe, const Transform &p_t
 			tf.depth = gi_probe->octree_size.z;
 			tf.type = RD::TEXTURE_TYPE_3D;
 			tf.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_CAN_UPDATE_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
-			Vector<Vector<uint8_t> > s;
+			Vector<Vector<uint8_t>> s;
 			s.push_back(p_distance_field);
 			gi_probe->sdf_texture = RD::get_singleton()->texture_create(tf, RD::TextureView(), s);
 		}
@@ -4473,7 +4475,7 @@ RasterizerStorageRD::RasterizerStorageRD() {
 		}
 
 		{
-			Vector<Vector<uint8_t> > vpv;
+			Vector<Vector<uint8_t>> vpv;
 			vpv.push_back(pv);
 			default_rd_textures[DEFAULT_RD_TEXTURE_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
 		}
@@ -4486,7 +4488,7 @@ RasterizerStorageRD::RasterizerStorageRD() {
 		}
 
 		{
-			Vector<Vector<uint8_t> > vpv;
+			Vector<Vector<uint8_t>> vpv;
 			vpv.push_back(pv);
 			default_rd_textures[DEFAULT_RD_TEXTURE_BLACK] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
 		}
@@ -4499,7 +4501,7 @@ RasterizerStorageRD::RasterizerStorageRD() {
 		}
 
 		{
-			Vector<Vector<uint8_t> > vpv;
+			Vector<Vector<uint8_t>> vpv;
 			vpv.push_back(pv);
 			default_rd_textures[DEFAULT_RD_TEXTURE_NORMAL] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
 		}
@@ -4512,7 +4514,7 @@ RasterizerStorageRD::RasterizerStorageRD() {
 		}
 
 		{
-			Vector<Vector<uint8_t> > vpv;
+			Vector<Vector<uint8_t>> vpv;
 			vpv.push_back(pv);
 			default_rd_textures[DEFAULT_RD_TEXTURE_ANISO] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
 		}
@@ -4547,7 +4549,7 @@ RasterizerStorageRD::RasterizerStorageRD() {
 		}
 
 		{
-			Vector<Vector<uint8_t> > vpv;
+			Vector<Vector<uint8_t>> vpv;
 			for (int i = 0; i < 6; i++) {
 				vpv.push_back(pv);
 			}
@@ -4575,7 +4577,7 @@ RasterizerStorageRD::RasterizerStorageRD() {
 		}
 
 		{
-			Vector<Vector<uint8_t> > vpv;
+			Vector<Vector<uint8_t>> vpv;
 			for (int i = 0; i < 6; i++) {
 				vpv.push_back(pv);
 			}
@@ -4603,7 +4605,7 @@ RasterizerStorageRD::RasterizerStorageRD() {
 		}
 
 		{
-			Vector<Vector<uint8_t> > vpv;
+			Vector<Vector<uint8_t>> vpv;
 			vpv.push_back(pv);
 			default_rd_textures[DEFAULT_RD_TEXTURE_3D_WHITE] = RD::get_singleton()->texture_create(tformat, RD::TextureView(), vpv);
 		}

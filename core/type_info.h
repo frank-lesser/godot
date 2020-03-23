@@ -174,7 +174,7 @@ MAKE_TYPE_INFO(IP_Address, Variant::STRING)
 template <>
 struct GetTypeInfo<ObjectID> {
 	static const Variant::Type VARIANT_TYPE = Variant::INT;
-	static const GodotTypeInfo::Metadata METADATA = GodotTypeInfo::METADATA_NONE;
+	static const GodotTypeInfo::Metadata METADATA = GodotTypeInfo::METADATA_INT_IS_UINT64;
 	static inline PropertyInfo get_class_info() {
 		return PropertyInfo(Variant::INT, String(), PROPERTY_HINT_INT_IS_OBJECTID);
 	}
@@ -201,7 +201,7 @@ struct GetTypeInfo<const Variant &> {
 
 #define MAKE_TEMPLATE_TYPE_INFO(m_template, m_type, m_var_type)                       \
 	template <>                                                                       \
-	struct GetTypeInfo<m_template<m_type> > {                                         \
+	struct GetTypeInfo<m_template<m_type>> {                                          \
 		static const Variant::Type VARIANT_TYPE = m_var_type;                         \
 		static const GodotTypeInfo::Metadata METADATA = GodotTypeInfo::METADATA_NONE; \
 		static inline PropertyInfo get_class_info() {                                 \

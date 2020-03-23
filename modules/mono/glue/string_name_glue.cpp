@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  thread_local.cpp                                                     */
+/*  string_name_glue.cpp                                                 */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,80 +28,34 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "thread_local.h"
+#include "string_name_glue.h"
 
-#ifdef WINDOWS_ENABLED
-#include <windows.h>
-#else
-#include <pthread.h>
-#endif
+#ifdef MONO_GLUE_ENABLED
 
-#include "core/os/memory.h"
-#include "core/print_string.h"
+#include "core/ustring.h"
 
-struct ThreadLocalStorage::Impl {
-
-#ifdef WINDOWS_ENABLED
-	DWORD dwFlsIndex;
-#else
-	pthread_key_t key;
-#endif
-
-	void *get_value() const {
-#ifdef WINDOWS_ENABLED
-		return FlsGetValue(dwFlsIndex);
-#else
-		return pthread_getspecific(key);
-#endif
-	}
-
-	void set_value(void *p_value) const {
-#ifdef WINDOWS_ENABLED
-		FlsSetValue(dwFlsIndex, p_value);
-#else
-		pthread_setspecific(key, p_value);
-#endif
-	}
-
-#ifdef WINDOWS_ENABLED
-#define _CALLBACK_FUNC_ __stdcall
-#else
-#define _CALLBACK_FUNC_
-#endif
-
-	Impl(void(_CALLBACK_FUNC_ *p_destr_callback_func)(void *)) {
-#ifdef WINDOWS_ENABLED
-		dwFlsIndex = FlsAlloc(p_destr_callback_func);
-		ERR_FAIL_COND(dwFlsIndex == FLS_OUT_OF_INDEXES);
-#else
-		pthread_key_create(&key, p_destr_callback_func);
-#endif
-	}
-
-	~Impl() {
-#ifdef WINDOWS_ENABLED
-		FlsFree(dwFlsIndex);
-#else
-		pthread_key_delete(key);
-#endif
-	}
-};
-
-void *ThreadLocalStorage::get_value() const {
-	return pimpl->get_value();
+StringName *godot_icall_StringName_Ctor(MonoString *p_path) {
+	return memnew(StringName(GDMonoMarshal::mono_string_to_godot(p_path)));
 }
 
-void ThreadLocalStorage::set_value(void *p_value) const {
-	pimpl->set_value(p_value);
+void godot_icall_StringName_Dtor(StringName *p_ptr) {
+	ERR_FAIL_NULL(p_ptr);
+	memdelete(p_ptr);
 }
 
-void ThreadLocalStorage::alloc(void(_CALLBACK_FUNC_ *p_destr_callback)(void *)) {
-	pimpl = memnew(ThreadLocalStorage::Impl(p_destr_callback));
+MonoString *godot_icall_StringName_operator_String(StringName *p_np) {
+	return GDMonoMarshal::mono_string_from_godot(p_np->operator String());
 }
 
-#undef _CALLBACK_FUNC_
-
-void ThreadLocalStorage::free() {
-	memdelete(pimpl);
-	pimpl = NULL;
+MonoBoolean godot_icall_StringName_is_empty(StringName *p_ptr) {
+	return (MonoBoolean)(p_ptr == StringName());
 }
+
+void godot_register_string_name_icalls() {
+	mono_add_internal_call("Godot.StringName::godot_icall_StringName_Ctor", (void *)godot_icall_StringName_Ctor);
+	mono_add_internal_call("Godot.StringName::godot_icall_StringName_Dtor", (void *)godot_icall_StringName_Dtor);
+	mono_add_internal_call("Godot.StringName::godot_icall_StringName_operator_String", (void *)godot_icall_StringName_operator_String);
+	mono_add_internal_call("Godot.StringName::godot_icall_StringName_is_empty", (void *)godot_icall_StringName_is_empty);
+}
+
+#endif // MONO_GLUE_ENABLED

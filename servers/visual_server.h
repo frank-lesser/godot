@@ -94,8 +94,8 @@ public:
 	};
 
 	virtual RID texture_2d_create(const Ref<Image> &p_image) = 0;
-	virtual RID texture_2d_layered_create(const Vector<Ref<Image> > &p_layers, TextureLayeredType p_layered_type) = 0;
-	virtual RID texture_3d_create(const Vector<Ref<Image> > &p_slices) = 0; //all slices, then all the mipmaps, must be coherent
+	virtual RID texture_2d_layered_create(const Vector<Ref<Image>> &p_layers, TextureLayeredType p_layered_type) = 0;
+	virtual RID texture_3d_create(const Vector<Ref<Image>> &p_slices) = 0; //all slices, then all the mipmaps, must be coherent
 	virtual RID texture_proxy_create(RID p_base) = 0;
 
 	virtual void texture_2d_update_immediate(RID p_texture, const Ref<Image> &p_image, int p_layer = 0) = 0; //mostly used for video and streaming
@@ -160,6 +160,7 @@ public:
 		SHADER_SPATIAL,
 		SHADER_CANVAS_ITEM,
 		SHADER_PARTICLES,
+		SHADER_SKY,
 		SHADER_MAX
 	};
 
@@ -262,7 +263,7 @@ public:
 		Vector<LOD> lods;
 		Vector<AABB> bone_aabbs;
 
-		Vector<Vector<uint8_t> > blend_shapes;
+		Vector<Vector<uint8_t>> blend_shapes;
 
 		RID material;
 	};
@@ -681,7 +682,7 @@ public:
 	virtual RID sky_create() = 0;
 	virtual void sky_set_radiance_size(RID p_sky, int p_radiance_size) = 0;
 	virtual void sky_set_mode(RID p_sky, SkyMode p_mode) = 0;
-	virtual void sky_set_texture(RID p_sky, RID p_panorama) = 0;
+	virtual void sky_set_material(RID p_sky, RID p_material) = 0;
 
 	/* ENVIRONMENT API */
 
