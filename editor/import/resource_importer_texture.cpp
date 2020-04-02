@@ -36,7 +36,7 @@
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
 
-void ResourceImporterTexture::_texture_reimport_roughness(const Ref<StreamTexture> &p_tex, const String &p_normal_path, VS::TextureDetectRoughnessChannel p_channel) {
+void ResourceImporterTexture::_texture_reimport_roughness(const Ref<StreamTexture> &p_tex, const String &p_normal_path, RS::TextureDetectRoughnessChannel p_channel) {
 
 	MutexLock lock(singleton->mutex);
 
@@ -424,7 +424,7 @@ Error ResourceImporterTexture::import(const String &p_source_file, const String 
 	String normal_map = p_options["roughness/src_normal"];
 
 	Ref<Image> normal_image;
-	Image::RoughnessChannel roughness_channel;
+	Image::RoughnessChannel roughness_channel = Image::ROUGHNESS_CHANNEL_R;
 
 	if (mipmaps && roughness > 1 && FileAccess::exists(normal_map)) {
 		normal_image.instance();
