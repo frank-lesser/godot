@@ -207,6 +207,7 @@ class RasterizerSceneHighEndRD : public RasterizerSceneRD {
 		RID depth_normal_roughness_fb;
 		RID color_fb;
 		RID color_specular_fb;
+		RID specular_only_fb;
 		int width, height;
 
 		void ensure_specular();
@@ -489,7 +490,7 @@ class RasterizerSceneHighEndRD : public RasterizerSceneRD {
 		_FORCE_INLINE_ Element *add_element() {
 
 			if (element_count + alpha_element_count >= max_elements)
-				return NULL;
+				return nullptr;
 			elements[element_count] = &base_elements[element_count];
 			return elements[element_count++];
 		}
@@ -497,7 +498,7 @@ class RasterizerSceneHighEndRD : public RasterizerSceneRD {
 		_FORCE_INLINE_ Element *add_alpha_element() {
 
 			if (element_count + alpha_element_count >= max_elements)
-				return NULL;
+				return nullptr;
 			int idx = max_elements - alpha_element_count - 1;
 			elements[idx] = &base_elements[idx];
 			alpha_element_count++;

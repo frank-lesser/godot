@@ -79,7 +79,9 @@ public:
 	virtual void environment_glow_set_use_bicubic_upscale(bool p_enable) = 0;
 	virtual void environment_set_fog(RID p_env, bool p_enable, float p_begin, float p_end, RID p_gradient_texture) = 0;
 
-	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_int, float p_fade_out, float p_depth_tolerance, bool p_roughness) = 0;
+	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_int, float p_fade_out, float p_depth_tolerance) = 0;
+	virtual void environment_set_ssr_roughness_quality(RS::EnvironmentSSRRoughnessQuality p_quality) = 0;
+
 	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_bias, float p_light_affect, float p_ao_channel_affect, RS::EnvironmentSSAOBlur p_blur, float p_bilateral_sharpness) = 0;
 
 	virtual void environment_set_ssao_quality(RS::EnvironmentSSAOQuality p_quality, bool p_half_size) = 0;
@@ -107,7 +109,6 @@ public:
 	struct InstanceBase;
 
 	struct InstanceDependency {
-
 		void instance_notify_changed(bool p_aabb, bool p_dependencies);
 		void instance_notify_deleted(RID p_deleted);
 
@@ -119,7 +120,6 @@ public:
 	};
 
 	struct InstanceBase {
-
 		RS::InstanceType base_type;
 		RID base;
 
@@ -219,7 +219,7 @@ public:
 			baked_light = false;
 			dynamic_gi = false;
 			redraw_if_visible = false;
-			lightmap_capture = NULL;
+			lightmap_capture = nullptr;
 		}
 
 		virtual ~InstanceBase() {
@@ -231,7 +231,9 @@ public:
 	virtual void light_instance_set_transform(RID p_light_instance, const Transform &p_transform) = 0;
 	virtual void light_instance_set_shadow_transform(RID p_light_instance, const CameraMatrix &p_projection, const Transform &p_transform, float p_far, float p_split, int p_pass, float p_bias_scale = 1.0) = 0;
 	virtual void light_instance_mark_visible(RID p_light_instance) = 0;
-	virtual bool light_instances_can_render_shadow_cube() const { return true; }
+	virtual bool light_instances_can_render_shadow_cube() const {
+		return true;
+	}
 
 	virtual RID reflection_atlas_create() = 0;
 	virtual void reflection_atlas_set_size(RID p_ref_atlas, int p_reflection_size, int p_reflection_count) = 0;
@@ -751,10 +753,10 @@ public:
 			energy = 1.0;
 			item_shadow_mask = -1;
 			mode = RS::CANVAS_LIGHT_MODE_ADD;
-			//			texture_cache = NULL;
-			next_ptr = NULL;
-			mask_next_ptr = NULL;
-			filter_next_ptr = NULL;
+			//			texture_cache = nullptr;
+			next_ptr = nullptr;
+			mask_next_ptr = nullptr;
+			filter_next_ptr = nullptr;
 			use_shadow = false;
 			shadow_buffer_size = 2048;
 			shadow_filter = RS::CANVAS_LIGHT_FILTER_NONE;
@@ -1005,7 +1007,7 @@ public:
 
 			//must update rect
 
-			if (commands == NULL) {
+			if (commands == nullptr) {
 
 				rect = Rect2();
 				rect_dirty = false;
@@ -1115,12 +1117,12 @@ public:
 		template <class T>
 		T *alloc_command() {
 			T *command;
-			if (commands == NULL) {
+			if (commands == nullptr) {
 				// As the most common use case of canvas items is to
 				// use only one command, the first is done with it's
 				// own allocation. The rest of them use blocks.
 				command = memnew(T);
-				command->next = NULL;
+				command->next = nullptr;
 				commands = command;
 				last_command = command;
 			} else {
@@ -1147,7 +1149,7 @@ public:
 					//allocate block and add to the linked list
 					void *memory = c->memory + c->usage;
 					command = memnew_placement(memory, T);
-					command->next = NULL;
+					command->next = nullptr;
 					last_command->next = command;
 					last_command = command;
 					c->usage += sizeof(T);
@@ -1172,7 +1174,7 @@ public:
 				Command *n = c->next;
 				if (c == commands) {
 					memdelete(commands);
-					commands = NULL;
+					commands = nullptr;
 				} else {
 					c->~Command();
 				}
@@ -1186,36 +1188,36 @@ public:
 				}
 			}
 
-			last_command = NULL;
-			commands = NULL;
+			last_command = nullptr;
+			commands = nullptr;
 			current_block = 0;
 			clip = false;
 			rect_dirty = true;
-			final_clip_owner = NULL;
-			material_owner = NULL;
+			final_clip_owner = nullptr;
+			material_owner = nullptr;
 			light_masked = false;
 		}
 		Item() {
-			commands = NULL;
-			last_command = NULL;
+			commands = nullptr;
+			last_command = nullptr;
 			current_block = 0;
 			light_mask = 1;
-			vp_render = NULL;
-			next = NULL;
-			final_clip_owner = NULL;
+			vp_render = nullptr;
+			next = nullptr;
+			final_clip_owner = nullptr;
 			clip = false;
 			final_modulate = Color(1, 1, 1, 1);
 			visible = true;
 			rect_dirty = true;
 			custom_rect = false;
 			behind = false;
-			material_owner = NULL;
-			copy_back_buffer = NULL;
+			material_owner = nullptr;
+			copy_back_buffer = nullptr;
 			distance_field = false;
 			light_masked = false;
 			update_when_visible = false;
 			z_final = 0;
-			custom_data = NULL;
+			custom_data = nullptr;
 		}
 		virtual ~Item() {
 			clear();
@@ -1248,7 +1250,7 @@ public:
 
 		LightOccluderInstance() {
 			enabled = true;
-			next = NULL;
+			next = nullptr;
 			light_mask = 1;
 			cull_cache = RS::CANVAS_OCCLUDER_POLYGON_CULL_DISABLED;
 		}

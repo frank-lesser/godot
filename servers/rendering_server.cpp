@@ -33,8 +33,8 @@
 #include "core/method_bind_ext.gen.inc"
 #include "core/project_settings.h"
 
-RenderingServer *RenderingServer::singleton = NULL;
-RenderingServer *(*RenderingServer::create_func)() = NULL;
+RenderingServer *RenderingServer::singleton = nullptr;
+RenderingServer *(*RenderingServer::create_func)() = nullptr;
 
 RenderingServer *RenderingServer::get_singleton() {
 
@@ -43,12 +43,12 @@ RenderingServer *RenderingServer::get_singleton() {
 
 RenderingServer *RenderingServer::create() {
 
-	ERR_FAIL_COND_V(singleton, NULL);
+	ERR_FAIL_COND_V(singleton, nullptr);
 
 	if (create_func)
 		return create_func();
 
-	return NULL;
+	return nullptr;
 }
 
 Array RenderingServer::_texture_debug_usage_bind() {
@@ -333,7 +333,7 @@ Error RenderingServer::_surface_set_data(Array p_arrays, uint32_t p_format, uint
 
 	uint8_t *vw = r_vertex_array.ptrw();
 
-	uint8_t *iw = NULL;
+	uint8_t *iw = nullptr;
 	if (r_index_array.size()) {
 		iw = r_index_array.ptrw();
 	}
@@ -2359,9 +2359,12 @@ RenderingServer::RenderingServer() {
 	GLOBAL_DEF("rendering/quality/glow/upscale_mode", 1);
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/glow/upscale_mode", PropertyInfo(Variant::INT, "rendering/quality/glow/upscale_mode", PROPERTY_HINT_ENUM, "Linear (Fast),Bicubic (Slower)"));
 	GLOBAL_DEF("rendering/quality/glow/upscale_mode.mobile", 0);
+
+	GLOBAL_DEF("rendering/quality/screen_space_reflection/roughness_quality", 1);
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/screen_space_reflection/roughness_quality", PropertyInfo(Variant::INT, "rendering/quality/screen_space_reflection/roughness_quality", PROPERTY_HINT_ENUM, "Disabled (Fastest),Low, Medium, High (Slowest)"));
 }
 
 RenderingServer::~RenderingServer() {
 
-	singleton = NULL;
+	singleton = nullptr;
 }
