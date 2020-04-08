@@ -977,8 +977,6 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	theme->set_stylebox("focus", "RichTextLabel", make_empty_stylebox());
 	theme->set_stylebox("normal", "RichTextLabel", style_tree_bg);
 
-	theme->set_stylebox("panel", "EditorHelpBit", make_flat_stylebox(dark_color_1, 6, 4, 6, 4));
-
 	theme->set_color("headline_color", "EditorHelp", mono_color);
 
 	// Panel
@@ -997,6 +995,9 @@ Ref<Theme> create_editor_theme(const Ref<Theme> p_theme) {
 	// LinkButton
 	theme->set_stylebox("focus", "LinkButton", style_empty);
 	theme->set_color("font_color", "LinkButton", font_color);
+	theme->set_color("font_color_hover", "LinkButton", font_color_hl);
+	theme->set_color("font_color_pressed", "LinkButton", accent_color);
+	theme->set_color("font_color_disabled", "LinkButton", font_color_disabled);
 
 	// TooltipPanel
 	Ref<StyleBoxFlat> style_tooltip = style_popup->duplicate();
