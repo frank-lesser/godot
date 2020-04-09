@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  register_types.h                                                     */
+/*  vulkan_context_android.h                                             */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,10 +28,22 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef ARVR_REGISTER_TYPES_H
-#define ARVR_REGISTER_TYPES_H
+#ifndef VULKAN_CONTEXT_ANDROID_H
+#define VULKAN_CONTEXT_ANDROID_H
 
-void register_arvr_types();
-void unregister_arvr_types();
+#include "drivers/vulkan/vulkan_context.h"
 
-#endif // ARVR_REGISTER_TYPES_H
+struct ANativeWindow;
+
+class VulkanContextAndroid : public VulkanContext {
+
+	virtual const char *_get_platform_surface_extension() const;
+
+public:
+	int window_create(ANativeWindow *p_window, int p_width, int p_height);
+
+	VulkanContextAndroid();
+	~VulkanContextAndroid();
+};
+
+#endif // VULKAN_CONTEXT_ANDROID_H

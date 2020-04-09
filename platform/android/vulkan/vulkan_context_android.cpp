@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  arvr_interface_gdnative.h                                            */
+/*  vulkan_context_android.cpp                                           */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,64 +28,41 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef ARVR_INTERFACE_GDNATIVE_H
-#define ARVR_INTERFACE_GDNATIVE_H
+#include "vulkan_context_android.h"
+#include <vulkan/vulkan_android.h>
 
-#include "modules/gdnative/gdnative.h"
-#include "servers/arvr/arvr_interface.h"
+#define VMA_IMPLEMENTATION
+#ifdef DEBUG_ENABLED
+#ifndef _DEBUG
+#define _DEBUG
+#endif
+#endif
+#include <vk_mem_alloc.h>
 
-/**
-	@authors Hinsbart & Karroffel & Mux213
+const char *VulkanContextAndroid::_get_platform_surface_extension() const {
+	return VK_KHR_ANDROID_SURFACE_EXTENSION_NAME;
+}
 
-	This subclass of our AR/VR interface forms a bridge to GDNative.
-*/
+int VulkanContextAndroid::window_create(ANativeWindow *p_window, int p_width, int p_height) {
+	VkAndroidSurfaceCreateInfoKHR createInfo;
+	createInfo.sType = VK_STRUCTURE_TYPE_ANDROID_SURFACE_CREATE_INFO_KHR;
+	createInfo.pNext = nullptr;
+	createInfo.flags = 0;
+	createInfo.window = p_window;
 
-class ARVRInterfaceGDNative : public ARVRInterface {
-	GDCLASS(ARVRInterfaceGDNative, ARVRInterface);
+	VkSurfaceKHR surface;
+	VkResult err = vkCreateAndroidSurfaceKHR(_get_instance(), &createInfo, nullptr, &surface);
+	if (err != VK_SUCCESS) {
+		ERR_FAIL_V_MSG(-1, "vkCreateAndroidSurfaceKHR failed with error " + itos(err));
+	}
 
-	void cleanup();
+	return _window_create(DisplayServer::MAIN_WINDOW_ID, surface, p_width, p_height);
+}
 
-protected:
-	const godot_arvr_interface_gdnative *interface;
-	void *data;
+VulkanContextAndroid::VulkanContextAndroid() {
+	// TODO: fix validation layers
+	use_validation_layers = false;
+}
 
-	static void _bind_methods();
-
-public:
-	/** general interface information **/
-	ARVRInterfaceGDNative();
-	~ARVRInterfaceGDNative();
-
-	void set_interface(const godot_arvr_interface_gdnative *p_interface);
-
-	virtual StringName get_name() const;
-	virtual int get_capabilities() const;
-
-	virtual bool is_initialized() const;
-	virtual bool initialize();
-	virtual void uninitialize();
-
-	/** specific to AR **/
-	virtual bool get_anchor_detection_is_enabled() const;
-	virtual void set_anchor_detection_is_enabled(bool p_enable);
-	virtual int get_camera_feed_id();
-
-	/** rendering and internal **/
-	virtual Size2 get_render_targetsize();
-	virtual bool is_stereo();
-	virtual Transform get_transform_for_eye(ARVRInterface::Eyes p_eye, const Transform &p_cam_transform);
-
-	// we expose a Vector<float> version of this function to GDNative
-	Vector<float> _get_projection_for_eye(ARVRInterface::Eyes p_eye, real_t p_aspect, real_t p_z_near, real_t p_z_far);
-
-	// and a CameraMatrix version to ARVRServer
-	virtual CameraMatrix get_projection_for_eye(ARVRInterface::Eyes p_eye, real_t p_aspect, real_t p_z_near, real_t p_z_far);
-
-	virtual unsigned int get_external_texture_for_eye(ARVRInterface::Eyes p_eye);
-	virtual void commit_for_eye(ARVRInterface::Eyes p_eye, RID p_render_target, const Rect2 &p_screen_rect);
-
-	virtual void process();
-	virtual void notification(int p_what);
-};
-
-#endif // ARVR_INTERFACE_GDNATIVE_H
+VulkanContextAndroid::~VulkanContextAndroid() {
+}

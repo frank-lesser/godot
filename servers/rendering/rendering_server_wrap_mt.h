@@ -370,7 +370,7 @@ public:
 
 	FUNCRID(viewport)
 
-	FUNC2(viewport_set_use_arvr, RID, bool)
+	FUNC2(viewport_set_use_xr, RID, bool)
 
 	FUNC3(viewport_set_size, RID, int, int)
 
@@ -466,6 +466,8 @@ public:
 
 	FUNC8(camera_effects_set_dof_blur, RID, bool, float, float, bool, float, float, float)
 	FUNC3(camera_effects_set_custom_exposure, RID, bool, float)
+
+	FUNC1(shadow_filter_set, ShadowFilter)
 
 	FUNCRID(scenario)
 

@@ -456,7 +456,7 @@ public:
 
 	BIND0R(RID, viewport_create)
 
-	BIND2(viewport_set_use_arvr, RID, bool)
+	BIND2(viewport_set_use_xr, RID, bool)
 	BIND3(viewport_set_size, RID, int, int)
 
 	BIND2(viewport_set_active, RID, bool)
@@ -553,6 +553,8 @@ public:
 
 	BIND8(camera_effects_set_dof_blur, RID, bool, float, float, bool, float, float, float)
 	BIND3(camera_effects_set_custom_exposure, RID, bool, float)
+
+	BIND1(shadow_filter_set, ShadowFilter)
 
 	/* SCENARIO API */
 

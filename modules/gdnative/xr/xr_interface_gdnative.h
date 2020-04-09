@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  vk_renderer_jni.cpp                                                  */
+/*  xr_interface_gdnative.h                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,31 +28,64 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "vk_renderer_jni.h"
+#ifndef XR_INTERFACE_GDNATIVE_H
+#define XR_INTERFACE_GDNATIVE_H
 
-extern "C" {
+#include "modules/gdnative/gdnative.h"
+#include "servers/xr/xr_interface.h"
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkSurfaceCreated(JNIEnv *env, jobject obj, jobject j_surface) {
-	// TODO: complete
-}
+/**
+	@authors Hinsbart & Karroffel & Mux213
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkSurfaceChanged(JNIEnv *env, jobject object, jobject j_surface, jint width, jint height) {
-	// TODO: complete
-}
+	This subclass of our AR/VR interface forms a bridge to GDNative.
+*/
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkResume(JNIEnv *env, jobject obj) {
-	// TODO: complete
-}
+class XRInterfaceGDNative : public XRInterface {
+	GDCLASS(XRInterfaceGDNative, XRInterface);
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkDrawFrame(JNIEnv *env, jobject obj) {
-	// TODO: complete
-}
+	void cleanup();
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkPause(JNIEnv *env, jobject obj) {
-	// TODO: complete
-}
+protected:
+	const godot_xr_interface_gdnative *interface;
+	void *data;
 
-JNIEXPORT void JNICALL Java_org_godotengine_godot_vulkan_VkRenderer_nativeOnVkDestroy(JNIEnv *env, jobject obj) {
-	// TODO: complete
-}
-}
+	static void _bind_methods();
+
+public:
+	/** general interface information **/
+	XRInterfaceGDNative();
+	~XRInterfaceGDNative();
+
+	void set_interface(const godot_xr_interface_gdnative *p_interface);
+
+	virtual StringName get_name() const;
+	virtual int get_capabilities() const;
+
+	virtual bool is_initialized() const;
+	virtual bool initialize();
+	virtual void uninitialize();
+
+	/** specific to AR **/
+	virtual bool get_anchor_detection_is_enabled() const;
+	virtual void set_anchor_detection_is_enabled(bool p_enable);
+	virtual int get_camera_feed_id();
+
+	/** rendering and internal **/
+	virtual Size2 get_render_targetsize();
+	virtual bool is_stereo();
+	virtual Transform get_transform_for_eye(XRInterface::Eyes p_eye, const Transform &p_cam_transform);
+
+	// we expose a Vector<float> version of this function to GDNative
+	Vector<float> _get_projection_for_eye(XRInterface::Eyes p_eye, real_t p_aspect, real_t p_z_near, real_t p_z_far);
+
+	// and a CameraMatrix version to XRServer
+	virtual CameraMatrix get_projection_for_eye(XRInterface::Eyes p_eye, real_t p_aspect, real_t p_z_near, real_t p_z_far);
+
+	virtual unsigned int get_external_texture_for_eye(XRInterface::Eyes p_eye);
+	virtual void commit_for_eye(XRInterface::Eyes p_eye, RID p_render_target, const Rect2 &p_screen_rect);
+
+	virtual void process();
+	virtual void notification(int p_what);
+};
+
+#endif // XR_INTERFACE_GDNATIVE_H
