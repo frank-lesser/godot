@@ -394,6 +394,7 @@ public:
 		LIGHT_PARAM_SHADOW_NORMAL_BIAS,
 		LIGHT_PARAM_SHADOW_BIAS,
 		LIGHT_PARAM_SHADOW_PANCAKE_SIZE,
+		LIGHT_PARAM_SHADOW_BLUR,
 		LIGHT_PARAM_TRANSMITTANCE_BIAS,
 		LIGHT_PARAM_MAX
 	};
@@ -460,6 +461,27 @@ public:
 	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) = 0;
 	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
 	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
+
+	/* DECAL API */
+
+	enum DecalTexture {
+		DECAL_TEXTURE_ALBEDO,
+		DECAL_TEXTURE_NORMAL,
+		DECAL_TEXTURE_ORM,
+		DECAL_TEXTURE_EMISSION,
+		DECAL_TEXTURE_MAX
+	};
+
+	virtual RID decal_create() = 0;
+	virtual void decal_set_extents(RID p_decal, const Vector3 &p_extents) = 0;
+	virtual void decal_set_texture(RID p_decal, DecalTexture p_type, RID p_texture) = 0;
+	virtual void decal_set_emission_energy(RID p_decal, float p_energy) = 0;
+	virtual void decal_set_albedo_mix(RID p_decal, float p_mix) = 0;
+	virtual void decal_set_modulate(RID p_decal, const Color &p_modulate) = 0;
+	virtual void decal_set_cull_mask(RID p_decal, uint32_t p_layers) = 0;
+	virtual void decal_set_distance_fade(RID p_decal, bool p_enabled, float p_begin, float p_length) = 0;
+	virtual void decal_set_fade(RID p_decal, float p_above, float p_below) = 0;
+	virtual void decal_set_normal_fade(RID p_decal, float p_fade) = 0;
 
 	/* GI PROBE API */
 
@@ -633,8 +655,7 @@ public:
 		VIEWPORT_MSAA_4X,
 		VIEWPORT_MSAA_8X,
 		VIEWPORT_MSAA_16X,
-		VIEWPORT_MSAA_EXT_2X,
-		VIEWPORT_MSAA_EXT_4X,
+		VIEWPORT_MSAA_MAX,
 	};
 
 	virtual void viewport_set_msaa(RID p_viewport, ViewportMSAA p_msaa) = 0;
@@ -674,6 +695,7 @@ public:
 		VIEWPORT_DEBUG_DRAW_SSAO,
 		VIEWPORT_DEBUG_DRAW_ROUGHNESS_LIMITER,
 		VIEWPORT_DEBUG_DRAW_PSSM_SPLITS,
+		VIEWPORT_DEBUG_DRAW_DECAL_ATLAS,
 
 	};
 
@@ -828,14 +850,17 @@ public:
 	virtual void camera_effects_set_dof_blur(RID p_camera_effects, bool p_far_enable, float p_far_distance, float p_far_transition, bool p_near_enable, float p_near_distance, float p_near_transition, float p_amount) = 0;
 	virtual void camera_effects_set_custom_exposure(RID p_camera_effects, bool p_enable, float p_exposure) = 0;
 
-	enum ShadowFilter {
-		SHADOW_FILTER_NONE,
-		SHADOW_FILTER_PCF5,
-		SHADOW_FILTER_PCF13,
-		SHADOW_FILTER_MAX
+	enum ShadowQuality {
+		SHADOW_QUALITY_HARD,
+		SHADOW_QUALITY_SOFT_LOW,
+		SHADOW_QUALITY_SOFT_MEDIUM,
+		SHADOW_QUALITY_SOFT_HIGH,
+		SHADOW_QUALITY_SOFT_ULTRA,
+		SHADOW_QUALITY_MAX
 	};
 
-	virtual void shadow_filter_set(ShadowFilter p_filter) = 0;
+	virtual void shadows_quality_set(ShadowQuality p_quality) = 0;
+	virtual void directional_shadow_quality_set(ShadowQuality p_quality) = 0;
 
 	/* SCENARIO API */
 
@@ -865,6 +890,7 @@ public:
 		INSTANCE_PARTICLES,
 		INSTANCE_LIGHT,
 		INSTANCE_REFLECTION_PROBE,
+		INSTANCE_DECAL,
 		INSTANCE_GI_PROBE,
 		INSTANCE_LIGHTMAP_CAPTURE,
 		INSTANCE_MAX,
@@ -1164,6 +1190,7 @@ VARIANT_ENUM_CAST(RenderingServer::LightOmniShadowMode);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowMode);
 VARIANT_ENUM_CAST(RenderingServer::LightDirectionalShadowDepthRangeMode);
 VARIANT_ENUM_CAST(RenderingServer::ReflectionProbeUpdateMode);
+VARIANT_ENUM_CAST(RenderingServer::DecalTexture);
 VARIANT_ENUM_CAST(RenderingServer::ParticlesDrawOrder);
 VARIANT_ENUM_CAST(RenderingServer::ViewportUpdateMode);
 VARIANT_ENUM_CAST(RenderingServer::ViewportClearMode);
