@@ -1164,7 +1164,7 @@ void RasterizerSceneHighEndRD::_setup_environment(RID p_environment, const Camer
 	} else if (is_environment(p_environment)) {
 
 		RS::EnvironmentBG env_bg = environment_get_background(p_environment);
-		RS::EnvironmentAmbientSource ambient_src = environment_get_ambient_light_ambient_source(p_environment);
+		RS::EnvironmentAmbientSource ambient_src = environment_get_ambient_source(p_environment);
 
 		float bg_energy = environment_get_bg_energy(p_environment);
 		scene_state.ubo.ambient_light_color_energy[3] = bg_energy;
@@ -1184,7 +1184,7 @@ void RasterizerSceneHighEndRD::_setup_environment(RID p_environment, const Camer
 			scene_state.ubo.use_ambient_cubemap = false;
 		} else {
 
-			float energy = environment_get_ambient_light_ambient_energy(p_environment);
+			float energy = environment_get_ambient_light_energy(p_environment);
 			Color color = environment_get_ambient_light_color(p_environment);
 			color = color.to_linear();
 			scene_state.ubo.ambient_light_color_energy[0] = color.r * energy;
@@ -1526,7 +1526,7 @@ void RasterizerSceneHighEndRD::_setup_reflections(RID *p_reflection_probe_cull_r
 			Color ambient_linear = storage->reflection_probe_get_interior_ambient(base_probe).to_linear();
 			if (is_environment(p_environment)) {
 				Color env_ambient_color = environment_get_ambient_light_color(p_environment).to_linear();
-				float env_ambient_energy = environment_get_ambient_light_ambient_energy(p_environment);
+				float env_ambient_energy = environment_get_ambient_light_energy(p_environment);
 				ambient_linear = env_ambient_color;
 				ambient_linear.r *= env_ambient_energy;
 				ambient_linear.g *= env_ambient_energy;
@@ -2007,6 +2007,7 @@ void RasterizerSceneHighEndRD::_setup_decals(const RID *p_decal_instances, int p
 		dd.normal_fade = storage->decal_get_normal_fade(decal);
 
 		RID albedo_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_ALBEDO);
+		RID emission_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_EMISSION);
 		if (albedo_tex.is_valid()) {
 			Rect2 rect = storage->decal_atlas_get_texture_rect(albedo_tex);
 			dd.albedo_rect[0] = rect.position.x;
@@ -2015,6 +2016,9 @@ void RasterizerSceneHighEndRD::_setup_decals(const RID *p_decal_instances, int p
 			dd.albedo_rect[3] = rect.size.y;
 		} else {
 
+			if (!emission_tex.is_valid()) {
+				continue; //no albedo, no emission, no decal.
+			}
 			dd.albedo_rect[0] = 0;
 			dd.albedo_rect[1] = 0;
 			dd.albedo_rect[2] = 0;
@@ -2022,7 +2026,6 @@ void RasterizerSceneHighEndRD::_setup_decals(const RID *p_decal_instances, int p
 		}
 
 		RID normal_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_NORMAL);
-		RID emission_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_EMISSION);
 
 		if (normal_tex.is_valid()) {
 			Rect2 rect = storage->decal_atlas_get_texture_rect(normal_tex);
@@ -2033,13 +2036,7 @@ void RasterizerSceneHighEndRD::_setup_decals(const RID *p_decal_instances, int p
 
 			Basis normal_xform = p_camera_inverse_xform.basis * xform.basis.orthonormalized();
 			store_basis_3x4(normal_xform, dd.normal_xform);
-
-			//store normal xform
 		} else {
-
-			if (!emission_tex.is_valid()) {
-				continue; //no albedo, no emission, no decal.
-			}
 			dd.normal_rect[0] = 0;
 			dd.normal_rect[1] = 0;
 			dd.normal_rect[2] = 0;
@@ -2256,23 +2253,7 @@ void RasterizerSceneHighEndRD::_render_scene(RID p_render_buffer, const Transfor
 				clear_color.b *= bg_energy;
 			} break;
 			case RS::ENV_BG_SKY: {
-				RID sky = environment_get_sky(p_environment);
-				if (sky.is_valid()) {
-
-					RENDER_TIMESTAMP("Setup Sky");
-					CameraMatrix projection = p_cam_projection;
-					if (p_reflection_probe.is_valid()) {
-						CameraMatrix correction;
-						correction.set_depth_correction(true);
-						projection = correction * p_cam_projection;
-					}
-
-					_setup_sky(p_environment, p_cam_transform.origin, screen_size);
-					_update_sky(p_environment, projection, p_cam_transform);
-					radiance_uniform_set = sky_get_radiance_uniform_set_rd(sky, default_shader_rd, RADIANCE_UNIFORM_SET);
-
-					draw_sky = true;
-				}
+				draw_sky = true;
 			} break;
 			case RS::ENV_BG_CANVAS: {
 				keep_color = true;
@@ -2284,6 +2265,27 @@ void RasterizerSceneHighEndRD::_render_scene(RID p_render_buffer, const Transfor
 
 			} break;
 			default: {
+			}
+		}
+		// setup sky if used for ambient, reflections, or background
+		if (draw_sky || environment_get_reflection_source(p_environment) == RS::ENV_REFLECTION_SOURCE_SKY || environment_get_ambient_source(p_environment) == RS::ENV_AMBIENT_SOURCE_SKY) {
+			RID sky = environment_get_sky(p_environment);
+			if (sky.is_valid()) {
+
+				RENDER_TIMESTAMP("Setup Sky");
+				CameraMatrix projection = p_cam_projection;
+				if (p_reflection_probe.is_valid()) {
+					CameraMatrix correction;
+					correction.set_depth_correction(true);
+					projection = correction * p_cam_projection;
+				}
+
+				_setup_sky(p_environment, p_cam_transform.origin, screen_size);
+				_update_sky(p_environment, projection, p_cam_transform);
+				radiance_uniform_set = sky_get_radiance_uniform_set_rd(sky, default_shader_rd, RADIANCE_UNIFORM_SET);
+			} else {
+				// do not try to draw sky if invalid
+				draw_sky = false;
 			}
 		}
 	} else {
