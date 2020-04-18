@@ -655,7 +655,8 @@ void RasterizerSceneRD::_setup_sky(RID p_environment, const Vector3 &p_position,
 						sky_scene_state.directional_lights[i].color[0] != sky_scene_state.last_frame_directional_lights[i].color[0] ||
 						sky_scene_state.directional_lights[i].color[1] != sky_scene_state.last_frame_directional_lights[i].color[1] ||
 						sky_scene_state.directional_lights[i].color[2] != sky_scene_state.last_frame_directional_lights[i].color[2] ||
-						sky_scene_state.directional_lights[i].enabled != sky_scene_state.last_frame_directional_lights[i].enabled) {
+						sky_scene_state.directional_lights[i].enabled != sky_scene_state.last_frame_directional_lights[i].enabled ||
+						sky_scene_state.directional_lights[i].size != sky_scene_state.last_frame_directional_lights[i].size) {
 					light_data_dirty = true;
 					break;
 				}
@@ -851,18 +852,22 @@ void RasterizerSceneRD::SkyShaderData::set_code(const String &p_code) {
 	actions.usage_flag_pointers["LIGHT0_ENERGY"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT0_DIRECTION"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT0_COLOR"] = &uses_light;
+	actions.usage_flag_pointers["LIGHT0_SIZE"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT1_ENABLED"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT1_ENERGY"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT1_DIRECTION"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT1_COLOR"] = &uses_light;
+	actions.usage_flag_pointers["LIGHT1_SIZE"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT2_ENABLED"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT2_ENERGY"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT2_DIRECTION"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT2_COLOR"] = &uses_light;
+	actions.usage_flag_pointers["LIGHT2_SIZE"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT3_ENABLED"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT3_ENERGY"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT3_DIRECTION"] = &uses_light;
 	actions.usage_flag_pointers["LIGHT3_COLOR"] = &uses_light;
+	actions.usage_flag_pointers["LIGHT3_SIZE"] = &uses_light;
 
 	actions.uniforms = &uniforms;
 
@@ -926,6 +931,10 @@ void RasterizerSceneRD::SkyShaderData::get_param_list(List<PropertyInfo> *p_para
 
 	for (Map<StringName, ShaderLanguage::ShaderNode::Uniform>::Element *E = uniforms.front(); E; E = E->next()) {
 
+		if (E->get().scope == ShaderLanguage::ShaderNode::Uniform::SCOPE_GLOBAL || E->get().scope == ShaderLanguage::ShaderNode::Uniform::SCOPE_INSTANCE) {
+			continue;
+		}
+
 		if (E->get().texture_order >= 0) {
 			order[E->get().texture_order + 100000] = E->key();
 		} else {
@@ -938,6 +947,23 @@ void RasterizerSceneRD::SkyShaderData::get_param_list(List<PropertyInfo> *p_para
 		PropertyInfo pi = ShaderLanguage::uniform_to_property_info(uniforms[E->get()]);
 		pi.name = E->get();
 		p_param_list->push_back(pi);
+	}
+}
+
+void RasterizerSceneRD::SkyShaderData::get_instance_param_list(List<RasterizerStorage::InstanceShaderParam> *p_param_list) const {
+
+	for (Map<StringName, ShaderLanguage::ShaderNode::Uniform>::Element *E = uniforms.front(); E; E = E->next()) {
+
+		if (E->get().scope != ShaderLanguage::ShaderNode::Uniform::SCOPE_INSTANCE) {
+			continue;
+		}
+
+		RasterizerStorage::InstanceShaderParam p;
+		p.info = ShaderLanguage::uniform_to_property_info(E->get());
+		p.info.name = E->key(); //supply name
+		p.index = E->get().instance_index;
+		p.default_value = ShaderLanguage::constant_value_to_variant(E->get().default_value, E->get().type, E->get().hint);
+		p_param_list->push_back(p);
 	}
 }
 
@@ -4187,21 +4213,25 @@ RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 		actions.renames["QUARTER_RES_COLOR"] = "quarter_res_color";
 		actions.renames["RADIANCE"] = "radiance";
 		actions.renames["LIGHT0_ENABLED"] = "directional_lights.data[0].enabled";
-		actions.renames["LIGHT0_DIRECTION"] = "directional_lights.data[0].direction";
-		actions.renames["LIGHT0_ENERGY"] = "directional_lights.data[0].energy";
-		actions.renames["LIGHT0_COLOR"] = "directional_lights.data[0].color";
+		actions.renames["LIGHT0_DIRECTION"] = "directional_lights.data[0].direction_energy.xyz";
+		actions.renames["LIGHT0_ENERGY"] = "directional_lights.data[0].direction_energy.w";
+		actions.renames["LIGHT0_COLOR"] = "directional_lights.data[0].color_size.xyz";
+		actions.renames["LIGHT0_SIZE"] = "directional_lights.data[0].color_size.w";
 		actions.renames["LIGHT1_ENABLED"] = "directional_lights.data[1].enabled";
-		actions.renames["LIGHT1_DIRECTION"] = "directional_lights.data[1].direction";
-		actions.renames["LIGHT1_ENERGY"] = "directional_lights.data[1].energy";
-		actions.renames["LIGHT1_COLOR"] = "directional_lights.data[1].color";
+		actions.renames["LIGHT1_DIRECTION"] = "directional_lights.data[1].direction_energy.xyz";
+		actions.renames["LIGHT1_ENERGY"] = "directional_lights.data[1].direction_energy.w";
+		actions.renames["LIGHT1_COLOR"] = "directional_lights.data[1].color_size.xyz";
+		actions.renames["LIGHT1_SIZE"] = "directional_lights.data[1].color_size.w";
 		actions.renames["LIGHT2_ENABLED"] = "directional_lights.data[2].enabled";
-		actions.renames["LIGHT2_DIRECTION"] = "directional_lights.data[2].direction";
-		actions.renames["LIGHT2_ENERGY"] = "directional_lights.data[2].energy";
-		actions.renames["LIGHT2_COLOR"] = "directional_lights.data[2].color";
+		actions.renames["LIGHT2_DIRECTION"] = "directional_lights.data[2].direction_energy.xyz";
+		actions.renames["LIGHT2_ENERGY"] = "directional_lights.data[2].direction_energy.w";
+		actions.renames["LIGHT2_COLOR"] = "directional_lights.data[2].color_size.xyz";
+		actions.renames["LIGHT2_SIZE"] = "directional_lights.data[2].color_size.w";
 		actions.renames["LIGHT3_ENABLED"] = "directional_lights.data[3].enabled";
-		actions.renames["LIGHT3_DIRECTION"] = "directional_lights.data[3].direction";
-		actions.renames["LIGHT3_ENERGY"] = "directional_lights.data[3].energy";
-		actions.renames["LIGHT3_COLOR"] = "directional_lights.data[3].color";
+		actions.renames["LIGHT3_DIRECTION"] = "directional_lights.data[3].direction_energy.xyz";
+		actions.renames["LIGHT3_ENERGY"] = "directional_lights.data[3].direction_energy.w";
+		actions.renames["LIGHT3_COLOR"] = "directional_lights.data[3].color_size.xyz";
+		actions.renames["LIGHT3_SIZE"] = "directional_lights.data[3].color_size.w";
 		actions.renames["AT_CUBEMAP_PASS"] = "AT_CUBEMAP_PASS";
 		actions.renames["AT_HALF_RES_PASS"] = "AT_HALF_RES_PASS";
 		actions.renames["AT_QUARTER_RES_PASS"] = "AT_QUARTER_RES_PASS";
@@ -4217,6 +4247,7 @@ RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 
 		actions.default_filter = ShaderLanguage::FILTER_LINEAR_MIPMAP;
 		actions.default_repeat = ShaderLanguage::REPEAT_ENABLE;
+		actions.global_buffer_array_variable = "global_variables.data";
 
 		sky_shader.compiler.initialize(actions);
 	}
@@ -4224,7 +4255,7 @@ RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 	{
 		// default material and shader for sky shader
 		sky_shader.default_shader = storage->shader_create();
-		storage->shader_set_code(sky_shader.default_shader, "shader_type sky; void fragment() { COLOR = mix(vec3(0.3), vec3(0.2, 0.4, 0.9), smoothstep(0.0, 0.05, EYEDIR.y)); } \n");
+		storage->shader_set_code(sky_shader.default_shader, "shader_type sky; void fragment() { COLOR = vec3(0.0); } \n");
 		sky_shader.default_material = storage->material_create();
 		storage->material_set_shader(sky_shader.default_material, sky_shader.default_shader);
 
@@ -4251,6 +4282,14 @@ RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 			ids_ptr[9] = storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, RS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
 			ids_ptr[10] = storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS_ANISOTROPIC, RS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
 			ids_ptr[11] = storage->sampler_rd_get_default(RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS_ANISOTROPIC, RS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
+			uniforms.push_back(u);
+		}
+
+		{
+			RD::Uniform u;
+			u.type = RD::UNIFORM_TYPE_STORAGE_BUFFER;
+			u.binding = 1;
+			u.ids.push_back(storage->global_variables_get_storage_buffer());
 			uniforms.push_back(u);
 		}
 

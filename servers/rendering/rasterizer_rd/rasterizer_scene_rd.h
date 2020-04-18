@@ -56,7 +56,9 @@ protected:
 		float direction[3];
 		float energy;
 		float color[3];
+		float size;
 		uint32_t enabled;
+		uint32_t pad[3];
 	};
 
 	struct SkySceneState {
@@ -189,6 +191,7 @@ private:
 		virtual void set_code(const String &p_Code);
 		virtual void set_default_texture_param(const StringName &p_name, RID p_texture);
 		virtual void get_param_list(List<PropertyInfo> *p_param_list) const;
+		virtual void get_instance_param_list(List<RasterizerStorage::InstanceShaderParam> *p_param_list) const;
 		virtual bool is_param_texture(const StringName &p_param) const;
 		virtual bool is_animated() const;
 		virtual bool casts_shadows() const;
