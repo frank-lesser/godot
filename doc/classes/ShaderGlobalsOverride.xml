@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" ?>
-<class name="GDScriptNativeClass" inherits="Reference" version="4.0">
+<class name="ShaderGlobalsOverride" inherits="Node" version="4.0">
 	<brief_description>
 	</brief_description>
 	<description>
@@ -7,12 +7,6 @@
 	<tutorials>
 	</tutorials>
 	<methods>
-		<method name="new">
-			<return type="Variant">
-			</return>
-			<description>
-			</description>
-		</method>
 	</methods>
 	<constants>
 	</constants>

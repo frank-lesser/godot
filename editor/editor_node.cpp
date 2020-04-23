@@ -64,6 +64,7 @@
 #include "servers/navigation_server_2d.h"
 #include "servers/navigation_server_3d.h"
 #include "servers/physics_server_2d.h"
+#include "servers/rendering/rendering_device.h"
 
 #include "editor/audio_stream_preview.h"
 #include "editor/debugger/editor_debugger_node.h"
@@ -97,6 +98,7 @@
 #include "editor/import/resource_importer_layered_texture.h"
 #include "editor/import/resource_importer_obj.h"
 #include "editor/import/resource_importer_scene.h"
+#include "editor/import/resource_importer_shader_file.h"
 #include "editor/import/resource_importer_texture.h"
 #include "editor/import/resource_importer_texture_atlas.h"
 #include "editor/import/resource_importer_wav.h"
@@ -147,6 +149,7 @@
 #include "editor/plugins/script_editor_plugin.h"
 #include "editor/plugins/script_text_editor.h"
 #include "editor/plugins/shader_editor_plugin.h"
+#include "editor/plugins/shader_file_editor_plugin.h"
 #include "editor/plugins/skeleton_2d_editor_plugin.h"
 #include "editor/plugins/skeleton_3d_editor_plugin.h"
 #include "editor/plugins/skeleton_ik_3d_editor_plugin.h"
@@ -5715,6 +5718,10 @@ EditorNode::EditorNode() {
 		import_obj.instance();
 		ResourceFormatImporter::get_singleton()->add_importer(import_obj);
 
+		Ref<ResourceImporterShaderFile> import_shader_file;
+		import_shader_file.instance();
+		ResourceFormatImporter::get_singleton()->add_importer(import_shader_file);
+
 		Ref<ResourceImporterScene> import_scene;
 		import_scene.instance();
 		ResourceFormatImporter::get_singleton()->add_importer(import_scene);
@@ -6632,6 +6639,7 @@ EditorNode::EditorNode() {
 
 	add_editor_plugin(VersionControlEditorPlugin::get_singleton());
 	add_editor_plugin(memnew(ShaderEditorPlugin(this)));
+	add_editor_plugin(memnew(ShaderFileEditorPlugin(this)));
 	add_editor_plugin(memnew(VisualShaderEditorPlugin(this)));
 
 	add_editor_plugin(memnew(Camera3DEditorPlugin(this)));

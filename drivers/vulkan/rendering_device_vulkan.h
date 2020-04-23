@@ -332,7 +332,7 @@ class RenderingDeviceVulkan : public RenderingDevice {
 	RID_Owner<Buffer, true> vertex_buffer_owner;
 
 	struct VertexDescriptionKey {
-		Vector<VertexDescription> vertex_formats;
+		Vector<VertexAttribute> vertex_formats;
 		bool operator==(const VertexDescriptionKey &p_key) const {
 			int vdc = vertex_formats.size();
 			int vdck = p_key.vertex_formats.size();
@@ -340,11 +340,11 @@ class RenderingDeviceVulkan : public RenderingDevice {
 			if (vdc != vdck) {
 				return false;
 			} else {
-				const VertexDescription *a_ptr = vertex_formats.ptr();
-				const VertexDescription *b_ptr = p_key.vertex_formats.ptr();
+				const VertexAttribute *a_ptr = vertex_formats.ptr();
+				const VertexAttribute *b_ptr = p_key.vertex_formats.ptr();
 				for (int i = 0; i < vdc; i++) {
-					const VertexDescription &a = a_ptr[i];
-					const VertexDescription &b = b_ptr[i];
+					const VertexAttribute &a = a_ptr[i];
+					const VertexAttribute &b = b_ptr[i];
 
 					if (a.location != b.location) {
 						return false;
@@ -369,9 +369,9 @@ class RenderingDeviceVulkan : public RenderingDevice {
 		uint32_t hash() const {
 			int vdc = vertex_formats.size();
 			uint32_t h = hash_djb2_one_32(vdc);
-			const VertexDescription *ptr = vertex_formats.ptr();
+			const VertexAttribute *ptr = vertex_formats.ptr();
 			for (int i = 0; i < vdc; i++) {
-				const VertexDescription &vd = ptr[i];
+				const VertexAttribute &vd = ptr[i];
 				h = hash_djb2_one_32(vd.location, h);
 				h = hash_djb2_one_32(vd.offset, h);
 				h = hash_djb2_one_32(vd.format, h);
@@ -393,7 +393,7 @@ class RenderingDeviceVulkan : public RenderingDevice {
 	HashMap<VertexDescriptionKey, VertexFormatID, VertexDescriptionHash> vertex_format_cache;
 
 	struct VertexDescriptionCache {
-		Vector<VertexDescription> vertex_formats;
+		Vector<VertexAttribute> vertex_formats;
 		VkVertexInputBindingDescription *bindings;
 		VkVertexInputAttributeDescription *attributes;
 		VkPipelineVertexInputStateCreateInfo create_info;
@@ -952,10 +952,12 @@ class RenderingDeviceVulkan : public RenderingDevice {
 
 	uint32_t max_timestamp_query_elements;
 
-	Frame *frames; //frames available, they are cycled (usually 3)
+	Frame *frames; //frames available, for main device they are cycled (usually 3), for local devices only 1
 	int frame; //current frame
 	int frame_count; //total amount of frames
 	uint64_t frames_drawn;
+	RID local_device;
+	bool local_device_processing = false;
 
 	void _free_pending_resources(int p_frame);
 
@@ -970,6 +972,9 @@ class RenderingDeviceVulkan : public RenderingDevice {
 
 	template <class T>
 	void _free_rids(T &p_owner, const char *p_type);
+
+	void _finalize_command_bufers();
+	void _begin_frame();
 
 public:
 	virtual RID texture_create(const TextureFormat &p_format, const TextureView &p_view, const Vector<Vector<uint8_t>> &p_data = Vector<Vector<uint8_t>>());
@@ -1011,7 +1016,7 @@ public:
 	virtual RID vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data = Vector<uint8_t>());
 
 	// Internally reference counted, this ID is warranted to be unique for the same description, but needs to be freed as many times as it was allocated
-	virtual VertexFormatID vertex_format_create(const Vector<VertexDescription> &p_vertex_formats);
+	virtual VertexFormatID vertex_format_create(const Vector<VertexAttribute> &p_vertex_formats);
 	virtual RID vertex_array_create(uint32_t p_vertex_count, VertexFormatID p_vertex_format, const Vector<RID> &p_src_buffers);
 
 	virtual RID index_buffer_create(uint32_t p_size_indices, IndexBufferFormat p_format, const Vector<uint8_t> &p_data = Vector<uint8_t>(), bool p_use_restart_indices = false);
@@ -1075,7 +1080,7 @@ public:
 	virtual void draw_list_bind_vertex_array(DrawListID p_list, RID p_vertex_array);
 	virtual void draw_list_bind_index_array(DrawListID p_list, RID p_index_array);
 	virtual void draw_list_set_line_width(DrawListID p_list, float p_width);
-	virtual void draw_list_set_push_constant(DrawListID p_list, void *p_data, uint32_t p_data_size);
+	virtual void draw_list_set_push_constant(DrawListID p_list, const void *p_data, uint32_t p_data_size);
 
 	virtual void draw_list_draw(DrawListID p_list, bool p_use_indices, uint32_t p_instances = 1, uint32_t p_procedural_vertices = 0);
 
@@ -1091,7 +1096,7 @@ public:
 	virtual ComputeListID compute_list_begin();
 	virtual void compute_list_bind_compute_pipeline(ComputeListID p_list, RID p_compute_pipeline);
 	virtual void compute_list_bind_uniform_set(ComputeListID p_list, RID p_uniform_set, uint32_t p_index);
-	virtual void compute_list_set_push_constant(ComputeListID p_list, void *p_data, uint32_t p_data_size);
+	virtual void compute_list_set_push_constant(ComputeListID p_list, const void *p_data, uint32_t p_data_size);
 	virtual void compute_list_add_barrier(ComputeListID p_list);
 
 	virtual void compute_list_dispatch(ComputeListID p_list, uint32_t p_x_groups, uint32_t p_y_groups, uint32_t p_z_groups);
@@ -1121,14 +1126,20 @@ public:
 	virtual int limit_get(Limit p_limit);
 
 	virtual void prepare_screen_for_drawing();
-	void initialize(VulkanContext *p_context);
+	void initialize(VulkanContext *p_context, bool p_local_device = false);
 	void finalize();
 
-	virtual void swap_buffers();
+	virtual void swap_buffers(); //for main device
+
+	virtual void submit(); //for local device
+	virtual void sync(); //for local device
 
 	virtual uint32_t get_frame_delay() const;
 
+	virtual RenderingDevice *create_local_device();
+
 	RenderingDeviceVulkan();
+	~RenderingDeviceVulkan();
 };
 
 #endif // RENDERING_DEVICE_VULKAN_H

@@ -827,6 +827,7 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 					//check from singletons
 					ConstantNode *constant = alloc_node<ConstantNode>();
 					constant->value = GDScriptLanguage::get_singleton()->get_named_globals_map()[identifier];
+					constant->datatype = _type_from_variant(constant->value);
 					expr = constant;
 					bfn = true;
 				}
@@ -837,6 +838,7 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 						if (scr.is_valid() && scr->is_valid()) {
 							ConstantNode *constant = alloc_node<ConstantNode>();
 							constant->value = scr;
+							constant->datatype = _type_from_variant(constant->value);
 							expr = constant;
 							bfn = true;
 						}
@@ -852,6 +854,7 @@ GDScriptParser::Node *GDScriptParser::_parse_expression(Node *p_parent, bool p_s
 							if (parent_constants.has(identifier)) {
 								ConstantNode *constant = alloc_node<ConstantNode>();
 								constant->value = parent_constants[identifier];
+								constant->datatype = _type_from_variant(constant->value);
 								expr = constant;
 								bfn = true;
 							}
@@ -2386,6 +2389,7 @@ void GDScriptParser::_generate_pattern(PatternNode *p_pattern, Node *p_node_to_m
 			// a bind always matches
 			ConstantNode *true_value = alloc_node<ConstantNode>();
 			true_value->value = Variant(true);
+			true_value->datatype = _type_from_variant(true_value->value);
 			p_resulting_node = true_value;
 		} break;
 		case PatternNode::PT_ARRAY: {
@@ -2432,6 +2436,7 @@ void GDScriptParser::_generate_pattern(PatternNode *p_pattern, Node *p_node_to_m
 				// size
 				ConstantNode *length = alloc_node<ConstantNode>();
 				length->value = Variant(open_ended ? p_pattern->array.size() - 1 : p_pattern->array.size());
+				length->datatype = _type_from_variant(length->value);
 
 				OperatorNode *call = alloc_node<OperatorNode>();
 				call->op = OperatorNode::OP_CALL;
@@ -2465,6 +2470,7 @@ void GDScriptParser::_generate_pattern(PatternNode *p_pattern, Node *p_node_to_m
 
 				ConstantNode *index = alloc_node<ConstantNode>();
 				index->value = Variant(i);
+				index->datatype = _type_from_variant(index->value);
 
 				OperatorNode *indexed_value = alloc_node<OperatorNode>();
 				indexed_value->op = OperatorNode::OP_INDEX;
@@ -2525,6 +2531,7 @@ void GDScriptParser::_generate_pattern(PatternNode *p_pattern, Node *p_node_to_m
 				// size
 				ConstantNode *length = alloc_node<ConstantNode>();
 				length->value = Variant(open_ended ? p_pattern->dictionary.size() - 1 : p_pattern->dictionary.size());
+				length->datatype = _type_from_variant(length->value);
 
 				OperatorNode *call = alloc_node<OperatorNode>();
 				call->op = OperatorNode::OP_CALL;
@@ -2601,6 +2608,7 @@ void GDScriptParser::_generate_pattern(PatternNode *p_pattern, Node *p_node_to_m
 			// simply generate a `true`
 			ConstantNode *true_value = alloc_node<ConstantNode>();
 			true_value->value = Variant(true);
+			true_value->datatype = _type_from_variant(true_value->value);
 			p_resulting_node = true_value;
 		} break;
 		default: {
@@ -2683,6 +2691,7 @@ void GDScriptParser::_transform_match_statment(MatchNode *p_match_statement) {
 			LocalVarNode *local_var = branch->body->variables[e->key()];
 			local_var->assign = e->value();
 			local_var->set_datatype(local_var->assign->get_datatype());
+			local_var->assignments++;
 
 			IdentifierNode *id2 = alloc_node<IdentifierNode>();
 			id2->name = local_var->name;
@@ -3319,6 +3328,7 @@ void GDScriptParser::_parse_block(BlockNode *p_block, bool p_static) {
 				} else {
 					ConstantNode *message_node = alloc_node<ConstantNode>();
 					message_node->value = String();
+					message_node->datatype = _type_from_variant(message_node->value);
 					an->message = message_node;
 				}
 
@@ -3672,6 +3682,12 @@ void GDScriptParser::_parse_class(ClassNode *p_class) {
 					if (outer_class->constant_expressions.has(name)) {
 						_set_error("A constant named \"" + String(name) + "\" already exists in the outer class scope (at line" + itos(outer_class->constant_expressions[name].expression->line) + ").");
 						return;
+					}
+					for (int i = 0; i < outer_class->variables.size(); i++) {
+						if (outer_class->variables[i].identifier == name) {
+							_set_error("A variable named \"" + String(name) + "\" already exists in the outer class scope (at line " + itos(outer_class->variables[i].line) + ").");
+							return;
+						}
 					}
 
 					outer_class = outer_class->owner;
@@ -6229,11 +6245,13 @@ GDScriptParser::Node *GDScriptParser::_get_default_value_for_type(const DataType
 			ConstantNode *c = alloc_node<ConstantNode>();
 			Callable::CallError err;
 			c->value = Variant::construct(p_type.builtin_type, nullptr, 0, err);
+			c->datatype = _type_from_variant(c->value);
 			result = c;
 		}
 	} else {
 		ConstantNode *c = alloc_node<ConstantNode>();
 		c->value = Variant();
+		c->datatype = _type_from_variant(c->value);
 		result = c;
 	}
 
@@ -6562,6 +6580,7 @@ GDScriptParser::DataType GDScriptParser::_reduce_node_type(Node *p_node) {
 							node_type = _reduce_identifier_type(&base_type, member_id->name, op->line, true);
 #ifdef DEBUG_ENABLED
 							if (!node_type.has_type) {
+								_mark_line_as_unsafe(op->line);
 								_add_warning(GDScriptWarning::UNSAFE_PROPERTY_ACCESS, op->line, member_id->name.operator String(), base_type.to_string());
 							}
 #endif // DEBUG_ENABLED
@@ -7364,7 +7383,7 @@ bool GDScriptParser::_get_member_type(const DataType &p_base_type, const StringN
 		}
 	}
 
-#define IS_USAGE_MEMBER(m_usage) (!(m_usage & (PROPERTY_USAGE_GROUP | PROPERTY_USAGE_CATEGORY)))
+#define IS_USAGE_MEMBER(m_usage) (!(m_usage & (PROPERTY_USAGE_GROUP | PROPERTY_USAGE_SUBGROUP | PROPERTY_USAGE_CATEGORY)))
 
 	// Check other script types
 	while (scr.is_valid()) {
@@ -8110,6 +8129,7 @@ void GDScriptParser::_check_block_types(BlockNode *p_block) {
 							ConstantNode *tgt_type = alloc_node<ConstantNode>();
 							tgt_type->line = lv->line;
 							tgt_type->value = (int)lv->datatype.builtin_type;
+							tgt_type->datatype = _type_from_variant(tgt_type->value);
 
 							OperatorNode *convert_call = alloc_node<OperatorNode>();
 							convert_call->line = lv->line;
@@ -8245,6 +8265,7 @@ void GDScriptParser::_check_block_types(BlockNode *p_block) {
 									ConstantNode *tgt_type = alloc_node<ConstantNode>();
 									tgt_type->line = op->line;
 									tgt_type->value = (int)lh_type.builtin_type;
+									tgt_type->datatype = _type_from_variant(tgt_type->value);
 
 									OperatorNode *convert_call = alloc_node<OperatorNode>();
 									convert_call->line = op->line;
