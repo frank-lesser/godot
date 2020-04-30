@@ -78,7 +78,7 @@ Files extracted from upstream source:
 ## enet
 
 - Upstream: http://enet.bespin.org
-- Version: 1.3.14 (0eaf48e, 2019)
+- Version: 1.3.15 (224f31101fc60939c02f6bbe8e8fc810a7db306b, 2020)
 - License: MIT
 
 Files extracted from upstream source:
@@ -88,15 +88,15 @@ Files extracted from upstream source:
 - LICENSE file
 
 Important: enet.h, host.c, protocol.c have been slightly modified
-to be usable by godot socket implementation and allow IPv6.
-Apply the patch in the `patches/` folder when syncing on newer upstream
+to be usable by godot socket implementation and allow IPv6 and DTLS.
+Apply the patches in the `patches/` folder when syncing on newer upstream
 commits.
 
 Two files (godot.cpp and enet/godot.h) have been added to provide
 enet socket implementation using Godot classes.
 
 It is still possible to build against a system wide ENet but doing so
-will limit it's functionality to IPv4 only.
+will limit its functionality to IPv4 only.
 
 
 ## etc2comp
@@ -371,7 +371,7 @@ Collection of single-file libraries used in Godot components.
   * License: MIT
 - `fastlz.{c,h}`
   * Upstream: https://github.com/ariya/FastLZ
-  * Version: git (f121734, 2007)
+  * Version: 0.5.0 (4f20f54d46f5a6dd4fae4def134933369b7602d2, 2020)
   * License: MIT
 - `hq2x.{cpp,h}`
   * Upstream: https://github.com/brunexgeek/hqx
@@ -397,10 +397,6 @@ Collection of single-file libraries used in Godot components.
 
 ### modules
 
-- `curl_hostcheck.{c,h}`
-  * Upstream: https://curl.haxx.se/
-  * Version: ? (2013)
-  * License: MIT
 - `yuv2rgb.h`
   * Upstream: http://wss.co.uk/pinknoise/yuv2rgb/ (to check)
   * Version: ?
@@ -425,7 +421,7 @@ Collection of single-file libraries used in Godot components.
   * License: zlib
 - `stb_vorbis.c`
   * Upstream: https://github.com/nothings/stb
-  * Version: 1.17
+  * Version: 1.19
   * License: Public Domain (Unlicense) or MIT
 
 
@@ -461,14 +457,13 @@ Files extracted from upstream source:
 ## pcre2
 
 - Upstream: http://www.pcre.org
-- Version: 10.33
+- Version: 10.34
 - License: BSD-3-Clause
 
 Files extracted from upstream source:
 
 - Files listed in the file NON-AUTOTOOLS-BUILD steps 1-4
 - All .h files in src/ apart from pcre2posix.h
-- src/pcre2_jit_compile.c
 - src/pcre2_jit_match.c
 - src/pcre2_jit_misc.c
 - src/sljit/*
@@ -490,12 +485,12 @@ Files extracted from upstream source:
 ## recastnavigation
 
 - Upstream: https://github.com/recastnavigation/recastnavigation
-- Version: git (ef3ea40f, 2017)
+- Version: git (57610fa6ef31b39020231906f8c5d40eaa8294ae, 2019)
 - License: zlib
 
 Files extracted from upstream source:
 
-- `Recast/` folder
+- `Recast/` folder without `CMakeLists.txt`
 - License.txt
 
 
@@ -533,7 +528,7 @@ comments and a patch is provided in the squish/ folder.
 ## tinyexr
 
 - Upstream: https://github.com/syoyo/tinyexr
-- Version: git (656bb61, 2019)
+- Version: git (4dbd05a22f51a2d7462311569b8b0cba0bbe2ac5, 2020)
 - License: BSD-3-Clause
 
 Files extracted from upstream source:

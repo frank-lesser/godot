@@ -287,14 +287,22 @@ void FabrikInverseKinematic::solve(Task *p_task, real_t blending_delta, bool ove
 		return; // Skip solving
 	}
 
-	p_task->skeleton->clear_bones_global_pose_override();
+	p_task->skeleton->set_bone_global_pose_override(p_task->chain.chain_root.bone, Transform(), 0.0, true);
+
+	if (p_task->chain.middle_chain_item) {
+		p_task->skeleton->set_bone_global_pose_override(p_task->chain.middle_chain_item->bone, Transform(), 0.0, true);
+	}
+
+	for (int i = 0; i < p_task->chain.tips.size(); i += 1) {
+		p_task->skeleton->set_bone_global_pose_override(p_task->chain.tips[i].chain_item->bone, Transform(), 0.0, true);
+	}
 
 	make_goal(p_task, p_task->skeleton->get_global_transform().affine_inverse().scaled(p_task->skeleton->get_global_transform().get_basis().get_scale()), blending_delta);
 
 	update_chain(p_task->skeleton, &p_task->chain.chain_root);
 
 	if (p_use_magnet && p_task->chain.middle_chain_item) {
-		p_task->chain.magnet_position = p_task->chain.middle_chain_item->initial_transform.origin.linear_interpolate(p_magnet_position, blending_delta);
+		p_task->chain.magnet_position = p_task->chain.middle_chain_item->initial_transform.origin.lerp(p_magnet_position, blending_delta);
 		solve_simple(p_task, true);
 	}
 	solve_simple(p_task, false);

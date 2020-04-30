@@ -486,11 +486,12 @@ bool EditorNode3DGizmo::intersect_frustum(const Camera3D *p_camera, const Vector
 
 		Vector<Plane> transformed_frustum;
 
-		for (int i = 0; i < 4; i++) {
+		for (int i = 0; i < p_frustum.size(); i++) {
 			transformed_frustum.push_back(it.xform(p_frustum[i]));
 		}
 
-		if (collision_mesh->inside_convex_shape(transformed_frustum.ptr(), transformed_frustum.size(), mesh_scale)) {
+		Vector<Vector3> convex_points = Geometry::compute_convex_mesh_points(p_frustum.ptr(), p_frustum.size());
+		if (collision_mesh->inside_convex_shape(transformed_frustum.ptr(), transformed_frustum.size(), convex_points.ptr(), convex_points.size(), mesh_scale)) {
 			return true;
 		}
 	}
@@ -2827,10 +2828,10 @@ void DecalGizmoPlugin::redraw(EditorNode3DGizmo *p_gizmo) {
 			lines.push_back(a);
 			lines.push_back(b);
 		} else {
-			Vector3 ah = a.linear_interpolate(b, 0.2);
+			Vector3 ah = a.lerp(b, 0.2);
 			lines.push_back(a);
 			lines.push_back(ah);
-			Vector3 bh = b.linear_interpolate(a, 0.2);
+			Vector3 bh = b.lerp(a, 0.2);
 			lines.push_back(b);
 			lines.push_back(bh);
 		}

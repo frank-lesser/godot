@@ -117,8 +117,8 @@ public:
 		if (mub < 0) mub = 0;
 		if (mua > 1) mua = 1;
 		if (mub > 1) mub = 1;
-		c1 = p1.linear_interpolate(p2, mua);
-		c2 = q1.linear_interpolate(q2, mub);
+		c1 = p1.lerp(p2, mua);
+		c2 = q1.lerp(q2, mub);
 	}
 
 	static real_t get_closest_distance_between_segments(const Vector3 &p_from_a, const Vector3 &p_to_a, const Vector3 &p_from_b, const Vector3 &p_to_b) {
@@ -1013,6 +1013,8 @@ public:
 	static Vector<Plane> build_capsule_planes(real_t p_radius, real_t p_height, int p_sides, int p_lats, Vector3::Axis p_axis = Vector3::AXIS_Z);
 
 	static void make_atlas(const Vector<Size2i> &p_rects, Vector<Point2i> &r_result, Size2i &r_size);
+
+	static Vector<Vector3> compute_convex_mesh_points(const Plane *p_planes, int p_plane_count);
 
 private:
 	static Vector<Vector<Point2>> _polypaths_do_operation(PolyBooleanOperation p_op, const Vector<Point2> &p_polypath_a, const Vector<Point2> &p_polypath_b, bool is_a_open = false);

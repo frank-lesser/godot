@@ -1742,7 +1742,7 @@ void ScriptEditor::_update_script_colors() {
 			int non_zero_hist_size = (hist_size == 0) ? 1 : hist_size;
 			float v = Math::ease((edit_pass - pass) / float(non_zero_hist_size), 0.4);
 
-			script_list->set_item_custom_fg_color(i, hot_color.linear_interpolate(cold_color, v));
+			script_list->set_item_custom_fg_color(i, hot_color.lerp(cold_color, v));
 		}
 	}
 }
@@ -1866,6 +1866,10 @@ void ScriptEditor::_update_script_names() {
 			if (new_cur_tab == -1 && sedata[i].index == cur_tab) {
 				new_cur_tab = i;
 			}
+			// Update index of sd entries for sorted order
+			_ScriptEditorItemData sd = sedata[i];
+			sd.index = i;
+			sedata.set(i, sd);
 		}
 		tab_container->set_current_tab(new_prev_tab);
 		tab_container->set_current_tab(new_cur_tab);
