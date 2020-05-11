@@ -624,6 +624,7 @@ private:
 	void _parse_extends(ClassNode *p_class);
 	void _parse_class(ClassNode *p_class);
 	bool _end_statement();
+	void _set_end_statement_error(String p_name);
 
 	void _determine_inheritance(ClassNode *p_class, bool p_recursive = true);
 	bool _parse_type(DataType &r_type, bool p_can_be_void = false);
@@ -647,12 +648,14 @@ private:
 	void _check_block_types(BlockNode *p_block);
 	_FORCE_INLINE_ void _mark_line_as_safe(int p_line) const {
 #ifdef DEBUG_ENABLED
-		if (safe_lines) safe_lines->insert(p_line);
+		if (safe_lines)
+			safe_lines->insert(p_line);
 #endif // DEBUG_ENABLED
 	}
 	_FORCE_INLINE_ void _mark_line_as_unsafe(int p_line) const {
 #ifdef DEBUG_ENABLED
-		if (safe_lines) safe_lines->erase(p_line);
+		if (safe_lines)
+			safe_lines->erase(p_line);
 #endif // DEBUG_ENABLED
 	}
 
@@ -683,7 +686,7 @@ public:
 	BlockNode *get_completion_block();
 	FunctionNode *get_completion_function();
 	int get_completion_argument_index();
-	int get_completion_identifier_is_function();
+	bool get_completion_identifier_is_function();
 
 	const List<String> &get_dependencies() const { return dependencies; }
 

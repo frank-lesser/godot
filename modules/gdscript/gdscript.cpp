@@ -376,9 +376,14 @@ void GDScript::_update_exports_values(Map<StringName, Variant> &values, List<Pro
 }
 #endif
 
-bool GDScript::_update_exports() {
+bool GDScript::_update_exports(bool *r_err, bool p_recursive_call) {
 
 #ifdef TOOLS_ENABLED
+
+	static Vector<GDScript *> base_caches;
+	if (!p_recursive_call)
+		base_caches.clear();
+	base_caches.append(this);
 
 	bool changed = false;
 
@@ -473,7 +478,22 @@ bool GDScript::_update_exports() {
 	placeholder_fallback_enabled = false;
 
 	if (base_cache.is_valid() && base_cache->is_valid()) {
-		if (base_cache->_update_exports()) {
+		for (int i = 0; i < base_caches.size(); i++) {
+			if (base_caches[i] == base_cache.ptr()) {
+				if (r_err)
+					*r_err = true;
+				valid = false; // to show error in the editor
+				base_cache->valid = false;
+				base_cache->inheriters_cache.clear(); // to prevent future stackoverflows
+				base_cache.unref();
+				base.unref();
+				_base = nullptr;
+				ERR_FAIL_V_MSG(false, "Cyclic inheritance in script class.");
+			}
+		}
+		if (base_cache->_update_exports(r_err, true)) {
+			if (r_err && *r_err)
+				return false;
 			changed = true;
 		}
 	}
@@ -501,7 +521,10 @@ void GDScript::update_exports() {
 
 #ifdef TOOLS_ENABLED
 
-	_update_exports();
+	bool cyclic_error = false;
+	_update_exports(&cyclic_error);
+	if (cyclic_error)
+		return;
 
 	Set<ObjectID> copy = inheriters_cache; //might get modified
 
@@ -635,12 +658,14 @@ uint16_t GDScript::get_rpc_method_id(const StringName &p_method) const {
 }
 
 StringName GDScript::get_rpc_method(const uint16_t p_rpc_method_id) const {
-	if (p_rpc_method_id >= rpc_functions.size()) return StringName();
+	if (p_rpc_method_id >= rpc_functions.size())
+		return StringName();
 	return rpc_functions[p_rpc_method_id].name;
 }
 
 MultiplayerAPI::RPCMode GDScript::get_rpc_mode_by_id(const uint16_t p_rpc_method_id) const {
-	if (p_rpc_method_id >= rpc_functions.size()) return MultiplayerAPI::RPC_MODE_DISABLED;
+	if (p_rpc_method_id >= rpc_functions.size())
+		return MultiplayerAPI::RPC_MODE_DISABLED;
 	return rpc_functions[p_rpc_method_id].mode;
 }
 
@@ -662,12 +687,14 @@ uint16_t GDScript::get_rset_property_id(const StringName &p_variable) const {
 }
 
 StringName GDScript::get_rset_property(const uint16_t p_rset_member_id) const {
-	if (p_rset_member_id >= rpc_variables.size()) return StringName();
+	if (p_rset_member_id >= rpc_variables.size())
+		return StringName();
 	return rpc_variables[p_rset_member_id].name;
 }
 
 MultiplayerAPI::RPCMode GDScript::get_rset_mode_by_id(const uint16_t p_rset_member_id) const {
-	if (p_rset_member_id >= rpc_variables.size()) return MultiplayerAPI::RPC_MODE_DISABLED;
+	if (p_rset_member_id >= rpc_variables.size())
+		return MultiplayerAPI::RPC_MODE_DISABLED;
 	return rpc_variables[p_rset_member_id].mode;
 }
 
@@ -1052,6 +1079,16 @@ void GDScript::_init_rpc_methods_properties() {
 }
 
 GDScript::~GDScript() {
+
+	{
+		MutexLock lock(GDScriptLanguage::get_singleton()->lock);
+
+		while (SelfList<GDScriptFunctionState> *E = pending_func_states.first()) {
+			E->self()->_clear_stack();
+			pending_func_states.remove(E);
+		}
+	}
+
 	for (Map<StringName, GDScriptFunction *>::Element *E = member_functions.front(); E; E = E->next()) {
 		memdelete(E->get());
 	}
@@ -1470,9 +1507,15 @@ GDScriptInstance::GDScriptInstance() {
 }
 
 GDScriptInstance::~GDScriptInstance() {
-	if (script.is_valid() && owner) {
-		MutexLock lock(GDScriptLanguage::singleton->lock);
 
+	MutexLock lock(GDScriptLanguage::get_singleton()->lock);
+
+	while (SelfList<GDScriptFunctionState> *E = pending_func_states.first()) {
+		E->self()->_clear_stack();
+		pending_func_states.remove(E);
+	}
+
+	if (script.is_valid() && owner) {
 		script->instances.erase(owner);
 	}
 }
@@ -2141,7 +2184,8 @@ String GDScriptWarning::get_message() const {
 		case STANDALONE_TERNARY: {
 			return "Standalone ternary conditional operator: the return value is being discarded.";
 		}
-		case WARNING_MAX: break; // Can't happen, but silences warning
+		case WARNING_MAX:
+			break; // Can't happen, but silences warning
 	}
 	ERR_FAIL_V_MSG(String(), "Invalid GDScript warning code: " + get_name_from_code(code) + ".");
 

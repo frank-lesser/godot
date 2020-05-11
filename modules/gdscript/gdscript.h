@@ -117,6 +117,8 @@ class GDScript : public Script {
 	String fully_qualified_name;
 	SelfList<GDScript> script_list;
 
+	SelfList<GDScriptFunctionState>::List pending_func_states;
+
 	GDScriptInstance *_create_instance(const Variant **p_args, int p_argcount, Object *p_owner, bool p_isref, Callable::CallError &r_error);
 
 	void _set_subclass_path(Ref<GDScript> &p_sc, const String &p_path);
@@ -133,7 +135,7 @@ class GDScript : public Script {
 
 #endif
 
-	bool _update_exports();
+	bool _update_exports(bool *r_err = nullptr, bool p_recursive_call = false);
 
 	void _save_orphaned_subclasses();
 	void _init_rpc_methods_properties();
@@ -254,6 +256,8 @@ class GDScriptInstance : public ScriptInstance {
 	Vector<Variant> members;
 	bool base_ref;
 
+	SelfList<GDScriptFunctionState>::List pending_func_states;
+
 	void _ml_call_reversed(GDScript *sptr, const StringName &p_method, const Variant **p_args, int p_argcount);
 
 public:
@@ -346,6 +350,8 @@ struct GDScriptWarning {
 #endif // DEBUG_ENABLED
 
 class GDScriptLanguage : public ScriptLanguage {
+
+	friend class GDScriptFunctionState;
 
 	static GDScriptLanguage *singleton;
 

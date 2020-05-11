@@ -850,7 +850,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 		to_reload.push_back(script);
 
 		if (script->get_path().empty()) {
-			script->tied_class_name_for_reload = script->script_class->get_name();
+			script->tied_class_name_for_reload = script->script_class->get_name_for_lookup();
 			script->tied_class_namespace_for_reload = script->script_class->get_namespace();
 		}
 
@@ -3542,10 +3542,15 @@ bool CSharpScript::inherits_script(const Ref<Script> &p_script) const {
 		return false;
 	}
 
-#ifndef _MSC_VER
-#warning TODO: Implement CSharpScript::inherits_script and other relevant changes after GH-38063.
-#endif
-	return false;
+	if (script_class == nullptr || cs->script_class == nullptr) {
+		return false;
+	}
+
+	if (script_class == cs->script_class) {
+		return true;
+	}
+
+	return cs->script_class->is_assignable_from(script_class);
 }
 
 Ref<Script> CSharpScript::get_base_script() const {
