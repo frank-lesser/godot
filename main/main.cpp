@@ -324,7 +324,7 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print("  -b, --breakpoints                Breakpoint list as source::line comma-separated pairs, no spaces (use %%20 instead).\n");
 	OS::get_singleton()->print("  --profiling                      Enable profiling in the script debugger.\n");
 	OS::get_singleton()->print("  --gpu-abort                      Abort on GPU errors (usually validation layer errors), may help see the problem if your system freezes.\n");
-	OS::get_singleton()->print("  --remote-debug <address>         Remote debug (<host/IP>:<port> address).\n");
+	OS::get_singleton()->print("  --remote-debug <uri>             Remote debug (<protocol>://<host/IP>[:<port>], e.g. tcp://127.0.0.1:6007).\n");
 #if defined(DEBUG_ENABLED) && !defined(SERVER_ENABLED)
 	OS::get_singleton()->print("  --debug-collisions               Show collision shapes when running the scene.\n");
 	OS::get_singleton()->print("  --debug-navigation               Show navigation polygons when running the scene.\n");
@@ -844,11 +844,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			if (I->next()) {
 
 				debug_uri = I->next()->get();
-				if (debug_uri.find(":") == -1) { // wrong address
-					OS::get_singleton()->print("Invalid debug host address, it should be of the form <host/IP>:<port>.\n");
+				if (debug_uri.find("://") == -1) { // wrong address
+					OS::get_singleton()->print("Invalid debug host address, it should be of the form <protocol>://<host/IP>:<port>.\n");
 					goto error;
 				}
-				debug_uri = "tcp://" + debug_uri; // will support multiple protocols eventually.
 				N = I->next()->next();
 			} else {
 				OS::get_singleton()->print("Missing remote debug host address, aborting.\n");
@@ -2011,7 +2010,7 @@ bool Main::start() {
 		if (!project_manager && !editor) { // game
 
 			// Load SSL Certificates from Project Settings (or builtin).
-			Crypto::load_default_certificates(GLOBAL_DEF("network/ssl/certificates", ""));
+			Crypto::load_default_certificates(GLOBAL_DEF("network/ssl/certificate_bundle_override", ""));
 
 			if (game_path != "") {
 				Node *scene = nullptr;
@@ -2063,9 +2062,11 @@ bool Main::start() {
 		}
 
 		if (project_manager || editor) {
-			// Hide console window if requested (Windows-only).
-			bool hide_console = EditorSettings::get_singleton()->get_setting("interface/editor/hide_console_window");
-			DisplayServer::get_singleton()->console_set_visible(!hide_console);
+			if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_CONSOLE_WINDOW)) {
+				// Hide console window if requested (Windows-only).
+				bool hide_console = EditorSettings::get_singleton()->get_setting("interface/editor/hide_console_window");
+				DisplayServer::get_singleton()->console_set_visible(!hide_console);
+			}
 
 			// Load SSL Certificates from Editor Settings (or builtin)
 			Crypto::load_default_certificates(EditorSettings::get_singleton()->get_setting("network/ssl/editor_ssl_certificates").operator String());

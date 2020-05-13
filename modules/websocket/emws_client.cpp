@@ -142,14 +142,14 @@ Error EMWSClient::connect_to_host(String p_host, String p_path, uint16_t p_port,
 
 			}
 			var len = buffer.length*buffer.BYTES_PER_ELEMENT;
-			var out = Module._malloc(len);
-			Module.HEAPU8.set(buffer, out);
+			var out = _malloc(len);
+			HEAPU8.set(buffer, out);
 			ccall("_esws_on_message",
 				"void",
 				["number", "number", "number", "number"],
 				[c_ptr, out, len, is_string]
 			);
-			Module._free(out);
+			_free(out);
 		});
 
 		socket.addEventListener("error", function (event) {
@@ -231,8 +231,9 @@ Error EMWSClient::set_buffers(int p_in_buffer, int p_in_packets, int p_out_buffe
 }
 
 EMWSClient::EMWSClient() {
-	_in_buf_size = nearest_shift((int)GLOBAL_GET(WSC_IN_BUF) - 1) + 10;
-	_in_pkt_size = nearest_shift((int)GLOBAL_GET(WSC_IN_PKT) - 1);
+	_in_buf_size = DEF_BUF_SHIFT;
+	_in_pkt_size = DEF_PKT_SHIFT;
+
 	_is_connecting = false;
 	_peer = Ref<EMWSPeer>(memnew(EMWSPeer));
 	/* clang-format off */
