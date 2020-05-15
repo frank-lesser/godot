@@ -66,7 +66,6 @@ TScriptInstance *cast_script_instance(ScriptInstance *p_inst) {
 #define CAST_CSHARP_INSTANCE(m_inst) (cast_script_instance<CSharpInstance, CSharpLanguage>(m_inst))
 
 class CSharpScript : public Script {
-
 	GDCLASS(CSharpScript, Script);
 
 public:
@@ -231,7 +230,6 @@ public:
 };
 
 class CSharpInstance : public ScriptInstance {
-
 	friend class CSharpScript;
 	friend class CSharpLanguage;
 
@@ -326,17 +324,13 @@ public:
 };
 
 struct CSharpScriptBinding {
-	bool inited;
+	bool inited = false;
 	StringName type_name;
-	GDMonoClass *wrapper_class;
+	GDMonoClass *wrapper_class = nullptr;
 	MonoGCHandleData gchandle;
-	Object *owner;
+	Object *owner = nullptr;
 
-	CSharpScriptBinding() :
-			inited(false),
-			wrapper_class(nullptr),
-			owner(nullptr) {
-	}
+	CSharpScriptBinding() {}
 };
 
 class ManagedCallableMiddleman : public Object {
@@ -344,7 +338,6 @@ class ManagedCallableMiddleman : public Object {
 };
 
 class CSharpLanguage : public ScriptLanguage {
-
 	friend class CSharpScript;
 	friend class CSharpInstance;
 
@@ -371,7 +364,6 @@ class CSharpLanguage : public ScriptLanguage {
 	ManagedCallableMiddleman *managed_callable_middleman = memnew(ManagedCallableMiddleman);
 
 	struct StringNameCache {
-
 		StringName _signal_callback;
 		StringName _set;
 		StringName _get;

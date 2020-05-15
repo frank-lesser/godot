@@ -47,17 +47,12 @@ enum ErrorHandlerType {
 typedef void (*ErrorHandlerFunc)(void *, const char *, const char *, int p_line, const char *, const char *, ErrorHandlerType p_type);
 
 struct ErrorHandlerList {
+	ErrorHandlerFunc errfunc = nullptr;
+	void *userdata = nullptr;
 
-	ErrorHandlerFunc errfunc;
-	void *userdata;
+	ErrorHandlerList *next = nullptr;
 
-	ErrorHandlerList *next;
-
-	ErrorHandlerList() {
-		errfunc = 0;
-		next = 0;
-		userdata = 0;
-	}
+	ErrorHandlerList() {}
 };
 
 void add_error_handler(ErrorHandlerList *p_handler);

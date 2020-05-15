@@ -65,7 +65,6 @@
 #include "core/math/triangle_mesh.h"
 #include "core/os/main_loop.h"
 #include "core/packed_data_container.h"
-#include "core/path_remap.h"
 #include "core/project_settings.h"
 #include "core/translation.h"
 #include "core/undo_redo.h"
@@ -98,7 +97,6 @@ extern void register_variant_methods();
 extern void unregister_variant_methods();
 
 void register_core_types() {
-
 	//consistency check
 	static_assert(sizeof(Callable) <= 16);
 
@@ -238,7 +236,6 @@ void register_core_settings() {
 }
 
 void register_core_singletons() {
-
 	ClassDB::register_class<ProjectSettings>();
 	ClassDB::register_virtual_class<IP>();
 	ClassDB::register_class<_Geometry>();
@@ -270,7 +267,6 @@ void register_core_singletons() {
 }
 
 void unregister_core_types() {
-
 	memdelete(_resource_loader);
 	memdelete(_resource_saver);
 	memdelete(_os);
@@ -301,8 +297,9 @@ void unregister_core_types() {
 	ResourceLoader::remove_resource_format_loader(resource_format_loader_crypto);
 	resource_format_loader_crypto.unref();
 
-	if (ip)
+	if (ip) {
 		memdelete(ip);
+	}
 
 	ResourceLoader::finalize();
 

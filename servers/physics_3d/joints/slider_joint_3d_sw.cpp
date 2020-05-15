@@ -116,7 +116,6 @@ SliderJoint3DSW::SliderJoint3DSW(Body3DSW *rbA, Body3DSW *rbB, const Transform &
 		Joint3DSW(_arr, 2),
 		m_frameInA(frameInA),
 		m_frameInB(frameInB) {
-
 	A = rbA;
 	B = rbB;
 
@@ -129,7 +128,6 @@ SliderJoint3DSW::SliderJoint3DSW(Body3DSW *rbA, Body3DSW *rbB, const Transform &
 //-----------------------------------------------------------------------------
 
 bool SliderJoint3DSW::setup(real_t p_step) {
-
 	//calculate transforms
 	m_calculatedTransformA = A->get_transform() * m_frameInA;
 	m_calculatedTransformB = B->get_transform() * m_frameInB;
@@ -182,7 +180,6 @@ bool SliderJoint3DSW::setup(real_t p_step) {
 //-----------------------------------------------------------------------------
 
 void SliderJoint3DSW::solve(real_t p_step) {
-
 	int i;
 	// linear
 	Vector3 velA = A->get_velocity_in_local_point(m_relPosA);
@@ -304,7 +301,7 @@ void SliderJoint3DSW::solve(real_t p_step) {
 
 //-----------------------------------------------------------------------------
 
-void SliderJoint3DSW::calculateTransforms(void) {
+void SliderJoint3DSW::calculateTransforms() {
 	m_calculatedTransformA = A->get_transform() * m_frameInA;
 	m_calculatedTransformB = B->get_transform() * m_frameInB;
 	m_realPivotAInW = m_calculatedTransformA.origin;
@@ -323,7 +320,7 @@ void SliderJoint3DSW::calculateTransforms(void) {
 
 //-----------------------------------------------------------------------------
 
-void SliderJoint3DSW::testLinLimits(void) {
+void SliderJoint3DSW::testLinLimits() {
 	m_solveLinLim = false;
 	m_linPos = m_depth[0];
 	if (m_lowerLinLimit <= m_upperLinLimit) {
@@ -343,7 +340,7 @@ void SliderJoint3DSW::testLinLimits(void) {
 
 //-----------------------------------------------------------------------------
 
-void SliderJoint3DSW::testAngLimits(void) {
+void SliderJoint3DSW::testAngLimits() {
 	m_angDepth = real_t(0.);
 	m_solveAngLim = false;
 	if (m_lowerAngLimit <= m_upperAngLimit) {
@@ -363,7 +360,7 @@ void SliderJoint3DSW::testAngLimits(void) {
 
 //-----------------------------------------------------------------------------
 
-Vector3 SliderJoint3DSW::getAncorInA(void) {
+Vector3 SliderJoint3DSW::getAncorInA() {
 	Vector3 ancorInA;
 	ancorInA = m_realPivotAInW + (m_lowerLinLimit + m_upperLinLimit) * real_t(0.5) * m_sliderAxis;
 	ancorInA = A->get_transform().inverse().xform(ancorInA);
@@ -372,14 +369,13 @@ Vector3 SliderJoint3DSW::getAncorInA(void) {
 
 //-----------------------------------------------------------------------------
 
-Vector3 SliderJoint3DSW::getAncorInB(void) {
+Vector3 SliderJoint3DSW::getAncorInB() {
 	Vector3 ancorInB;
 	ancorInB = m_frameInB.origin;
 	return ancorInB;
 } // SliderJointSW::getAncorInB();
 
 void SliderJoint3DSW::set_param(PhysicsServer3D::SliderJointParam p_param, real_t p_value) {
-
 	switch (p_param) {
 		case PhysicsServer3D::SLIDER_JOINT_LINEAR_LIMIT_UPPER:
 			m_upperLinLimit = p_value;
@@ -455,7 +451,6 @@ void SliderJoint3DSW::set_param(PhysicsServer3D::SliderJointParam p_param, real_
 }
 
 real_t SliderJoint3DSW::get_param(PhysicsServer3D::SliderJointParam p_param) const {
-
 	switch (p_param) {
 		case PhysicsServer3D::SLIDER_JOINT_LINEAR_LIMIT_UPPER:
 			return m_upperLinLimit;

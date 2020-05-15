@@ -44,7 +44,6 @@
 	XRCamera is a subclass of camera which will register itself with its parent XROrigin and as a result is automatically positioned
 */
 class XRCamera3D : public Camera3D {
-
 	GDCLASS(XRCamera3D, Camera3D);
 
 protected:
@@ -69,7 +68,6 @@ public:
 */
 
 class XRController3D : public Node3D {
-
 	GDCLASS(XRController3D, Node3D);
 
 private:
@@ -84,8 +82,8 @@ protected:
 
 public:
 	void set_controller_id(int p_controller_id);
-	int get_controller_id(void) const;
-	String get_controller_name(void) const;
+	int get_controller_id() const;
+	String get_controller_name() const;
 
 	int get_joystick_id() const;
 	bool is_button_pressed(int p_button) const;
@@ -97,7 +95,7 @@ public:
 	bool get_is_active() const;
 	XRPositionalTracker::TrackerHand get_hand() const;
 
-	Ref<Mesh> get_mesh(void) const;
+	Ref<Mesh> get_mesh() const;
 
 	String get_configuration_warning() const;
 
@@ -125,15 +123,15 @@ protected:
 
 public:
 	void set_anchor_id(int p_anchor_id);
-	int get_anchor_id(void) const;
-	String get_anchor_name(void) const;
+	int get_anchor_id() const;
+	String get_anchor_name() const;
 
 	bool get_is_active() const;
 	Vector3 get_size() const;
 
 	Plane get_plane() const;
 
-	Ref<Mesh> get_mesh(void) const;
+	Ref<Mesh> get_mesh() const;
 
 	String get_configuration_warning() const;
 
@@ -150,7 +148,6 @@ public:
 	This node will automatically locate any camera child nodes and update its position while our XRController3D node will handle tracked controllers.
 */
 class XROrigin3D : public Node3D {
-
 	GDCLASS(XROrigin3D, Node3D);
 
 private:

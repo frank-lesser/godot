@@ -42,7 +42,6 @@ class ScriptEditorDebugger;
 class TabContainer;
 
 class EditorDebuggerNode : public MarginContainer {
-
 	GDCLASS(EditorDebuggerNode, MarginContainer);
 
 public:
@@ -71,12 +70,13 @@ private:
 		int line = 0;
 
 		bool operator<(const Breakpoint &p_b) const {
-			if (line == p_b.line)
+			if (line == p_b.line) {
 				return source < p_b.source;
+			}
 			return line < p_b.line;
 		}
 
-		Breakpoint(){};
+		Breakpoint() {}
 
 		Breakpoint(const String &p_source, int p_line) {
 			line = p_line;

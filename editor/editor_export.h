@@ -43,7 +43,6 @@ class EditorFileSystemDirectory;
 struct EditorProgress;
 
 class EditorExportPreset : public Reference {
-
 	GDCLASS(EditorExportPreset, Reference);
 
 public:
@@ -61,14 +60,14 @@ public:
 
 private:
 	Ref<EditorExportPlatform> platform;
-	ExportFilter export_filter;
+	ExportFilter export_filter = EXPORT_ALL_RESOURCES;
 	String include_filter;
 	String exclude_filter;
 	String export_path;
 
 	String exporter;
 	Set<String> selected_files;
-	bool runnable;
+	bool runnable = false;
 
 	Vector<String> patches;
 
@@ -82,7 +81,7 @@ private:
 
 	String custom_features;
 
-	int script_mode;
+	int script_mode = MODE_SCRIPT_COMPILED;
 	String script_key;
 
 protected:
@@ -136,7 +135,7 @@ public:
 
 	const List<PropertyInfo> &get_properties() const { return properties; }
 
-	EditorExportPreset();
+	EditorExportPreset() {}
 };
 
 struct SharedObject {
@@ -152,7 +151,6 @@ struct SharedObject {
 };
 
 class EditorExportPlatform : public Reference {
-
 	GDCLASS(EditorExportPlatform, Reference);
 
 public:
@@ -161,7 +159,6 @@ public:
 
 private:
 	struct SavedData {
-
 		uint64_t ofs;
 		uint64_t size;
 		Vector<uint8_t> md5;
@@ -173,7 +170,6 @@ private:
 	};
 
 	struct PackData {
-
 		FileAccess *f;
 		Vector<SavedData> file_ofs;
 		EditorProgress *ep;
@@ -181,7 +177,6 @@ private:
 	};
 
 	struct ZipData {
-
 		void *zip;
 		EditorProgress *ep;
 	};
@@ -394,7 +389,6 @@ public:
 };
 
 class EditorExportPlatformPC : public EditorExportPlatform {
-
 	GDCLASS(EditorExportPlatformPC, EditorExportPlatform);
 
 public:
@@ -456,7 +450,6 @@ public:
 };
 
 class EditorExportTextSceneToBinaryPlugin : public EditorExportPlugin {
-
 	GDCLASS(EditorExportTextSceneToBinaryPlugin, EditorExportPlugin);
 
 public:

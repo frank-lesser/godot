@@ -40,7 +40,6 @@
 #include "gd_mono_utils.h"
 
 class GDMonoAssembly {
-
 	struct ClassKey {
 		struct Hasher {
 			static _FORCE_INLINE_ uint32_t hash(const ClassKey &p_key) {
@@ -73,10 +72,10 @@ class GDMonoAssembly {
 	MonoAssembly *assembly;
 
 #ifdef GD_MONO_HOT_RELOAD
-	uint64_t modified_time;
+	uint64_t modified_time = 0;
 #endif
 
-	bool gdobject_class_cache_updated;
+	bool gdobject_class_cache_updated = false;
 	Map<StringName, GDMonoClass *> gdobject_class_cache;
 
 	HashMap<ClassKey, GDMonoClass *, ClassKey::Hasher> cached_classes;
@@ -125,7 +124,11 @@ public:
 	static GDMonoAssembly *load(const String &p_name, MonoAssemblyName *p_aname, bool p_refonly, const Vector<String> &p_search_dirs);
 	static GDMonoAssembly *load_from(const String &p_name, const String &p_path, bool p_refonly);
 
-	GDMonoAssembly(const String &p_name, MonoImage *p_image, MonoAssembly *p_assembly);
+	GDMonoAssembly(const String &p_name, MonoImage *p_image, MonoAssembly *p_assembly) :
+			name(p_name),
+			image(p_image),
+			assembly(p_assembly) {
+	}
 	~GDMonoAssembly();
 };
 

@@ -39,7 +39,6 @@
 #include "step_3d_sw.h"
 
 class PhysicsServer3DSW : public PhysicsServer3D {
-
 	GDCLASS(PhysicsServer3DSW, PhysicsServer3D);
 
 	friend class PhysicsDirectSpaceState3DSW;
@@ -74,7 +73,6 @@ public:
 	static PhysicsServer3DSW *singleton;
 
 	struct CollCbkData {
-
 		int max;
 		int amount;
 		Vector3 *ptr;
@@ -307,7 +305,7 @@ public:
 
 	virtual void soft_body_remove_all_pinned_points(RID p_body) {}
 	virtual void soft_body_pin_point(RID p_body, int p_point_index, bool p_pin) {}
-	virtual bool soft_body_is_point_pinned(RID p_body, int p_point_index) { return 0; }
+	virtual bool soft_body_is_point_pinned(RID p_body, int p_point_index) { return false; }
 
 	/* JOINT API */
 

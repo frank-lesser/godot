@@ -36,31 +36,27 @@
 class Delaunay2D {
 public:
 	struct Triangle {
-
 		int points[3];
-		bool bad;
-		Triangle() { bad = false; }
+		bool bad = false;
+		Triangle() {}
 		Triangle(int p_a, int p_b, int p_c) {
 			points[0] = p_a;
 			points[1] = p_b;
 			points[2] = p_c;
-			bad = false;
 		}
 	};
 
 	struct Edge {
 		int edge[2];
-		bool bad;
-		Edge() { bad = false; }
+		bool bad = false;
+		Edge() {}
 		Edge(int p_a, int p_b) {
-			bad = false;
 			edge[0] = p_a;
 			edge[1] = p_b;
 		}
 	};
 
 	static bool circum_circle_contains(const Vector<Vector2> &p_vertices, const Triangle &p_triangle, int p_vertex) {
-
 		Vector2 p1 = p_vertices[p_triangle.points[0]];
 		Vector2 p2 = p_vertices[p_triangle.points[1]];
 		Vector2 p3 = p_vertices[p_triangle.points[2]];
@@ -92,7 +88,6 @@ public:
 	}
 
 	static Vector<Triangle> triangulate(const Vector<Vector2> &p_points) {
-
 		Vector<Vector2> points = p_points;
 		Vector<Triangle> triangles;
 
@@ -115,7 +110,6 @@ public:
 		triangles.push_back(Triangle(p_points.size() + 0, p_points.size() + 1, p_points.size() + 2));
 
 		for (int i = 0; i < p_points.size(); i++) {
-
 			Vector<Edge> polygon;
 
 			for (int j = 0; j < triangles.size(); j++) {
@@ -144,7 +138,6 @@ public:
 			}
 
 			for (int j = 0; j < polygon.size(); j++) {
-
 				if (polygon[j].bad) {
 					continue;
 				}

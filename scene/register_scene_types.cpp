@@ -235,7 +235,6 @@ static Ref<ResourceFormatSaverShader> resource_saver_shader;
 static Ref<ResourceFormatLoaderShader> resource_loader_shader;
 
 void register_scene_types() {
-
 	SceneStringNames::create();
 
 	OS::get_singleton()->yield(); //may take time to init
@@ -436,6 +435,7 @@ void register_scene_types() {
 	ClassDB::register_class<BakedLightmap>();
 	ClassDB::register_class<BakedLightmapData>();
 	ClassDB::register_class<LightmapProbe>();
+	ClassDB::register_virtual_class<Lightmapper>();
 	ClassDB::register_class<GPUParticles3D>();
 	ClassDB::register_class<CPUParticles3D>();
 	ClassDB::register_class<Position3D>();
@@ -688,6 +688,7 @@ void register_scene_types() {
 	ClassDB::register_class<AnimatedTexture>();
 	ClassDB::register_class<CameraTexture>();
 	ClassDB::register_virtual_class<TextureLayered>();
+	ClassDB::register_virtual_class<ImageTextureLayered>();
 	ClassDB::register_class<Cubemap>();
 	ClassDB::register_class<CubemapArray>();
 	ClassDB::register_class<Texture2DArray>();
@@ -920,7 +921,6 @@ void register_scene_types() {
 }
 
 void unregister_scene_types() {
-
 	SceneDebugger::deinitialize();
 	clear_default_theme();
 

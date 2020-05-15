@@ -1,3 +1,33 @@
+/*************************************************************************/
+/*  delaunay_3d.h                                                        */
+/*************************************************************************/
+/*                       This file is part of:                           */
+/*                           GODOT ENGINE                                */
+/*                      https://godotengine.org                          */
+/*************************************************************************/
+/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/*                                                                       */
+/* Permission is hereby granted, free of charge, to any person obtaining */
+/* a copy of this software and associated documentation files (the       */
+/* "Software"), to deal in the Software without restriction, including   */
+/* without limitation the rights to use, copy, modify, merge, publish,   */
+/* distribute, sublicense, and/or sell copies of the Software, and to    */
+/* permit persons to whom the Software is furnished to do so, subject to */
+/* the following conditions:                                             */
+/*                                                                       */
+/* The above copyright notice and this permission notice shall be        */
+/* included in all copies or substantial portions of the Software.       */
+/*                                                                       */
+/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       */
+/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF    */
+/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.*/
+/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY  */
+/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,  */
+/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE     */
+/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
+/*************************************************************************/
+
 #ifndef DELAUNAY_3D_H
 #define DELAUNAY_3D_H
 
@@ -25,7 +55,6 @@ class Delaunay3D {
 	};
 
 	struct Simplex {
-
 		uint32_t points[4];
 		R128 circum_center_x;
 		R128 circum_center_y;
@@ -45,21 +74,23 @@ class Delaunay3D {
 
 	struct Triangle {
 		uint32_t triangle[3];
-		bool bad;
+		bool bad = false;
 		_FORCE_INLINE_ bool operator==(const Triangle &p_triangle) const {
 			return triangle[0] == p_triangle.triangle[0] && triangle[1] == p_triangle.triangle[1] && triangle[2] == p_triangle.triangle[2];
 		}
 
-		_FORCE_INLINE_ Triangle() { bad = false; }
+		_FORCE_INLINE_ Triangle() {}
 		_FORCE_INLINE_ Triangle(uint32_t p_a, uint32_t p_b, uint32_t p_c) {
-			if (p_a > p_b)
+			if (p_a > p_b) {
 				SWAP(p_a, p_b);
-			if (p_b > p_c)
+			}
+			if (p_b > p_c) {
 				SWAP(p_b, p_c);
-			if (p_a > p_b)
+			}
+			if (p_a > p_b) {
 				SWAP(p_a, p_b);
+			}
 
-			bad = false;
 			triangle[0] = p_a;
 			triangle[1] = p_b;
 			triangle[2] = p_c;
@@ -74,11 +105,7 @@ class Delaunay3D {
 		}
 	};
 
-	struct FPVal {
-	};
-
 	_FORCE_INLINE_ static void circum_sphere_compute(const Vector3 *p_points, Simplex *p_simplex) {
-
 		// the only part in the algorithm where there may be precision errors is this one, so ensure that
 		// we do it as maximum precision as possible
 
@@ -138,7 +165,6 @@ class Delaunay3D {
 	}
 
 	_FORCE_INLINE_ static bool simplex_contains(const Vector3 *p_points, const Simplex &p_simplex, uint32_t p_vertex) {
-
 		R128 v_x = p_points[p_vertex].x;
 		R128 v_y = p_points[p_vertex].y;
 		R128 v_z = p_points[p_vertex].z;
@@ -153,7 +179,6 @@ class Delaunay3D {
 	}
 
 	static bool simplex_is_coplanar(const Vector3 *p_points, const Simplex &p_simplex) {
-
 		Plane p(p_points[p_simplex.points[0]], p_points[p_simplex.points[1]], p_points[p_simplex.points[2]]);
 		if (ABS(p.distance_to(p_points[p_simplex.points[3]])) < CMP_EPSILON) {
 			return true;
@@ -190,7 +215,6 @@ public:
 	};
 
 	static Vector<OutputSimplex> tetrahedralize(const Vector<Vector3> &p_points) {
-
 		uint32_t point_count = p_points.size();
 		Vector3 *points = (Vector3 *)memalloc(sizeof(Vector3) * (point_count + 4));
 
@@ -247,7 +271,6 @@ public:
 		LocalVector<Triangle> triangles;
 
 		for (uint32_t i = 0; i < point_count; i++) {
-
 			bool unique = true;
 			for (uint32_t j = i + 1; j < point_count; j++) {
 				if (points[i].is_equal_approx(points[j])) {
@@ -270,7 +293,6 @@ public:
 				Simplex *simplex = E->get();
 
 				if (simplex_contains(points, *simplex, i)) {
-
 					static const uint32_t triangle_order[4][3] = {
 						{ 0, 1, 2 },
 						{ 0, 1, 3 },
@@ -303,7 +325,6 @@ public:
 
 			uint32_t good_triangles = 0;
 			for (uint32_t j = 0; j < triangles.size(); j++) {
-
 				if (triangles[j].bad) {
 					continue;
 				}
