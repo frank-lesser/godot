@@ -229,6 +229,14 @@ typedef struct tagPOINTER_PEN_INFO {
 #define WM_POINTERUPDATE 0x0245
 #endif
 
+#ifndef WM_POINTERENTER
+#define WM_POINTERENTER 0x0249
+#endif
+
+#ifndef WM_POINTERLEAVE
+#define WM_POINTERLEAVE 0x024A
+#endif
+
 typedef BOOL(WINAPI *GetPointerTypePtr)(uint32_t p_id, POINTER_INPUT_TYPE *p_type);
 typedef BOOL(WINAPI *GetPointerPenInfoPtr)(uint32_t p_id, POINTER_PEN_INFO *p_pen_info);
 
@@ -256,6 +264,7 @@ class DisplayServerWindows : public DisplayServer {
 
 	_THREAD_SAFE_CLASS_
 
+public:
 	// WinTab API
 	static bool wintab_available;
 	static WTOpenPtr wintab_WTOpen;
@@ -265,9 +274,13 @@ class DisplayServerWindows : public DisplayServer {
 	static WTEnablePtr wintab_WTEnable;
 
 	// Windows Ink API
+	static bool winink_available;
 	static GetPointerTypePtr win8p_GetPointerType;
 	static GetPointerPenInfoPtr win8p_GetPointerPenInfo;
 
+	void _update_tablet_ctx(const String &p_old_driver, const String &p_new_driver);
+
+private:
 	void GetMaskBitmaps(HBITMAP hSourceBitmap, COLORREF clrTransparent, OUT HBITMAP &hAndMaskBitmap, OUT HBITMAP &hXorMaskBitmap);
 
 	enum {
@@ -328,6 +341,7 @@ class DisplayServerWindows : public DisplayServer {
 		int min_pressure;
 		int max_pressure;
 		bool tilt_supported;
+		bool block_mm = false;
 
 		int last_pressure_update;
 		float last_pressure;
