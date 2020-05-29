@@ -31,6 +31,7 @@
 #include "canvas_item_editor_plugin.h"
 
 #include "core/input/input.h"
+#include "core/math/geometry_2d.h"
 #include "core/os/keyboard.h"
 #include "core/print_string.h"
 #include "core/project_settings.h"
@@ -672,7 +673,7 @@ void CanvasItemEditor::_get_bones_at_pos(const Point2 &p_pos, Vector<_SelectResu
 		}
 
 		// Check if the point is inside the Polygon2D
-		if (Geometry::is_point_in_polygon(screen_pos, bone_shape)) {
+		if (Geometry2D::is_point_in_polygon(screen_pos, bone_shape)) {
 			// Check if the item is already in the list
 			bool duplicate = false;
 			for (int i = 0; i < r_items.size(); i++) {
@@ -5610,6 +5611,7 @@ CanvasItemEditor::CanvasItemEditor(EditorNode *p_editor) {
 	hb->add_child(pan_button);
 	pan_button->set_toggle_mode(true);
 	pan_button->connect("pressed", callable_mp(this, &CanvasItemEditor::_button_tool_select), make_binds(TOOL_PAN));
+	pan_button->set_shortcut(ED_SHORTCUT("canvas_item_editor/pan_mode", TTR("Pan Mode"), KEY_G));
 	pan_button->set_tooltip(TTR("Pan Mode"));
 
 	ruler_button = memnew(ToolButton);

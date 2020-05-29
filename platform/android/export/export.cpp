@@ -254,6 +254,8 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 	};
 
 	Vector<PluginConfig> plugins;
+	String last_plugin_names;
+	uint64_t last_custom_build_time = 0;
 	volatile bool plugins_changed;
 	Mutex plugins_lock;
 	Vector<Device> devices;
@@ -1821,6 +1823,15 @@ public:
 			err += etc_error;
 		}
 
+		// Ensure that `Use Custom Build` is enabled if a plugin is selected.
+		String enabled_plugins_names = get_plugins_names(get_enabled_plugins(p_preset));
+		bool custom_build_enabled = p_preset->get("custom_template/use_custom_build");
+		if (!enabled_plugins_names.empty() && !custom_build_enabled) {
+			valid = false;
+			err += TTR("\"Use Custom Build\" must be enabled to use the plugins.");
+			err += "\n";
+		}
+
 		r_error = err;
 		return valid;
 	}
@@ -1829,6 +1840,29 @@ public:
 		List<String> list;
 		list.push_back("apk");
 		return list;
+	}
+
+	inline bool is_clean_build_required(Vector<PluginConfig> enabled_plugins) {
+		String plugin_names = get_plugins_names(enabled_plugins);
+		bool first_build = last_custom_build_time == 0;
+		bool have_plugins_changed = false;
+
+		if (!first_build) {
+			have_plugins_changed = plugin_names != last_plugin_names;
+			if (!have_plugins_changed) {
+				for (int i = 0; i < enabled_plugins.size(); i++) {
+					if (enabled_plugins.get(i).last_updated > last_custom_build_time) {
+						have_plugins_changed = true;
+						break;
+					}
+				}
+			}
+		}
+
+		last_custom_build_time = OS::get_singleton()->get_unix_time();
+		last_plugin_names = plugin_names;
+
+		return have_plugins_changed || first_build;
 	}
 
 	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags = 0) {
@@ -1877,8 +1911,12 @@ public:
 			String local_plugins_binaries = get_plugins_binaries(BINARY_TYPE_LOCAL, enabled_plugins);
 			String remote_plugins_binaries = get_plugins_binaries(BINARY_TYPE_REMOTE, enabled_plugins);
 			String custom_maven_repos = get_plugins_custom_maven_repos(enabled_plugins);
+			bool clean_build_required = is_clean_build_required(enabled_plugins);
 
 			List<String> cmdline;
+			if (clean_build_required) {
+				cmdline.push_back("clean");
+			}
 			cmdline.push_back("build");
 			cmdline.push_back("-Pexport_package_name=" + package_name); // argument to specify the package name.
 			cmdline.push_back("-Pplugins_local_binaries=" + local_plugins_binaries); // argument to specify the list of plugins local dependencies.
