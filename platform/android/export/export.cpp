@@ -1729,23 +1729,32 @@ public:
 		// Look for export templates (first official, and if defined custom templates).
 
 		if (!bool(p_preset->get("custom_template/use_custom_build"))) {
-			bool dvalid = exists_export_template("android_debug.apk", &err);
-			bool rvalid = exists_export_template("android_release.apk", &err);
+			String template_err;
+			bool dvalid = false;
+			bool rvalid = false;
 
 			if (p_preset->get("custom_template/debug") != "") {
 				dvalid = FileAccess::exists(p_preset->get("custom_template/debug"));
 				if (!dvalid) {
-					err += TTR("Custom debug template not found.") + "\n";
+					template_err += TTR("Custom debug template not found.") + "\n";
 				}
+			} else {
+				dvalid = exists_export_template("android_debug.apk", &template_err);
 			}
+
 			if (p_preset->get("custom_template/release") != "") {
 				rvalid = FileAccess::exists(p_preset->get("custom_template/release"));
 				if (!rvalid) {
-					err += TTR("Custom release template not found.") + "\n";
+					template_err += TTR("Custom release template not found.") + "\n";
 				}
+			} else {
+				rvalid = exists_export_template("android_release.apk", &template_err);
 			}
 
 			valid = dvalid || rvalid;
+			if (!valid) {
+				err += template_err;
+			}
 		} else {
 			valid = exists_export_template("android_source.zip", &err);
 		}
@@ -1775,6 +1784,13 @@ public:
 				valid = false;
 				err += TTR("Debug keystore not configured in the Editor Settings nor in the preset.") + "\n";
 			}
+		}
+
+		String rk = p_preset->get("keystore/release");
+
+		if (!rk.empty() && !FileAccess::exists(rk)) {
+			valid = false;
+			err += TTR("Release keystore incorrectly configured in the export preset.") + "\n";
 		}
 
 		if (bool(p_preset->get("custom_template/use_custom_build"))) {
