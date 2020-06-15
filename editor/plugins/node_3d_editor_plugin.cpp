@@ -3419,11 +3419,7 @@ void Node3DEditorViewport::reset() {
 	last_message = "";
 	name = "";
 
-	cursor.x_rot = 0.5;
-	cursor.y_rot = 0.5;
-	cursor.distance = 4;
-	cursor.region_select = false;
-	cursor.pos = Vector3();
+	cursor = Cursor();
 	_update_name();
 }
 
@@ -3658,15 +3654,19 @@ bool Node3DEditorViewport::_create_instance(Node *parent, String &path, const Po
 	editor_data->get_undo_redo().add_do_method(ed, "live_debug_instance_node", editor->get_edited_scene()->get_path_to(parent), path, new_name);
 	editor_data->get_undo_redo().add_undo_method(ed, "live_debug_remove_node", NodePath(String(editor->get_edited_scene()->get_path_to(parent)) + "/" + new_name));
 
-	Transform global_transform;
-	Node3D *parent_spatial = Object::cast_to<Node3D>(parent);
-	if (parent_spatial) {
-		global_transform = parent_spatial->get_global_gizmo_transform();
+	Node3D *node3d = Object::cast_to<Node3D>(instanced_scene);
+	if (node3d) {
+		Transform global_transform;
+		Node3D *parent_node3d = Object::cast_to<Node3D>(parent);
+		if (parent_node3d) {
+			global_transform = parent_node3d->get_global_gizmo_transform();
+		}
+
+		global_transform.origin = spatial_editor->snap_point(_get_instance_position(p_point));
+		global_transform.basis *= node3d->get_transform().basis;
+
+		editor_data->get_undo_redo().add_do_method(instanced_scene, "set_global_transform", global_transform);
 	}
-
-	global_transform.origin = spatial_editor->snap_point(_get_instance_position(p_point));
-
-	editor_data->get_undo_redo().add_do_method(instanced_scene, "set_global_transform", global_transform);
 
 	return true;
 }
@@ -5397,6 +5397,9 @@ void Node3DEditor::_update_gizmos_menu() {
 		const int plugin_state = gizmo_plugins_by_name[i]->get_state();
 		gizmos_menu->add_multistate_item(TTR(plugin_name), 3, plugin_state, i);
 		const int idx = gizmos_menu->get_item_index(i);
+		gizmos_menu->set_item_tooltip(
+				idx,
+				TTR("Click to toggle between visibility states.\n\nOpen eye: Gizmo is visible.\nClosed eye: Gizmo is hidden.\nHalf-open eye: Gizmo is also visible through opaque surfaces (\"x-ray\")."));
 		switch (plugin_state) {
 			case EditorNode3DGizmoPlugin::VISIBLE:
 				gizmos_menu->set_item_icon(idx, gizmos_menu->get_theme_icon("visibility_visible"));
