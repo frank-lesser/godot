@@ -243,6 +243,9 @@ void EditorHelp::_add_method(const DocData::MethodDoc &p_method, bool p_overview
 	if (p_overview) {
 		class_desc->push_cell();
 		class_desc->push_align(RichTextLabel::ALIGN_RIGHT);
+	} else {
+		static const CharType prefix[3] = { 0x25CF /* filled circle */, ' ', 0 };
+		class_desc->add_text(String(prefix));
 	}
 
 	_add_type(p_method.return_type, p_method.return_enum);
@@ -378,7 +381,6 @@ void EditorHelp::_update_doc() {
 		class_desc->push_color(title_color);
 		class_desc->push_font(doc_font);
 		class_desc->add_text(TTR("Inherits:") + " ");
-		class_desc->pop();
 
 		String inherits = cd.inherits;
 
@@ -393,6 +395,7 @@ void EditorHelp::_update_doc() {
 		}
 
 		class_desc->pop();
+		class_desc->pop();
 		class_desc->add_newline();
 	}
 
@@ -401,13 +404,12 @@ void EditorHelp::_update_doc() {
 		bool found = false;
 		bool prev = false;
 
+		class_desc->push_font(doc_font);
 		for (Map<String, DocData::ClassDoc>::Element *E = doc->class_list.front(); E; E = E->next()) {
 			if (E->get().inherits == cd.name) {
 				if (!found) {
 					class_desc->push_color(title_color);
-					class_desc->push_font(doc_font);
 					class_desc->add_text(TTR("Inherited by:") + " ");
-					class_desc->pop();
 					found = true;
 				}
 
@@ -419,6 +421,7 @@ void EditorHelp::_update_doc() {
 				prev = true;
 			}
 		}
+		class_desc->pop();
 
 		if (found) {
 			class_desc->pop();
@@ -758,6 +761,8 @@ void EditorHelp::_update_doc() {
 			signal_line[cd.signals[i].name] = class_desc->get_line_count() - 2; //gets overridden if description
 			class_desc->push_font(doc_code_font); // monofont
 			class_desc->push_color(headline_color);
+			static const CharType prefix[3] = { 0x25CF /* filled circle */, ' ', 0 };
+			class_desc->add_text(String(prefix));
 			_add_text(cd.signals[i].name);
 			class_desc->pop();
 			class_desc->push_color(symbol_color);
@@ -835,10 +840,10 @@ void EditorHelp::_update_doc() {
 			for (Map<String, Vector<DocData::ConstantDoc>>::Element *E = enums.front(); E; E = E->next()) {
 				enum_line[E->key()] = class_desc->get_line_count() - 2;
 
+				class_desc->push_font(doc_code_font);
 				class_desc->push_color(title_color);
 				class_desc->add_text("enum  ");
 				class_desc->pop();
-				class_desc->push_font(doc_code_font);
 				String e = E->key();
 				if ((e.get_slice_count(".") > 1) && (e.get_slice(".", 0) == edited_class)) {
 					e = e.get_slice(".", 1);
@@ -851,6 +856,8 @@ void EditorHelp::_update_doc() {
 				class_desc->push_color(symbol_color);
 				class_desc->add_text(":");
 				class_desc->pop();
+
+				class_desc->add_newline();
 				class_desc->add_newline();
 
 				class_desc->push_indent(1);
@@ -869,6 +876,8 @@ void EditorHelp::_update_doc() {
 
 					class_desc->push_font(doc_code_font);
 					class_desc->push_color(headline_color);
+					static const CharType prefix[3] = { 0x25CF /* filled circle */, ' ', 0 };
+					class_desc->add_text(String(prefix));
 					_add_text(enum_list[i].name);
 					class_desc->pop();
 					class_desc->push_color(symbol_color);
@@ -880,14 +889,15 @@ void EditorHelp::_update_doc() {
 					class_desc->pop();
 					if (enum_list[i].description != "") {
 						class_desc->push_font(doc_font);
-						//class_desc->add_text("  ");
-						class_desc->push_indent(1);
 						class_desc->push_color(comment_color);
+						static const CharType dash[6] = { ' ', ' ', 0x2013 /* en dash */, ' ', ' ', 0 };
+						class_desc->add_text(String(dash));
 						_add_text(DTR(enum_list[i].description));
 						class_desc->pop();
 						class_desc->pop();
-						class_desc->pop(); // indent
-						class_desc->add_newline();
+						if (DTR(enum_list[i].description).find("\n") > 0) {
+							class_desc->add_newline();
+						}
 					}
 
 					class_desc->add_newline();
@@ -931,6 +941,9 @@ void EditorHelp::_update_doc() {
 						class_desc->add_text(String(prefix));
 						class_desc->pop();
 					}
+				} else {
+					static const CharType prefix[3] = { 0x25CF /* filled circle */, ' ', 0 };
+					class_desc->add_text(String(prefix));
 				}
 
 				class_desc->push_color(headline_color);
@@ -946,13 +959,15 @@ void EditorHelp::_update_doc() {
 				class_desc->pop();
 				if (constants[i].description != "") {
 					class_desc->push_font(doc_font);
-					class_desc->push_indent(1);
 					class_desc->push_color(comment_color);
+					static const CharType dash[6] = { ' ', ' ', 0x2013 /* en dash */, ' ', ' ', 0 };
+					class_desc->add_text(String(dash));
 					_add_text(DTR(constants[i].description));
 					class_desc->pop();
 					class_desc->pop();
-					class_desc->pop(); // indent
-					class_desc->add_newline();
+					if (DTR(constants[i].description).find("\n") > 0) {
+						class_desc->add_newline();
+					}
 				}
 
 				class_desc->add_newline();
@@ -987,6 +1002,9 @@ void EditorHelp::_update_doc() {
 
 			class_desc->push_cell();
 			class_desc->push_font(doc_code_font);
+			static const CharType prefix[3] = { 0x25CF /* filled circle */, ' ', 0 };
+			class_desc->add_text(String(prefix));
+
 			_add_type(cd.properties[i].type, cd.properties[i].enumeration);
 			class_desc->add_text(" ");
 			class_desc->pop(); // font
@@ -1015,6 +1033,11 @@ void EditorHelp::_update_doc() {
 			class_desc->pop(); // font
 			class_desc->pop(); // cell
 
+			Map<String, DocData::MethodDoc> method_map;
+			for (int j = 0; j < methods.size(); j++) {
+				method_map[methods[j].name] = methods[j];
+			}
+
 			if (cd.properties[i].setter != "") {
 				class_desc->push_cell();
 				class_desc->pop(); // cell
@@ -1022,7 +1045,14 @@ void EditorHelp::_update_doc() {
 				class_desc->push_cell();
 				class_desc->push_font(doc_code_font);
 				class_desc->push_color(text_color);
-				class_desc->add_text(cd.properties[i].setter + TTR("(value)"));
+				if (method_map[cd.properties[i].setter].arguments.size() > 1) {
+					// Setters with additional arguments are exposed in the method list, so we link them here for quick access.
+					class_desc->push_meta("@method " + cd.properties[i].setter);
+					class_desc->add_text(cd.properties[i].setter + TTR("(value)"));
+					class_desc->pop();
+				} else {
+					class_desc->add_text(cd.properties[i].setter + TTR("(value)"));
+				}
 				class_desc->pop(); // color
 				class_desc->push_color(comment_color);
 				class_desc->add_text(" setter");
@@ -1039,7 +1069,14 @@ void EditorHelp::_update_doc() {
 				class_desc->push_cell();
 				class_desc->push_font(doc_code_font);
 				class_desc->push_color(text_color);
-				class_desc->add_text(cd.properties[i].getter + "()");
+				if (method_map[cd.properties[i].getter].arguments.size() > 0) {
+					// Getters with additional arguments are exposed in the method list, so we link them here for quick access.
+					class_desc->push_meta("@method " + cd.properties[i].getter);
+					class_desc->add_text(cd.properties[i].getter + "()");
+					class_desc->pop();
+				} else {
+					class_desc->add_text(cd.properties[i].getter + "()");
+				}
 				class_desc->pop(); //color
 				class_desc->push_color(comment_color);
 				class_desc->add_text(" getter");
@@ -1627,12 +1664,14 @@ FindBar::FindBar() {
 	add_child(matches_label);
 	matches_label->hide();
 
-	find_prev = memnew(ToolButton);
+	find_prev = memnew(Button);
+	find_prev->set_flat(true);
 	add_child(find_prev);
 	find_prev->set_focus_mode(FOCUS_NONE);
 	find_prev->connect("pressed", callable_mp(this, &FindBar::search_prev));
 
-	find_next = memnew(ToolButton);
+	find_next = memnew(Button);
+	find_next->set_flat(true);
 	add_child(find_next);
 	find_next->set_focus_mode(FOCUS_NONE);
 	find_next->connect("pressed", callable_mp(this, &FindBar::search_next));
