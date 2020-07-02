@@ -856,7 +856,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 		} else if (I->get() == "--allow_focus_steal_pid") { // not exposed to user
 			if (I->next()) {
-				allow_focus_steal_pid = I->next()->get().to_int64();
+				allow_focus_steal_pid = I->next()->get().to_int();
 				N = I->next()->next();
 			} else {
 				OS::get_singleton()->print("Missing editor PID argument, aborting.\n");
@@ -1620,7 +1620,7 @@ bool Main::start() {
 
 		{
 			DirAccessRef da = DirAccess::open(doc_tool);
-			ERR_FAIL_COND_V_MSG(!da, false, "Argument supplied to --doctool must be a base Godot build directory.");
+			ERR_FAIL_COND_V_MSG(!da, false, "Argument supplied to --doctool must be a valid directory path.");
 		}
 
 #ifndef MODULE_MONO_ENABLED
@@ -2115,7 +2115,6 @@ bool Main::start() {
  */
 
 uint64_t Main::last_ticks = 0;
-uint64_t Main::target_ticks = 0;
 uint32_t Main::frames = 0;
 uint32_t Main::frame = 0;
 bool Main::force_redraw_requested = false;
@@ -2266,26 +2265,7 @@ bool Main::iteration() {
 		return exit;
 	}
 
-	if (OS::get_singleton()->is_in_low_processor_usage_mode() || !DisplayServer::get_singleton()->can_any_window_draw()) {
-		OS::get_singleton()->delay_usec(OS::get_singleton()->get_low_processor_usage_mode_sleep_usec()); //apply some delay to force idle time
-	} else {
-		uint32_t frame_delay = Engine::get_singleton()->get_frame_delay();
-		if (frame_delay) {
-			OS::get_singleton()->delay_usec(Engine::get_singleton()->get_frame_delay() * 1000);
-		}
-	}
-
-	int target_fps = Engine::get_singleton()->get_target_fps();
-	if (target_fps > 0 && !Engine::get_singleton()->is_editor_hint()) {
-		uint64_t time_step = 1000000L / target_fps;
-		target_ticks += time_step;
-		uint64_t current_ticks = OS::get_singleton()->get_ticks_usec();
-		if (current_ticks < target_ticks) {
-			OS::get_singleton()->delay_usec(target_ticks - current_ticks);
-		}
-		current_ticks = OS::get_singleton()->get_ticks_usec();
-		target_ticks = MIN(MAX(target_ticks, current_ticks - time_step), current_ticks + time_step);
-	}
+	OS::get_singleton()->add_frame_delay(DisplayServer::get_singleton()->window_can_draw());
 
 #ifdef TOOLS_ENABLED
 	if (auto_build_solutions) {
@@ -2321,8 +2301,8 @@ void Main::cleanup() {
 	ResourceLoader::remove_custom_loaders();
 	ResourceSaver::remove_custom_savers();
 
+	// Flush before uninitializing the scene, but delete the MessageQueue as late as possible.
 	message_queue->flush();
-	memdelete(message_queue);
 
 	OS::get_singleton()->delete_main_loop();
 
@@ -2407,6 +2387,10 @@ void Main::cleanup() {
 		OS::get_singleton()->execute(exec, args, false, &pid);
 		OS::get_singleton()->set_restart_on_exit(false, List<String>()); //clear list (uses memory)
 	}
+
+	// Now should be safe to delete MessageQueue (famous last words).
+	message_queue->flush();
+	memdelete(message_queue);
 
 	unregister_core_driver_types();
 	unregister_core_types();

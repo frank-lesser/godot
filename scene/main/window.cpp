@@ -316,13 +316,13 @@ void Window::_event_callback(DisplayServer::WindowEvent p_event) {
 		} break;
 		case DisplayServer::WINDOW_EVENT_FOCUS_IN: {
 			focused = true;
-			_propagate_window_notification(this, NOTIFICATION_WM_FOCUS_IN);
+			_propagate_window_notification(this, NOTIFICATION_WM_WINDOW_FOCUS_IN);
 			emit_signal("focus_entered");
 
 		} break;
 		case DisplayServer::WINDOW_EVENT_FOCUS_OUT: {
 			focused = false;
-			_propagate_window_notification(this, NOTIFICATION_WM_FOCUS_OUT);
+			_propagate_window_notification(this, NOTIFICATION_WM_WINDOW_FOCUS_OUT);
 			emit_signal("focus_exited");
 		} break;
 		case DisplayServer::WINDOW_EVENT_CLOSE_REQUEST: {
@@ -398,6 +398,18 @@ void Window::set_visible(bool p_visible) {
 	emit_signal(SceneStringNames::get_singleton()->visibility_changed);
 
 	RS::get_singleton()->viewport_set_active(get_viewport_rid(), visible);
+
+	//update transient exclusive
+	if (transient_parent) {
+		if (exclusive && visible) {
+			ERR_FAIL_COND_MSG(transient_parent->exclusive_child && transient_parent->exclusive_child != this, "Transient parent has another exclusive child.");
+			transient_parent->exclusive_child = this;
+		} else {
+			if (transient_parent->exclusive_child == this) {
+				transient_parent->exclusive_child = nullptr;
+			}
+		}
+	}
 }
 
 void Window::_clear_transient() {
@@ -862,6 +874,10 @@ void Window::child_controls_changed() {
 	call_deferred("_update_child_controls");
 }
 
+bool Window::_can_consume_input_events() const {
+	return exclusive_child == nullptr;
+}
+
 void Window::_window_input(const Ref<InputEvent> &p_ev) {
 	if (Engine::get_singleton()->is_editor_hint() && (Object::cast_to<InputEventJoypadButton>(p_ev.ptr()) || Object::cast_to<InputEventJoypadMotion>(*p_ev))) {
 		return; //avoid joy input on editor
@@ -878,10 +894,13 @@ void Window::_window_input(const Ref<InputEvent> &p_ev) {
 	if (exclusive_child != nullptr) {
 		exclusive_child->grab_focus();
 
-		return; //has an exclusive child, can't get events until child is closed
+		if (!is_embedding_subwindows()) { //not embedding, no need for event
+			return;
+		}
 	}
 
 	emit_signal(SceneStringNames::get_singleton()->window_input, p_ev);
+
 	input(p_ev);
 	if (!is_input_handled()) {
 		unhandled_input(p_ev);

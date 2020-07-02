@@ -197,6 +197,18 @@ static NSCursor *_cursorFromSelector(SEL selector, SEL fallback = nil) {
 	}
 }
 
+- (void)applicationDidResignActive:(NSNotification *)notification {
+	if (OS_OSX::get_singleton()->get_main_loop()) {
+		OS_OSX::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_OUT);
+	}
+}
+
+- (void)applicationDidBecomeActive:(NSNotification *)notification {
+	if (OS_OSX::get_singleton()->get_main_loop()) {
+		OS_OSX::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_IN);
+	}
+}
+
 - (void)globalMenuCallback:(id)sender {
 	if (![sender representedObject])
 		return;
@@ -566,7 +578,11 @@ static NSCursor *_cursorFromSelector(SEL selector, SEL fallback = nil) {
 	trackingArea = nil;
 	imeInputEventInProgress = false;
 	[self updateTrackingAreas];
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+	[self registerForDraggedTypes:[NSArray arrayWithObject:NSPasteboardTypeFileURL]];
+#else
 	[self registerForDraggedTypes:[NSArray arrayWithObject:NSFilenamesPboardType]];
+#endif
 	markedText = [[NSMutableAttributedString alloc] init];
 	return self;
 }
@@ -723,11 +739,19 @@ static const NSRange kEmptyRange = { NSNotFound, 0 };
 	DisplayServerOSX::WindowData &wd = DS_OSX->windows[window_id];
 
 	NSPasteboard *pboard = [sender draggingPasteboard];
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+	NSArray<NSURL *> *filenames = [pboard propertyListForType:NSPasteboardTypeFileURL];
+#else
 	NSArray *filenames = [pboard propertyListForType:NSFilenamesPboardType];
+#endif
 
 	Vector<String> files;
 	for (NSUInteger i = 0; i < filenames.count; i++) {
+#if MAC_OS_X_VERSION_MIN_REQUIRED >= 101400
+		NSString *ns = [[filenames objectAtIndex:i] path];
+#else
 		NSString *ns = [filenames objectAtIndex:i];
+#endif
 		char *utfs = strdup([ns UTF8String]);
 		String ret;
 		ret.parse_utf8(utfs);
@@ -1937,10 +1961,14 @@ void DisplayServerOSX::mouse_set_mode(MouseMode p_mode) {
 		// Apple Docs state that the display parameter is not used.
 		// "This parameter is not used. By default, you may pass kCGDirectMainDisplay."
 		// https://developer.apple.com/library/mac/documentation/graphicsimaging/reference/Quartz_Services_Ref/Reference/reference.html
-		CGDisplayHideCursor(kCGDirectMainDisplay);
+		if (mouse_mode == MOUSE_MODE_VISIBLE || mouse_mode == MOUSE_MODE_CONFINED) {
+			CGDisplayHideCursor(kCGDirectMainDisplay);
+		}
 		CGAssociateMouseAndMouseCursorPosition(false);
 	} else if (p_mode == MOUSE_MODE_HIDDEN) {
-		CGDisplayHideCursor(kCGDirectMainDisplay);
+		if (mouse_mode == MOUSE_MODE_VISIBLE || mouse_mode == MOUSE_MODE_CONFINED) {
+			CGDisplayHideCursor(kCGDirectMainDisplay);
+		}
 		CGAssociateMouseAndMouseCursorPosition(true);
 	} else {
 		CGDisplayShowCursor(kCGDirectMainDisplay);

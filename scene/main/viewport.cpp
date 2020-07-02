@@ -815,7 +815,7 @@ void Viewport::_notification(int p_what) {
 
 		} break;
 		case NOTIFICATION_WM_MOUSE_EXIT:
-		case NOTIFICATION_WM_FOCUS_OUT: {
+		case NOTIFICATION_WM_WINDOW_FOCUS_OUT: {
 			_drop_physics_mouseover();
 
 			if (gui.mouse_focus && !gui.forced_mouse_focus) {
@@ -2913,6 +2913,10 @@ void Viewport::input(const Ref<InputEvent> &p_event, bool p_local_coords) {
 		return;
 	}
 
+	if (!_can_consume_input_events()) {
+		return;
+	}
+
 	if (!is_input_handled()) {
 		get_tree()->_call_input_pause(input_group, "_input", ev, this); //not a bug, must happen before GUI, order is _input -> gui input -> _unhandled input
 	}
@@ -2926,7 +2930,7 @@ void Viewport::input(const Ref<InputEvent> &p_event, bool p_local_coords) {
 void Viewport::unhandled_input(const Ref<InputEvent> &p_event, bool p_local_coords) {
 	ERR_FAIL_COND(!is_inside_tree());
 
-	if (disable_input) {
+	if (disable_input || !_can_consume_input_events()) {
 		return;
 	}
 
@@ -3404,9 +3408,11 @@ void Viewport::_bind_methods() {
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_DIRECTIONAL_SHADOW_ATLAS);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_SCENE_LUMINANCE);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_SSAO);
-	BIND_ENUM_CONSTANT(DEBUG_DRAW_ROUGHNESS_LIMITER);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_PSSM_SPLITS);
 	BIND_ENUM_CONSTANT(DEBUG_DRAW_DECAL_ATLAS);
+	BIND_ENUM_CONSTANT(DEBUG_DRAW_SDFGI);
+	BIND_ENUM_CONSTANT(DEBUG_DRAW_SDFGI_PROBES);
+	BIND_ENUM_CONSTANT(DEBUG_DRAW_GI_BUFFER);
 
 	BIND_ENUM_CONSTANT(DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST);
 	BIND_ENUM_CONSTANT(DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR);

@@ -100,7 +100,7 @@ matrix:
           packages:
             - *linux_deps
 
-    - name: Javascript export template (release, emscripten latest)
+    - name: JavaScript export template (release, emscripten latest)
       stage: build
       env: PLATFORM=javascript TOOLS=no TARGET=release CACHE_NAME=${PLATFORM}-emcc-latest EXTRA_ARGS="use_closure_compiler=yes"
       os: linux

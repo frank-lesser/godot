@@ -32,12 +32,12 @@
 
 #ifdef X11_ENABLED
 
-#include "detect_prime_x11.h"
-
-#include "core/os/dir_access.h"
 #include "core/print_string.h"
-#include "errno.h"
+#include "core/project_settings.h"
+#include "detect_prime_x11.h"
 #include "key_mapping_x11.h"
+#include "main/main.h"
+#include "scene/resources/texture.h"
 
 #if defined(OPENGL_ENABLED)
 #include "drivers/gles2/rasterizer_gles2.h"
@@ -47,20 +47,14 @@
 #include "servers/rendering/rasterizer_rd/rasterizer_rd.h"
 #endif
 
-#include "scene/resources/texture.h"
-
-#ifdef HAVE_MNTENT
-#include <mntent.h>
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "X11/Xutil.h"
+#include <X11/Xatom.h>
+#include <X11/Xutil.h>
+#include <X11/extensions/Xinerama.h>
 
-#include "X11/Xatom.h"
-#include "X11/extensions/Xinerama.h"
 // ICCCM
 #define WM_NormalState 1L // window normal state
 #define WM_IconicState 3L // window minimized
@@ -68,8 +62,6 @@
 #define _NET_WM_STATE_REMOVE 0L // remove/unset property
 #define _NET_WM_STATE_ADD 1L // add/set property
 #define _NET_WM_STATE_TOGGLE 2L // toggle property
-
-#include "main/main.h"
 
 #include <dlfcn.h>
 #include <fcntl.h>
@@ -82,13 +74,8 @@
 #undef KEY_TAB
 #endif
 
-#include <X11/Xatom.h>
-
 #undef CursorShape
-
 #include <X11/XKBlib.h>
-
-#include "core/project_settings.h"
 
 // 2.2 is the first release with multitouch
 #define XINPUT_CLIENT_VERSION_MAJOR 2
@@ -417,10 +404,6 @@ void DisplayServerX11::mouse_warp_to_position(const Point2i &p_to) {
 	if (mouse_mode == MOUSE_MODE_CAPTURED) {
 		last_mouse_pos = p_to;
 	} else {
-		/*XWindowAttributes xwa;
-		XGetWindowAttributes(x11_display, x11_window, &xwa);
-		printf("%d %d\n", xwa.x, xwa.y); needed? */
-
 		XWarpPointer(x11_display, None, windows[MAIN_WINDOW_ID].x11_window,
 				0, 0, 0, 0, (int)p_to.x, (int)p_to.y);
 	}
@@ -1098,18 +1081,19 @@ Size2i DisplayServerX11::window_get_real_size(WindowID p_window) const {
 	return Size2i(w, h);
 }
 
-bool DisplayServerX11::window_is_maximize_allowed(WindowID p_window) const {
-	_THREAD_SAFE_METHOD_
-
+// Just a helper to reduce code duplication in `window_is_maximize_allowed`
+// and `_set_wm_maximized`.
+bool DisplayServerX11::_window_maximize_check(WindowID p_window, const char *p_atom_name) const {
 	ERR_FAIL_COND_V(!windows.has(p_window), false);
 	const WindowData &wd = windows[p_window];
 
-	Atom property = XInternAtom(x11_display, "_NET_WM_ALLOWED_ACTIONS", False);
+	Atom property = XInternAtom(x11_display, p_atom_name, False);
 	Atom type;
 	int format;
 	unsigned long len;
 	unsigned long remaining;
 	unsigned char *data = nullptr;
+	bool retval = false;
 
 	int result = XGetWindowProperty(
 			x11_display,
@@ -1141,13 +1125,20 @@ bool DisplayServerX11::window_is_maximize_allowed(WindowID p_window) const {
 			}
 
 			if (found_wm_act_max_horz || found_wm_act_max_vert) {
-				return true;
+				retval = true;
+				break;
 			}
 		}
-		XFree(atoms);
+
+		XFree(data);
 	}
 
-	return false;
+	return retval;
+}
+
+bool DisplayServerX11::window_is_maximize_allowed(WindowID p_window) const {
+	_THREAD_SAFE_METHOD_
+	return _window_maximize_check(p_window, "_NET_WM_ALLOWED_ACTIONS");
 }
 
 void DisplayServerX11::_set_wm_maximized(WindowID p_window, bool p_enabled) {
@@ -1385,60 +1376,14 @@ DisplayServer::WindowMode DisplayServerX11::window_get_mode(WindowID p_window) c
 	if (wd.fullscreen) { //if fullscreen, it's not in another mode
 		return WINDOW_MODE_FULLSCREEN;
 	}
-	{ //test maximized
-		// Using EWMH -- Extended Window Manager Hints
-		Atom property = XInternAtom(x11_display, "_NET_WM_STATE", False);
-		Atom type;
-		int format;
-		unsigned long len;
-		unsigned long remaining;
-		unsigned char *data = nullptr;
-		bool retval = false;
 
-		int result = XGetWindowProperty(
-				x11_display,
-				wd.x11_window,
-				property,
-				0,
-				1024,
-				False,
-				XA_ATOM,
-				&type,
-				&format,
-				&len,
-				&remaining,
-				&data);
-
-		if (result == Success && data) {
-			Atom *atoms = (Atom *)data;
-			Atom wm_max_horz = XInternAtom(x11_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
-			Atom wm_max_vert = XInternAtom(x11_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
-			bool found_wm_max_horz = false;
-			bool found_wm_max_vert = false;
-
-			for (uint64_t i = 0; i < len; i++) {
-				if (atoms[i] == wm_max_horz) {
-					found_wm_max_horz = true;
-				}
-				if (atoms[i] == wm_max_vert) {
-					found_wm_max_vert = true;
-				}
-
-				if (found_wm_max_horz && found_wm_max_vert) {
-					retval = true;
-					break;
-				}
-			}
-
-			XFree(data);
-		}
-
-		if (retval) {
-			return WINDOW_MODE_MAXIMIZED;
-		}
+	// Test maximized.
+	// Using EWMH -- Extended Window Manager Hints
+	if (_window_maximize_check(p_window, "_NET_WM_STATE")) {
+		return WINDOW_MODE_MAXIMIZED;
 	}
 
-	{ // test minimzed
+	{ // Test minimized.
 		// Using ICCCM -- Inter-Client Communication Conventions Manual
 		Atom property = XInternAtom(x11_display, "WM_STATE", True);
 		Atom type;
@@ -1471,7 +1416,7 @@ DisplayServer::WindowMode DisplayServerX11::window_get_mode(WindowID p_window) c
 		}
 	}
 
-	// all other discarded, return windowed.
+	// All other discarded, return windowed.
 
 	return WINDOW_MODE_WINDOWED;
 }
@@ -2394,6 +2339,24 @@ void DisplayServerX11::_send_window_event(const WindowData &wd, WindowEvent p_ev
 void DisplayServerX11::process_events() {
 	_THREAD_SAFE_METHOD_
 
+	if (app_focused) {
+		//verify that one of the windows has focus, else send focus out notification
+		bool focus_found = false;
+		for (Map<WindowID, WindowData>::Element *E = windows.front(); E; E = E->next()) {
+			if (E->get().focused) {
+				focus_found = true;
+			}
+		}
+
+		if (!focus_found) {
+			if (OS::get_singleton()->get_main_loop()) {
+				OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_OUT);
+			}
+
+			app_focused = false;
+		}
+	}
+
 	do_mouse_warp = false;
 
 	// Is the current mouse mode one where it needs to be grabbed.
@@ -2588,12 +2551,12 @@ void DisplayServerX11::process_events() {
 				break;
 
 			case NoExpose:
-				minimized = true;
+				windows[window_id].minimized = true;
 				break;
 
 			case VisibilityNotify: {
 				XVisibilityEvent *visibility = (XVisibilityEvent *)&event;
-				minimized = (visibility->state == VisibilityFullyObscured);
+				windows[window_id].minimized = (visibility->state == VisibilityFullyObscured);
 			} break;
 			case LeaveNotify: {
 				if (!mouse_mode_grab) {
@@ -2607,10 +2570,8 @@ void DisplayServerX11::process_events() {
 				}
 			} break;
 			case FocusIn:
-				minimized = false;
-				window_has_focus = true;
+				windows[window_id].focused = true;
 				_send_window_event(windows[window_id], WINDOW_EVENT_FOCUS_IN);
-				window_focused = true;
 
 				if (mouse_mode_grab) {
 					// Show and update the cursor if confined and the window regained focus.
@@ -2637,13 +2598,19 @@ void DisplayServerX11::process_events() {
 				if (windows[window_id].xic) {
 					XSetICFocus(windows[window_id].xic);
 				}
+
+				if (!app_focused) {
+					if (OS::get_singleton()->get_main_loop()) {
+						OS::get_singleton()->get_main_loop()->notification(MainLoop::NOTIFICATION_APPLICATION_FOCUS_IN);
+					}
+					app_focused = true;
+				}
 				break;
 
 			case FocusOut:
-				window_has_focus = false;
+				windows[window_id].focused = false;
 				Input::get_singleton()->release_pressed_events();
 				_send_window_event(windows[window_id], WINDOW_EVENT_FOCUS_OUT);
-				window_focused = false;
 
 				if (mouse_mode_grab) {
 					for (Map<WindowID, WindowData>::Element *E = windows.front(); E; E = E->next()) {
@@ -2782,7 +2749,7 @@ void DisplayServerX11::process_events() {
 					Point2i new_center = pos;
 					pos = last_mouse_pos + xi.relative_motion;
 					center = new_center;
-					do_mouse_warp = window_has_focus; // warp the cursor if we're focused in
+					do_mouse_warp = windows[window_id].focused; // warp the cursor if we're focused in
 				}
 
 				if (!last_mouse_pos_valid) {
@@ -2842,7 +2809,7 @@ void DisplayServerX11::process_events() {
 				// Don't propagate the motion event unless we have focus
 				// this is so that the relative motion doesn't get messed up
 				// after we regain focus.
-				if (window_has_focus || !mouse_mode_grab) {
+				if (windows[window_id].focused || !mouse_mode_grab) {
 					Input::get_singleton()->accumulate_input_event(mm);
 				}
 
@@ -3818,8 +3785,6 @@ DisplayServerX11::DisplayServerX11(const String &p_rendering_driver, WindowMode 
 	cursor_set_shape(CURSOR_BUSY);
 
 	requested = None;
-
-	window_has_focus = true; // Set focus to true at init
 
 	/*if (p_desired.layered) {
 		set_window_per_pixel_transparency_enabled(true);
