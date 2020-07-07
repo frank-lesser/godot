@@ -71,7 +71,6 @@ class ImportDock;
 class MenuButton;
 class NodeDock;
 class OrphanResourcesDialog;
-class PaneDrag;
 class Panel;
 class PanelContainer;
 class PluginConfigDialog;
@@ -255,7 +254,6 @@ private:
 	VSplitContainer *top_split;
 	HBoxContainer *bottom_hb;
 	Control *vp_base;
-	PaneDrag *pd;
 
 	HBoxContainer *menu_hb;
 	Control *viewport;
@@ -867,7 +865,11 @@ public:
 	bool ensure_main_scene(bool p_from_native);
 
 	void run_play();
+	void run_play_current();
+	void run_play_custom(const String &p_custom);
 	void run_stop();
+	bool is_run_playing() const;
+	String get_run_playing_scene() const;
 };
 
 struct EditorProgress {

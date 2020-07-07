@@ -33,7 +33,6 @@
 
 #include "editor/editor_node.h"
 #include "editor/editor_plugin.h"
-#include "editor/pane_drag.h"
 #include "grid_map.h"
 
 class Node3DEditorPlugin;
@@ -85,7 +84,7 @@ class GridMapEditor : public VBoxContainer {
 	Label *spin_box_label;
 
 	struct SetItem {
-		Vector3 pos;
+		Vector3i position;
 		int new_value;
 		int new_orientation;
 		int old_value;

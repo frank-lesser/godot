@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  rid_glue.h                                                           */
+/*  pot_generator.h                                                      */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,26 +28,25 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef RID_GLUE_H
-#define RID_GLUE_H
+#ifndef POT_GENERATOR_H
+#define POT_GENERATOR_H
 
-#ifdef MONO_GLUE_ENABLED
+#include "core/ordered_hash_map.h"
+#include "core/set.h"
 
-#include "core/object.h"
-#include "core/rid.h"
+class POTGenerator {
+	static POTGenerator *singleton;
+	// Stores all translatable strings and the source files containing them.
+	OrderedHashMap<String, Set<String>> all_translation_strings;
 
-#include "../mono_gd/gd_mono_marshal.h"
+	void _write_to_pot(const String &p_file);
 
-RID *godot_icall_RID_Ctor(Object *p_from);
+public:
+	static POTGenerator *get_singleton();
+	void generate_pot(const String &p_file);
 
-void godot_icall_RID_Dtor(RID *p_ptr);
+	POTGenerator();
+	~POTGenerator();
+};
 
-uint32_t godot_icall_RID_get_id(RID *p_ptr);
-
-// Register internal calls
-
-void godot_register_rid_icalls();
-
-#endif // MONO_GLUE_ENABLED
-
-#endif // RID_GLUE_H
+#endif // POT_GENERATOR_H

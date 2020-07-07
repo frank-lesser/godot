@@ -359,11 +359,11 @@ private:
 
 	VBoxContainer *popup_editor_vb;
 
-	PopupPanel *popup_editor;
+	Popup *popup_editor;
 	LineEdit *text_editor;
 	HSlider *value_editor;
 	bool updating_value_editor;
-	int64_t focus_in_id;
+	uint64_t focus_in_id;
 	PopupMenu *popup_menu;
 
 	Vector<ColumnInfo> columns;
@@ -535,6 +535,7 @@ public:
 	TreeItem *get_item_at_position(const Point2 &p_pos) const;
 	int get_column_at_position(const Point2 &p_pos) const;
 	int get_drop_section_at_position(const Point2 &p_pos) const;
+	int get_button_id_at_position(const Point2 &p_pos) const;
 
 	void clear();
 

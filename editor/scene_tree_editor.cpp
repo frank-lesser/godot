@@ -902,6 +902,10 @@ Variant SceneTreeEditor::get_drag_data_fw(const Point2 &p_point, Control *p_from
 		return Variant(); //not editable tree
 	}
 
+	if (tree->get_button_id_at_position(p_point) != -1) {
+		return Variant(); //dragging from button
+	}
+
 	Vector<Node *> selected;
 	Vector<Ref<Texture2D>> icons;
 	TreeItem *next = tree->get_next_selected(nullptr);
@@ -1072,7 +1076,7 @@ void SceneTreeEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data,
 }
 
 void SceneTreeEditor::_rmb_select(const Vector2 &p_pos) {
-	emit_signal("rmb_pressed", tree->get_global_transform().xform(p_pos));
+	emit_signal("rmb_pressed", tree->get_screen_transform().xform(p_pos));
 }
 
 void SceneTreeEditor::_warning_changed(Node *p_for_node) {

@@ -85,6 +85,7 @@
 #include "editor/editor_settings.h"
 #include "editor/editor_spin_slider.h"
 #include "editor/editor_themes.h"
+#include "editor/editor_translation_parser.h"
 #include "editor/export_template_manager.h"
 #include "editor/filesystem_dock.h"
 #include "editor/import/editor_import_collada.h"
@@ -103,7 +104,6 @@
 #include "editor/import_dock.h"
 #include "editor/multi_node_edit.h"
 #include "editor/node_dock.h"
-#include "editor/pane_drag.h"
 #include "editor/plugin_config_dialog.h"
 #include "editor/plugins/animation_blend_space_1d_editor.h"
 #include "editor/plugins/animation_blend_space_2d_editor.h"
@@ -138,6 +138,7 @@
 #include "editor/plugins/multimesh_editor_plugin.h"
 #include "editor/plugins/navigation_polygon_editor_plugin.h"
 #include "editor/plugins/node_3d_editor_plugin.h"
+#include "editor/plugins/packed_scene_translation_parser_plugin.h"
 #include "editor/plugins/path_2d_editor_plugin.h"
 #include "editor/plugins/path_3d_editor_plugin.h"
 #include "editor/plugins/physical_bone_3d_editor_plugin.h"
@@ -1224,20 +1225,25 @@ void EditorNode::_save_scene_with_preview(String p_file, int p_idx) {
 
 		_find_node_types(editor_data.get_edited_scene_root(), c2d, c3d);
 
-		bool is2d;
-		if (c3d < c2d) {
-			is2d = true;
-		} else {
-			is2d = false;
-		}
 		save.step(TTR("Creating Thumbnail"), 1);
 		//current view?
 
 		Ref<Image> img;
-		if (is2d) {
+		// If neither 3D or 2D nodes are present, make a 1x1 black texture.
+		// We cannot fallback on the 2D editor, because it may not have been used yet,
+		// which would result in an invalid texture.
+		if (c3d == 0 && c2d == 0) {
+			img.instance();
+			img->create(1, 1, 0, Image::FORMAT_RGB8);
+		} else if (c3d < c2d) {
 			img = scene_root->get_texture()->get_data();
 		} else {
-			img = Node3DEditor::get_singleton()->get_editor_viewport(0)->get_viewport_node()->get_texture()->get_data();
+			// The 3D editor may be disabled as a feature, but scenes can still be opened.
+			// This check prevents the preview from regenerating in case those scenes are then saved.
+			Ref<EditorFeatureProfile> profile = feature_profile_manager->get_current_profile();
+			if (!profile->is_feature_disabled(EditorFeatureProfile::FEATURE_3D)) {
+				img = Node3DEditor::get_singleton()->get_editor_viewport(0)->get_viewport_node()->get_texture()->get_data();
+			}
 		}
 
 		if (img.is_valid()) {
@@ -2042,7 +2048,6 @@ void EditorNode::_run(bool p_current, const String &p_custom) {
 	play_custom_scene_button->set_pressed(false);
 	play_custom_scene_button->set_icon(gui_base->get_theme_icon("PlayCustom", "EditorIcons"));
 
-	String main_scene;
 	String run_filename;
 	String args;
 	bool skip_breakpoints;
@@ -2463,8 +2468,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 		} break;
 		case RUN_PLAY: {
-			_menu_option_confirm(RUN_STOP, true);
-			_run(false);
+			run_play();
 
 		} break;
 		case RUN_PLAY_CUSTOM_SCENE: {
@@ -2475,8 +2479,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				play_custom_scene_button->set_pressed(false);
 			} else {
 				String last_custom_scene = run_custom_filename;
-				_menu_option_confirm(RUN_STOP, true);
-				_run(false, last_custom_scene);
+				run_play_custom(last_custom_scene);
 			}
 
 		} break;
@@ -2516,9 +2519,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 
 		case RUN_PLAY_SCENE: {
-			_save_default_environment();
-			_menu_option_confirm(RUN_STOP, true);
-			_run(true);
+			run_play_current();
 
 		} break;
 		case RUN_SCENE_SETTINGS: {
@@ -3589,6 +3590,7 @@ void EditorNode::register_editor_types() {
 	ResourceSaver::set_timestamp_on_save(true);
 
 	ClassDB::register_class<EditorPlugin>();
+	ClassDB::register_class<EditorTranslationParserPlugin>();
 	ClassDB::register_class<EditorImportPlugin>();
 	ClassDB::register_class<EditorScript>();
 	ClassDB::register_class<EditorSelection>();
@@ -3780,8 +3782,6 @@ Ref<Texture2D> EditorNode::get_class_icon(const String &p_class, const String &p
 		if (icon.is_null()) {
 			icon = gui_base->get_theme_icon(ScriptServer::get_global_class_base(name), "EditorIcons");
 		}
-
-		return icon;
 	}
 
 	const Map<String, Vector<EditorData::CustomType>> &p_map = EditorNode::get_editor_data().get_custom_types();
@@ -4524,8 +4524,33 @@ void EditorNode::run_play() {
 	_run(false);
 }
 
+void EditorNode::run_play_current() {
+	_save_default_environment();
+	_menu_option_confirm(RUN_STOP, true);
+	_run(true);
+}
+
+void EditorNode::run_play_custom(const String &p_custom) {
+	_menu_option_confirm(RUN_STOP, true);
+	_run(false, p_custom);
+}
+
 void EditorNode::run_stop() {
 	_menu_option_confirm(RUN_STOP, false);
+}
+
+bool EditorNode::is_run_playing() const {
+	EditorRun::Status status = editor_run.get_status();
+	return (status == EditorRun::STATUS_PLAY || status == EditorRun::STATUS_PAUSED);
+}
+
+String EditorNode::get_run_playing_scene() const {
+	String run_filename = editor_run.get_running_scene();
+	if (run_filename == "" && is_run_playing()) {
+		run_filename = GLOBAL_DEF("application/run/main_scene", ""); // Must be the main scene then.
+	}
+
+	return run_filename;
 }
 
 int EditorNode::get_current_tab() {
@@ -5520,10 +5545,10 @@ EditorNode::EditorNode() {
 		switch (display_scale) {
 			case 0: {
 				// Try applying a suitable display scale automatically
-				const int screen = DisplayServer::get_singleton()->window_get_current_screen();
 #ifdef OSX_ENABLED
-				editor_set_scale(DisplayServer::get_singleton()->screen_get_scale(screen));
+				editor_set_scale(DisplayServer::get_singleton()->screen_get_max_scale());
 #else
+				const int screen = DisplayServer::get_singleton()->window_get_current_screen();
 				editor_set_scale(DisplayServer::get_singleton()->screen_get_dpi(screen) >= 192 && DisplayServer::get_singleton()->screen_get_size(screen).x > 2000 ? 2.0 : 1.0);
 #endif
 			} break;
@@ -6658,6 +6683,10 @@ EditorNode::EditorNode() {
 	export_text_to_binary_plugin.instance();
 
 	EditorExport::get_singleton()->add_export_plugin(export_text_to_binary_plugin);
+
+	Ref<PackedSceneEditorTranslationParserPlugin> packed_scene_translation_parser_plugin;
+	packed_scene_translation_parser_plugin.instance();
+	EditorTranslationParser::get_singleton()->add_parser(packed_scene_translation_parser_plugin, EditorTranslationParser::STANDARD);
 
 	_edit_current();
 	current = nullptr;

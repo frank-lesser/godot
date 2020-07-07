@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  pane_drag.cpp                                                        */
+/*  editor_translation_parser.h                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,48 +28,45 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "pane_drag.h"
+#ifndef EDITOR_TRANSLATION_PARSER_H
+#define EDITOR_TRANSLATION_PARSER_H
 
-void PaneDrag::_gui_input(const Ref<InputEvent> &p_input) {
-	Ref<InputEventMouseMotion> mm = p_input;
-	if (mm.is_valid() && mm->get_button_mask() & BUTTON_MASK_LEFT) {
-		emit_signal("dragged", Point2(mm->get_relative().x, mm->get_relative().y));
-	}
-}
+#include "core/error_list.h"
+#include "core/reference.h"
 
-void PaneDrag::_notification(int p_what) {
-	switch (p_what) {
-		case NOTIFICATION_DRAW: {
-			Ref<Texture2D> icon = mouse_over ? get_theme_icon("PaneDragHover", "EditorIcons") : get_theme_icon("PaneDrag", "EditorIcons");
-			if (!icon.is_null()) {
-				icon->draw(get_canvas_item(), Point2(0, 0));
-			}
+class EditorTranslationParserPlugin : public Reference {
+	GDCLASS(EditorTranslationParserPlugin, Reference);
 
-		} break;
-		case NOTIFICATION_MOUSE_ENTER:
-			mouse_over = true;
-			update();
-			break;
-		case NOTIFICATION_MOUSE_EXIT:
-			mouse_over = false;
-			update();
-			break;
-	}
-}
+protected:
+	static void _bind_methods();
 
-Size2 PaneDrag::get_minimum_size() const {
-	Ref<Texture2D> icon = get_theme_icon("PaneDrag", "EditorIcons");
-	if (!icon.is_null()) {
-		return icon->get_size();
-	}
-	return Size2();
-}
+public:
+	virtual Error parse_file(const String &p_path, Vector<String> *r_extracted_strings);
+	virtual void get_recognized_extensions(List<String> *r_extensions) const;
+};
 
-void PaneDrag::_bind_methods() {
-	ClassDB::bind_method("_gui_input", &PaneDrag::_gui_input);
-	ADD_SIGNAL(MethodInfo("dragged", PropertyInfo(Variant::VECTOR2, "amount")));
-}
+class EditorTranslationParser {
+	static EditorTranslationParser *singleton;
 
-PaneDrag::PaneDrag() {
-	mouse_over = false;
-}
+public:
+	enum ParserType {
+		STANDARD, // GDScript, CSharp, ...
+		CUSTOM // User-defined parser plugins. This will override standard parsers if the same extension type is defined.
+	};
+
+	static EditorTranslationParser *get_singleton();
+
+	Vector<Ref<EditorTranslationParserPlugin>> standard_parsers;
+	Vector<Ref<EditorTranslationParserPlugin>> custom_parsers;
+
+	void get_recognized_extensions(List<String> *r_extensions) const;
+	bool can_parse(const String &p_extension) const;
+	Ref<EditorTranslationParserPlugin> get_parser(const String &p_extension) const;
+	void add_parser(const Ref<EditorTranslationParserPlugin> &p_parser, ParserType p_type);
+	void remove_parser(const Ref<EditorTranslationParserPlugin> &p_parser, ParserType p_type);
+
+	EditorTranslationParser();
+	~EditorTranslationParser();
+};
+
+#endif // EDITOR_TRANSLATION_PARSER_H

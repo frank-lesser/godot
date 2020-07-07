@@ -57,8 +57,8 @@ public:
 
 	enum ContentScaleMode {
 		CONTENT_SCALE_MODE_DISABLED,
-		CONTENT_SCALE_MODE_OBJECTS,
-		CONTENT_SCALE_MODE_PIXELS,
+		CONTENT_SCALE_MODE_CANVAS_ITEMS,
+		CONTENT_SCALE_MODE_VIEWPORT,
 	};
 
 	enum ContentScaleAspect {
@@ -92,6 +92,7 @@ private:
 	bool exclusive = false;
 	bool wrap_controls = false;
 	bool updating_child_controls = false;
+	bool clamp_to_embedder = false;
 
 	void _update_child_controls();
 
@@ -134,7 +135,6 @@ private:
 
 protected:
 	Viewport *_get_embedder() const;
-
 	virtual Rect2i _popup_adjust_rect() const { return Rect2i(); }
 
 	virtual void _post_popup() {}
@@ -195,6 +195,9 @@ public:
 
 	void set_exclusive(bool p_exclusive);
 	bool is_exclusive() const;
+
+	void set_clamp_to_embedder(bool p_enable);
+	bool is_clamped_to_embedder() const;
 
 	bool can_draw() const;
 

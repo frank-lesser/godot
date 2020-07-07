@@ -780,7 +780,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		} else if (I->get().ends_with("project.godot")) {
 			String path;
 			String file = I->get();
-			int sep = MAX(file.find_last("/"), file.find_last("\\"));
+			int sep = MAX(file.rfind("/"), file.rfind("\\"));
 			if (sep == -1) {
 				path = ".";
 			} else {
@@ -1792,46 +1792,26 @@ bool Main::start() {
 		if (!project_manager && !editor) { // game
 			if (game_path != "" || script != "") {
 				//autoload
-				List<PropertyInfo> props;
-				ProjectSettings::get_singleton()->get_property_list(&props);
+				Map<StringName, ProjectSettings::AutoloadInfo> autoloads = ProjectSettings::get_singleton()->get_autoload_list();
 
 				//first pass, add the constants so they exist before any script is loaded
-				for (List<PropertyInfo>::Element *E = props.front(); E; E = E->next()) {
-					String s = E->get().name;
-					if (!s.begins_with("autoload/")) {
-						continue;
-					}
-					String name = s.get_slicec('/', 1);
-					String path = ProjectSettings::get_singleton()->get(s);
-					bool global_var = false;
-					if (path.begins_with("*")) {
-						global_var = true;
-					}
+				for (Map<StringName, ProjectSettings::AutoloadInfo>::Element *E = autoloads.front(); E; E = E->next()) {
+					const ProjectSettings::AutoloadInfo &info = E->get();
 
-					if (global_var) {
+					if (info.is_singleton) {
 						for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-							ScriptServer::get_language(i)->add_global_constant(name, Variant());
+							ScriptServer::get_language(i)->add_global_constant(info.name, Variant());
 						}
 					}
 				}
 
 				//second pass, load into global constants
 				List<Node *> to_add;
-				for (List<PropertyInfo>::Element *E = props.front(); E; E = E->next()) {
-					String s = E->get().name;
-					if (!s.begins_with("autoload/")) {
-						continue;
-					}
-					String name = s.get_slicec('/', 1);
-					String path = ProjectSettings::get_singleton()->get(s);
-					bool global_var = false;
-					if (path.begins_with("*")) {
-						global_var = true;
-						path = path.substr(1, path.length() - 1);
-					}
+				for (Map<StringName, ProjectSettings::AutoloadInfo>::Element *E = autoloads.front(); E; E = E->next()) {
+					const ProjectSettings::AutoloadInfo &info = E->get();
 
-					RES res = ResourceLoader::load(path);
-					ERR_CONTINUE_MSG(res.is_null(), "Can't autoload: " + path);
+					RES res = ResourceLoader::load(info.path);
+					ERR_CONTINUE_MSG(res.is_null(), "Can't autoload: " + info.path);
 					Node *n = nullptr;
 					if (res->is_class("PackedScene")) {
 						Ref<PackedScene> ps = res;
@@ -1840,7 +1820,7 @@ bool Main::start() {
 						Ref<Script> script_res = res;
 						StringName ibt = script_res->get_instance_base_type();
 						bool valid_type = ClassDB::is_parent_class(ibt, "Node");
-						ERR_CONTINUE_MSG(!valid_type, "Script does not inherit a Node: " + path);
+						ERR_CONTINUE_MSG(!valid_type, "Script does not inherit a Node: " + info.path);
 
 						Object *obj = ClassDB::instance(ibt);
 
@@ -1850,15 +1830,15 @@ bool Main::start() {
 						n->set_script(script_res);
 					}
 
-					ERR_CONTINUE_MSG(!n, "Path in autoload not a node or script: " + path);
-					n->set_name(name);
+					ERR_CONTINUE_MSG(!n, "Path in autoload not a node or script: " + info.path);
+					n->set_name(info.name);
 
 					//defer so references are all valid on _ready()
 					to_add.push_back(n);
 
-					if (global_var) {
+					if (info.is_singleton) {
 						for (int i = 0; i < ScriptServer::get_language_count(); i++) {
-							ScriptServer::get_language(i)->add_global_constant(name, n);
+							ScriptServer::get_language(i)->add_global_constant(info.name, n);
 						}
 					}
 				}
@@ -1895,10 +1875,10 @@ bool Main::start() {
 			Size2i stretch_size = Size2(GLOBAL_DEF("display/window/size/width", 0), GLOBAL_DEF("display/window/size/height", 0));
 
 			Window::ContentScaleMode cs_sm = Window::CONTENT_SCALE_MODE_DISABLED;
-			if (stretch_mode == "objects") {
-				cs_sm = Window::CONTENT_SCALE_MODE_OBJECTS;
-			} else if (stretch_mode == "pixels") {
-				cs_sm = Window::CONTENT_SCALE_MODE_PIXELS;
+			if (stretch_mode == "canvas_items") {
+				cs_sm = Window::CONTENT_SCALE_MODE_CANVAS_ITEMS;
+			} else if (stretch_mode == "viewport") {
+				cs_sm = Window::CONTENT_SCALE_MODE_VIEWPORT;
 			}
 
 			Window::ContentScaleAspect cs_aspect = Window::CONTENT_SCALE_ASPECT_IGNORE;
@@ -1954,7 +1934,7 @@ bool Main::start() {
 
 		} else {
 			GLOBAL_DEF("display/window/stretch/mode", "disabled");
-			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/mode", PropertyInfo(Variant::STRING, "display/window/stretch/mode", PROPERTY_HINT_ENUM, "disabled,2d,viewport"));
+			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/mode", PropertyInfo(Variant::STRING, "display/window/stretch/mode", PROPERTY_HINT_ENUM, "disabled,canvas_items,viewport"));
 			GLOBAL_DEF("display/window/stretch/aspect", "ignore");
 			ProjectSettings::get_singleton()->set_custom_property_info("display/window/stretch/aspect", PropertyInfo(Variant::STRING, "display/window/stretch/aspect", PROPERTY_HINT_ENUM, "ignore,keep,keep_width,keep_height,expand"));
 			GLOBAL_DEF("display/window/stretch/shrink", 1.0);
@@ -1992,7 +1972,7 @@ bool Main::start() {
 						local_game_path = "res://" + local_game_path;
 
 					} else {
-						int sep = local_game_path.find_last("/");
+						int sep = local_game_path.rfind("/");
 
 						if (sep == -1) {
 							DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
