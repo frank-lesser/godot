@@ -3982,7 +3982,7 @@ void CanvasItemEditor::_notification(int p_what) {
 		rotate_button->set_icon(get_theme_icon("ToolRotate", "EditorIcons"));
 		smart_snap_button->set_icon(get_theme_icon("Snap", "EditorIcons"));
 		grid_snap_button->set_icon(get_theme_icon("SnapGrid", "EditorIcons"));
-		snap_config_menu->set_icon(get_theme_icon("GuiTabMenu", "EditorIcons"));
+		snap_config_menu->set_icon(get_theme_icon("GuiTabMenuHl", "EditorIcons"));
 		skeleton_menu->set_icon(get_theme_icon("Bone", "EditorIcons"));
 		override_camera_button->set_icon(get_theme_icon("Camera2D", "EditorIcons"));
 		pan_button->set_icon(get_theme_icon("ToolPan", "EditorIcons"));
@@ -3999,7 +3999,7 @@ void CanvasItemEditor::_notification(int p_what) {
 		key_scale_button->set_icon(get_theme_icon("KeyScale", "EditorIcons"));
 		key_insert_button->set_icon(get_theme_icon("Key", "EditorIcons"));
 		key_auto_insert_button->set_icon(get_theme_icon("AutoKey", "EditorIcons"));
-		animation_menu->set_icon(get_theme_icon("GuiTabMenu", "EditorIcons"));
+		animation_menu->set_icon(get_theme_icon("GuiTabMenuHl", "EditorIcons"));
 
 		zoom_minus->set_icon(get_theme_icon("ZoomLess", "EditorIcons"));
 		zoom_plus->set_icon(get_theme_icon("ZoomMore", "EditorIcons"));
@@ -6396,7 +6396,7 @@ CanvasItemEditorViewport::CanvasItemEditorViewport(EditorNode *p_node, CanvasIte
 	selector->add_child(vbc);
 	vbc->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	vbc->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-	vbc->set_custom_minimum_size(Size2(200, 260) * EDSCALE);
+	vbc->set_custom_minimum_size(Size2(240, 260) * EDSCALE);
 
 	btn_group = memnew(VBoxContainer);
 	vbc->add_child(btn_group);

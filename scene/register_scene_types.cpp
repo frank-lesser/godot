@@ -163,6 +163,7 @@
 #include "scene/resources/sky_material.h"
 #include "scene/resources/sphere_shape_3d.h"
 #include "scene/resources/surface_tool.h"
+#include "scene/resources/syntax_highlighter.h"
 #include "scene/resources/text_file.h"
 #include "scene/resources/texture.h"
 #include "scene/resources/tile_set.h"
@@ -346,6 +347,8 @@ void register_scene_types() {
 	ClassDB::register_class<Tree>();
 
 	ClassDB::register_class<TextEdit>();
+	ClassDB::register_class<SyntaxHighlighter>();
+	ClassDB::register_class<CodeHighlighter>();
 
 	ClassDB::register_virtual_class<TreeItem>();
 	ClassDB::register_class<OptionButton>();
@@ -369,7 +372,7 @@ void register_scene_types() {
 
 	OS::get_singleton()->yield(); //may take time to init
 
-	AcceptDialog::set_swap_ok_cancel(GLOBAL_DEF("gui/common/swap_ok_cancel", bool(DisplayServer::get_singleton()->get_swap_ok_cancel())));
+	AcceptDialog::set_swap_cancel_ok(GLOBAL_DEF("gui/common/swap_cancel_ok", bool(DisplayServer::get_singleton()->get_swap_cancel_ok())));
 #endif
 
 	/* REGISTER 3D */

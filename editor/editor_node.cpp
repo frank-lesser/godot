@@ -994,8 +994,8 @@ void EditorNode::save_resource_as(const Ref<Resource> &p_resource, const String 
 		}
 		file->set_current_path(existing);
 	}
-	file->popup_centered_ratio();
 	file->set_title(TTR("Save Resource As..."));
+	file->popup_file_dialog();
 }
 
 void EditorNode::_menu_option(int p_option) {
@@ -2182,7 +2182,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				file->set_current_path(scene->get_filename());
 			};
 			file->set_title(p_option == FILE_OPEN_SCENE ? TTR("Open Scene") : TTR("Open Base Scene"));
-			file->popup_centered_ratio();
+			file->popup_file_dialog();
 
 		} break;
 		case FILE_QUICK_OPEN: {
@@ -2318,7 +2318,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				}
 				file->set_current_path(existing);
 			}
-			file->popup_centered_ratio();
+			file->popup_file_dialog();
 			file->set_title(TTR("Save Scene As..."));
 
 		} break;
@@ -2357,7 +2357,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				file_export_lib->add_filter("*." + E->get());
 			}
 
-			file_export_lib->popup_centered_ratio();
+			file_export_lib->popup_file_dialog();
 			file_export_lib->set_title(TTR("Export Mesh Library"));
 
 		} break;
@@ -2376,7 +2376,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				file_export_lib->add_filter("*." + E->get());
 			}
 
-			file_export_lib->popup_centered_ratio();
+			file_export_lib->popup_file_dialog();
 			file_export_lib->set_title(TTR("Export Tile Set"));
 
 		} break;
@@ -2642,7 +2642,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 				file->set_current_path(scene->get_filename());
 			};
 			file->set_title(TTR("Pick a Main Scene"));
-			file->popup_centered_ratio();
+			file->popup_file_dialog();
 
 		} break;
 		case HELP_SEARCH: {
@@ -3604,6 +3604,8 @@ void EditorNode::register_editor_types() {
 	ClassDB::register_class<EditorFileSystemDirectory>();
 	ClassDB::register_class<EditorVCSInterface>();
 	ClassDB::register_virtual_class<ScriptEditor>();
+	ClassDB::register_virtual_class<ScriptEditorBase>();
+	ClassDB::register_class<EditorSyntaxHighlighter>();
 	ClassDB::register_virtual_class<EditorInterface>();
 	ClassDB::register_class<EditorExportPlugin>();
 	ClassDB::register_class<EditorResourceConversionPlugin>();
@@ -6480,7 +6482,7 @@ EditorNode::EditorNode() {
 	confirmation->connect("confirmed", callable_mp(this, &EditorNode::_menu_confirm_current));
 
 	save_confirmation = memnew(ConfirmationDialog);
-	save_confirmation->add_button(TTR("Don't Save"), DisplayServer::get_singleton()->get_swap_ok_cancel(), "discard");
+	save_confirmation->add_button(TTR("Don't Save"), DisplayServer::get_singleton()->get_swap_cancel_ok(), "discard");
 	gui_base->add_child(save_confirmation);
 	save_confirmation->connect("confirmed", callable_mp(this, &EditorNode::_menu_confirm_current));
 	save_confirmation->connect("custom_action", callable_mp(this, &EditorNode::_discard_changes));
@@ -6699,7 +6701,7 @@ EditorNode::EditorNode() {
 
 	open_imported = memnew(ConfirmationDialog);
 	open_imported->get_ok()->set_text(TTR("Open Anyway"));
-	new_inherited_button = open_imported->add_button(TTR("New Inherited"), !DisplayServer::get_singleton()->get_swap_ok_cancel(), "inherit");
+	new_inherited_button = open_imported->add_button(TTR("New Inherited"), !DisplayServer::get_singleton()->get_swap_cancel_ok(), "inherit");
 	open_imported->connect("confirmed", callable_mp(this, &EditorNode::_open_imported));
 	open_imported->connect("custom_action", callable_mp(this, &EditorNode::_inherit_imported));
 	gui_base->add_child(open_imported);

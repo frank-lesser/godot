@@ -2583,16 +2583,18 @@ void DisplayServerOSX::window_set_size(const Size2i p_size, WindowID p_window) {
 
 	Size2i size = p_size / screen_get_max_scale();
 
-	if (!wd.borderless) {
-		// NSRect used by setFrame includes the title bar, so add it to our size.y
-		CGFloat menuBarHeight = [[[NSApplication sharedApplication] mainMenu] menuBarHeight];
-		if (menuBarHeight != 0.f) {
-			size.y += menuBarHeight;
-		}
-	}
+	NSPoint top_left;
+	NSRect old_frame = [wd.window_object frame];
+	top_left.x = old_frame.origin.x;
+	top_left.y = NSMaxY(old_frame);
 
-	NSRect frame = [wd.window_object frame];
-	[wd.window_object setFrame:NSMakeRect(frame.origin.x, frame.origin.y, size.x, size.y) display:YES];
+	NSRect new_frame = NSMakeRect(0, 0, size.x, size.y);
+	new_frame = [wd.window_object frameRectForContentRect:new_frame];
+
+	new_frame.origin.x = top_left.x;
+	new_frame.origin.y = top_left.y - new_frame.size.height;
+
+	[wd.window_object setFrame:new_frame display:YES];
 
 	_update_window(wd);
 }
@@ -2913,8 +2915,8 @@ void DisplayServerOSX::window_set_ime_position(const Point2i &p_pos, WindowID p_
 	wd.im_position = p_pos;
 }
 
-bool DisplayServerOSX::get_swap_ok_cancel() {
-	return true;
+bool DisplayServerOSX::get_swap_cancel_ok() {
+	return false;
 }
 
 void DisplayServerOSX::cursor_set_shape(CursorShape p_shape) {
@@ -3456,7 +3458,11 @@ ObjectID DisplayServerOSX::window_get_attached_instance_id(WindowID p_window) co
 }
 
 DisplayServer *DisplayServerOSX::create_func(const String &p_rendering_driver, WindowMode p_mode, uint32_t p_flags, const Vector2i &p_resolution, Error &r_error) {
-	return memnew(DisplayServerOSX(p_rendering_driver, p_mode, p_flags, p_resolution, r_error));
+	DisplayServer *ds = memnew(DisplayServerOSX(p_rendering_driver, p_mode, p_flags, p_resolution, r_error));
+	if (r_error != OK) {
+		ds->alert("Your video card driver does not support any of the supported Metal versions.", "Unable to initialize Video driver");
+	}
+	return ds;
 }
 
 DisplayServerOSX::WindowID DisplayServerOSX::_create_window(WindowMode p_mode, const Rect2i &p_rect) {
@@ -3745,6 +3751,7 @@ DisplayServerOSX::DisplayServerOSX(const String &p_rendering_driver, WindowMode 
 			screen_get_position(0).x + (screen_get_size(0).width - p_resolution.width) / 2,
 			screen_get_position(0).y + (screen_get_size(0).height - p_resolution.height) / 2);
 	WindowID main_window = _create_window(p_mode, Rect2i(window_position, p_resolution));
+	ERR_FAIL_COND(main_window == INVALID_WINDOW_ID);
 	for (int i = 0; i < WINDOW_FLAG_MAX; i++) {
 		if (p_flags & (1 << i)) {
 			window_set_flag(WindowFlags(i), true, main_window);
