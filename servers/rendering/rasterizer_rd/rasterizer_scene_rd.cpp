@@ -238,7 +238,7 @@ void RasterizerSceneRD::_sdfgi_erase(RenderBuffers *rb) {
 const Vector3i RasterizerSceneRD::SDFGI::Cascade::DIRTY_ALL = Vector3i(0x7FFFFFFF, 0x7FFFFFFF, 0x7FFFFFFF);
 
 void RasterizerSceneRD::sdfgi_update(RID p_render_buffers, RID p_environment, const Vector3 &p_world_position) {
-	Environent *env = environment_owner.getornull(p_environment);
+	Environment *env = environment_owner.getornull(p_environment);
 	RenderBuffers *rb = render_buffers_owner.getornull(p_render_buffers);
 	bool needs_sdfgi = env && env->sdfgi_enabled;
 
@@ -925,7 +925,7 @@ void RasterizerSceneRD::sdfgi_update(RID p_render_buffers, RID p_environment, co
 				if (i < sdfgi->cascades.size() - 1) {
 					parent_average = sdfgi->cascades[i + 1].lightprobe_average_tex;
 				} else {
-					parent_average = sdfgi->cascades[i - 1].lightprobe_average_tex; //to use something, but it wont be used
+					parent_average = sdfgi->cascades[i - 1].lightprobe_average_tex; //to use something, but it won't be used
 				}
 				u.ids.push_back(parent_average);
 				uniforms.push_back(u);
@@ -1142,7 +1142,7 @@ void RasterizerSceneRD::sdfgi_update_probes(RID p_render_buffers, RID p_environm
 	if (rb->sdfgi == nullptr) {
 		return;
 	}
-	Environent *env = environment_owner.getornull(p_environment);
+	Environment *env = environment_owner.getornull(p_environment);
 
 	RENDER_TIMESTAMP(">SDFGI Update Probes");
 
@@ -1380,7 +1380,7 @@ void RasterizerSceneRD::_process_gi(RID p_render_buffers, RID p_normal_roughness
 
 	RenderBuffers *rb = render_buffers_owner.getornull(p_render_buffers);
 	ERR_FAIL_COND(rb == nullptr);
-	Environent *env = environment_owner.getornull(p_environment);
+	Environment *env = environment_owner.getornull(p_environment);
 
 	GI::PushConstant push_constant;
 
@@ -1881,7 +1881,7 @@ void RasterizerSceneRD::_update_dirty_skys() {
 			texture_set_dirty = true;
 		}
 
-		// Create subpass buffers if they havent been created already
+		// Create subpass buffers if they haven't been created already
 		if (sky->half_res_pass.is_null() && !RD::get_singleton()->texture_is_valid(sky->half_res_pass) && sky->screen_size.x >= 4 && sky->screen_size.y >= 4) {
 			RD::TextureFormat tformat;
 			tformat.format = RD::DATA_FORMAT_R16G16B16A16_SFLOAT;
@@ -2695,53 +2695,53 @@ RasterizerStorageRD::MaterialData *RasterizerSceneRD::_create_sky_material_func(
 }
 
 RID RasterizerSceneRD::environment_create() {
-	return environment_owner.make_rid(Environent());
+	return environment_owner.make_rid(Environment());
 }
 
 void RasterizerSceneRD::environment_set_background(RID p_env, RS::EnvironmentBG p_bg) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->background = p_bg;
 }
 
 void RasterizerSceneRD::environment_set_sky(RID p_env, RID p_sky) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->sky = p_sky;
 }
 
 void RasterizerSceneRD::environment_set_sky_custom_fov(RID p_env, float p_scale) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->sky_custom_fov = p_scale;
 }
 
 void RasterizerSceneRD::environment_set_sky_orientation(RID p_env, const Basis &p_orientation) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->sky_orientation = p_orientation;
 }
 
 void RasterizerSceneRD::environment_set_bg_color(RID p_env, const Color &p_color) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->bg_color = p_color;
 }
 
 void RasterizerSceneRD::environment_set_bg_energy(RID p_env, float p_energy) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->bg_energy = p_energy;
 }
 
 void RasterizerSceneRD::environment_set_canvas_max_layer(RID p_env, int p_max_layer) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->canvas_max_layer = p_max_layer;
 }
 
 void RasterizerSceneRD::environment_set_ambient_light(RID p_env, const Color &p_color, RS::EnvironmentAmbientSource p_ambient, float p_energy, float p_sky_contribution, RS::EnvironmentReflectionSource p_reflection_source, const Color &p_ao_color) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->ambient_light = p_color;
 	env->ambient_source = p_ambient;
@@ -2752,85 +2752,85 @@ void RasterizerSceneRD::environment_set_ambient_light(RID p_env, const Color &p_
 }
 
 RS::EnvironmentBG RasterizerSceneRD::environment_get_background(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, RS::ENV_BG_MAX);
 	return env->background;
 }
 
 RID RasterizerSceneRD::environment_get_sky(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, RID());
 	return env->sky;
 }
 
 float RasterizerSceneRD::environment_get_sky_custom_fov(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, 0);
 	return env->sky_custom_fov;
 }
 
 Basis RasterizerSceneRD::environment_get_sky_orientation(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, Basis());
 	return env->sky_orientation;
 }
 
 Color RasterizerSceneRD::environment_get_bg_color(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, Color());
 	return env->bg_color;
 }
 
 float RasterizerSceneRD::environment_get_bg_energy(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, 0);
 	return env->bg_energy;
 }
 
 int RasterizerSceneRD::environment_get_canvas_max_layer(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, 0);
 	return env->canvas_max_layer;
 }
 
 Color RasterizerSceneRD::environment_get_ambient_light_color(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, Color());
 	return env->ambient_light;
 }
 
 RS::EnvironmentAmbientSource RasterizerSceneRD::environment_get_ambient_source(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, RS::ENV_AMBIENT_SOURCE_BG);
 	return env->ambient_source;
 }
 
 float RasterizerSceneRD::environment_get_ambient_light_energy(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, 0);
 	return env->ambient_light_energy;
 }
 
 float RasterizerSceneRD::environment_get_ambient_sky_contribution(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, 0);
 	return env->ambient_sky_contribution;
 }
 
 RS::EnvironmentReflectionSource RasterizerSceneRD::environment_get_reflection_source(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, RS::ENV_REFLECTION_SOURCE_DISABLED);
 	return env->reflection_source;
 }
 
 Color RasterizerSceneRD::environment_get_ao_color(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, Color());
 	return env->ao_color;
 }
 
 void RasterizerSceneRD::environment_set_tonemap(RID p_env, RS::EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_scale) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->exposure = p_exposure;
 	env->tone_mapper = p_tone_mapper;
@@ -2846,7 +2846,7 @@ void RasterizerSceneRD::environment_set_tonemap(RID p_env, RS::EnvironmentToneMa
 }
 
 void RasterizerSceneRD::environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, RS::EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 	env->glow_enabled = p_enable;
 	env->glow_levels = p_level_flags;
@@ -2865,7 +2865,7 @@ void RasterizerSceneRD::environment_glow_set_use_bicubic_upscale(bool p_enable) 
 }
 
 void RasterizerSceneRD::environment_set_sdfgi(RID p_env, bool p_enable, RS::EnvironmentSDFGICascades p_cascades, float p_min_cell_size, RS::EnvironmentSDFGIYScale p_y_scale, bool p_use_occlusion, bool p_use_multibounce, bool p_read_sky, float p_energy, float p_normal_bias, float p_probe_bias) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 
 	env->sdfgi_enabled = p_enable;
@@ -2889,7 +2889,7 @@ void RasterizerSceneRD::environment_set_sdfgi_frames_to_converge(RS::Environment
 }
 
 void RasterizerSceneRD::environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_int, float p_fade_out, float p_depth_tolerance) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 
 	env->ssr_enabled = p_enable;
@@ -2908,7 +2908,7 @@ RS::EnvironmentSSRRoughnessQuality RasterizerSceneRD::environment_get_ssr_roughn
 }
 
 void RasterizerSceneRD::environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_bias, float p_light_affect, float p_ao_channel_affect, RS::EnvironmentSSAOBlur p_blur, float p_bilateral_sharpness) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 
 	env->ssao_enabled = p_enable;
@@ -2926,30 +2926,30 @@ void RasterizerSceneRD::environment_set_ssao_quality(RS::EnvironmentSSAOQuality 
 }
 
 bool RasterizerSceneRD::environment_is_ssao_enabled(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, false);
 	return env->ssao_enabled;
 }
 
 float RasterizerSceneRD::environment_get_ssao_ao_affect(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, false);
 	return env->ssao_ao_channel_affect;
 }
 
 float RasterizerSceneRD::environment_get_ssao_light_affect(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, false);
 	return env->ssao_direct_light_affect;
 }
 
 bool RasterizerSceneRD::environment_is_ssr_enabled(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, false);
 	return env->ssr_enabled;
 }
 bool RasterizerSceneRD::environment_is_sdfgi_enabled(RID p_env) const {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, false);
 	return env->sdfgi_enabled;
 }
@@ -2959,7 +2959,7 @@ bool RasterizerSceneRD::is_environment(RID p_env) const {
 }
 
 Ref<Image> RasterizerSceneRD::environment_bake_panorama(RID p_env, bool p_bake_irradiance, const Size2i &p_size) {
-	Environent *env = environment_owner.getornull(p_env);
+	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, Ref<Image>());
 
 	if (env->background == RS::ENV_BG_CAMERA_FEED || env->background == RS::ENV_BG_CANVAS || env->background == RS::ENV_BG_KEEP) {
@@ -4903,7 +4903,7 @@ void RasterizerSceneRD::_process_ssr(RID p_render_buffers, RID p_dest_framebuffe
 		return;
 	}
 
-	Environent *env = environment_owner.getornull(p_environment);
+	Environment *env = environment_owner.getornull(p_environment);
 	ERR_FAIL_COND(!env);
 
 	ERR_FAIL_COND(!env->ssr_enabled);
@@ -4948,7 +4948,7 @@ void RasterizerSceneRD::_process_ssao(RID p_render_buffers, RID p_environment, R
 	RenderBuffers *rb = render_buffers_owner.getornull(p_render_buffers);
 	ERR_FAIL_COND(!rb);
 
-	Environent *env = environment_owner.getornull(p_environment);
+	Environment *env = environment_owner.getornull(p_environment);
 	ERR_FAIL_COND(!env);
 
 	if (rb->ssao.ao[0].is_valid() && rb->ssao.ao_full.is_valid() != ssao_half_size) {
@@ -5015,7 +5015,7 @@ void RasterizerSceneRD::_render_buffers_post_process_and_tonemap(RID p_render_bu
 	RenderBuffers *rb = render_buffers_owner.getornull(p_render_buffers);
 	ERR_FAIL_COND(!rb);
 
-	Environent *env = environment_owner.getornull(p_environment);
+	Environment *env = environment_owner.getornull(p_environment);
 	//glow (if enabled)
 	CameraEffects *camfx = camera_effects_owner.getornull(p_camera_effects);
 
@@ -5619,6 +5619,539 @@ RasterizerSceneRD::RenderBufferData *RasterizerSceneRD::render_buffers_get_data(
 	return rb->data;
 }
 
+void RasterizerSceneRD::_setup_reflections(RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, const Transform &p_camera_inverse_transform, RID p_environment) {
+	for (int i = 0; i < p_reflection_probe_cull_count; i++) {
+		RID rpi = p_reflection_probe_cull_result[i];
+
+		if (i >= (int)cluster.max_reflections) {
+			reflection_probe_instance_set_render_index(rpi, 0); //invalid, but something needs to be set
+			continue;
+		}
+
+		reflection_probe_instance_set_render_index(rpi, i);
+
+		RID base_probe = reflection_probe_instance_get_probe(rpi);
+
+		Cluster::ReflectionData &reflection_ubo = cluster.reflections[i];
+
+		Vector3 extents = storage->reflection_probe_get_extents(base_probe);
+
+		reflection_ubo.box_extents[0] = extents.x;
+		reflection_ubo.box_extents[1] = extents.y;
+		reflection_ubo.box_extents[2] = extents.z;
+		reflection_ubo.index = reflection_probe_instance_get_atlas_index(rpi);
+
+		Vector3 origin_offset = storage->reflection_probe_get_origin_offset(base_probe);
+
+		reflection_ubo.box_offset[0] = origin_offset.x;
+		reflection_ubo.box_offset[1] = origin_offset.y;
+		reflection_ubo.box_offset[2] = origin_offset.z;
+		reflection_ubo.mask = storage->reflection_probe_get_cull_mask(base_probe);
+
+		float intensity = storage->reflection_probe_get_intensity(base_probe);
+		bool interior = storage->reflection_probe_is_interior(base_probe);
+		bool box_projection = storage->reflection_probe_is_box_projection(base_probe);
+
+		reflection_ubo.params[0] = intensity;
+		reflection_ubo.params[1] = 0;
+		reflection_ubo.params[2] = interior ? 1.0 : 0.0;
+		reflection_ubo.params[3] = box_projection ? 1.0 : 0.0;
+
+		Color ambient_linear = storage->reflection_probe_get_ambient_color(base_probe).to_linear();
+		float interior_ambient_energy = storage->reflection_probe_get_ambient_color_energy(base_probe);
+		uint32_t ambient_mode = storage->reflection_probe_get_ambient_mode(base_probe);
+		reflection_ubo.ambient[0] = ambient_linear.r * interior_ambient_energy;
+		reflection_ubo.ambient[1] = ambient_linear.g * interior_ambient_energy;
+		reflection_ubo.ambient[2] = ambient_linear.b * interior_ambient_energy;
+		reflection_ubo.ambient_mode = ambient_mode;
+
+		Transform transform = reflection_probe_instance_get_transform(rpi);
+		Transform proj = (p_camera_inverse_transform * transform).inverse();
+		RasterizerStorageRD::store_transform(proj, reflection_ubo.local_matrix);
+
+		cluster.builder.add_reflection_probe(transform, extents);
+
+		reflection_probe_instance_set_render_pass(rpi, RSG::rasterizer->get_frame_number());
+	}
+
+	if (p_reflection_probe_cull_count) {
+		RD::get_singleton()->buffer_update(cluster.reflection_buffer, 0, MIN(cluster.max_reflections, (unsigned int)p_reflection_probe_cull_count) * sizeof(ReflectionData), cluster.reflections, true);
+	}
+}
+
+void RasterizerSceneRD::_setup_lights(RID *p_light_cull_result, int p_light_cull_count, const Transform &p_camera_inverse_transform, RID p_shadow_atlas, bool p_using_shadows, uint32_t &r_directional_light_count) {
+	uint32_t light_count = 0;
+	r_directional_light_count = 0;
+	sky_scene_state.directional_light_count = 0;
+
+	for (int i = 0; i < p_light_cull_count; i++) {
+		RID li = p_light_cull_result[i];
+		RID base = light_instance_get_base_light(li);
+
+		ERR_CONTINUE(base.is_null());
+
+		RS::LightType type = storage->light_get_type(base);
+		switch (type) {
+			case RS::LIGHT_DIRECTIONAL: {
+				if (r_directional_light_count >= cluster.max_directional_lights) {
+					continue;
+				}
+
+				Cluster::DirectionalLightData &light_data = cluster.directional_lights[r_directional_light_count];
+
+				Transform light_transform = light_instance_get_base_transform(li);
+
+				Vector3 direction = p_camera_inverse_transform.basis.xform(light_transform.basis.xform(Vector3(0, 0, 1))).normalized();
+
+				light_data.direction[0] = direction.x;
+				light_data.direction[1] = direction.y;
+				light_data.direction[2] = direction.z;
+
+				float sign = storage->light_is_negative(base) ? -1 : 1;
+
+				light_data.energy = sign * storage->light_get_param(base, RS::LIGHT_PARAM_ENERGY) * Math_PI;
+
+				Color linear_col = storage->light_get_color(base).to_linear();
+				light_data.color[0] = linear_col.r;
+				light_data.color[1] = linear_col.g;
+				light_data.color[2] = linear_col.b;
+
+				light_data.specular = storage->light_get_param(base, RS::LIGHT_PARAM_SPECULAR);
+				light_data.mask = storage->light_get_cull_mask(base);
+
+				float size = storage->light_get_param(base, RS::LIGHT_PARAM_SIZE);
+
+				light_data.size = 1.0 - Math::cos(Math::deg2rad(size)); //angle to cosine offset
+
+				Color shadow_col = storage->light_get_shadow_color(base).to_linear();
+
+				if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_PSSM_SPLITS) {
+					light_data.shadow_color1[0] = 1.0;
+					light_data.shadow_color1[1] = 0.0;
+					light_data.shadow_color1[2] = 0.0;
+					light_data.shadow_color1[3] = 1.0;
+					light_data.shadow_color2[0] = 0.0;
+					light_data.shadow_color2[1] = 1.0;
+					light_data.shadow_color2[2] = 0.0;
+					light_data.shadow_color2[3] = 1.0;
+					light_data.shadow_color3[0] = 0.0;
+					light_data.shadow_color3[1] = 0.0;
+					light_data.shadow_color3[2] = 1.0;
+					light_data.shadow_color3[3] = 1.0;
+					light_data.shadow_color4[0] = 1.0;
+					light_data.shadow_color4[1] = 1.0;
+					light_data.shadow_color4[2] = 0.0;
+					light_data.shadow_color4[3] = 1.0;
+
+				} else {
+					light_data.shadow_color1[0] = shadow_col.r;
+					light_data.shadow_color1[1] = shadow_col.g;
+					light_data.shadow_color1[2] = shadow_col.b;
+					light_data.shadow_color1[3] = 1.0;
+					light_data.shadow_color2[0] = shadow_col.r;
+					light_data.shadow_color2[1] = shadow_col.g;
+					light_data.shadow_color2[2] = shadow_col.b;
+					light_data.shadow_color2[3] = 1.0;
+					light_data.shadow_color3[0] = shadow_col.r;
+					light_data.shadow_color3[1] = shadow_col.g;
+					light_data.shadow_color3[2] = shadow_col.b;
+					light_data.shadow_color3[3] = 1.0;
+					light_data.shadow_color4[0] = shadow_col.r;
+					light_data.shadow_color4[1] = shadow_col.g;
+					light_data.shadow_color4[2] = shadow_col.b;
+					light_data.shadow_color4[3] = 1.0;
+				}
+
+				light_data.shadow_enabled = p_using_shadows && storage->light_has_shadow(base);
+
+				float angular_diameter = storage->light_get_param(base, RS::LIGHT_PARAM_SIZE);
+				if (angular_diameter > 0.0) {
+					// I know tan(0) is 0, but let's not risk it with numerical precision.
+					// technically this will keep expanding until reaching the sun, but all we care
+					// is expand until we reach the radius of the near plane (there can't be more occluders than that)
+					angular_diameter = Math::tan(Math::deg2rad(angular_diameter));
+				} else {
+					angular_diameter = 0.0;
+				}
+
+				if (light_data.shadow_enabled) {
+					RS::LightDirectionalShadowMode smode = storage->light_directional_get_shadow_mode(base);
+
+					int limit = smode == RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL ? 0 : (smode == RS::LIGHT_DIRECTIONAL_SHADOW_PARALLEL_2_SPLITS ? 1 : 3);
+					light_data.blend_splits = storage->light_directional_get_blend_splits(base);
+					for (int j = 0; j < 4; j++) {
+						Rect2 atlas_rect = light_instance_get_directional_shadow_atlas_rect(li, j);
+						CameraMatrix matrix = light_instance_get_shadow_camera(li, j);
+						float split = light_instance_get_directional_shadow_split(li, MIN(limit, j));
+
+						CameraMatrix bias;
+						bias.set_light_bias();
+						CameraMatrix rectm;
+						rectm.set_light_atlas_rect(atlas_rect);
+
+						Transform modelview = (p_camera_inverse_transform * light_instance_get_shadow_transform(li, j)).inverse();
+
+						CameraMatrix shadow_mtx = rectm * bias * matrix * modelview;
+						light_data.shadow_split_offsets[j] = split;
+						float bias_scale = light_instance_get_shadow_bias_scale(li, j);
+						light_data.shadow_bias[j] = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_BIAS) * bias_scale;
+						light_data.shadow_normal_bias[j] = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS) * light_instance_get_directional_shadow_texel_size(li, j);
+						light_data.shadow_transmittance_bias[j] = storage->light_get_transmittance_bias(base) * bias_scale;
+						light_data.shadow_transmittance_z_scale[j] = light_instance_get_shadow_range(li, j);
+						light_data.shadow_range_begin[j] = light_instance_get_shadow_range_begin(li, j);
+						RasterizerStorageRD::store_camera(shadow_mtx, light_data.shadow_matrices[j]);
+
+						Vector2 uv_scale = light_instance_get_shadow_uv_scale(li, j);
+						uv_scale *= atlas_rect.size; //adapt to atlas size
+						switch (j) {
+							case 0: {
+								light_data.uv_scale1[0] = uv_scale.x;
+								light_data.uv_scale1[1] = uv_scale.y;
+							} break;
+							case 1: {
+								light_data.uv_scale2[0] = uv_scale.x;
+								light_data.uv_scale2[1] = uv_scale.y;
+							} break;
+							case 2: {
+								light_data.uv_scale3[0] = uv_scale.x;
+								light_data.uv_scale3[1] = uv_scale.y;
+							} break;
+							case 3: {
+								light_data.uv_scale4[0] = uv_scale.x;
+								light_data.uv_scale4[1] = uv_scale.y;
+							} break;
+						}
+					}
+
+					float fade_start = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_FADE_START);
+					light_data.fade_from = -light_data.shadow_split_offsets[3] * MIN(fade_start, 0.999); //using 1.0 would break smoothstep
+					light_data.fade_to = -light_data.shadow_split_offsets[3];
+
+					light_data.soft_shadow_scale = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_BLUR);
+					light_data.softshadow_angle = angular_diameter;
+
+					if (angular_diameter <= 0.0) {
+						light_data.soft_shadow_scale *= directional_shadow_quality_radius_get(); // Only use quality radius for PCF
+					}
+				}
+
+				//	Copy to SkyDirectionalLightData
+				if (r_directional_light_count < sky_scene_state.max_directional_lights) {
+					SkyDirectionalLightData &sky_light_data = sky_scene_state.directional_lights[r_directional_light_count];
+
+					Vector3 world_direction = light_transform.basis.xform(Vector3(0, 0, 1)).normalized();
+
+					sky_light_data.direction[0] = world_direction.x;
+					sky_light_data.direction[1] = world_direction.y;
+					sky_light_data.direction[2] = -world_direction.z;
+
+					sky_light_data.energy = light_data.energy / Math_PI;
+
+					sky_light_data.color[0] = light_data.color[0];
+					sky_light_data.color[1] = light_data.color[1];
+					sky_light_data.color[2] = light_data.color[2];
+
+					sky_light_data.enabled = true;
+					sky_light_data.size = angular_diameter;
+					sky_scene_state.directional_light_count++;
+				}
+
+				r_directional_light_count++;
+			} break;
+			case RS::LIGHT_SPOT:
+			case RS::LIGHT_OMNI: {
+				if (light_count >= cluster.max_lights) {
+					continue;
+				}
+
+				Transform light_transform = light_instance_get_base_transform(li);
+
+				Cluster::LightData &light_data = cluster.lights[light_count];
+
+				float sign = storage->light_is_negative(base) ? -1 : 1;
+				Color linear_col = storage->light_get_color(base).to_linear();
+
+				light_data.attenuation_energy[0] = Math::make_half_float(storage->light_get_param(base, RS::LIGHT_PARAM_ATTENUATION));
+				light_data.attenuation_energy[1] = Math::make_half_float(sign * storage->light_get_param(base, RS::LIGHT_PARAM_ENERGY) * Math_PI);
+
+				light_data.color_specular[0] = MIN(uint32_t(linear_col.r * 255), 255);
+				light_data.color_specular[1] = MIN(uint32_t(linear_col.g * 255), 255);
+				light_data.color_specular[2] = MIN(uint32_t(linear_col.b * 255), 255);
+				light_data.color_specular[3] = MIN(uint32_t(storage->light_get_param(base, RS::LIGHT_PARAM_SPECULAR) * 255), 255);
+
+				float radius = MAX(0.001, storage->light_get_param(base, RS::LIGHT_PARAM_RANGE));
+				light_data.inv_radius = 1.0 / radius;
+
+				Vector3 pos = p_camera_inverse_transform.xform(light_transform.origin);
+
+				light_data.position[0] = pos.x;
+				light_data.position[1] = pos.y;
+				light_data.position[2] = pos.z;
+
+				Vector3 direction = p_camera_inverse_transform.basis.xform(light_transform.basis.xform(Vector3(0, 0, -1))).normalized();
+
+				light_data.direction[0] = direction.x;
+				light_data.direction[1] = direction.y;
+				light_data.direction[2] = direction.z;
+
+				float size = storage->light_get_param(base, RS::LIGHT_PARAM_SIZE);
+
+				light_data.size = size;
+
+				light_data.cone_attenuation_angle[0] = Math::make_half_float(storage->light_get_param(base, RS::LIGHT_PARAM_SPOT_ATTENUATION));
+				float spot_angle = storage->light_get_param(base, RS::LIGHT_PARAM_SPOT_ANGLE);
+				light_data.cone_attenuation_angle[1] = Math::make_half_float(Math::cos(Math::deg2rad(spot_angle)));
+
+				light_data.mask = storage->light_get_cull_mask(base);
+
+				light_data.atlas_rect[0] = 0;
+				light_data.atlas_rect[1] = 0;
+				light_data.atlas_rect[2] = 0;
+				light_data.atlas_rect[3] = 0;
+
+				RID projector = storage->light_get_projector(base);
+
+				if (projector.is_valid()) {
+					Rect2 rect = storage->decal_atlas_get_texture_rect(projector);
+
+					if (type == RS::LIGHT_SPOT) {
+						light_data.projector_rect[0] = rect.position.x;
+						light_data.projector_rect[1] = rect.position.y + rect.size.height; //flip because shadow is flipped
+						light_data.projector_rect[2] = rect.size.width;
+						light_data.projector_rect[3] = -rect.size.height;
+					} else {
+						light_data.projector_rect[0] = rect.position.x;
+						light_data.projector_rect[1] = rect.position.y;
+						light_data.projector_rect[2] = rect.size.width;
+						light_data.projector_rect[3] = rect.size.height * 0.5; //used by dp, so needs to be half
+					}
+				} else {
+					light_data.projector_rect[0] = 0;
+					light_data.projector_rect[1] = 0;
+					light_data.projector_rect[2] = 0;
+					light_data.projector_rect[3] = 0;
+				}
+
+				if (p_using_shadows && p_shadow_atlas.is_valid() && shadow_atlas_owns_light_instance(p_shadow_atlas, li)) {
+					// fill in the shadow information
+
+					Color shadow_color = storage->light_get_shadow_color(base);
+
+					light_data.shadow_color_enabled[0] = MIN(uint32_t(shadow_color.r * 255), 255);
+					light_data.shadow_color_enabled[1] = MIN(uint32_t(shadow_color.g * 255), 255);
+					light_data.shadow_color_enabled[2] = MIN(uint32_t(shadow_color.b * 255), 255);
+					light_data.shadow_color_enabled[3] = 255;
+
+					if (type == RS::LIGHT_SPOT) {
+						light_data.shadow_bias = (storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_BIAS) * radius / 10.0);
+						float shadow_texel_size = Math::tan(Math::deg2rad(spot_angle)) * radius * 2.0;
+						shadow_texel_size *= light_instance_get_shadow_texel_size(li, p_shadow_atlas);
+
+						light_data.shadow_normal_bias = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS) * shadow_texel_size;
+
+					} else { //omni
+						light_data.shadow_bias = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_BIAS) * radius / 10.0;
+						float shadow_texel_size = light_instance_get_shadow_texel_size(li, p_shadow_atlas);
+						light_data.shadow_normal_bias = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_NORMAL_BIAS) * shadow_texel_size * 2.0; // applied in -1 .. 1 space
+					}
+
+					light_data.transmittance_bias = storage->light_get_transmittance_bias(base);
+
+					Rect2 rect = light_instance_get_shadow_atlas_rect(li, p_shadow_atlas);
+
+					light_data.atlas_rect[0] = rect.position.x;
+					light_data.atlas_rect[1] = rect.position.y;
+					light_data.atlas_rect[2] = rect.size.width;
+					light_data.atlas_rect[3] = rect.size.height;
+
+					light_data.soft_shadow_scale = storage->light_get_param(base, RS::LIGHT_PARAM_SHADOW_BLUR);
+
+					if (type == RS::LIGHT_OMNI) {
+						light_data.atlas_rect[3] *= 0.5; //one paraboloid on top of another
+						Transform proj = (p_camera_inverse_transform * light_transform).inverse();
+
+						RasterizerStorageRD::store_transform(proj, light_data.shadow_matrix);
+
+						if (size > 0.0) {
+							light_data.soft_shadow_size = size;
+						} else {
+							light_data.soft_shadow_size = 0.0;
+							light_data.soft_shadow_scale *= shadows_quality_radius_get(); // Only use quality radius for PCF
+						}
+
+					} else if (type == RS::LIGHT_SPOT) {
+						Transform modelview = (p_camera_inverse_transform * light_transform).inverse();
+						CameraMatrix bias;
+						bias.set_light_bias();
+
+						CameraMatrix shadow_mtx = bias * light_instance_get_shadow_camera(li, 0) * modelview;
+						RasterizerStorageRD::store_camera(shadow_mtx, light_data.shadow_matrix);
+
+						if (size > 0.0) {
+							CameraMatrix cm = light_instance_get_shadow_camera(li, 0);
+							float half_np = cm.get_z_near() * Math::tan(Math::deg2rad(spot_angle));
+							light_data.soft_shadow_size = (size * 0.5 / radius) / (half_np / cm.get_z_near()) * rect.size.width;
+						} else {
+							light_data.soft_shadow_size = 0.0;
+							light_data.soft_shadow_scale *= shadows_quality_radius_get(); // Only use quality radius for PCF
+						}
+					}
+				} else {
+					light_data.shadow_color_enabled[3] = 0;
+				}
+
+				light_instance_set_index(li, light_count);
+
+				cluster.builder.add_light(type == RS::LIGHT_SPOT ? LightClusterBuilder::LIGHT_TYPE_SPOT : LightClusterBuilder::LIGHT_TYPE_OMNI, light_transform, radius, spot_angle);
+
+				light_count++;
+			} break;
+		}
+
+		light_instance_set_render_pass(li, RSG::rasterizer->get_frame_number());
+
+		//update UBO for forward rendering, blit to texture for clustered
+	}
+
+	if (light_count) {
+		RD::get_singleton()->buffer_update(cluster.light_buffer, 0, sizeof(Cluster::LightData) * light_count, cluster.lights, true);
+	}
+
+	if (r_directional_light_count) {
+		RD::get_singleton()->buffer_update(cluster.directional_light_buffer, 0, sizeof(Cluster::DirectionalLightData) * r_directional_light_count, cluster.directional_lights, true);
+	}
+}
+
+void RasterizerSceneRD::_setup_decals(const RID *p_decal_instances, int p_decal_count, const Transform &p_camera_inverse_xform) {
+	Transform uv_xform;
+	uv_xform.basis.scale(Vector3(2.0, 1.0, 2.0));
+	uv_xform.origin = Vector3(-1.0, 0.0, -1.0);
+
+	p_decal_count = MIN((uint32_t)p_decal_count, cluster.max_decals);
+	int idx = 0;
+	for (int i = 0; i < p_decal_count; i++) {
+		RID di = p_decal_instances[i];
+		RID decal = decal_instance_get_base(di);
+
+		Transform xform = decal_instance_get_transform(di);
+
+		float fade = 1.0;
+
+		if (storage->decal_is_distance_fade_enabled(decal)) {
+			real_t distance = -p_camera_inverse_xform.xform(xform.origin).z;
+			float fade_begin = storage->decal_get_distance_fade_begin(decal);
+			float fade_length = storage->decal_get_distance_fade_length(decal);
+
+			if (distance > fade_begin) {
+				if (distance > fade_begin + fade_length) {
+					continue; // do not use this decal, its invisible
+				}
+
+				fade = 1.0 - (distance - fade_begin) / fade_length;
+			}
+		}
+
+		Cluster::DecalData &dd = cluster.decals[idx];
+
+		Vector3 decal_extents = storage->decal_get_extents(decal);
+
+		Transform scale_xform;
+		scale_xform.basis.scale(Vector3(decal_extents.x, decal_extents.y, decal_extents.z));
+		Transform to_decal_xform = (p_camera_inverse_xform * decal_instance_get_transform(di) * scale_xform * uv_xform).affine_inverse();
+		RasterizerStorageRD::store_transform(to_decal_xform, dd.xform);
+
+		Vector3 normal = xform.basis.get_axis(Vector3::AXIS_Y).normalized();
+		normal = p_camera_inverse_xform.basis.xform(normal); //camera is normalized, so fine
+
+		dd.normal[0] = normal.x;
+		dd.normal[1] = normal.y;
+		dd.normal[2] = normal.z;
+		dd.normal_fade = storage->decal_get_normal_fade(decal);
+
+		RID albedo_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_ALBEDO);
+		RID emission_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_EMISSION);
+		if (albedo_tex.is_valid()) {
+			Rect2 rect = storage->decal_atlas_get_texture_rect(albedo_tex);
+			dd.albedo_rect[0] = rect.position.x;
+			dd.albedo_rect[1] = rect.position.y;
+			dd.albedo_rect[2] = rect.size.x;
+			dd.albedo_rect[3] = rect.size.y;
+		} else {
+			if (!emission_tex.is_valid()) {
+				continue; //no albedo, no emission, no decal.
+			}
+			dd.albedo_rect[0] = 0;
+			dd.albedo_rect[1] = 0;
+			dd.albedo_rect[2] = 0;
+			dd.albedo_rect[3] = 0;
+		}
+
+		RID normal_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_NORMAL);
+
+		if (normal_tex.is_valid()) {
+			Rect2 rect = storage->decal_atlas_get_texture_rect(normal_tex);
+			dd.normal_rect[0] = rect.position.x;
+			dd.normal_rect[1] = rect.position.y;
+			dd.normal_rect[2] = rect.size.x;
+			dd.normal_rect[3] = rect.size.y;
+
+			Basis normal_xform = p_camera_inverse_xform.basis * xform.basis.orthonormalized();
+			RasterizerStorageRD::store_basis_3x4(normal_xform, dd.normal_xform);
+		} else {
+			dd.normal_rect[0] = 0;
+			dd.normal_rect[1] = 0;
+			dd.normal_rect[2] = 0;
+			dd.normal_rect[3] = 0;
+		}
+
+		RID orm_tex = storage->decal_get_texture(decal, RS::DECAL_TEXTURE_ORM);
+		if (orm_tex.is_valid()) {
+			Rect2 rect = storage->decal_atlas_get_texture_rect(orm_tex);
+			dd.orm_rect[0] = rect.position.x;
+			dd.orm_rect[1] = rect.position.y;
+			dd.orm_rect[2] = rect.size.x;
+			dd.orm_rect[3] = rect.size.y;
+		} else {
+			dd.orm_rect[0] = 0;
+			dd.orm_rect[1] = 0;
+			dd.orm_rect[2] = 0;
+			dd.orm_rect[3] = 0;
+		}
+
+		if (emission_tex.is_valid()) {
+			Rect2 rect = storage->decal_atlas_get_texture_rect(emission_tex);
+			dd.emission_rect[0] = rect.position.x;
+			dd.emission_rect[1] = rect.position.y;
+			dd.emission_rect[2] = rect.size.x;
+			dd.emission_rect[3] = rect.size.y;
+		} else {
+			dd.emission_rect[0] = 0;
+			dd.emission_rect[1] = 0;
+			dd.emission_rect[2] = 0;
+			dd.emission_rect[3] = 0;
+		}
+
+		Color modulate = storage->decal_get_modulate(decal);
+		dd.modulate[0] = modulate.r;
+		dd.modulate[1] = modulate.g;
+		dd.modulate[2] = modulate.b;
+		dd.modulate[3] = modulate.a * fade;
+		dd.emission_energy = storage->decal_get_emission_energy(decal) * fade;
+		dd.albedo_mix = storage->decal_get_albedo_mix(decal);
+		dd.mask = storage->decal_get_cull_mask(decal);
+		dd.upper_fade = storage->decal_get_upper_fade(decal);
+		dd.lower_fade = storage->decal_get_lower_fade(decal);
+
+		cluster.builder.add_decal(xform, decal_extents);
+
+		idx++;
+	}
+
+	if (idx > 0) {
+		RD::get_singleton()->buffer_update(cluster.decal_buffer, 0, sizeof(Cluster::DecalData) * idx, cluster.decals, true);
+	}
+}
+
 void RasterizerSceneRD::render_scene(RID p_render_buffers, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID *p_gi_probe_cull_result, int p_gi_probe_cull_count, RID *p_decal_cull_result, int p_decal_cull_count, InstanceBase **p_lightmap_cull_result, int p_lightmap_cull_count, RID p_environment, RID p_camera_effects, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass) {
 	Color clear_color;
 	if (p_render_buffers.is_valid()) {
@@ -5637,7 +6170,31 @@ void RasterizerSceneRD::render_scene(RID p_render_buffers, const Transform &p_ca
 		}
 	}
 
-	_render_scene(p_render_buffers, p_cam_transform, p_cam_projection, p_cam_ortogonal, p_cull_result, p_cull_count, p_light_cull_result, p_light_cull_count, p_reflection_probe_cull_result, p_reflection_probe_cull_count, p_gi_probe_cull_result, p_gi_probe_cull_count, p_decal_cull_result, p_decal_cull_count, p_lightmap_cull_result, p_lightmap_cull_count, p_environment, p_camera_effects, p_shadow_atlas, p_reflection_atlas, p_reflection_probe, p_reflection_probe_pass, clear_color);
+	if (get_debug_draw_mode() == RS::VIEWPORT_DEBUG_DRAW_UNSHADED) {
+		p_light_cull_count = 0;
+		p_reflection_probe_cull_count = 0;
+		p_gi_probe_cull_count = 0;
+	}
+
+	cluster.builder.begin(p_cam_transform.affine_inverse(), p_cam_projection); //prepare cluster
+
+	bool using_shadows = true;
+
+	if (p_reflection_probe.is_valid()) {
+		if (!storage->reflection_probe_renders_shadows(reflection_probe_instance_get_probe(p_reflection_probe))) {
+			using_shadows = false;
+		}
+	} else {
+		//do not render reflections when rendering a reflection probe
+		_setup_reflections(p_reflection_probe_cull_result, p_reflection_probe_cull_count, p_cam_transform.affine_inverse(), p_environment);
+	}
+
+	uint32_t directional_light_count = 0;
+	_setup_lights(p_light_cull_result, p_light_cull_count, p_cam_transform.affine_inverse(), p_shadow_atlas, using_shadows, directional_light_count);
+	_setup_decals(p_decal_cull_result, p_decal_cull_count, p_cam_transform.affine_inverse());
+	cluster.builder.bake_cluster(); //bake to cluster
+
+	_render_scene(p_render_buffers, p_cam_transform, p_cam_projection, p_cam_ortogonal, p_cull_result, p_cull_count, directional_light_count, p_gi_probe_cull_result, p_gi_probe_cull_count, p_lightmap_cull_result, p_lightmap_cull_count, p_environment, p_camera_effects, p_shadow_atlas, p_reflection_atlas, p_reflection_probe, p_reflection_probe_pass, clear_color);
 
 	if (p_render_buffers.is_valid()) {
 		RENDER_TIMESTAMP("Tonemap");
@@ -5962,7 +6519,7 @@ void RasterizerSceneRD::render_sdfgi(RID p_render_buffers, int p_region, Instanc
 		uint32_t dispatch_indirct_data[4] = { 0, 0, 0, 0 };
 		RD::get_singleton()->buffer_update(rb->sdfgi->cascades[cascade].solid_cell_dispatch_buffer, 0, sizeof(uint32_t) * 4, dispatch_indirct_data, true);
 
-		bool half_size = true; //much faster, very little differnce
+		bool half_size = true; //much faster, very little difference
 		static const int optimized_jf_group_size = 8;
 
 		if (half_size) {
@@ -6112,7 +6669,7 @@ void RasterizerSceneRD::render_sdfgi(RID p_render_buffers, int p_region, Instanc
 				push_constant.occlusion_index = i;
 				RD::get_singleton()->compute_list_set_push_constant(compute_list, &push_constant, sizeof(SDGIShader::PreprocessPushConstant));
 
-				Vector3i groups = Vector3i(probe_size + 1, probe_size + 1, probe_size + 1) - offset; //if offseted, its one less probe per axis to compute
+				Vector3i groups = Vector3i(probe_size + 1, probe_size + 1, probe_size + 1) - offset; //if offset, it's one less probe per axis to compute
 				RD::get_singleton()->compute_list_dispatch(compute_list, groups.x, groups.y, groups.z);
 			}
 			RD::get_singleton()->compute_list_add_barrier(compute_list);
@@ -6496,6 +7053,30 @@ void RasterizerSceneRD::sdfgi_set_debug_probe_select(const Vector3 &p_position, 
 
 RasterizerSceneRD *RasterizerSceneRD::singleton = nullptr;
 
+RID RasterizerSceneRD::get_cluster_builder_texture() {
+	return cluster.builder.get_cluster_texture();
+}
+
+RID RasterizerSceneRD::get_cluster_builder_indices_buffer() {
+	return cluster.builder.get_cluster_indices_buffer();
+}
+
+RID RasterizerSceneRD::get_reflection_probe_buffer() {
+	return cluster.reflection_buffer;
+}
+RID RasterizerSceneRD::get_positional_light_buffer() {
+	return cluster.light_buffer;
+}
+RID RasterizerSceneRD::get_directional_light_buffer() {
+	return cluster.directional_light_buffer;
+}
+RID RasterizerSceneRD::get_decal_buffer() {
+	return cluster.decal_buffer;
+}
+int RasterizerSceneRD::get_max_directional_lights() const {
+	return cluster.max_directional_lights;
+}
+
 RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 	storage = p_storage;
 	singleton = this;
@@ -6802,6 +7383,45 @@ RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 		}
 	}
 
+	//cluster setup
+	uint32_t uniform_max_size = RD::get_singleton()->limit_get(RD::LIMIT_MAX_UNIFORM_BUFFER_SIZE);
+
+	{ //reflections
+		uint32_t reflection_buffer_size;
+		if (uniform_max_size < 65536) {
+			//Yes, you guessed right, ARM again
+			reflection_buffer_size = uniform_max_size;
+		} else {
+			reflection_buffer_size = 65536;
+		}
+
+		cluster.max_reflections = reflection_buffer_size / sizeof(Cluster::ReflectionData);
+		cluster.reflections = memnew_arr(Cluster::ReflectionData, cluster.max_reflections);
+		cluster.reflection_buffer = RD::get_singleton()->storage_buffer_create(reflection_buffer_size);
+	}
+
+	{ //lights
+		cluster.max_lights = MIN(1024 * 1024, uniform_max_size) / sizeof(Cluster::LightData); //1mb of lights
+		uint32_t light_buffer_size = cluster.max_lights * sizeof(Cluster::LightData);
+		cluster.lights = memnew_arr(Cluster::LightData, cluster.max_lights);
+		cluster.light_buffer = RD::get_singleton()->storage_buffer_create(light_buffer_size);
+		//defines += "\n#define MAX_LIGHT_DATA_STRUCTS " + itos(cluster.max_lights) + "\n";
+
+		cluster.max_directional_lights = 8;
+		uint32_t directional_light_buffer_size = cluster.max_directional_lights * sizeof(Cluster::DirectionalLightData);
+		cluster.directional_lights = memnew_arr(Cluster::DirectionalLightData, cluster.max_directional_lights);
+		cluster.directional_light_buffer = RD::get_singleton()->uniform_buffer_create(directional_light_buffer_size);
+	}
+
+	{ //decals
+		cluster.max_decals = MIN(1024 * 1024, uniform_max_size) / sizeof(Cluster::DecalData); //1mb of decals
+		uint32_t decal_buffer_size = cluster.max_decals * sizeof(Cluster::DecalData);
+		cluster.decals = memnew_arr(Cluster::DecalData, cluster.max_decals);
+		cluster.decal_buffer = RD::get_singleton()->storage_buffer_create(decal_buffer_size);
+	}
+
+	cluster.builder.setup(16, 8, 24);
+
 	default_giprobe_buffer = RD::get_singleton()->uniform_buffer_create(sizeof(GI::GIProbeData) * RenderBuffers::MAX_GIPROBES);
 
 	camera_effects_set_dof_blur_bokeh_shape(RS::DOFBokehShape(int(GLOBAL_GET("rendering/quality/depth_of_field/depth_of_field_bokeh_shape"))));
@@ -6863,4 +7483,15 @@ RasterizerSceneRD::~RasterizerSceneRD() {
 	memdelete_arr(directional_soft_shadow_kernel);
 	memdelete_arr(penumbra_shadow_kernel);
 	memdelete_arr(soft_shadow_kernel);
+
+	{
+		RD::get_singleton()->free(cluster.directional_light_buffer);
+		RD::get_singleton()->free(cluster.light_buffer);
+		RD::get_singleton()->free(cluster.reflection_buffer);
+		RD::get_singleton()->free(cluster.decal_buffer);
+		memdelete_arr(cluster.directional_lights);
+		memdelete_arr(cluster.lights);
+		memdelete_arr(cluster.reflections);
+		memdelete_arr(cluster.decals);
+	}
 }

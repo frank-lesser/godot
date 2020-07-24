@@ -2782,7 +2782,7 @@ void DisplayServerOSX::window_set_flag(WindowFlags p_flag, bool p_enabled, Windo
 	switch (p_flag) {
 		case WINDOW_FLAG_RESIZE_DISABLED: {
 			wd.resize_disabled = p_enabled;
-			if (wd.fullscreen) { //fullscreen window should be resizable, style will be applyed on exiting fs
+			if (wd.fullscreen) { //fullscreen window should be resizable, style will be applied on exiting fs
 				return;
 			}
 			if (p_enabled) {
@@ -3492,9 +3492,7 @@ DisplayServerOSX::WindowID DisplayServerOSX::_create_window(WindowMode p_mode, c
 		wd.window_view = [[GodotContentView alloc] init];
 		ERR_FAIL_COND_V_MSG(wd.window_view == nil, INVALID_WINDOW_ID, "Can't create a window view");
 		[wd.window_view setWindowID:window_id_counter];
-		if (NSAppKitVersionNumber >= NSAppKitVersionNumber10_14) {
-			[wd.window_view setWantsLayer:TRUE];
-		}
+		[wd.window_view setWantsLayer:TRUE];
 
 		[wd.window_object setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
 		[wd.window_object setContentView:wd.window_view];
