@@ -28,7 +28,8 @@ def get_opts():
         ("MACOS_SDK_PATH", "Path to the macOS SDK", ""),
         BoolVariable(
             "use_static_mvk",
-            "Link MoltenVK statically as Level-0 driver (better portability) or use Vulkan ICD loader (enables validation layers)",
+            "Link MoltenVK statically as Level-0 driver (better portability) or use Vulkan ICD loader (enables"
+            " validation layers)",
             False,
         ),
         EnumVariable("debug_symbols", "Add debugging symbols to release builds", "yes", ("yes", "no", "full")),
@@ -50,9 +51,11 @@ def configure(env):
 
     if env["target"] == "release":
         if env["optimize"] == "speed":  # optimize for speed (default)
-            env.Prepend(CCFLAGS=["-O3", "-fomit-frame-pointer", "-ftree-vectorize", "-msse2"])
+            env.Prepend(CCFLAGS=["-O3", "-fomit-frame-pointer", "-ftree-vectorize"])
         else:  # optimize for size
-            env.Prepend(CCFLAGS=["-Os", "-ftree-vectorize", "-msse2"])
+            env.Prepend(CCFLAGS=["-Os", "-ftree-vectorize"])
+        if env["arch"] != "arm64":
+            env.Prepend(CCFLAGS=["-msse2"])
 
         if env["debug_symbols"] == "yes":
             env.Prepend(CCFLAGS=["-g1"])

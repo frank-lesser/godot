@@ -2513,6 +2513,8 @@ RES VisualScriptEditor::get_edited_resource() const {
 }
 
 void VisualScriptEditor::set_edited_resource(const RES &p_res) {
+	ERR_FAIL_COND(script.is_valid());
+	ERR_FAIL_COND(p_res.is_null());
 	script = p_res;
 	signal_editor->script = script;
 	signal_editor->undo_redo = undo_redo;
@@ -2533,6 +2535,9 @@ void VisualScriptEditor::set_edited_resource(const RES &p_res) {
 	_update_members();
 }
 
+void VisualScriptEditor::enable_editor() {
+}
+
 Vector<String> VisualScriptEditor::get_functions() {
 	return Vector<String>();
 }
@@ -2546,6 +2551,9 @@ String VisualScriptEditor::get_name() {
 	if (script->get_path().find("local://") == -1 && script->get_path().find("::") == -1) {
 		name = script->get_path().get_file();
 		if (is_unsaved()) {
+			if (script->get_path().empty()) {
+				name = TTR("[unsaved]");
+			}
 			name += "(*)";
 		}
 	} else if (script->get_name() != "") {
@@ -2562,7 +2570,11 @@ Ref<Texture2D> VisualScriptEditor::get_theme_icon() {
 }
 
 bool VisualScriptEditor::is_unsaved() {
-	return script->is_edited() || script->are_subnodes_edited();
+	bool unsaved =
+			script->is_edited() ||
+			script->are_subnodes_edited() ||
+			script->get_path().empty(); // In memory.
+	return unsaved;
 }
 
 Variant VisualScriptEditor::get_edit_state() {

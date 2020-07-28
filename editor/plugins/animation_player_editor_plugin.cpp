@@ -411,7 +411,7 @@ void AnimationPlayerEditor::_animation_remove() {
 
 	String current = animation->get_item_text(animation->get_selected());
 
-	delete_dialog->set_text(TTR("Delete Animation '" + current + "'?"));
+	delete_dialog->set_text(vformat(TTR("Delete Animation '%s'?"), current));
 	delete_dialog->popup_centered();
 }
 
@@ -744,7 +744,7 @@ void AnimationPlayerEditor::_dialog_action(String p_path) {
 }
 
 void AnimationPlayerEditor::_scale_changed(const String &p_scale) {
-	player->set_speed_scale(p_scale.to_double());
+	player->set_speed_scale(p_scale.to_float());
 }
 
 void AnimationPlayerEditor::_update_animation() {

@@ -342,6 +342,16 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 		return result;
 	}
 
+	if (first == "Object") {
+		result.kind = GDScriptParser::DataType::NATIVE;
+		result.native_type = "Object";
+		if (p_type->type_chain.size() > 1) {
+			push_error(R"("Object" type don't contain nested types.)", p_type->type_chain[1]);
+			return GDScriptParser::DataType();
+		}
+		return result;
+	}
+
 	if (GDScriptParser::get_builtin_type(first) < Variant::VARIANT_MAX) {
 		// Built-in types.
 		if (p_type->type_chain.size() > 1) {
@@ -1420,6 +1430,12 @@ void GDScriptAnalyzer::reduce_assignment(GDScriptParser::AssignmentNode *p_assig
 }
 
 void GDScriptAnalyzer::reduce_await(GDScriptParser::AwaitNode *p_await) {
+	if (p_await->to_await == nullptr) {
+		GDScriptParser::DataType await_type;
+		await_type.kind = GDScriptParser::DataType::VARIANT;
+		p_await->set_datatype(await_type);
+		return;
+	}
 	if (p_await->to_await->type == GDScriptParser::Node::CALL) {
 		reduce_call(static_cast<GDScriptParser::CallNode *>(p_await->to_await), true);
 	} else {

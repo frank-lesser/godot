@@ -84,6 +84,7 @@ env_base.__class__.add_shared_library = methods.add_shared_library
 env_base.__class__.add_library = methods.add_library
 env_base.__class__.add_program = methods.add_program
 env_base.__class__.CommandNoCache = methods.CommandNoCache
+env_base.__class__.Run = methods.Run
 env_base.__class__.disable_warnings = methods.disable_warnings
 env_base.__class__.module_check_dependencies = methods.module_check_dependencies
 
@@ -115,6 +116,7 @@ opts.Add(EnumVariable("target", "Compilation target", "debug", ("debug", "releas
 opts.Add(EnumVariable("optimize", "Optimization type", "speed", ("speed", "size")))
 
 opts.Add(BoolVariable("tools", "Build the tools (a.k.a. the Godot editor)", True))
+opts.Add(BoolVariable("tests", "Build the unit tests", False))
 opts.Add(BoolVariable("use_lto", "Use link-time optimization", False))
 opts.Add(BoolVariable("use_precise_math_checks", "Math checks use very precise epsilon (debug option)", False))
 
@@ -249,6 +251,10 @@ if env_base["target"] == "debug":
     # http://scons.org/doc/production/HTML/scons-user/ch06s04.html
     env_base.SetOption("implicit_cache", 1)
 
+if not env_base["tools"]:
+    # Export templates can't run unit test tool.
+    env_base["tests"] = False
+
 if env_base["no_editor_splash"]:
     env_base.Append(CPPDEFINES=["NO_EDITOR_SPLASH"])
 
@@ -312,6 +318,8 @@ if selected_platform in platform_list:
         env["verbose"] = True
         env["warnings"] = "extra"
         env["werror"] = True
+        if env["tools"]:
+            env["tests"] = True
 
     if env["vsproj"]:
         env.vs_incs = []
@@ -610,8 +618,9 @@ if selected_platform in platform_list:
     editor_module_list = ["regex"]
     if env["tools"] and not env.module_check_dependencies("tools", editor_module_list):
         print(
-            "Build option 'module_" + x + "_enabled=no' cannot be used with 'tools=yes' (editor), "
-            "only with 'tools=no' (export template)."
+            "Build option 'module_"
+            + x
+            + "_enabled=no' cannot be used with 'tools=yes' (editor), only with 'tools=no' (export template)."
         )
         Exit(255)
 
@@ -619,27 +628,24 @@ if selected_platform in platform_list:
         methods.no_verbose(sys, env)
 
     if not env["platform"] == "server":
-        env.Append(
-            BUILDERS={
-                "GLES2_GLSL": env.Builder(
-                    action=run_in_subprocess(gles_builders.build_gles2_headers), suffix="glsl.gen.h", src_suffix=".glsl"
-                )
-            }
-        )
-        env.Append(
-            BUILDERS={
-                "RD_GLSL": env.Builder(
-                    action=run_in_subprocess(gles_builders.build_rd_headers), suffix="glsl.gen.h", src_suffix=".glsl"
-                )
-            }
-        )
-        env.Append(
-            BUILDERS={
-                "GLSL_HEADER": env.Builder(
-                    action=run_in_subprocess(gles_builders.build_raw_headers), suffix="glsl.gen.h", src_suffix=".glsl"
-                )
-            }
-        )
+        GLSL_BUILDERS = {
+            "GLES2_GLSL": env.Builder(
+                action=env.Run(gles_builders.build_gles2_headers, 'Building GLES2_GLSL header: "$TARGET"'),
+                suffix="glsl.gen.h",
+                src_suffix=".glsl",
+            ),
+            "RD_GLSL": env.Builder(
+                action=env.Run(gles_builders.build_rd_headers, 'Building RD_GLSL header: "$TARGET"'),
+                suffix="glsl.gen.h",
+                src_suffix=".glsl",
+            ),
+            "GLSL_HEADER": env.Builder(
+                action=env.Run(gles_builders.build_raw_headers, 'Building GLSL header: "$TARGET"'),
+                suffix="glsl.gen.h",
+                src_suffix=".glsl",
+            ),
+        }
+        env.Append(BUILDERS=GLSL_BUILDERS)
 
     scons_cache_path = os.environ.get("SCONS_CACHE")
     if scons_cache_path != None:
@@ -648,8 +654,7 @@ if selected_platform in platform_list:
 
     Export("env")
 
-    # build subdirs, the build order is dependent on link order.
-
+    # Build subdirs, the build order is dependent on link order.
     SConscript("core/SCsub")
     SConscript("servers/SCsub")
     SConscript("scene/SCsub")
@@ -658,9 +663,11 @@ if selected_platform in platform_list:
 
     SConscript("platform/SCsub")
     SConscript("modules/SCsub")
+    if env["tests"]:
+        SConscript("tests/SCsub")
     SConscript("main/SCsub")
 
-    SConscript("platform/" + selected_platform + "/SCsub")  # build selected platform
+    SConscript("platform/" + selected_platform + "/SCsub")  # Build selected platform.
 
     # Microsoft Visual Studio Project Generation
     if env["vsproj"]:

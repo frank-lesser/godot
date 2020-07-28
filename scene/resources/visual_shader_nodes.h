@@ -1715,6 +1715,8 @@ public:
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
 
+	virtual bool is_code_generated() const override;
+
 	Vector<StringName> get_editable_properties() const override;
 
 	void set_texture_type(TextureType p_type);
@@ -1875,6 +1877,7 @@ public:
 	virtual String get_output_port_name(int p_port) const override;
 
 	virtual String get_input_port_default_hint(int p_port) const override;
+	virtual bool is_generate_input_var(int p_port) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override;
 
 	VisualShaderNodeFresnel();

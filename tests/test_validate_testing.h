@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  csharp_project.h                                                     */
+/*  test_validate_testing.h                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,15 +28,15 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef CSHARP_PROJECT_H
-#define CSHARP_PROJECT_H
+#ifndef TEST_VALIDATE_TESTING_H
+#define TEST_VALIDATE_TESTING_H
 
-#include "core/ustring.h"
+#include "core/os/os.h"
 
-namespace CSharpProject {
+#include "thirdparty/doctest/doctest.h"
 
-void add_item(const String &p_project_path, const String &p_item_type, const String &p_include);
+TEST_CASE("Validate Test will always pass") {
+	CHECK(true);
+}
 
-} // namespace CSharpProject
-
-#endif // CSHARP_PROJECT_H
+#endif // TEST_VALIDATE_TESTING_H

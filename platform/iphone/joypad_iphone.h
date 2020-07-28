@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  test_main.h                                                          */
+/*  joypad_iphone.h                                                      */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,14 +28,23 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef TEST_MAIN_H
-#define TEST_MAIN_H
+#import <GameController/GameController.h>
 
-#include "core/list.h"
-#include "core/os/main_loop.h"
-#include "core/ustring.h"
+@interface JoypadIPhoneObserver : NSObject
 
-const char **tests_get_names();
-MainLoop *test_main(String p_test, const List<String> &p_args);
+- (void)startObserving;
+- (void)startProcessing;
+- (void)finishObserving;
 
-#endif // TEST_MAIN_H
+@end
+
+class JoypadIPhone {
+private:
+	JoypadIPhoneObserver *observer;
+
+public:
+	JoypadIPhone();
+	~JoypadIPhone();
+
+	void start_processing();
+};

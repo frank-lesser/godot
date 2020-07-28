@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  csharp_project.cpp                                                   */
+/*  godot_view.h                                                         */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,42 +28,29 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "csharp_project.h"
+#import <UIKit/UIKit.h>
 
-#include "core/io/json.h"
-#include "core/os/dir_access.h"
-#include "core/os/file_access.h"
-#include "core/os/os.h"
-#include "core/project_settings.h"
+class String;
 
-#include "../csharp_script.h"
-#include "../mono_gd/gd_mono_class.h"
-#include "../mono_gd/gd_mono_marshal.h"
-#include "../utils/string_utils.h"
-#include "script_class_parser.h"
+@protocol DisplayLayer;
+@protocol GodotViewRendererProtocol;
 
-namespace CSharpProject {
+@interface GodotView : UIView <UIKeyInput>
 
-void add_item(const String &p_project_path, const String &p_item_type, const String &p_include) {
-	if (!GLOBAL_DEF("mono/project/auto_update_project", true)) {
-		return;
-	}
+@property(assign, nonatomic) id<GodotViewRendererProtocol> renderer;
 
-	GDMonoAssembly *tools_project_editor_assembly = GDMono::get_singleton()->get_tools_project_editor_assembly();
+@property(assign, readonly, nonatomic) BOOL isActive;
 
-	GDMonoClass *klass = tools_project_editor_assembly->get_class("GodotTools.ProjectEditor", "ProjectUtils");
+@property(assign, nonatomic) BOOL useCADisplayLink;
+@property(strong, readonly, nonatomic) CALayer<DisplayLayer> *renderingLayer;
+@property(assign, readonly, nonatomic) BOOL canRender;
 
-	Variant project_path = p_project_path;
-	Variant item_type = p_item_type;
-	Variant include = p_include;
-	const Variant *args[3] = { &project_path, &item_type, &include };
-	MonoException *exc = nullptr;
-	klass->get_method("AddItemToProjectChecked", 3)->invoke(nullptr, args, &exc);
+@property(assign, nonatomic) NSTimeInterval renderingInterval;
 
-	if (exc) {
-		GDMonoUtils::debug_print_unhandled_exception(exc);
-		ERR_FAIL();
-	}
-}
+- (CALayer<DisplayLayer> *)initializeRenderingForDriver:(NSString *)driverName;
+- (void)stopRendering;
+- (void)startRendering;
 
-} // namespace CSharpProject
+- (BOOL)becomeFirstResponderWithString:(String)p_existing;
+
+@end

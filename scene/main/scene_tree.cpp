@@ -250,11 +250,7 @@ void SceneTree::call_group_flags(uint32_t p_call_flags, const StringName &p_grou
 			}
 
 			if (p_call_flags & GROUP_CALL_REALTIME) {
-				if (p_call_flags & GROUP_CALL_MULTILEVEL) {
-					nodes[i]->call_multilevel(p_function, VARIANT_ARG_PASS);
-				} else {
-					nodes[i]->call(p_function, VARIANT_ARG_PASS);
-				}
+				nodes[i]->call(p_function, VARIANT_ARG_PASS);
 			} else {
 				MessageQueue::get_singleton()->push_call(nodes[i], p_function, VARIANT_ARG_PASS);
 			}
@@ -267,11 +263,7 @@ void SceneTree::call_group_flags(uint32_t p_call_flags, const StringName &p_grou
 			}
 
 			if (p_call_flags & GROUP_CALL_REALTIME) {
-				if (p_call_flags & GROUP_CALL_MULTILEVEL) {
-					nodes[i]->call_multilevel(p_function, VARIANT_ARG_PASS);
-				} else {
-					nodes[i]->call(p_function, VARIANT_ARG_PASS);
-				}
+				nodes[i]->call(p_function, VARIANT_ARG_PASS);
 			} else {
 				MessageQueue::get_singleton()->push_call(nodes[i], p_function, VARIANT_ARG_PASS);
 			}
@@ -883,8 +875,12 @@ void SceneTree::_call_input_pause(const StringName &p_group, const StringName &p
 			continue;
 		}
 
-		n->call_multilevel(p_method, (const Variant **)v, 1);
-		//ERR_FAIL_COND(node_count != g.nodes.size());
+		Callable::CallError err;
+		// Call both script and native method.
+		if (n->get_script_instance()) {
+			n->get_script_instance()->call(p_method, (const Variant **)v, 1, err);
+		}
+		n->call(p_method, (const Variant **)v, 1, err);
 	}
 
 	call_lock--;

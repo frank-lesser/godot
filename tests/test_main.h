@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  test_string.h                                                        */
+/*  test_main.h                                                          */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,15 +28,14 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef TEST_STRING_H
-#define TEST_STRING_H
+#ifndef TEST_MAIN_H
+#define TEST_MAIN_H
 
+#include "core/list.h"
 #include "core/os/main_loop.h"
 #include "core/ustring.h"
 
-namespace TestString {
+const char **tests_get_names();
+int test_main(int argc, char *argv[]);
 
-MainLoop *test();
-}
-
-#endif
+#endif // TEST_MAIN_H

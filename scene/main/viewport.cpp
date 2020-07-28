@@ -1607,7 +1607,17 @@ void Viewport::_gui_call_input(Control *p_control, const Ref<InputEvent> &p_inpu
 			}
 
 			if (control->data.mouse_filter != Control::MOUSE_FILTER_IGNORE) {
-				control->call_multilevel(SceneStringNames::get_singleton()->_gui_input, ev);
+				// Call both script and native methods.
+				Callable::CallError error;
+				Variant event = ev;
+				const Variant *args[1] = { &event };
+				if (control->get_script_instance()) {
+					control->get_script_instance()->call(SceneStringNames::get_singleton()->_gui_input, args, 1, error);
+				}
+				MethodBind *method = ClassDB::get_method(control->get_class_name(), SceneStringNames::get_singleton()->_gui_input);
+				if (method) {
+					method->call(control, args, 1, error);
+				}
 			}
 
 			if (!control->is_inside_tree() || control->is_set_as_toplevel()) {
@@ -2306,7 +2316,7 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 		if (gui.key_focus) {
 			gui.key_event_accepted = false;
 			if (gui.key_focus->can_process()) {
-				gui.key_focus->call_multilevel(SceneStringNames::get_singleton()->_gui_input, p_event);
+				gui.key_focus->call(SceneStringNames::get_singleton()->_gui_input, p_event);
 				if (gui.key_focus) { //maybe lost it
 					gui.key_focus->emit_signal(SceneStringNames::get_singleton()->gui_input, p_event);
 				}
@@ -2516,7 +2526,7 @@ void Viewport::_drop_mouse_focus() {
 			mb->set_global_position(c->get_local_mouse_position());
 			mb->set_button_index(i + 1);
 			mb->set_pressed(false);
-			c->call_multilevel(SceneStringNames::get_singleton()->_gui_input, mb);
+			c->call(SceneStringNames::get_singleton()->_gui_input, mb);
 		}
 	}
 }
@@ -2581,7 +2591,7 @@ void Viewport::_post_gui_grab_click_focus() {
 				mb->set_position(click);
 				mb->set_button_index(i + 1);
 				mb->set_pressed(false);
-				gui.mouse_focus->call_multilevel(SceneStringNames::get_singleton()->_gui_input, mb);
+				gui.mouse_focus->call(SceneStringNames::get_singleton()->_gui_input, mb);
 			}
 		}
 
@@ -2989,10 +2999,8 @@ void Viewport::unhandled_input(const Ref<InputEvent> &p_event, bool p_local_coor
 	}
 
 	get_tree()->_call_input_pause(unhandled_input_group, "_unhandled_input", ev, this);
-	//call_group(GROUP_CALL_REVERSE|GROUP_CALL_REALTIME|GROUP_CALL_MULIILEVEL,"unhandled_input","_unhandled_input",ev);
 	if (!is_input_handled() && Object::cast_to<InputEventKey>(*ev) != nullptr) {
 		get_tree()->_call_input_pause(unhandled_key_input_group, "_unhandled_key_input", ev, this);
-		//call_group(GROUP_CALL_REVERSE|GROUP_CALL_REALTIME|GROUP_CALL_MULIILEVEL,"unhandled_key_input","_unhandled_key_input",ev);
 	}
 
 	if (physics_object_picking && !is_input_handled()) {

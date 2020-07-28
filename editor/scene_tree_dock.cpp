@@ -1100,6 +1100,7 @@ void SceneTreeDock::_notification(int p_what) {
 			node_shortcuts_toggle->set_name("NodeShortcutsToggle");
 			node_shortcuts_toggle->set_icon(get_theme_icon("Favorites", "EditorIcons"));
 			node_shortcuts_toggle->set_toggle_mode(true);
+			node_shortcuts_toggle->set_tooltip(TTR("Switch to Favorite Nodes"));
 			node_shortcuts_toggle->set_pressed(EDITOR_GET("_use_favorites_root_selection"));
 			node_shortcuts_toggle->set_anchors_and_margins_preset(Control::PRESET_CENTER_RIGHT);
 			node_shortcuts_toggle->connect("pressed", callable_mp(this, &SceneTreeDock::_update_create_root_dialog));
@@ -2717,7 +2718,7 @@ void SceneTreeDock::_update_create_root_dialog() {
 				if (l != String()) {
 					Button *button = memnew(Button);
 					favorite_nodes->add_child(button);
-					button->set_text(TTR(l));
+					button->set_text(l);
 					String name = l.get_slicec(' ', 0);
 					if (ScriptServer::is_global_class(name)) {
 						name = ScriptServer::get_global_class_native_base(name);

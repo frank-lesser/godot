@@ -768,6 +768,30 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 		}
 	}
 
+	void _write_tmp_manifest(const Ref<EditorExportPreset> &p_preset, bool p_give_internet, bool p_debug) {
+		String manifest_text =
+				"<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+				"<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n"
+				"    xmlns:tools=\"http://schemas.android.com/tools\">\n";
+
+		manifest_text += _get_screen_sizes_tag(p_preset);
+		manifest_text += _get_gles_tag();
+
+		Vector<String> perms;
+		_get_permissions(p_preset, p_give_internet, perms);
+		for (int i = 0; i < perms.size(); i++) {
+			manifest_text += vformat("    <uses-permission android:name=\"%s\" />\n", perms.get(i));
+		}
+
+		manifest_text += _get_xr_features_tag(p_preset);
+		manifest_text += _get_instrumentation_tag(p_preset);
+		String plugins_names = get_plugins_names(get_enabled_plugins(p_preset));
+		manifest_text += _get_application_tag(p_preset, plugins_names);
+		manifest_text += "</manifest>\n";
+		String manifest_path = vformat("res://android/build/src/%s/AndroidManifest.xml", (p_debug ? "debug" : "release"));
+		store_string_at_path(manifest_path, manifest_text);
+	}
+
 	void _fix_manifest(const Ref<EditorExportPreset> &p_preset, Vector<uint8_t> &p_manifest, bool p_give_internet) {
 		// Leaving the unused types commented because looking these constants up
 		// again later would be annoying
@@ -2056,6 +2080,93 @@ public:
 		return OK;
 	}
 
+	Error sign_apk(const Ref<EditorExportPreset> &p_preset, bool p_debug, String apk_path, EditorProgress ep) {
+		String release_keystore = p_preset->get("keystore/release");
+		String release_username = p_preset->get("keystore/release_user");
+		String release_password = p_preset->get("keystore/release_password");
+
+		String jarsigner = EditorSettings::get_singleton()->get("export/android/jarsigner");
+		if (!FileAccess::exists(jarsigner)) {
+			EditorNode::add_io_error("'jarsigner' could not be found.\nPlease supply a path in the Editor Settings.\nThe resulting APK is unsigned.");
+			return OK;
+		}
+
+		String keystore;
+		String password;
+		String user;
+		if (p_debug) {
+			keystore = p_preset->get("keystore/debug");
+			password = p_preset->get("keystore/debug_password");
+			user = p_preset->get("keystore/debug_user");
+
+			if (keystore.empty()) {
+				keystore = EditorSettings::get_singleton()->get("export/android/debug_keystore");
+				password = EditorSettings::get_singleton()->get("export/android/debug_keystore_pass");
+				user = EditorSettings::get_singleton()->get("export/android/debug_keystore_user");
+			}
+
+			if (ep.step("Signing debug APK...", 103)) {
+				return ERR_SKIP;
+			}
+
+		} else {
+			keystore = release_keystore;
+			password = release_password;
+			user = release_username;
+
+			if (ep.step("Signing release APK...", 103)) {
+				return ERR_SKIP;
+			}
+		}
+
+		if (!FileAccess::exists(keystore)) {
+			EditorNode::add_io_error("Could not find keystore, unable to export.");
+			return ERR_FILE_CANT_OPEN;
+		}
+
+		List<String> args;
+		args.push_back("-digestalg");
+		args.push_back("SHA-256");
+		args.push_back("-sigalg");
+		args.push_back("SHA256withRSA");
+		String tsa_url = EditorSettings::get_singleton()->get("export/android/timestamping_authority_url");
+		if (tsa_url != "") {
+			args.push_back("-tsa");
+			args.push_back(tsa_url);
+		}
+		args.push_back("-verbose");
+		args.push_back("-keystore");
+		args.push_back(keystore);
+		args.push_back("-storepass");
+		args.push_back(password);
+		args.push_back(apk_path);
+		args.push_back(user);
+		int retval;
+		OS::get_singleton()->execute(jarsigner, args, true, NULL, NULL, &retval);
+		if (retval) {
+			EditorNode::add_io_error("'jarsigner' returned with error #" + itos(retval));
+			return ERR_CANT_CREATE;
+		}
+
+		if (ep.step("Verifying APK...", 104)) {
+			return ERR_SKIP;
+		}
+
+		args.clear();
+		args.push_back("-verify");
+		args.push_back("-keystore");
+		args.push_back(keystore);
+		args.push_back(apk_path);
+		args.push_back("-verbose");
+
+		OS::get_singleton()->execute(jarsigner, args, true, NULL, NULL, &retval);
+		if (retval) {
+			EditorNode::add_io_error("'jarsigner' verification of APK failed. Make sure to use a jarsigner from OpenJDK 8.");
+			return ERR_CANT_CREATE;
+		}
+		return OK;
+	}
+
 	virtual Error export_project(const Ref<EditorExportPreset> &p_preset, bool p_debug, const String &p_path, int p_flags = 0) override {
 		ExportNotifier notifier(*this, p_preset, p_debug, p_path, p_flags);
 
@@ -2064,6 +2175,7 @@ public:
 		EditorProgress ep("export", "Exporting for Android", 105, true);
 
 		bool use_custom_build = bool(p_preset->get("custom_template/use_custom_build"));
+		bool p_give_internet = p_flags & (DEBUG_FLAG_DUMB_CLIENT | DEBUG_FLAG_REMOTE_DEBUG);
 
 		Ref<Image> main_image;
 		Ref<Image> foreground;
@@ -2093,9 +2205,10 @@ public:
 			if (err != OK) {
 				EditorNode::add_io_error("Unable to overwrite res://android/build/res/*.xml files with project name");
 			}
-			// Copies the project icon files into the appropriate Gradle project directory
+			// Copies the project icon files into the appropriate Gradle project directory.
 			_copy_icons_to_gradle_project(p_preset, main_image, foreground, background);
-
+			// Write an AndroidManifest.xml file into the Gradle project directory.
+			_write_tmp_manifest(p_preset, p_give_internet, p_debug);
 			//build project if custom build is enabled
 			String sdk_path = EDITOR_GET("export/android/custom_build_sdk_path");
 
@@ -2115,6 +2228,8 @@ public:
 			build_command = build_path.plus_file(build_command);
 
 			String package_name = get_package_name(p_preset->get("package/unique_name"));
+			String version_code = itos(p_preset->get("version/code"));
+			String version_name = p_preset->get("version/name");
 
 			Vector<PluginConfig> enabled_plugins = get_enabled_plugins(p_preset);
 			String local_plugins_binaries = get_plugins_binaries(BINARY_TYPE_LOCAL, enabled_plugins);
@@ -2128,6 +2243,8 @@ public:
 			}
 			cmdline.push_back("build");
 			cmdline.push_back("-Pexport_package_name=" + package_name); // argument to specify the package name.
+			cmdline.push_back("-Pexport_version_code=" + version_code); // argument to specify the version code.
+			cmdline.push_back("-Pexport_version_name=" + version_name); // argument to specify the version name.
 			cmdline.push_back("-Pplugins_local_binaries=" + local_plugins_binaries); // argument to specify the list of plugins local dependencies.
 			cmdline.push_back("-Pplugins_remote_binaries=" + remote_plugins_binaries); // argument to specify the list of plugins remote dependencies.
 			cmdline.push_back("-Pplugins_maven_repos=" + custom_maven_repos); // argument to specify the list of custom maven repos for the plugins dependencies.
@@ -2219,10 +2336,6 @@ public:
 		bool apk_expansion = p_preset->get("apk_expansion/enable");
 		String apk_expansion_pkey = p_preset->get("apk_expansion/public_key");
 
-		String release_keystore = p_preset->get("keystore/release");
-		String release_username = p_preset->get("keystore/release_user");
-		String release_password = p_preset->get("keystore/release_password");
-
 		Vector<String> enabled_abis = get_enabled_abis(p_preset);
 
 		// Prepare images to be resized for the icons. If some image ends up being uninitialized, the default image from the export template will be used.
@@ -2248,11 +2361,10 @@ public:
 
 			//write
 
-			if (file == "AndroidManifest.xml") {
-				_fix_manifest(p_preset, data, p_flags & (DEBUG_FLAG_DUMB_CLIENT | DEBUG_FLAG_REMOTE_DEBUG));
-			}
-
 			if (!use_custom_build) {
+				if (file == "AndroidManifest.xml") {
+					_fix_manifest(p_preset, data, p_give_internet);
+				}
 				if (file == "resources.arsc") {
 					_fix_resources(p_preset, data);
 				}
@@ -2375,84 +2487,9 @@ public:
 		}
 
 		if (_signed) {
-			String jarsigner = EditorSettings::get_singleton()->get("export/android/jarsigner");
-			if (!FileAccess::exists(jarsigner)) {
-				EditorNode::add_io_error("'jarsigner' could not be found.\nPlease supply a path in the Editor Settings.\nThe resulting APK is unsigned.");
-				CLEANUP_AND_RETURN(OK);
-			}
-
-			String keystore;
-			String password;
-			String user;
-			if (p_debug) {
-				keystore = p_preset->get("keystore/debug");
-				password = p_preset->get("keystore/debug_password");
-				user = p_preset->get("keystore/debug_user");
-
-				if (keystore.empty()) {
-					keystore = EditorSettings::get_singleton()->get("export/android/debug_keystore");
-					password = EditorSettings::get_singleton()->get("export/android/debug_keystore_pass");
-					user = EditorSettings::get_singleton()->get("export/android/debug_keystore_user");
-				}
-
-				if (ep.step("Signing debug APK...", 103)) {
-					CLEANUP_AND_RETURN(ERR_SKIP);
-				}
-
-			} else {
-				keystore = release_keystore;
-				password = release_password;
-				user = release_username;
-
-				if (ep.step("Signing release APK...", 103)) {
-					CLEANUP_AND_RETURN(ERR_SKIP);
-				}
-			}
-
-			if (!FileAccess::exists(keystore)) {
-				EditorNode::add_io_error("Could not find keystore, unable to export.");
-				CLEANUP_AND_RETURN(ERR_FILE_CANT_OPEN);
-			}
-
-			List<String> args;
-			args.push_back("-digestalg");
-			args.push_back("SHA-256");
-			args.push_back("-sigalg");
-			args.push_back("SHA256withRSA");
-			String tsa_url = EditorSettings::get_singleton()->get("export/android/timestamping_authority_url");
-			if (tsa_url != "") {
-				args.push_back("-tsa");
-				args.push_back(tsa_url);
-			}
-			args.push_back("-verbose");
-			args.push_back("-keystore");
-			args.push_back(keystore);
-			args.push_back("-storepass");
-			args.push_back(password);
-			args.push_back(tmp_unaligned_path);
-			args.push_back(user);
-			int retval;
-			OS::get_singleton()->execute(jarsigner, args, true, nullptr, nullptr, &retval);
-			if (retval) {
-				EditorNode::add_io_error("'jarsigner' returned with error #" + itos(retval));
-				CLEANUP_AND_RETURN(ERR_CANT_CREATE);
-			}
-
-			if (ep.step("Verifying APK...", 104)) {
-				CLEANUP_AND_RETURN(ERR_SKIP);
-			}
-
-			args.clear();
-			args.push_back("-verify");
-			args.push_back("-keystore");
-			args.push_back(keystore);
-			args.push_back(tmp_unaligned_path);
-			args.push_back("-verbose");
-
-			OS::get_singleton()->execute(jarsigner, args, true, nullptr, nullptr, &retval);
-			if (retval) {
-				EditorNode::add_io_error("'jarsigner' verification of APK failed. Make sure to use a jarsigner from OpenJDK 8.");
-				CLEANUP_AND_RETURN(ERR_CANT_CREATE);
+			err = sign_apk(p_preset, p_debug, tmp_unaligned_path, ep);
+			if (err != OK) {
+				CLEANUP_AND_RETURN(err);
 			}
 		}
 

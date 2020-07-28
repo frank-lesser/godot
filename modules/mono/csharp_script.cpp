@@ -44,7 +44,6 @@
 
 #ifdef TOOLS_ENABLED
 #include "editor/bindings_generator.h"
-#include "editor/csharp_project.h"
 #include "editor/editor_node.h"
 #include "editor/node_dock.h"
 #endif
@@ -897,7 +896,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 
 			// Call OnBeforeSerialize
 			if (csi->script->script_class->implements_interface(CACHED_CLASS(ISerializationListener))) {
-				obj->get_script_instance()->call_multilevel(string_names.on_before_serialize);
+				obj->get_script_instance()->call(string_names.on_before_serialize);
 			}
 
 			// Save instance info
@@ -1133,7 +1132,7 @@ void CSharpLanguage::reload_assemblies(bool p_soft_reload) {
 
 				// Call OnAfterDeserialization
 				if (csi->script->script_class->implements_interface(CACHED_CLASS(ISerializationListener))) {
-					obj->get_script_instance()->call_multilevel(string_names.on_after_deserialize);
+					obj->get_script_instance()->call(string_names.on_after_deserialize);
 				}
 			}
 		}
@@ -1864,41 +1863,6 @@ Variant CSharpInstance::call(const StringName &p_method, const Variant **p_args,
 	r_error.error = Callable::CallError::CALL_ERROR_INVALID_METHOD;
 
 	return Variant();
-}
-
-void CSharpInstance::call_multilevel(const StringName &p_method, const Variant **p_args, int p_argcount) {
-	GD_MONO_SCOPE_THREAD_ATTACH;
-
-	if (script.is_valid()) {
-		MonoObject *mono_object = get_mono_object();
-
-		ERR_FAIL_NULL(mono_object);
-
-		_call_multilevel(mono_object, p_method, p_args, p_argcount);
-	}
-}
-
-void CSharpInstance::_call_multilevel(MonoObject *p_mono_object, const StringName &p_method, const Variant **p_args, int p_argcount) {
-	GD_MONO_ASSERT_THREAD_ATTACHED;
-
-	GDMonoClass *top = script->script_class;
-
-	while (top && top != script->native) {
-		GDMonoMethod *method = top->get_method(p_method, p_argcount);
-
-		if (method) {
-			method->invoke(p_mono_object, p_args);
-			return;
-		}
-
-		top = top->get_parent_class();
-	}
-}
-
-void CSharpInstance::call_multilevel_reversed(const StringName &p_method, const Variant **p_args, int p_argcount) {
-	// Sorry, the method is the one that controls the call order
-
-	call_multilevel(p_method, p_args, p_argcount);
 }
 
 bool CSharpInstance::_reference_owner_unsafe() {
@@ -3759,13 +3723,9 @@ Error ResourceFormatSaverCSharpScript::save(const String &p_path, const RES &p_r
 
 #ifdef TOOLS_ENABLED
 	if (!FileAccess::exists(p_path)) {
-		// The file does not yet exists, let's assume the user just created this script
-
-		if (_create_project_solution_if_needed()) {
-			CSharpProject::add_item(GodotSharpDirs::get_project_csproj_path(),
-					"Compile",
-					ProjectSettings::get_singleton()->globalize_path(p_path));
-		} else {
+		// The file does not yet exist, let's assume the user just created this script. In such
+		// cases we need to check whether the solution and csproj were already created or not.
+		if (!_create_project_solution_if_needed()) {
 			ERR_PRINT("C# project could not be created; cannot add file: '" + p_path + "'.");
 		}
 	}

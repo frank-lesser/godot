@@ -51,12 +51,12 @@ public:
 	void connect();
 	bool is_authenticated();
 
-	Error post_score(Variant p_score);
-	Error award_achievement(Variant p_params);
+	Error post_score(Dictionary p_score);
+	Error award_achievement(Dictionary p_params);
 	void reset_achievements();
 	void request_achievements();
 	void request_achievement_descriptions();
-	Error show_game_center(Variant p_params);
+	Error show_game_center(Dictionary p_params);
 	Error request_identity_verification_signature();
 
 	void game_center_closed();

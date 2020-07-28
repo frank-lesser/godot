@@ -74,6 +74,17 @@ Files extracted from upstream source:
 - all .cpp, .h, and .txt files in ConvectionKernels/
 
 
+## doctest
+- Upstream: https://github.com/onqtam/doctest
+- Version: 1c8da00 (2.4.0)
+- License: MIT
+
+Extracted from .zip provided. Extracted license and header only.
+
+Important: Some files have Godot-made changes.
+They are marked with `// -- GODOT start --` and `// -- GODOT end --`
+comments.
+
 ## enet
 
 - Upstream: http://enet.bespin.org

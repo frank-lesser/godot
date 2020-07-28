@@ -134,6 +134,7 @@ public:
 	virtual RES get_edited_resource() const = 0;
 	virtual Vector<String> get_functions() = 0;
 	virtual void set_edited_resource(const RES &p_res) = 0;
+	virtual void enable_editor() = 0;
 	virtual void reload_text() = 0;
 	virtual String get_name() = 0;
 	virtual Ref<Texture2D> get_theme_icon() = 0;
@@ -370,6 +371,8 @@ class ScriptEditor : public PanelContainer {
 
 	void _save_layout();
 	void _editor_settings_changed();
+	void _filesystem_changed();
+	void _file_removed(const String &p_file);
 	void _autosave_scripts();
 	void _update_autosave_timer();
 
