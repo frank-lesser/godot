@@ -494,7 +494,7 @@ void GDScriptAnalyzer::resolve_class_interface(GDScriptParser::ClassNode *p_clas
 
 					if (member.variable->initializer != nullptr) {
 						if (!is_type_compatible(datatype, member.variable->initializer->get_datatype(), true)) {
-							push_error(vformat(R"(Value of type "%s" cannot be assigned to variable of type "%s".)", member.variable->initializer->get_datatype().to_string(), datatype.to_string()), member.variable->initializer);
+							push_error(vformat(R"(Value of type "%s" cannot be assigned to a variable of type "%s".)", member.variable->initializer->get_datatype().to_string(), datatype.to_string()), member.variable->initializer);
 						} else if (datatype.builtin_type == Variant::INT && member.variable->initializer->get_datatype().builtin_type == Variant::FLOAT) {
 #ifdef DEBUG_ENABLED
 							parser->push_warning(member.variable->initializer, GDScriptWarning::NARROWING_CONVERSION);
@@ -989,7 +989,7 @@ void GDScriptAnalyzer::resolve_variable(GDScriptParser::VariableNode *p_variable
 
 		if (p_variable->initializer != nullptr) {
 			if (!is_type_compatible(type, p_variable->initializer->get_datatype(), true)) {
-				push_error(vformat(R"(Value of type "%s" cannot be assigned to variable of type "%s".)", p_variable->initializer->get_datatype().to_string(), type.to_string()), p_variable->initializer);
+				push_error(vformat(R"(Value of type "%s" cannot be assigned to a variable of type "%s".)", p_variable->initializer->get_datatype().to_string(), type.to_string()), p_variable->initializer);
 #ifdef DEBUG_ENABLED
 			} else if (type.builtin_type == Variant::INT && p_variable->initializer->get_datatype().builtin_type == Variant::FLOAT) {
 				parser->push_warning(p_variable->initializer, GDScriptWarning::NARROWING_CONVERSION);
@@ -1369,12 +1369,60 @@ void GDScriptAnalyzer::reduce_assignment(GDScriptParser::AssignmentNode *p_assig
 		push_error("Cannot assign a new value to a constant.", p_assignment->assignee);
 	}
 
-	if (!is_type_compatible(p_assignment->assignee->get_datatype(), p_assignment->assigned_value->get_datatype(), true)) {
-		if (p_assignment->assignee->get_datatype().is_hard_type()) {
-			push_error(vformat(R"(Cannot assign a value of type "%s" to a target of type "%s".)", p_assignment->assigned_value->get_datatype().to_string(), p_assignment->assignee->get_datatype().to_string()), p_assignment->assigned_value);
-		} else {
-			// TODO: Warning in this case.
+	Variant::Operator vop = Variant::Operator::OP_EQUAL;
+	switch (p_assignment->operation) {
+		case GDScriptParser::AssignmentNode::OP_NONE:
+			vop = Variant::Operator::OP_EQUAL;
+			break;
+		case GDScriptParser::AssignmentNode::OP_ADDITION:
+			vop = Variant::Operator::OP_ADD;
+			break;
+		case GDScriptParser::AssignmentNode::OP_SUBTRACTION:
+			vop = Variant::Operator::OP_SUBTRACT;
+			break;
+		case GDScriptParser::AssignmentNode::OP_MULTIPLICATION:
+			vop = Variant::Operator::OP_MULTIPLY;
+			break;
+		case GDScriptParser::AssignmentNode::OP_DIVISION:
+			vop = Variant::Operator::OP_DIVIDE;
+			break;
+		case GDScriptParser::AssignmentNode::OP_MODULO:
+			vop = Variant::Operator::OP_MODULE;
+			break;
+		case GDScriptParser::AssignmentNode::OP_BIT_SHIFT_LEFT:
+			vop = Variant::Operator::OP_SHIFT_LEFT;
+			break;
+		case GDScriptParser::AssignmentNode::OP_BIT_SHIFT_RIGHT:
+			vop = Variant::Operator::OP_SHIFT_RIGHT;
+			break;
+		case GDScriptParser::AssignmentNode::OP_BIT_AND:
+			vop = Variant::Operator::OP_BIT_AND;
+			break;
+		case GDScriptParser::AssignmentNode::OP_BIT_OR:
+			vop = Variant::Operator::OP_BIT_OR;
+			break;
+		case GDScriptParser::AssignmentNode::OP_BIT_XOR:
+			vop = Variant::Operator::OP_BIT_XOR;
+			break;
+	}
+
+	bool compatible = true;
+	GDScriptParser::DataType op_type = p_assignment->assigned_value->get_datatype();
+	if (vop != Variant::OP_EQUAL) {
+		op_type = get_operation_type(vop, p_assignment->assignee->get_datatype(), p_assignment->assigned_value->get_datatype(), compatible);
+	}
+
+	if (compatible) {
+		compatible = is_type_compatible(p_assignment->assignee->get_datatype(), op_type, true);
+		if (!compatible) {
+			if (p_assignment->assignee->get_datatype().is_hard_type()) {
+				push_error(vformat(R"(Cannot assign a value of type "%s" to a target of type "%s".)", p_assignment->assigned_value->get_datatype().to_string(), p_assignment->assignee->get_datatype().to_string()), p_assignment->assigned_value);
+			} else {
+				// TODO: Warning in this case.
+			}
 		}
+	} else {
+		push_error(vformat(R"(Invalid operands "%s" and "%s" for assignment operator.)", p_assignment->assignee->get_datatype().to_string(), p_assignment->assigned_value->get_datatype().to_string()), p_assignment);
 	}
 
 	if (p_assignment->assignee->get_datatype().has_no_type() || p_assignment->assigned_value->get_datatype().is_variant()) {
