@@ -71,6 +71,10 @@ static StringName get_real_class_name(const StringName &p_source) {
 	return p_source;
 }
 
+void GDScriptAnalyzer::cleanup() {
+	underscore_map.clear();
+}
+
 static GDScriptParser::DataType make_callable_type(const MethodInfo &p_info) {
 	GDScriptParser::DataType type;
 	type.type_source = GDScriptParser::DataType::ANNOTATED_EXPLICIT;
@@ -872,7 +876,8 @@ void GDScriptAnalyzer::resolve_for(GDScriptParser::ForNode *p_for) {
 	// Use int, Vector2, Vector3 instead, which also can be used as range iterators.
 	if (p_for->list && p_for->list->type == GDScriptParser::Node::CALL) {
 		GDScriptParser::CallNode *call = static_cast<GDScriptParser::CallNode *>(p_for->list);
-		if (call->callee->type == GDScriptParser::Node::IDENTIFIER) {
+		GDScriptParser::Node::Type callee_type = call->get_callee_type();
+		if (callee_type == GDScriptParser::Node::IDENTIFIER) {
 			GDScriptParser::IdentifierNode *callee = static_cast<GDScriptParser::IdentifierNode *>(call->callee);
 			if (callee->name == "range") {
 				list_resolved = true;
@@ -1406,23 +1411,25 @@ void GDScriptAnalyzer::reduce_assignment(GDScriptParser::AssignmentNode *p_assig
 			break;
 	}
 
-	bool compatible = true;
-	GDScriptParser::DataType op_type = p_assignment->assigned_value->get_datatype();
-	if (vop != Variant::OP_EQUAL) {
-		op_type = get_operation_type(vop, p_assignment->assignee->get_datatype(), p_assignment->assigned_value->get_datatype(), compatible);
-	}
-
-	if (compatible) {
-		compatible = is_type_compatible(p_assignment->assignee->get_datatype(), op_type, true);
-		if (!compatible) {
-			if (p_assignment->assignee->get_datatype().is_hard_type()) {
-				push_error(vformat(R"(Cannot assign a value of type "%s" to a target of type "%s".)", p_assignment->assigned_value->get_datatype().to_string(), p_assignment->assignee->get_datatype().to_string()), p_assignment->assigned_value);
-			} else {
-				// TODO: Warning in this case.
-			}
+	if (!p_assignment->assignee->get_datatype().is_variant() && !p_assignment->assigned_value->get_datatype().is_variant()) {
+		bool compatible = true;
+		GDScriptParser::DataType op_type = p_assignment->assigned_value->get_datatype();
+		if (vop != Variant::OP_EQUAL) {
+			op_type = get_operation_type(vop, p_assignment->assignee->get_datatype(), p_assignment->assigned_value->get_datatype(), compatible);
 		}
-	} else {
-		push_error(vformat(R"(Invalid operands "%s" and "%s" for assignment operator.)", p_assignment->assignee->get_datatype().to_string(), p_assignment->assigned_value->get_datatype().to_string()), p_assignment);
+
+		if (compatible) {
+			compatible = is_type_compatible(p_assignment->assignee->get_datatype(), op_type, true);
+			if (!compatible) {
+				if (p_assignment->assignee->get_datatype().is_hard_type()) {
+					push_error(vformat(R"(Cannot assign a value of type "%s" to a target of type "%s".)", p_assignment->assigned_value->get_datatype().to_string(), p_assignment->assignee->get_datatype().to_string()), p_assignment->assigned_value);
+				} else {
+					// TODO: Warning in this case.
+				}
+			}
+		} else {
+			push_error(vformat(R"(Invalid operands "%s" and "%s" for assignment operator.)", p_assignment->assignee->get_datatype().to_string(), p_assignment->assigned_value->get_datatype().to_string()), p_assignment);
+		}
 	}
 
 	if (p_assignment->assignee->get_datatype().has_no_type() || p_assignment->assigned_value->get_datatype().is_variant()) {
@@ -1536,7 +1543,19 @@ void GDScriptAnalyzer::reduce_binary_op(GDScriptParser::BinaryOpNode *p_binary_o
 	if (p_binary_op->left_operand->is_constant && p_binary_op->right_operand->is_constant) {
 		p_binary_op->is_constant = true;
 		if (p_binary_op->variant_op < Variant::OP_MAX) {
-			p_binary_op->reduced_value = Variant::evaluate(p_binary_op->variant_op, p_binary_op->left_operand->reduced_value, p_binary_op->right_operand->reduced_value);
+			bool valid = false;
+			Variant::evaluate(p_binary_op->variant_op, p_binary_op->left_operand->reduced_value, p_binary_op->right_operand->reduced_value, p_binary_op->reduced_value, valid);
+			if (!valid) {
+				if (p_binary_op->reduced_value.get_type() == Variant::STRING) {
+					push_error(vformat(R"(%s in operator %s.)", p_binary_op->reduced_value, Variant::get_operator_name(p_binary_op->variant_op)), p_binary_op);
+				} else {
+					push_error(vformat(R"(Invalid operands to operator %s, %s and %s.".)",
+									   Variant::get_operator_name(p_binary_op->variant_op),
+									   Variant::get_type_name(p_binary_op->left_operand->reduced_value.get_type()),
+									   Variant::get_type_name(p_binary_op->right_operand->reduced_value.get_type())),
+							p_binary_op);
+				}
+			}
 		} else {
 			if (p_binary_op->operation == GDScriptParser::BinaryOpNode::OP_TYPE_TEST) {
 				GDScriptParser::DataType test_type = right_type;
@@ -1608,9 +1627,10 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool is_awa
 		all_is_constant = all_is_constant && p_call->arguments[i]->is_constant;
 	}
 
+	GDScriptParser::Node::Type callee_type = p_call->get_callee_type();
 	GDScriptParser::DataType call_type;
 
-	if (!p_call->is_super && p_call->callee->type == GDScriptParser::Node::IDENTIFIER) {
+	if (!p_call->is_super && callee_type == GDScriptParser::Node::IDENTIFIER) {
 		// Call to name directly.
 		StringName function_name = p_call->function_name;
 		Variant::Type builtin_type = GDScriptParser::get_builtin_type(function_name);
@@ -1785,10 +1805,10 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool is_awa
 	if (p_call->is_super) {
 		base_type = parser->current_class->base_type;
 		is_self = true;
-	} else if (p_call->callee->type == GDScriptParser::Node::IDENTIFIER) {
+	} else if (callee_type == GDScriptParser::Node::IDENTIFIER) {
 		base_type = parser->current_class->get_datatype();
 		is_self = true;
-	} else if (p_call->callee->type == GDScriptParser::Node::SUBSCRIPT) {
+	} else if (callee_type == GDScriptParser::Node::SUBSCRIPT) {
 		GDScriptParser::SubscriptNode *subscript = static_cast<GDScriptParser::SubscriptNode *>(p_call->callee);
 		if (!subscript->is_attribute) {
 			// Invalid call. Error already sent in parser.
@@ -1825,9 +1845,9 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool is_awa
 	} else {
 		// Check if the name exists as something else.
 		bool found = false;
-		if (!p_call->is_super) {
+		if (!p_call->is_super && callee_type != GDScriptParser::Node::NONE) {
 			GDScriptParser::IdentifierNode *callee_id;
-			if (p_call->callee->type == GDScriptParser::Node::IDENTIFIER) {
+			if (callee_type == GDScriptParser::Node::IDENTIFIER) {
 				callee_id = static_cast<GDScriptParser::IdentifierNode *>(p_call->callee);
 			} else {
 				// Can only be attribute.
@@ -1835,13 +1855,13 @@ void GDScriptAnalyzer::reduce_call(GDScriptParser::CallNode *p_call, bool is_awa
 			}
 			if (callee_id) {
 				reduce_identifier_from_base(callee_id, &base_type);
-				GDScriptParser::DataType callee_type = callee_id->get_datatype();
-				if (callee_type.is_set() && !callee_type.is_variant()) {
+				GDScriptParser::DataType callee_datatype = callee_id->get_datatype();
+				if (callee_datatype.is_set() && !callee_datatype.is_variant()) {
 					found = true;
-					if (callee_type.builtin_type == Variant::CALLABLE) {
+					if (callee_datatype.builtin_type == Variant::CALLABLE) {
 						push_error(vformat(R"*(Name "%s" is a Callable. You can call it with "%s.call()" instead.)*", p_call->function_name, p_call->function_name), p_call->callee);
 					} else {
-						push_error(vformat(R"*(Name "%s" called as a function but is a "%s".)*", p_call->function_name, callee_type.to_string()), p_call->callee);
+						push_error(vformat(R"*(Name "%s" called as a function but is a "%s".)*", p_call->function_name, callee_datatype.to_string()), p_call->callee);
 					}
 #ifdef DEBUG_ENABLED
 				} else if (!is_self) {

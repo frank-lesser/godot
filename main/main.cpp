@@ -372,7 +372,7 @@ void Main::print_help(const char *p_binary) {
 int Main::test_entrypoint(int argc, char *argv[], bool &tests_need_run) {
 #ifdef TESTS_ENABLED
 	for (int x = 0; x < argc; x++) {
-		if (strncmp(argv[x], "--test", 6) == 0) {
+		if ((strncmp(argv[x], "--test", 6) == 0) && (strlen(argv[x]) == 6)) {
 			tests_need_run = true;
 			OS::get_singleton()->initialize();
 			StringName::setup();
@@ -2203,13 +2203,6 @@ bool Main::start() {
 		}
 
 		if (project_manager || editor) {
-			if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_CONSOLE_WINDOW)) {
-				// Hide console window if requested (Windows-only).
-				bool hide_console = EditorSettings::get_singleton()->get_setting(
-						"interface/editor/hide_console_window");
-				DisplayServer::get_singleton()->console_set_visible(!hide_console);
-			}
-
 			// Load SSL Certificates from Editor Settings (or builtin)
 			Crypto::load_default_certificates(EditorSettings::get_singleton()->get_setting(
 																					 "network/ssl/editor_ssl_certificates")

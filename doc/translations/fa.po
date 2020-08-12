@@ -1,68 +1,67 @@
-# Japanese translation of the Godot Engine class reference.
+# LANGUAGE translation of the Godot Engine class reference.
 # Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.
 # Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).
 # This file is distributed under the same license as the Godot source code.
 #
-# Wataru Onuki <bettawat@yahoo.co.jp>, 2020.
-# BinotaLIU <me@binota.org>, 2020.
+# Tetra Homer <tetrahomer@gmail.com>, 2020.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine class reference\n"
 "Report-Msgid-Bugs-To: https://github.com/godotengine/godot\n"
-"PO-Revision-Date: 2020-08-11 14:38+0000\n"
-"Last-Translator: Wataru Onuki <bettawat@yahoo.co.jp>\n"
-"Language-Team: Japanese <https://hosted.weblate.org/projects/godot-engine/"
-"godot-class-reference/ja/>\n"
-"Language: ja\n"
+"PO-Revision-Date: 2020-07-22 08:42+0000\n"
+"Last-Translator: Tetra Homer <tetrahomer@gmail.com>\n"
+"Language-Team: Persian <https://hosted.weblate.org/projects/godot-engine/"
+"godot-class-reference/fa/>\n"
+"Language: fa\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8-bit\n"
-"Plural-Forms: nplurals=1; plural=0;\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
 "X-Generator: Weblate 4.2-dev\n"
 
 #: doc/tools/makerst.py
 msgid "Description"
-msgstr "説明"
+msgstr "توضیح"
 
 #: doc/tools/makerst.py
 msgid "Tutorials"
-msgstr "チュートリアル"
+msgstr "آموزش‌ها"
 
 #: doc/tools/makerst.py
 msgid "Properties"
-msgstr "プロパティ"
+msgstr "خصوصیات"
 
 #: doc/tools/makerst.py
 msgid "Methods"
-msgstr "メソッド"
+msgstr "توابع"
 
 #: doc/tools/makerst.py
 msgid "Theme Properties"
-msgstr "テーマ プロパティ"
+msgstr "خصوصیات زمینه"
 
 #: doc/tools/makerst.py
 msgid "Signals"
-msgstr "シグナル"
+msgstr "سیگنال‌ها"
 
 #: doc/tools/makerst.py
 msgid "Enumerations"
-msgstr "列挙型"
+msgstr "شمارش ها"
 
 #: doc/tools/makerst.py
 msgid "Constants"
-msgstr "定数"
+msgstr "ثوابت"
 
 #: doc/tools/makerst.py
 msgid "Property Descriptions"
-msgstr "プロパティの説明"
+msgstr "توضیحات خصیصه"
 
 #: doc/tools/makerst.py
 msgid "Method Descriptions"
-msgstr "メソッドの説明"
+msgstr "توضیحات تابع"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:4
 msgid "Built-in GDScript functions."
-msgstr "組み込みGDScript関数。"
+msgstr "توابع داخلی GDScript."
 
 #: modules/gdscript/doc_classes/@GDScript.xml:7
 msgid ""
@@ -70,9 +69,6 @@ msgid ""
 "utilities. Everything else is provided by objects. (Keywords: builtin, built "
 "in, global functions.)"
 msgstr ""
-"コア組み込みGDScript関数のリスト。数学関数などのユーティリティです。その他す"
-"べてはオブジェクトによって提供されます。(キーワード: ビルトイン、内蔵、グロー"
-"バル関数)"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:24
 msgid ""
@@ -87,15 +83,6 @@ msgid ""
 "red = Color8(255, 0, 0)\n"
 "[/codeblock]"
 msgstr ""
-"整数による赤、緑、青、そしてアルファのチャンネルから構成される色を返します。"
-"それぞれのチャンネルには 0 から 255 まで、8 ビットの情報が要ります。\n"
-"[code]r8[/code] 赤チャンネル\n"
-"[code]g8[/code] 緑チャンネル\n"
-"[code]b8[/code] 青チャンネル\n"
-"[code]a8[/code] アルファチャンネル\n"
-"[codeblock]\n"
-"red = Color8(255, 0, 0)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:42
 msgid ""
@@ -106,15 +93,8 @@ msgid ""
 "[/codeblock]\n"
 "Supported color names are the same as the constants defined in [Color]."
 msgstr ""
-"統一化された名前([code]name[/code])と、0 から 1 までのアルファ([code]alpha[/"
-"code])に合った色を返します。\n"
-"[codeblock]\n"
-"red = ColorN(\"red\", 1)\n"
-"[/codeblock]\n"
-"サポートされる色の名前は [Color] にて定数として定義されているものと同様です。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:55
-#, fuzzy
 msgid ""
 "Returns the absolute value of parameter [code]s[/code] (i.e. positive "
 "value).\n"
@@ -123,12 +103,6 @@ msgid ""
 "a = abs(-1)\n"
 "[/codeblock]"
 msgstr ""
-"パラメータ [code]s[/code] の絶対値を返します (符号が外れる。整数あるいは浮動"
-"小数点数に対し使用可)。\n"
-"[codeblock]\n"
-"# a は 1 に\n"
-"a = abs(-1)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:68
 msgid ""
@@ -139,12 +113,6 @@ msgid ""
 "c = acos(0.866025)\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] のアークコサインをラジアンで返します。コサイン [code]s[/code] "
-"の角度を得るのに使えます。\n"
-"[codeblock]\n"
-"# c は 0.523599。rad2deg(s) で変換すれば 30 度。\n"
-"c = acos(0.866025)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:81
 msgid ""
@@ -155,12 +123,6 @@ msgid ""
 "s = asin(0.5)\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] のアークサインをラジアンで返します。サイン [code]s[/code] の角"
-"度を得るのに使えます。\n"
-"[codeblock]\n"
-"# s は 0.523599。rad2deg(s) で変換すれば 30 度。\n"
-"s = asin(0.5)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:96
 msgid ""
@@ -183,26 +145,8 @@ msgid ""
 "a message with clarifying details\n"
 "[/codeblock]"
 msgstr ""
-"[code]condition[/code] が [code]true[/code] であるとアサートします。もし "
-"[code]condition[/code] が [code]false[/code] であった場合は、エラーが出力さ"
-"れ、プログラムは再開されるまで中断されます。debugビルド、もしくはエディタから"
-"ゲームを走らせている場合にのみ実行されます。これはデバッグのためで、開発中に"
-"その文が [code]true[/code] であることを確実にするために使用してください。\n"
-"追加の引数 [code]message[/code] は、与えられたときは、規定の「アサート失敗」"
-"メッセージにそれを追加して表示します。これはアサートが失敗した理由について、"
-"より詳しい情報を加えたいときに使えます。\n"
-"[codeblock]\n"
-"# speedを 0 から 20 の間に制限したいとします\n"
-"speed = -10\n"
-"assert(speed < 20) # 真。プログラムは続行します\n"
-"assert(speed >= 0) # 偽。プログラムは停止します\n"
-"assert(speed >= 0 && speed < 20) # ふたつの文をひとつにまとめられます\n"
-"assert(speed < 20, \"speed = %f ですが、スピード制限は 20 です\" % speed) # "
-"より詳細なメッセージを表示します\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:114
-#, fuzzy
 msgid ""
 "Returns the arc tangent of [code]s[/code] in radians. Use it to get the "
 "angle from an angle's tangent in trigonometry: [code]atan(tan(angle)) == "
@@ -213,17 +157,8 @@ msgid ""
 "a = atan(0.5) # a is 0.463648\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] のアーク タンジェントをラジアンで返します。三角法において、あ"
-"る角度のタンジェントから元の角度を得るのに使ってください。[code]atan(tan(角"
-"度)) == 角度[/code]。\n"
-"このメソッドでは角度の象限がどれなのかまでは分かりません。もし正確な角度を得"
-"たければ [method atan2] を参照してください。\n"
-"[codeblock]\n"
-"a = atan(0.5) # a は 0.463648\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:129
-#, fuzzy
 msgid ""
 "Returns the arc tangent of [code]y/x[/code] in radians. Use to get the angle "
 "of tangent [code]y/x[/code]. To compute the value, the method takes into "
@@ -233,12 +168,6 @@ msgid ""
 "a = atan2(0, -1) # a is 3.141593\n"
 "[/codeblock]"
 msgstr ""
-"[code]y/x[/code] のアーク タンジェントをラジアンで返します。タンジェント "
-"[code]y/x[/code] の角度を得るのに使用してください。値を計算するさい、このメ"
-"ソッドは象限を決めるため両引数とも符号の有無を考慮に入れます。\n"
-"[codeblock]\n"
-"a = atan2(0, -1) # a は 3.141593\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:144
 msgid ""
@@ -248,12 +177,6 @@ msgid ""
 "not use this option if the serialized object comes from untrusted sources to "
 "avoid potential security threats (remote code execution)."
 msgstr ""
-"バイト配列をデコードして値に戻します。[code]allow_objects[/code] が "
-"[code]true[/code] のときは、オブジェクトのデコードを許可します。\n"
-"[b]警告:[/b] 逆シリアル化されたオブジェクトにコードが含まれていると実行されま"
-"す。シリアル化されたオブジェクトが信頼できない入手先からのものならば、潜在的"
-"なセキュリティ上の危険 (遠隔コード実行) を防ぐため、このオプションは使用しな"
-"いでください。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:156
 #: modules/visual_script/doc_classes/VisualScriptBuiltinFunc.xml:145
@@ -262,11 +185,8 @@ msgid ""
 "axis) to the polar coordinate system (a distance from the origin and an "
 "angle)."
 msgstr ""
-"直交座標系 (X および Y 軸) で表された二次元の位置を、極座標系 (原点からの距離"
-"と角度) に変換します。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:165
-#, fuzzy
 msgid ""
 "Rounds [code]s[/code] upward (towards positive infinity), returning the "
 "smallest whole number that is not less than [code]s[/code].\n"
@@ -275,12 +195,6 @@ msgid ""
 "i = ceil(1.001) # i is 2\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] を切り上げて丸め、[code]s[/code] を超えてかつ最小の整数値を返"
-"します。\n"
-"[codeblock]\n"
-"i = ceil(1.45)  # i は 2\n"
-"i = ceil(1.001) # i は 2\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:178
 msgid ""
@@ -293,14 +207,6 @@ msgid ""
 "[/codeblock]\n"
 "This is the inverse of [method ord]."
 msgstr ""
-"与えられたUnicodeコードポイントの文字をStringとして返します (ASCIIコードとも"
-"互換性あり)。\n"
-"[codeblock]\n"
-"a = char(65)      # a は \"A\"\n"
-"a = char(65 + 32) # a は \"a\"\n"
-"a = char(8364)    # a は \"€\"\n"
-"[/codeblock]\n"
-"これは [method ord] の逆です。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:197
 msgid ""
@@ -316,17 +222,6 @@ msgid ""
 "a = clamp(speed, 1, 20)\n"
 "[/codeblock]"
 msgstr ""
-"[code]value[/code] をクランプし、[code]min[/code] より多くかつ [code]max[/"
-"code] より少ない値を返します。\n"
-"[codeblock]\n"
-"speed = 1000\n"
-"# a は 20\n"
-"a = clamp(speed, 1, 20)\n"
-"\n"
-"speed = -10\n"
-"# a は 1\n"
-"a = clamp(speed, 1, 20)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:217
 msgid ""
@@ -341,16 +236,6 @@ msgid ""
 "print(a.length())\n"
 "[/codeblock]"
 msgstr ""
-"ある型を他の型へと、できるだけ最善の方法で変換します。[code]type[/code] パラ"
-"メータには [enum Variant.Type] の値を使用します。\n"
-"[codeblock]\n"
-"a = Vector2(1, 0)\n"
-"# 1 と表示\n"
-"print(a.length())\n"
-"a = convert(a, TYPE_STRING)\n"
-"# \"(1, 0)\" は 6 文字あるので、6 と表示\n"
-"print(a.length())\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:234
 msgid ""
@@ -361,12 +246,6 @@ msgid ""
 "print(cos(PI))\n"
 "[/codeblock]"
 msgstr ""
-"角度 [code]s[/code] のコサインをラジアンで返します。\n"
-"[codeblock]\n"
-"# 1 そして -1 と表示\n"
-"print(cos(PI * 2))\n"
-"print(cos(PI))\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:248
 msgid ""
@@ -376,15 +255,10 @@ msgid ""
 "print(cosh(1))\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] のハイパボリック コサインをラジアンで返します。\n"
-"[codeblock]\n"
-"# 1.543081 と表示\n"
-"print(cosh(1))\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:261
 msgid "Converts from decibels to linear energy (audio)."
-msgstr "デシベルからリニア エネルギーに変換します (オーディオ)。"
+msgstr ""
 
 #: modules/gdscript/doc_classes/@GDScript.xml:274
 msgid ""
@@ -395,15 +269,8 @@ msgid ""
 "a = dectime(60, 10, 0.1))\n"
 "[/codeblock]"
 msgstr ""
-"[code]value[/code] から [code]step[/code] * [code]amount[/code] を引いた値を"
-"返します。\n"
-"[codeblock]\n"
-"# a = 59\n"
-"a = dectime(60, 10, 0.1))\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:287
-#, fuzzy
 msgid ""
 "Converts an angle expressed in degrees to radians.\n"
 "[codeblock]\n"
@@ -411,32 +278,21 @@ msgid ""
 "r = deg2rad(180)\n"
 "[/codeblock]"
 msgstr ""
-"角度をラジアンに変換して返します。\n"
-"[codeblock]\n"
-"# r は 3.141593\n"
-"r = deg2rad(180)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:300
 msgid ""
 "Converts a previously converted instance to a dictionary, back into an "
 "instance. Useful for deserializing."
 msgstr ""
-"インスタンスから変換された辞書を、元のインスタンスに変換して戻します。デシリ"
-"アライズするのに便利です。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:311
-#, fuzzy
 msgid ""
 "Easing function, based on exponent. The curve values are: 0 is constant, 1 "
 "is linear, 0 to 1 is ease-in, 1+ is ease out. Negative values are in-out/out "
 "in."
 msgstr ""
-"指数によるイージング関数です。0 は不変、1 は等速、0 から 1 の間はイーズイン、"
-"1 より上はイーズアウトです。負の値はインアウト / アウトインになります。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:320
-#, fuzzy
 msgid ""
 "The natural exponential function. It raises the mathematical constant [b]e[/"
 "b] to the power of [code]s[/code] and returns it.\n"
@@ -447,15 +303,8 @@ msgid ""
 "a = exp(2) # Approximately 7.39\n"
 "[/codeblock]"
 msgstr ""
-"自然対数関数です。定数 [b]e[/b] を [code]s[/code] 乗した数を返します。\n"
-"[b]e[/b] の値は約 2.71828 です。\n"
-"その他の底による冪乗をするには [method pow] メソッドを使用してください。\n"
-"[codeblock]\n"
-"a = exp(2) # およそ 7.39\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:334
-#, fuzzy
 msgid ""
 "Rounds [code]s[/code] downward (towards negative infinity), returning the "
 "largest whole number that is not more than [code]s[/code].\n"
@@ -468,15 +317,6 @@ msgid ""
 "[b]Note:[/b] This method returns a float. If you need an integer, you can "
 "use [code]int(s)[/code] directly."
 msgstr ""
-"[code]s[/code] を整数に切り捨てて丸め、返します。\n"
-"[codeblock]\n"
-"# a は 2.0\n"
-"a = floor(2.99)\n"
-"# a は -3.0\n"
-"a = floor(-2.99)\n"
-"[/codeblock]\n"
-"[b]注:[/b] このメソッドは浮動小数点数で返します。もし整数が必要であれば、直"
-"接 [code]int(s)[/code] が使えます。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:352
 msgid ""
@@ -488,13 +328,6 @@ msgid ""
 "[/codeblock]\n"
 "For the integer remainder operation, use the % operator."
 msgstr ""
-"[code]a/b[/code] の剰余を浮動小数点数で返します。符号は [code]a[/code] のもの"
-"と同じになります。\n"
-"[codeblock]\n"
-"# 余りは 1.5\n"
-"var remainder = fmod(7, 5.5)\n"
-"[/codeblock]\n"
-"整数による剰余計算をするには、% オペレータを使用してください。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:368
 msgid ""
@@ -521,27 +354,6 @@ msgid ""
 "4 1\n"
 "[/codeblock]"
 msgstr ""
-"[code]a/b[/code] の剰余を浮動小数点数で返します。符号は除数と同一です。\n"
-"[codeblock]\n"
-"var i = -6\n"
-"while i < 5:\n"
-"    prints(i, fposmod(i, 3))\n"
-"    i += 1\n"
-"[/codeblock]\n"
-"結果:\n"
-"[codeblock]\n"
-"-6 0\n"
-"-5 1\n"
-"-4 2\n"
-"-3 0\n"
-"-2 1\n"
-"-1 2\n"
-"0 0\n"
-"1 1\n"
-"2 2\n"
-"3 0\n"
-"4 1\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:399
 msgid ""
@@ -557,17 +369,6 @@ msgid ""
 "print(a.call_func()) # Prints bar\n"
 "[/codeblock]"
 msgstr ""
-"ノードインスタンス [code]instance[/code] にある指定された関数名 "
-"[code]funcname[/code] への参照を返します。GDScriptでは関数は第一級オブジェク"
-"トではないため、[code]funcref[/code] で変数に [FuncRef] を格納してから、後で"
-"それを呼び出してください。\n"
-"[codeblock]\n"
-"func foo():\n"
-"    return(\"bar\")\n"
-"\n"
-"a = funcref(self, \"foo\")\n"
-"print(a.call_func()) # bar と表示\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:413
 msgid ""
@@ -588,22 +389,6 @@ msgid ""
 "source:res://script.gd}, {function:_ready, line:6, source:res://script.gd}]\n"
 "[/codeblock]"
 msgstr ""
-"現在のコールスタックを辞書の配列として返します。\n"
-"[codeblock]\n"
-"func _ready():\n"
-"    foo()\n"
-"\n"
-"func foo():\n"
-"    bar()\n"
-"\n"
-"func bar():\n"
-"    print(get_stack())\n"
-"[/codeblock]\n"
-"は次にように表示\n"
-"[codeblock]\n"
-"[{function:bar, line:12, source:res://script.gd}, {function:foo, line:9, "
-"source:res://script.gd}, {function:_ready, line:6, source:res://script.gd}]\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:436
 msgid ""
@@ -612,10 +397,6 @@ msgid ""
 "print(hash(\"a\")) # Prints 177670\n"
 "[/codeblock]"
 msgstr ""
-"渡された変数のハッシュを整数として返します。\n"
-"[codeblock]\n"
-"print(hash(\"a\")) # 177670 と表示\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:448
 msgid ""
@@ -634,19 +415,6 @@ msgid ""
 "[, res://test.gd, bar]\n"
 "[/codeblock]"
 msgstr ""
-"渡されたインスタンスを辞書に変換して返します (シリアライズに便利)。\n"
-"[codeblock]\n"
-"var foo = \"bar\"\n"
-"func _ready():\n"
-"    var d = inst2dict(self)\n"
-"    print(d.keys())\n"
-"    print(d.values())\n"
-"[/codeblock]\n"
-"表示:\n"
-"[codeblock]\n"
-"[@subpath, @path, foo]\n"
-"[, res://test.gd, bar]\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:469
 msgid ""
@@ -660,15 +428,6 @@ msgid ""
 "    print(inst.foo) # Prints bar\n"
 "[/codeblock]"
 msgstr ""
-"インスタンスID [code]instance_id[/code] に一致した Object を返します。すべて"
-"の Object は固有のインスタンスIDを持ちます。\n"
-"[codeblock]\n"
-"var foo = \"bar\"\n"
-"func _ready():\n"
-"    var id = get_instance_id()\n"
-"    var inst = instance_from_id(id)\n"
-"    print(inst.foo) # bar と表示\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:489
 msgid ""
@@ -683,15 +442,6 @@ msgid ""
 "# `ratio` is now 0.75.\n"
 "[/codeblock]"
 msgstr ""
-"与えられた範囲において正規化された値を返します。これは [method lerp] の逆で"
-"す。\n"
-"[codeblock]\n"
-"var middle = lerp(20, 30, 0.75)\n"
-"# `middle` は 27.5 になる。\n"
-"# 元の比を忘れてしまって、また知りたいとします。\n"
-"var ratio = inverse_lerp(20, 30, 27.5)\n"
-"# `ratio` は 0.75 になる。\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:507
 msgid ""
@@ -708,33 +458,24 @@ msgid ""
 "Returns whether [code]s[/code] is an infinity value (either positive "
 "infinity or negative infinity)."
 msgstr ""
-"[code]s[/code] が無限大かどうかを返します (正の無限大か負の無限大かにかかわら"
-"ず)。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:527
 msgid ""
 "Returns whether [code]instance[/code] is a valid object (e.g. has not been "
 "deleted from memory)."
 msgstr ""
-"[code]instance[/code] が有効なオブジェクト (まだメモリから消去されていない) "
-"かどうかを返します。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:536
-#, fuzzy
 msgid ""
 "Returns whether [code]s[/code] is a NaN (\"Not a Number\" or invalid) value."
 msgstr ""
-"[code]s[/code] が NaN (Not-A-Number, 非数) 値であるかどうかを返します。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:545
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if [code]s[/code] is zero or almost zero.\n"
 "This method is faster than using [method is_equal_approx] with one value as "
 "zero."
 msgstr ""
-"[code]s[/code] がゼロあるいは、ほぼゼロであれば [code]true[/code] を返しま"
-"す。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:555
 msgid ""
@@ -746,14 +487,6 @@ msgid ""
 "len(a) # Returns 4\n"
 "[/codeblock]"
 msgstr ""
-"Variant [code]var[/code] の長さを返します。String の文字数、Array の要素数、"
-"Dictionary のサイズ、など。\n"
-"[b]注:[/b] もし Variant が長さを用意できないときは、致命的なエラーが発生しま"
-"す。\n"
-"[codeblock]\n"
-"a = [1, 2, 3, 4]\n"
-"len(a) # 4 を返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:573
 msgid ""
@@ -769,17 +502,6 @@ msgid ""
 "lerp(Vector2(1, 5), Vector2(3, 2), 0.5) # Returns Vector2(2, 3.5)\n"
 "[/codeblock]"
 msgstr ""
-"２つの値および正規化された値から線形補間します。これは [method inverse_lerp] "
-"の逆です。\n"
-"引数 [code]from[/code] と [code]to[/code] の型が [int] あるいは [float] の場"
-"合、戻り値は [float] になります。\n"
-"もし２つとも同じベクトル型 ([Vector2]、[Vector3] あるいは [Color]) の場合、戻"
-"り値はそれと同じ型になります (このとき [code]lerp[/code] はそのベクトル型の "
-"[code]lerp[/code] メソッドを呼び出します)。\n"
-"[codeblock]\n"
-"lerp(0, 4, 0.75) # 3.0 と返す\n"
-"lerp(Vector2(1, 5), Vector2(3, 2), 0.5) # Vector2(2, 3.5) と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:592
 msgid ""
@@ -797,18 +519,6 @@ msgid ""
 "    elapsed += delta\n"
 "[/codeblock]"
 msgstr ""
-"正規化された値によって２つの角度 (ラジアン) 間を線形補間します。\n"
-"[method lerp] と似ていますが、しかし [constant @GDScript.TAU] を振り切れたと"
-"きでも正しく補間できます。\n"
-"[codeblock]\n"
-"extends Sprite\n"
-"var elapsed = 0.0\n"
-"func _process(delta):\n"
-"    var min_angle = deg2rad(0.0)\n"
-"    var max_angle = deg2rad(90.0)\n"
-"    rotation = lerp_angle(min_angle, max_angle, elapsed)\n"
-"    elapsed += delta\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:611
 msgid ""
@@ -825,18 +535,8 @@ msgid ""
 "linear2db($Slider.value))\n"
 "[/codeblock]"
 msgstr ""
-"リニア エネルギーからデシベル (オーディオ) へ変換します。これは音量スライダー"
-"を見た目通り機能させるのに使えます (音量はリニアではないため)。例:\n"
-"[codeblock]\n"
-"# \"Slider\" は HSlider や VSlider のような Range を継承したノード。\n"
-"# 範囲は 0 から 1 までに設定する必要があります。\n"
-"# 特定のバスの音量を変えたいときは、この中のバス名を変更してください。\n"
-"AudioServer.set_bus_volume_db(AudioServer.get_bus_index(\"Master\"), "
-"linear2db($Slider.value))\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:626
-#, fuzzy
 msgid ""
 "Loads a resource from the filesystem located at [code]path[/code]. The "
 "resource is loaded on the method call (unless it's referenced already "
@@ -856,19 +556,8 @@ msgid ""
 "[b]Important:[/b] The path must be absolute, a local path will just return "
 "[code]null[/code]."
 msgstr ""
-"ファイルシステムの [code]path[/code] にあるリソースを読み込みます。\n"
-"[b]注:[/b] リソースのパスは、ファイルシステム ドック内にあるリソースを右ク"
-"リックして、[b]パスをコピー[/b] を選べば得られます。\n"
-"[codeblock]\n"
-"# プロジェクト ディレクトリのルートにある main という名前のシーンを読み込"
-"む。\n"
-"var main = load(\"res://main.tscn\")\n"
-"[/codeblock]\n"
-"[b]重要:[/b] 絶対パスである必要があり、相対パスだと単に [code]null[/code] を"
-"返します。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:641
-#, fuzzy
 msgid ""
 "Natural logarithm. The amount of time needed to reach a certain level of "
 "continuous growth.\n"
@@ -880,12 +569,6 @@ msgid ""
 "[b]Note:[/b] The logarithm of [code]0[/code] returns [code]-inf[/code], "
 "while negative values return [code]-nan[/code]."
 msgstr ""
-"自然対数。連続的な増加において、特定の位置に達するまでに必要な時間です。\n"
-"[b]注:[/b] ほとんどの計算機についている log 関数は、底が 10 なので、これと異"
-"なります。\n"
-"[codeblock]\n"
-"log(10) # 2.302585 を返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:657
 msgid ""
@@ -895,11 +578,6 @@ msgid ""
 "max(-3.99, -4) # Returns -3.99\n"
 "[/codeblock]"
 msgstr ""
-"２つの値のうち最大値を返します。\n"
-"[codeblock]\n"
-"max(1, 2) # 2 と返す\n"
-"max(-3.99, -4) # -3.99 と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:672
 msgid ""
@@ -909,14 +587,8 @@ msgid ""
 "min(-3.99, -4) # Returns -4\n"
 "[/codeblock]"
 msgstr ""
-"２つの値のうち最小値を返します。\n"
-"[codeblock]\n"
-"min(1, 2) # 1 と返す\n"
-"min(-3.99, -4) # -4 と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:689
-#, fuzzy
 msgid ""
 "Moves [code]from[/code] toward [code]to[/code] by the [code]delta[/code] "
 "value.\n"
@@ -927,12 +599,6 @@ msgid ""
 "move_toward(10, 5, -1.5) # Returns 11.5\n"
 "[/codeblock]"
 msgstr ""
-"[code]delta[/code] の分だけ [code]from[/code] から [code]to[/code] に移動させ"
-"ます。\n"
-"負数の [code]delta[/code] を使うと遠ざかります。\n"
-"[codeblock]\n"
-"move_toward(10, 5, 4) # 6 と返る\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:704
 msgid ""
@@ -965,16 +631,8 @@ msgid ""
 "[/codeblock]\n"
 "This is the inverse of [method char]."
 msgstr ""
-"Unicode文字 [code]char[/code] のUnicodeコードポイントを整数で返します。\n"
-"[codeblock]\n"
-"a = ord(\"A\") # a は 65\n"
-"a = ord(\"a\") # a は 97\n"
-"a = ord(\"€\") # a は 8364\n"
-"[/codeblock]\n"
-"これは [method char] の逆です。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:738
-#, fuzzy
 msgid ""
 "Parse JSON text to a Variant. (Use [method typeof] to check if the Variant's "
 "type is what you expect.)\n"
@@ -994,21 +652,6 @@ msgid ""
 "[/codeblock]\n"
 "See also [JSON] for an alternative way to parse JSON text."
 msgstr ""
-"JSONテキストをパースしてVariantにします (正しいかどうかは [method typeof] で"
-"確認してください)。\n"
-"JSONの規格で定義されているのは数値型のみで、整数型と浮動小数点数型は無いので"
-"気をつけてください。そのため、JSONテキストをパースする際は、すべての数値型は "
-"[float] 型に変換されます。\n"
-"Godotの辞書と異なり、JSONオブジェクトはキーの順序を保持しないので、JSONから作"
-"成された辞書のキー順序は信頼してはいけません。その一方でJSONの配列は、要素の"
-"順序を維持します:\n"
-"[codeblock]\n"
-"p = parse_json('[\"a\", \"b\", \"c\"]')\n"
-"if typeof(p) == TYPE_ARRAY:\n"
-"    print(p[0]) # a と表示\n"
-"else:\n"
-"    print(\"想定外の結果\")\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:759
 #: modules/visual_script/doc_classes/VisualScriptBuiltinFunc.xml:142
@@ -1017,8 +660,6 @@ msgid ""
 "from the origin [code]r[/code] and an angle [code]th[/code]) to the "
 "cartesian coordinate system (X and Y axis)."
 msgstr ""
-"極座標系 (原点からの距離 [code]r[/code] と角度 [code]th[/code] からなる) にお"
-"ける二次元の点を、デカルト座標系 (X および Y 軸) に変換します。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:770
 msgid ""
@@ -1045,27 +686,6 @@ msgid ""
 "4 1\n"
 "[/codeblock]"
 msgstr ""
-"[code]a/b[/code] の剰余を整数で返します。符号は除数と同一です。\n"
-"[codeblock]\n"
-"var i = -6\n"
-"while i < 5:\n"
-"    prints(i, posmod(i, 3))\n"
-"    i += 1\n"
-"[/codeblock]\n"
-"結果:\n"
-"[codeblock]\n"
-"-6 0\n"
-"-5 1\n"
-"-4 2\n"
-"-3 0\n"
-"-2 1\n"
-"-1 2\n"
-"0 0\n"
-"1 1\n"
-"2 2\n"
-"3 0\n"
-"4 1\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:801
 msgid ""
@@ -1074,10 +694,6 @@ msgid ""
 "pow(2, 5) # Returns 32\n"
 "[/codeblock]"
 msgstr ""
-"[code]x[/code] を [code]y[/code] 乗した結果を返します。\n"
-"[codeblock]\n"
-"pow(2, 5) # 32 と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:813
 msgid ""
@@ -1104,16 +720,10 @@ msgid ""
 "print(\"a\", \"b\", a) # Prints ab[1, 2, 3]\n"
 "[/codeblock]"
 msgstr ""
-"ひとつ又は複数の引数を、可能なかぎり最適な方法で文字列に変換してからコンソー"
-"ルに表示します。\n"
-"[codeblock]\n"
-"a = [1, 2, 3]\n"
-"print(\"a\", \"b\", a) # ab[1, 2, 3] と表示\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:836
 msgid "Like [method print], but prints only when used in debug mode."
-msgstr "[method print] と同様ですが、しかしデバッグモード時にのみ表示します。"
+msgstr ""
 
 #: modules/gdscript/doc_classes/@GDScript.xml:843
 msgid ""
@@ -1124,12 +734,6 @@ msgid ""
 "Frame 0 - res://test.gd:16 in function '_process'\n"
 "[/codeblock]"
 msgstr ""
-"コード位置のスタックトラックを表示します。デバッガを有効にして実行した時にの"
-"み動作します。\n"
-"コンソール内での出力はこのようになります:\n"
-"[codeblock]\n"
-"Frame 0 - res://test.gd:16 in function '_process'\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:854
 msgid ""
@@ -1139,11 +743,6 @@ msgid ""
 "printerr(\"prints to stderr\")\n"
 "[/codeblock]"
 msgstr ""
-"ひとつ又は複数の引数を、可能なかぎり最適な方法で文字列に変換してから標準エ"
-"ラーとして出力します。\n"
-"[codeblock]\n"
-"printerr(\"stderr に出力\")\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:864
 msgid ""
@@ -1158,16 +757,6 @@ msgid ""
 "prints to the terminal. If you need to print in the editor, use another "
 "method, such as [method print]."
 msgstr ""
-"ひとつ又は複数の引数を、可能なかぎり最適な方法で文字列に変換してからコンソー"
-"ルに表示します。一番最後に改行が追加されません。\n"
-"[codeblock]\n"
-"printraw(\"A\")\n"
-"printraw(\"B\")\n"
-"# AB と出力\n"
-"[/codeblock]\n"
-"[b]注:[/b] Godotの内蔵コンソールに関する制限により、これはターミナルに対して"
-"のみ出力します。もしエディタ上で表示する必要がある場合は、[method print] など"
-"の他の関数を利用してください。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:877
 msgid ""
@@ -1177,10 +766,6 @@ msgid ""
 "prints(\"A\", \"B\", \"C\") # Prints A B C\n"
 "[/codeblock]"
 msgstr ""
-"ひとつ又は複数の引数を、それぞれの間に空白を入れてコンソールに表示します。\n"
-"[codeblock]\n"
-"prints(\"A\", \"B\", \"C\") # A B Cと出力\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:887
 msgid ""
@@ -1190,10 +775,6 @@ msgid ""
 "printt(\"A\", \"B\", \"C\") # Prints A       B       C\n"
 "[/codeblock]"
 msgstr ""
-"ひとつ又は複数の引数を、それぞれの間にタブを入れてコンソールに表示します。\n"
-"[codeblock]\n"
-"printt(\"A\", \"B\", \"C\") # A       B       Cと出力\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:899
 msgid ""
@@ -1204,11 +785,6 @@ msgid ""
 "as error call\n"
 "[/codeblock]"
 msgstr ""
-"Godotの内蔵デバッガおよびOSターミナルにエラーメッセージを出します。\n"
-"[codeblock]\n"
-"push_error(\"test error\") # \"test error\" をエラーコールとしてデバッガと"
-"ターミナルに出力\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:911
 msgid ""
@@ -1219,24 +795,14 @@ msgid ""
 "terminal as warning call\n"
 "[/codeblock]"
 msgstr ""
-"Godotの内蔵デバッガおよびOSターミナルに警告メッセージを出します。\n"
-"[codeblock]\n"
-"push_warning(\"test warning\") # \"test warning\" を警告コールとしてデバッガ"
-"とターミナルに出力\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:923
-#, fuzzy
 msgid ""
 "Converts an angle expressed in radians to degrees.\n"
 "[codeblock]\n"
 "rad2deg(0.523599) # Returns 30\n"
 "[/codeblock]"
 msgstr ""
-"ラジアンから角度に変換します。\n"
-"[codeblock]\n"
-"rad2deg(0.523599) # 30 と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:937
 msgid ""
@@ -1246,11 +812,6 @@ msgid ""
 "prints(rand_range(0, 1), rand_range(0, 1)) # Prints e.g. 0.135591 0.405263\n"
 "[/codeblock]"
 msgstr ""
-"[code]from[/code] から [code]to[/code] までの間で、ランダムな値を浮動小数点数"
-"として生成します。\n"
-"[codeblock]\n"
-"prints(rand_range(0, 1), rand_range(0, 1)) # 0.135591 0.405263 のように出力\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:949
 msgid ""
@@ -1259,9 +820,6 @@ msgid ""
 "pseudo random number generator. The internal state of the current "
 "implementation is 64 bits."
 msgstr ""
-"シードによるランダムです: [code]seed[/code] を渡すと、数値と新しいシードから"
-"なる配列を返します。ここでいう「シード」とは、疑似乱数生成器の内部状態を指し"
-"ます。現在の実装における内部状態は64ビットです。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:956
 msgid ""
@@ -1270,10 +828,6 @@ msgid ""
 "randf() # Returns e.g. 0.375671\n"
 "[/codeblock]"
 msgstr ""
-"区間 [code][0, 1][/code] の中でランダムな浮動小数点数を返します。\n"
-"[codeblock]\n"
-"randf() # 0.375671 のように返る\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:966
 msgid ""
@@ -1287,14 +841,6 @@ msgid ""
 "randi() % 100 + 1 # Returns random integer between 1 and 100\n"
 "[/codeblock]"
 msgstr ""
-"ランダムな符号なし32bit整数を返します。区間 [code][0, N - 1][/code] (N は "
-"2^32 より小さいこと) の中でランダムな値を得るには、剰余を使ってください。\n"
-"[codeblock]\n"
-"randi()           # 0 から 2^32 - 1 までのランダムな整数を返す\n"
-"randi() % 20      # 0 から 19 までのランダムな整数を返す\n"
-"randi() % 100     # 0 から 99 までのランダムな整数を返す\n"
-"randi() % 100 + 1 # 1 から 100 までのランダムな整数を返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:979
 msgid ""
@@ -1305,12 +851,6 @@ msgid ""
 "    randomize()\n"
 "[/codeblock]"
 msgstr ""
-"乱数生成器のシード (内部状態とも) をランダム化します。現在の実装では、時間を"
-"元にした数字からシードを再設定します。\n"
-"[codeblock]\n"
-"func _ready():\n"
-"    randomize()\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:990
 msgid ""
@@ -1341,32 +881,6 @@ msgid ""
 "4\n"
 "[/codeblock]"
 msgstr ""
-"与えられた範囲の配列を返します。Range は1つの引数 (0 から N-1)、2つの引数 (開"
-"始値, 終了値 - 1)、または3つの引数 (開始値, 終了値 - 1, 増加量) をとれま"
-"す。\n"
-"[codeblock]\n"
-"for i in range(4):\n"
-"    print(i)\n"
-"for i in range(2, 5):\n"
-"    print(i)\n"
-"for i in range(0, 6, 2):\n"
-"    print(i)\n"
-"[/codeblock]\n"
-"出力:\n"
-"[codeblock]\n"
-"0\n"
-"1\n"
-"2\n"
-"3\n"
-"\n"
-"2\n"
-"3\n"
-"4\n"
-"\n"
-"0\n"
-"2\n"
-"4\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1030
 msgid ""
@@ -1376,14 +890,8 @@ msgid ""
 "range_lerp(75, 0, 100, -1, 1) # Returns 0.5\n"
 "[/codeblock]"
 msgstr ""
-"範囲 [code][istart, istop][/code] の値 [code]value[/code] を、範囲 [code]"
-"[ostart, ostop][/code] へとマップします。\n"
-"[codeblock]\n"
-"range_lerp(75, 0, 100, -1, 1) # 0.5 と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1042
-#, fuzzy
 msgid ""
 "Rounds [code]s[/code] to the nearest whole number, with halfway cases "
 "rounded away from zero.\n"
@@ -1391,11 +899,6 @@ msgid ""
 "round(2.6) # Returns 3\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] にもっとも近い整数値を返します。端数は小数点以下切り上げで丸め"
-"ます。\n"
-"[codeblock]\n"
-"round(2.6) # 3 と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1054
 msgid ""
@@ -1405,11 +908,6 @@ msgid ""
 "seed(my_seed.hash())\n"
 "[/codeblock]"
 msgstr ""
-"乱数生成器用のシードを設定します。\n"
-"[codeblock]\n"
-"my_seed = \"Godot Rocks\"\n"
-"seed(my_seed.hash())\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1067
 msgid ""
@@ -1421,13 +919,6 @@ msgid ""
 "sign(6)  # Returns 1\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] の符号を -1 か 1 で返します。もし [code]s[/code] が 0 ならば "
-"0 を返します。\n"
-"[codeblock]\n"
-"sign(-6) # 返り値は -1\n"
-"sign(0)  # 返り値は 0\n"
-"sign(6)  # 返り値は 1\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1081
 msgid ""
@@ -1436,10 +927,6 @@ msgid ""
 "sin(0.523599) # Returns 0.5\n"
 "[/codeblock]"
 msgstr ""
-"角度 [code]s[/code] のサインをラジアンで返します。\n"
-"[codeblock]\n"
-"sin(0.523599) # 返り値は 0.5\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1093
 msgid ""
@@ -1449,11 +936,6 @@ msgid ""
 "sinh(a) # Returns 0.75\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] のハイパボリック サインを返します。\n"
-"[codeblock]\n"
-"a = log(2.0) # 返り値は 0.693147\n"
-"sinh(a) # 返り値は 0.75\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1110
 msgid ""
@@ -1499,16 +981,6 @@ msgid ""
 "n = step_decimals(0.000000005)\n"
 "[/codeblock]"
 msgstr ""
-"小数点より後ろで、最初に非ゼロとなる桁の位置を返します。注意点として、実装の"
-"設計時の決定により、返り値は最大 10 までになっています。\n"
-"[codeblock]\n"
-"# n は 0\n"
-"n = step_decimals(5)\n"
-"# n は 4\n"
-"n = step_decimals(1.0005)\n"
-"# n は 9\n"
-"n = step_decimals(0.000000005)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1159
 msgid ""
@@ -1520,12 +992,6 @@ msgid ""
 "stepify(3.14159, 0.01) # Returns 3.14\n"
 "[/codeblock]"
 msgstr ""
-"与えられた [code]step[/code] に対して浮動小数点数値 [code]s[/code] をスナップ"
-"します。これは、浮動小数点数を特定の桁に丸めることにも使えます。\n"
-"[codeblock]\n"
-"stepify(100, 32) # 返り値は 96\n"
-"stepify(3.14159, 0.01) # 返り値は 3.14\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1170
 msgid ""
@@ -1537,13 +1003,6 @@ msgid ""
 "len(b) # Returns 12\n"
 "[/codeblock]"
 msgstr ""
-"ひとつ又は複数の引数を、できるだけ最善の方法で文字列に変換します。\n"
-"[codeblock]\n"
-"var a = [10, 20, 30]\n"
-"var b = str(a);\n"
-"len(a) # 返り値は 3\n"
-"len(b) # 返り値は 12\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1185
 msgid ""
@@ -1555,12 +1014,6 @@ msgid ""
 "print(b[\"a\"]) # Prints 1\n"
 "[/codeblock]"
 msgstr ""
-"[method var2str] が返したフォーマット済み文字列を、元の値へと戻します。\n"
-"[codeblock]\n"
-"a = '{ \"a\": 1, \"b\": 2 }'\n"
-"b = str2var(a)\n"
-"print(b[\"a\"]) # 1 と表示\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1199
 msgid ""
@@ -1569,10 +1022,6 @@ msgid ""
 "tan(deg2rad(45)) # Returns 1\n"
 "[/codeblock]"
 msgstr ""
-"角度 [code]s[/code] のタンジェントをラジアンで返します。\n"
-"[codeblock]\n"
-"tan(deg2rad(45)) # 1 と返す\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1211
 msgid ""
@@ -1582,11 +1031,6 @@ msgid ""
 "tanh(a)      # Returns 0.6\n"
 "[/codeblock]"
 msgstr ""
-"[code]s[/code] のハイパボリック タンジェントを返します。\n"
-"[codeblock]\n"
-"a = log(2.0) # 返り値は 0.693147\n"
-"tanh(a)      # 返り値は 0.6\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1224
 msgid ""
@@ -1614,11 +1058,6 @@ msgid ""
 "type_exists(\"Variant\") # Returns false\n"
 "[/codeblock]"
 msgstr ""
-"渡したクラス名が [ClassDB] 上に存在するかどうかを返します。\n"
-"[codeblock]\n"
-"type_exists(\"Sprite2D\") # 返り値は true\n"
-"type_exists(\"Variant\") # 返り値は false\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1255
 msgid ""
@@ -1632,17 +1071,8 @@ msgid ""
 "    print(\"unexpected results\")\n"
 "[/codeblock]"
 msgstr ""
-"渡した Variant オブジェクトの内部型を、[enum Variant.Type] の値で返します。\n"
-"[codeblock]\n"
-"p = parse_json('[\"a\", \"b\", \"c\"]')\n"
-"if typeof(p) == TYPE_ARRAY:\n"
-"    print(p[0]) # a と表示\n"
-"else:\n"
-"    print(\"予期しない結果\")\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1271
-#, fuzzy
 msgid ""
 "Checks that [code]json[/code] is valid JSON data. Returns an empty string if "
 "valid, or an error message otherwise.\n"
@@ -1655,16 +1085,6 @@ msgid ""
 "    push_error(\"Invalid JSON: \" + v)\n"
 "[/codeblock]"
 msgstr ""
-"[code]json[/code] が有効なJSONデータかどうか検証します。もし有効であれば空の"
-"文字列を、そうでなければエラーメッセージを返します。\n"
-"[codeblock]\n"
-"j = to_json([1, 2, 3])\n"
-"v = validate_json(j)\n"
-"if not v:\n"
-"    print(\"有効\")\n"
-"else:\n"
-"    prints(\"無効\", v)\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1290
 msgid ""
@@ -1672,9 +1092,6 @@ msgid ""
 "[code]true[/code] encoding objects is allowed (and can potentially include "
 "code)."
 msgstr ""
-"変数の値をバイト配列にエンコードします。[code]full_objects[/code] が "
-"[code]true[/code] のときは、オブジェクトのエンコードも許します(コードも含まれ"
-"る可能性があります)。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1299
 msgid ""
@@ -1692,19 +1109,6 @@ msgid ""
 "}\n"
 "[/codeblock]"
 msgstr ""
-"Variant [code]var[/code] を、あとで [method str2var] によってパースできる"
-"フォーマット済み文字列へと変換します。\n"
-"[codeblock]\n"
-"a = { \"a\": 1, \"b\": 2 }\n"
-"print(var2str(a))\n"
-"[/codeblock]\n"
-"結果\n"
-"[codeblock]\n"
-"{\n"
-"\"a\": 1,\n"
-"\"b\": 2\n"
-"}\n"
-"[/codeblock]"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1319
 msgid ""
@@ -1715,12 +1119,6 @@ msgid ""
 "something else. However, until the object is actually destroyed the weak "
 "reference may return the object even if there are no strong references to it."
 msgstr ""
-"オブジェクトへの弱参照を返します。\n"
-"オブジェクトへの弱参照ではオブジェクトを生存させ続けるには不十分です。もし、"
-"残る参照が弱参照のみである場合、ガベージコレクションは自由に参照先を破棄し、"
-"そのメモリ領域を他のことに再利用します。しかし、オブジェクトが実際に破棄され"
-"るまでは、それへの強参照がなくなった場合でも、弱参照はそのオブジェクトを返せ"
-"ます。"
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1333
 msgid ""
@@ -1765,21 +1163,18 @@ msgid ""
 msgstr ""
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1378
-#, fuzzy
 msgid ""
 "Constant that represents how many times the diameter of a circle fits around "
 "its perimeter. This is equivalent to [code]TAU / 2[/code]."
-msgstr "円周の長さを、円の直径の何倍かで表した定数。"
+msgstr ""
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1381
-#, fuzzy
 msgid "The circle constant, the circumference of the unit circle in radians."
-msgstr "円定数。単位円の円周。"
+msgstr ""
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1384
-#, fuzzy
 msgid "Positive infinity. For negative infinity, use -INF."
-msgstr "正の無限大 (負の無限大には -INF を使ってください)。"
+msgstr ""
 
 #: modules/gdscript/doc_classes/@GDScript.xml:1387
 msgid ""
@@ -1790,7 +1185,7 @@ msgstr ""
 
 #: doc/classes/@GlobalScope.xml:4
 msgid "Global scope constants and variables."
-msgstr "グローバルスコープ定数および変数。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:7
 msgid ""
@@ -1799,1206 +1194,1187 @@ msgid ""
 "Singletons are also documented here, since they can be accessed from "
 "anywhere."
 msgstr ""
-"グローバルスコープの定数と変数です。ここにはグローバルにあるものすべて、エ"
-"ラーコード用定数、キーコード、プロパティのヒントなどがあります。\n"
-"シングルトンも、あらゆる場所からアクセスできるので、ここに書かれています。"
 
 #: doc/classes/@GlobalScope.xml:16
 msgid "The [AudioServer] singleton."
-msgstr "[AudioServer] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:19
 msgid "The [CameraServer] singleton."
-msgstr "[CameraServer] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:22
 msgid "The [ClassDB] singleton."
-msgstr "[ClassDB] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:25
 msgid "The [DisplayServer] singleton."
-msgstr "[DisplayServer] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:28
 msgid "The [Engine] singleton."
-msgstr "[Engine] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:31
 msgid "The [Geometry2D] singleton."
-msgstr "[Geometry2D] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:34
 msgid "The [Geometry3D] singleton."
-msgstr "[Geometry3D] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:37
 msgid "The [GodotSharp] singleton."
-msgstr "[GodotSharp] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:40
 msgid "The [IP] singleton."
-msgstr "[IP] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:43
 msgid "The [Input] singleton."
-msgstr "[Input] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:46
 msgid "The [InputMap] singleton."
-msgstr "[InputMap] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:49
 msgid "The [JSON] singleton."
-msgstr "[JSON] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:52
 msgid ""
 "The [JavaClassWrapper] singleton.\n"
 "[b]Note:[/b] Only implemented on Android."
 msgstr ""
-"[JavaClassWrapper] シングルトン。\n"
-"[b]注:[/b] Androidでのみ実装されています。"
 
 #: doc/classes/@GlobalScope.xml:56
 msgid ""
 "The [JavaScript] singleton.\n"
 "[b]Note:[/b] Only implemented on HTML5."
 msgstr ""
-"[JavaScript] シングルトン。\n"
-"[b]注:[/b] HTML5でのみ実装されています。"
 
 #: doc/classes/@GlobalScope.xml:60
 msgid "The [Marshalls] singleton."
-msgstr "[Marshalls] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:63
 msgid "The [NavigationMeshGenerator] singleton."
-msgstr "[NavigationMeshGenerator] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:66 doc/classes/@GlobalScope.xml:69
 msgid "The [NavigationServer2D] singleton."
-msgstr "[NavigationServer2D] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:72
 msgid "The [OS] singleton."
-msgstr "[OS] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:75
 msgid "The [Performance] singleton."
-msgstr "[Performance] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:78
 msgid "The [PhysicsServer2D] singleton."
-msgstr "[PhysicsServer2D] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:81
 msgid "The [PhysicsServer3D] singleton."
-msgstr "[PhysicsServer3D] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:84
 msgid "The [ProjectSettings] singleton."
-msgstr "[ProjectSettings] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:87
 msgid "The [RenderingServer] singleton."
-msgstr "[RenderingServer] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:90
 msgid "The [ResourceLoader] singleton."
-msgstr "[ResourceLoader] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:93
 msgid "The [ResourceSaver] singleton."
-msgstr "[ResourceSaver] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:96
 msgid "The [TranslationServer] singleton."
-msgstr "[TranslationServer] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:99
 msgid "The [VisualScriptEditor] singleton."
-msgstr "[VisualScriptEditor] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:102
 msgid "The [XRServer] singleton."
-msgstr "[XRServer] シングルトン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:107
 msgid "Left margin, usually used for [Control] or [StyleBox]-derived classes."
 msgstr ""
-"左側の余白。通常は [Control] あるいは [StyleBox] を継承したクラスにて使用され"
-"ます。"
 
 #: doc/classes/@GlobalScope.xml:110
 msgid "Top margin, usually used for [Control] or [StyleBox]-derived classes."
 msgstr ""
-"上側の余白。通常は [Control] あるいは [StyleBox] を継承したクラスにて使用され"
-"ます。"
 
 #: doc/classes/@GlobalScope.xml:113
 msgid "Right margin, usually used for [Control] or [StyleBox]-derived classes."
 msgstr ""
-"右側の余白。通常は [Control] あるいは [StyleBox] を継承したクラスにて使用され"
-"ます。"
 
 #: doc/classes/@GlobalScope.xml:116
 msgid ""
 "Bottom margin, usually used for [Control] or [StyleBox]-derived classes."
 msgstr ""
-"下側の余白。通常は [Control] あるいは [StyleBox] を継承したクラスにて使用され"
-"ます。"
 
 #: doc/classes/@GlobalScope.xml:119
 msgid "Top-left corner."
-msgstr "左上の角。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:122
 msgid "Top-right corner."
-msgstr "右上の角。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:125
 msgid "Bottom-right corner."
-msgstr "右下の角。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:128
 msgid "Bottom-left corner."
-msgstr "左下の角。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:131
 msgid ""
 "General vertical alignment, usually used for [Separator], [ScrollBar], "
 "[Slider], etc."
 msgstr ""
-"一般的な垂直方向への整列。通常は、[Separator]、[ScrollBar]、[Slider] などのた"
-"めに使用されます。"
 
 #: doc/classes/@GlobalScope.xml:134
 msgid ""
 "General horizontal alignment, usually used for [Separator], [ScrollBar], "
 "[Slider], etc."
 msgstr ""
-"一般的な水平方向への整列。通常は、[Separator]、[ScrollBar]、[Slider] などのた"
-"めに使用されます。"
 
 #: doc/classes/@GlobalScope.xml:137
 msgid "Horizontal left alignment, usually for text-derived classes."
-msgstr "水平左側への整列。通常はテキストに関連したクラスのためにあります。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:140
 msgid "Horizontal center alignment, usually for text-derived classes."
-msgstr "水平中央への整列。通常はテキストに関連したクラスのためにあります。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:143
 msgid "Horizontal right alignment, usually for text-derived classes."
-msgstr "水平右側への整列。通常はテキストに関連したクラスのためにあります。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:146
 msgid "Vertical top alignment, usually for text-derived classes."
-msgstr "垂直上側への整列。通常はテキストに関連したクラスのためにあります。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:149
 msgid "Vertical center alignment, usually for text-derived classes."
-msgstr "垂直中央への整列。通常はテキストに関連したクラスのためにあります。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:152
 msgid "Vertical bottom alignment, usually for text-derived classes."
-msgstr "垂直下側への整列。通常はテキストに関連したクラスのためにあります。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:155
 msgid "Keycodes with this bit applied are non-printable."
-msgstr "このビットを適用したKeycodeはprint不可になります。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:158
 msgid "Escape key."
-msgstr "Escapeキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:161
 msgid "Tab key."
-msgstr "Tabキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:164
 msgid "Shift + Tab key."
-msgstr "Shift + Tabキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:167
 msgid "Backspace key."
-msgstr "Backspaceキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:170
 msgid "Return key (on the main keyboard)."
-msgstr "Returnキー (メイン キーボードの)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:173
 msgid "Enter key on the numeric keypad."
-msgstr "テンキー上のEnterキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:176
 msgid "Insert key."
-msgstr "Insertキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:179
 msgid "Delete key."
-msgstr "Deleteキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:182
 msgid "Pause key."
-msgstr "Pauseキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:185
 msgid "Print Screen key."
-msgstr "Print Screenキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:188
 msgid "System Request key."
-msgstr "System Requestキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:191
 msgid "Clear key."
-msgstr "Clearキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:194
 msgid "Home key."
-msgstr "Homeキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:197
 msgid "End key."
-msgstr "Endキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:200
 msgid "Left arrow key."
-msgstr "左矢印キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:203
 msgid "Up arrow key."
-msgstr "上矢印キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:206
 msgid "Right arrow key."
-msgstr "右矢印キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:209
 msgid "Down arrow key."
-msgstr "下矢印キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:212
 msgid "Page Up key."
-msgstr "Page Upキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:215
 msgid "Page Down key."
-msgstr "Page Downキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:218
 msgid "Shift key."
-msgstr "Shiftキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:221
 msgid "Control key."
-msgstr "Controlキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:224
 msgid "Meta key."
-msgstr "メタキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:227
 msgid "Alt key."
-msgstr "Altキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:230
 msgid "Caps Lock key."
-msgstr "Caps Lockキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:233
 msgid "Num Lock key."
-msgstr "Num Lockキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:236
 msgid "Scroll Lock key."
-msgstr "Scroll Lockキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:239
 msgid "F1 key."
-msgstr "F1キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:242
 msgid "F2 key."
-msgstr "F2キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:245
 msgid "F3 key."
-msgstr "F3キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:248
 msgid "F4 key."
-msgstr "F4キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:251
 msgid "F5 key."
-msgstr "F5キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:254
 msgid "F6 key."
-msgstr "F6キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:257
 msgid "F7 key."
-msgstr "F7キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:260
 msgid "F8 key."
-msgstr "F8キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:263
 msgid "F9 key."
-msgstr "F9キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:266
 msgid "F10 key."
-msgstr "F10キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:269
 msgid "F11 key."
-msgstr "F11キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:272
 msgid "F12 key."
-msgstr "F12キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:275
 msgid "F13 key."
-msgstr "F13キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:278
 msgid "F14 key."
-msgstr "F14キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:281
 msgid "F15 key."
-msgstr "F15キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:284
 msgid "F16 key."
-msgstr "F16キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:287
 msgid "Multiply (*) key on the numeric keypad."
-msgstr "テンキー上の乗算 (*) キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:290
 msgid "Divide (/) key on the numeric keypad."
-msgstr "テンキー上の除算 (/) キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:293
 msgid "Subtract (-) key on the numeric keypad."
-msgstr "テンキー上の減算 (-) キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:296
 msgid "Period (.) key on the numeric keypad."
-msgstr "テンキー上のピリオド (.) キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:299
 msgid "Add (+) key on the numeric keypad."
-msgstr "テンキー上の加算 (+) キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:302
 msgid "Number 0 on the numeric keypad."
-msgstr "テンキーの0。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:305
 msgid "Number 1 on the numeric keypad."
-msgstr "テンキーの1。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:308
 msgid "Number 2 on the numeric keypad."
-msgstr "テンキーの2。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:311
 msgid "Number 3 on the numeric keypad."
-msgstr "テンキーの3。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:314
 msgid "Number 4 on the numeric keypad."
-msgstr "テンキーの4。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:317
 msgid "Number 5 on the numeric keypad."
-msgstr "テンキーの5。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:320
 msgid "Number 6 on the numeric keypad."
-msgstr "テンキーの6。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:323
 msgid "Number 7 on the numeric keypad."
-msgstr "テンキーの7。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:326
 msgid "Number 8 on the numeric keypad."
-msgstr "テンキーの8。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:329
 msgid "Number 9 on the numeric keypad."
-msgstr "テンキーの9。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:332
 msgid "Left Super key (Windows key)."
-msgstr "左Superキー (Windowsキー)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:335
 msgid "Right Super key (Windows key)."
-msgstr "右Superキー (Windowsキー)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:338
 msgid "Context menu key."
-msgstr "コンテキストメニュー キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:341
 msgid "Left Hyper key."
-msgstr "左Hyperキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:344
 msgid "Right Hyper key."
-msgstr "右Hyperキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:347
 msgid "Help key."
-msgstr "Helpキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:350
 msgid "Left Direction key."
-msgstr "左方向キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:353
 msgid "Right Direction key."
-msgstr "右方向キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:356
 msgid "Back key."
-msgstr "Backキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:359
 msgid "Forward key."
-msgstr "Forwardキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:362
 msgid "Stop key."
-msgstr "Stopキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:365
 msgid "Refresh key."
-msgstr "Refreshキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:368
 msgid "Volume down key."
-msgstr "音量ダウンキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:371
 msgid "Mute volume key."
-msgstr "音声ミュート キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:374
 msgid "Volume up key."
-msgstr "音量アップキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:377
 msgid "Bass Boost key."
-msgstr "Bassブースト キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:380
 msgid "Bass up key."
-msgstr "Bassアップキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:383
 msgid "Bass down key."
-msgstr "Bassダウンキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:386
 msgid "Treble up key."
-msgstr "Trebleアップキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:389
 msgid "Treble down key."
-msgstr "Trebleダウンキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:392
 msgid "Media play key."
-msgstr "メディア再生キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:395
 msgid "Media stop key."
-msgstr "メディア停止キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:398
 msgid "Previous song key."
-msgstr "前の曲キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:401
 msgid "Next song key."
-msgstr "次の曲キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:404
 msgid "Media record key."
-msgstr "メディア録画キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:407
 msgid "Home page key."
-msgstr "ホームページ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:410
 msgid "Favorites key."
-msgstr "お気に入りキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:413
 msgid "Search key."
-msgstr "検索キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:416
 msgid "Standby key."
-msgstr "スタンバイキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:419
 msgid "Open URL / Launch Browser key."
-msgstr "URLを開く / ブラウザ起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:422
 msgid "Launch Mail key."
-msgstr "メール起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:425
 msgid "Launch Media key."
-msgstr "メディア起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:428
 msgid "Launch Shortcut 0 key."
-msgstr "ショートカット 0 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:431
 msgid "Launch Shortcut 1 key."
-msgstr "ショートカット 1 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:434
 msgid "Launch Shortcut 2 key."
-msgstr "ショートカット 2 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:437
 msgid "Launch Shortcut 3 key."
-msgstr "ショートカット 3 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:440
 msgid "Launch Shortcut 4 key."
-msgstr "ショートカット 4 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:443
 msgid "Launch Shortcut 5 key."
-msgstr "ショートカット 5 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:446
 msgid "Launch Shortcut 6 key."
-msgstr "ショートカット 6 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:449
 msgid "Launch Shortcut 7 key."
-msgstr "ショートカット 7 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:452
 msgid "Launch Shortcut 8 key."
-msgstr "ショートカット 8 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:455
 msgid "Launch Shortcut 9 key."
-msgstr "ショートカット 9 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:458
 msgid "Launch Shortcut A key."
-msgstr "ショートカット A 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:461
 msgid "Launch Shortcut B key."
-msgstr "ショートカット B 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:464
 msgid "Launch Shortcut C key."
-msgstr "ショートカット C 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:467
 msgid "Launch Shortcut D key."
-msgstr "ショートカット D 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:470
 msgid "Launch Shortcut E key."
-msgstr "ショートカット E 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:473
 msgid "Launch Shortcut F key."
-msgstr "ショートカット F 起動キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:476
 msgid "Unknown key."
-msgstr "不明なキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:479
 msgid "Space key."
-msgstr "スペースキー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:482
 msgid "! key."
-msgstr "! キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:485
 msgid "\" key."
-msgstr "\" キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:488
 msgid "# key."
-msgstr "# キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:491
 msgid "$ key."
-msgstr "$ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:494
 msgid "% key."
-msgstr "% キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:497
 msgid "& key."
-msgstr "& キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:500
 msgid "' key."
-msgstr "' キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:503
 msgid "( key."
-msgstr "( キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:506
 msgid ") key."
-msgstr ") キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:509
 msgid "* key."
-msgstr "* キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:512
 msgid "+ key."
-msgstr "+ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:515
 msgid ", key."
-msgstr ", キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:518
 msgid "- key."
-msgstr "- キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:521
 msgid ". key."
-msgstr ". キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:524
 msgid "/ key."
-msgstr "/ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:527
 msgid "Number 0."
-msgstr "数字 0。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:530
 msgid "Number 1."
-msgstr "数字 1。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:533
 msgid "Number 2."
-msgstr "数字 2。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:536
 msgid "Number 3."
-msgstr "数字 3。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:539
 msgid "Number 4."
-msgstr "数字 4。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:542
 msgid "Number 5."
-msgstr "数字 5。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:545
 msgid "Number 6."
-msgstr "数字 6。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:548
 msgid "Number 7."
-msgstr "数字 7。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:551
 msgid "Number 8."
-msgstr "数字 8。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:554
 msgid "Number 9."
-msgstr "数字 9。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:557
 msgid ": key."
-msgstr ": キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:560
 msgid "; key."
-msgstr "; キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:563
 msgid "< key."
-msgstr "< キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:566
 msgid "= key."
-msgstr "= キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:569
 msgid "> key."
-msgstr "> キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:572
 msgid "? key."
-msgstr "? キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:575
 msgid "@ key."
-msgstr "@ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:578
 msgid "A key."
-msgstr "A キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:581
 msgid "B key."
-msgstr "B キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:584
 msgid "C key."
-msgstr "C キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:587
 msgid "D key."
-msgstr "D キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:590
 msgid "E key."
-msgstr "E キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:593
 msgid "F key."
-msgstr "F キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:596
 msgid "G key."
-msgstr "G キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:599
 msgid "H key."
-msgstr "H キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:602
 msgid "I key."
-msgstr "I キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:605
 msgid "J key."
-msgstr "J キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:608
 msgid "K key."
-msgstr "K キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:611
 msgid "L key."
-msgstr "L キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:614
 msgid "M key."
-msgstr "M キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:617
 msgid "N key."
-msgstr "N キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:620
 msgid "O key."
-msgstr "O キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:623
 msgid "P key."
-msgstr "P キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:626
 msgid "Q key."
-msgstr "Q キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:629
 msgid "R key."
-msgstr "R キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:632
 msgid "S key."
-msgstr "S キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:635
 msgid "T key."
-msgstr "T キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:638
 msgid "U key."
-msgstr "U キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:641
 msgid "V key."
-msgstr "V キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:644
 msgid "W key."
-msgstr "W キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:647
 msgid "X key."
-msgstr "X キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:650
 msgid "Y key."
-msgstr "Y キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:653
 msgid "Z key."
-msgstr "Z キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:656
 msgid "[ key."
-msgstr "[ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:659
 msgid "\\ key."
-msgstr "\\ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:662
 msgid "] key."
-msgstr "] キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:665
 msgid "^ key."
-msgstr "^ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:668
 msgid "_ key."
-msgstr "_ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:671
 msgid "` key."
-msgstr "` キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:674
 msgid "{ key."
-msgstr "{ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:677
 msgid "| key."
-msgstr "| キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:680
 msgid "} key."
-msgstr "} キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:683
 msgid "~ key."
-msgstr "~ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:686
 msgid "Non-breakable space key."
-msgstr "ノーブレークスペース キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:689
 msgid "¡ key."
-msgstr "¡ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:692
 msgid "¢ key."
-msgstr "¢ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:695
 msgid "£ key."
-msgstr "£ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:698
 msgid "¤ key."
-msgstr "¤ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:701
 msgid "¥ key."
-msgstr "¥ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:704
 msgid "¦ key."
-msgstr "¦ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:707
 msgid "§ key."
-msgstr "§ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:710
 msgid "¨ key."
-msgstr "¨ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:713
 msgid "© key."
-msgstr "© キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:716
 msgid "ª key."
-msgstr "ª キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:719
 msgid "« key."
-msgstr "« キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:722
 msgid "¬ key."
-msgstr "¬ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:725
 msgid "Soft hyphen key."
-msgstr "ソフトハイフン キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:728
 msgid "® key."
-msgstr "® キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:731
 msgid "¯ key."
-msgstr "¯ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:734
 msgid "° key."
-msgstr "° キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:737
 msgid "± key."
-msgstr "± キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:740
 msgid "² key."
-msgstr "² キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:743
 msgid "³ key."
-msgstr "³ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:746
 msgid "´ key."
-msgstr "´ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:749
 msgid "µ key."
-msgstr "µ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:752
 msgid "¶ key."
-msgstr "¶ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:755
 msgid "· key."
-msgstr "· キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:758
 msgid "¸ key."
-msgstr "¸ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:761
 msgid "¹ key."
-msgstr "¹ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:764
 msgid "º key."
-msgstr "º キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:767
 msgid "» key."
-msgstr "» キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:770
 msgid "¼ key."
-msgstr "¼ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:773
 msgid "½ key."
-msgstr "½ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:776
 msgid "¾ key."
-msgstr "¾ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:779
 msgid "¿ key."
-msgstr "¿ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:782
 msgid "À key."
-msgstr "À キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:785
 msgid "Á key."
-msgstr "Á キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:788
 msgid "Â key."
-msgstr "Â キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:791
 msgid "Ã key."
-msgstr "Ã キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:794
 msgid "Ä key."
-msgstr "Ä キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:797
 msgid "Å key."
-msgstr "Å キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:800
 msgid "Æ key."
-msgstr "Æ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:803
 msgid "Ç key."
-msgstr "Ç キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:806
 msgid "È key."
-msgstr "È キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:809
 msgid "É key."
-msgstr "É キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:812
 msgid "Ê key."
-msgstr "Ê キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:815
 msgid "Ë key."
-msgstr "Ë キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:818
 msgid "Ì key."
-msgstr "Ì キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:821
 msgid "Í key."
-msgstr "Í キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:824
 msgid "Î key."
-msgstr "Î キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:827
 msgid "Ï key."
-msgstr "Ï キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:830
 msgid "Ð key."
-msgstr "Ð キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:833
 msgid "Ñ key."
-msgstr "Ñ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:836
 msgid "Ò key."
-msgstr "Ò キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:839
 msgid "Ó key."
-msgstr "Ó キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:842
 msgid "Ô key."
-msgstr "Ô キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:845
 msgid "Õ key."
-msgstr "Õ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:848
 msgid "Ö key."
-msgstr "Ö キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:851
 msgid "× key."
-msgstr "× キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:854
 msgid "Ø key."
-msgstr "Ø キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:857
 msgid "Ù key."
-msgstr "Ù キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:860
 msgid "Ú key."
-msgstr "Ú キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:863
 msgid "Û key."
-msgstr "Û キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:866
 msgid "Ü key."
-msgstr "Ü キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:869
 msgid "Ý key."
-msgstr "Ý キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:872
 msgid "Þ key."
-msgstr "Þ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:875
 msgid "ß key."
-msgstr "ß キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:878
 msgid "÷ key."
-msgstr "÷ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:881
 msgid "ÿ key."
-msgstr "ÿ キー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:884
 msgid "Key Code mask."
-msgstr "Key Codeマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:887
 msgid "Modifier key mask."
-msgstr "装飾キーマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:890
 msgid "Shift key mask."
-msgstr "Shiftキーマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:893
 msgid "Alt key mask."
-msgstr "Altキーマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:896
 msgid "Meta key mask."
-msgstr "Metaキーマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:899
 msgid "Ctrl key mask."
-msgstr "Ctrlキーマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:902
 msgid ""
@@ -3007,371 +2383,340 @@ msgid ""
 "mask should be preferred to [constant KEY_MASK_META] or [constant "
 "KEY_MASK_CTRL] for system shortcuts as it handles all platforms correctly."
 msgstr ""
-"Commandキーマスク。macOS上では、これは [constant KEY_MASK_META] と同じです。"
-"その他のプラットフォームでは [constant KEY_MASK_CTRL] と同じです。このマスク"
-"は、すべてのプラットフォーム上でシステムショートカットを正しく扱えるので、"
-"[constant KEY_MASK_META] や [constant KEY_MASK_CTRL] よりも好ましいでしょう。"
 
 #: doc/classes/@GlobalScope.xml:905
 msgid "Keypad key mask."
-msgstr "Keypadキーマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:908
 msgid "Group Switch key mask."
-msgstr "Group Switch キーマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:911
 msgid "Left mouse button."
-msgstr "左マウスボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:914
 msgid "Right mouse button."
-msgstr "右マウスボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:917
 msgid "Middle mouse button."
-msgstr "中マウスボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:920
 msgid "Extra mouse button 1 (only present on some mice)."
-msgstr "追加マウスボタン 1 (一部のマウスのみにある)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:923
 msgid "Extra mouse button 2 (only present on some mice)."
-msgstr "追加マウスボタン 2 (一部のマウスのみにある)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:926
 msgid "Mouse wheel up."
-msgstr "マウスホイール アップ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:929
 msgid "Mouse wheel down."
-msgstr "マウスホイール ダウン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:932
 msgid "Mouse wheel left button (only present on some mice)."
-msgstr "マウスホイール左ボタン (一部のマウスのみにある)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:935
 msgid "Mouse wheel right button (only present on some mice)."
-msgstr "マウスホイール右ボタン (一部のマウスのみにある)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:938
 msgid "Left mouse button mask."
-msgstr "左マウスボタンマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:941
 msgid "Right mouse button mask."
-msgstr "右マウスボタンマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:944
 msgid "Middle mouse button mask."
-msgstr "中マウスボタンマスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:947
 msgid "Extra mouse button 1 mask."
-msgstr "追加マウスボタン1マスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:950
 msgid "Extra mouse button 2 mask."
-msgstr "追加マウスボタン2マスク。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:953
 msgid "An invalid game controller button."
-msgstr "無効なゲームコントローラ ボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:956
 msgid "Game controller SDL button A."
-msgstr "ゲームコントローラ SDLボタンA。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:959
 msgid "Game controller SDL button B."
-msgstr "ゲームコントローラ SDLボタンB。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:962
 msgid "Game controller SDL button X."
-msgstr "ゲームコントローラ SDLボタンX。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:965
 msgid "Game controller SDL button Y."
-msgstr "ゲームコントローラ SDLボタンY。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:968
 msgid "Game controller SDL back button."
-msgstr "ゲームコントローラ SDLバックボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:971
 msgid "Game controller SDL guide button."
-msgstr "ゲームコントローラ SDLガイドボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:974
 msgid "Game controller SDL start button."
-msgstr "ゲームコントローラ SDLスタートボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:977
 msgid "Game controller SDL left stick button."
-msgstr "ゲームコントローラ SDL左スティックボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:980
 msgid "Game controller SDL right stick button."
-msgstr "ゲームコントローラ SDL右スティックボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:983
 msgid "Game controller SDL left shoulder button."
-msgstr "ゲームコントローラ SDL 左 ショルダーボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:986
 msgid "Game controller SDL right shoulder button."
-msgstr "ゲームコントローラ SDL 右 ショルダーボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:989
 msgid "Game controller SDL D-pad up button."
-msgstr "ゲームコントローラ SDL 十字ボタン上。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:992
 msgid "Game controller SDL D-pad down button."
-msgstr "ゲームコントローラ SDL 十字ボタン下。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:995
 msgid "Game controller SDL D-pad left button."
-msgstr "ゲームコントローラ SDL 十字ボタン左。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:998
 msgid "Game controller SDL D-pad right button."
-msgstr "ゲームコントローラ SDL 十字ボタン右。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1001
 msgid "The number of SDL game controller buttons."
-msgstr "SDLゲームコントローラのボタンの数。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1004
 msgid "Sony DualShock controller X button maps to SDL button A."
 msgstr ""
-"SDLボタンAにマップされる、ソニーのデュアルショック コントローラ Xボタン。"
 
 #: doc/classes/@GlobalScope.xml:1007
 msgid "Sony DualShock controller cross button maps to SDL button A."
 msgstr ""
-"SDLボタンAにマップされる、ソニーのデュアルショック コントローラ ×ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1010
 msgid "Sony DualShock controller circle button maps to SDL button B."
 msgstr ""
-"SDLボタンBにマップされる、ソニーのデュアルショック コントローラ ○ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1013
 msgid "Sony DualShock controller square button maps to SDL button X."
 msgstr ""
-"SDLボタンXにマップされる、ソニーのデュアルショック コントローラ □ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1016
 msgid "Sony DualShock controller triangle button maps to SDL button Y."
 msgstr ""
-"SDLボタンYにマップされる、ソニーのデュアルショック コントローラ △ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1019
 msgid "Sony DualShock controller select button maps to SDL back button."
 msgstr ""
-"SDL backボタンにマップされる、ソニーのデュアルショック コントローラ セレクト"
-"ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1022
 msgid "Sony DualShock controller start button maps to SDL start button."
 msgstr ""
-"SDL startボタンにマップされる、ソニーのデュアルショック コントローラ スタート"
-"ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1025
 msgid "Sony DualShock controller PS button maps to SDL guide button."
 msgstr ""
-"SDL guideボタンにマップされる、ソニーのデュアルショック コントローラ PSボタ"
-"ン。"
 
 #: doc/classes/@GlobalScope.xml:1028
 msgid "Sony DualShock controller L1 button maps to SDL left shoulder button."
 msgstr ""
-"SDL 左ショルダーボタンにマップされる、ソニーのデュアルショック コントローラ "
-"L1ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1031
 msgid "Sony DualShock controller R1 button maps to SDL right shoulder button."
 msgstr ""
-"SDL 右ショルダーボタンにマップされる、ソニーのデュアルショック コントローラ "
-"R1ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1034
 msgid "Sony DualShock controller L3 button maps to SDL left stick button."
 msgstr ""
-"SDL 左スティックボタンにマップされる、ソニーのデュアルショック コントローラ "
-"L3ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1037
 msgid "Sony DualShock controller R3 button maps to SDL right stick button."
 msgstr ""
-"SDL 右スティックボタンにマップされる、ソニーのデュアルショック コントローラ "
-"R3ボタン。"
 
 #: doc/classes/@GlobalScope.xml:1040
 msgid "Xbox game controller A button maps to SDL button A."
-msgstr "SDLボタンAにマップされる、Xboxゲームコントローラ Aボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1043
 msgid "Xbox game controller B button maps to SDL button B."
-msgstr "SDLボタンBにマップされる、Xboxゲームコントローラ Bボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1046
 msgid "Xbox game controller X button maps to SDL button X."
-msgstr "SDLボタンXにマップされる、Xboxゲームコントローラ Xボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1049
 msgid "Xbox game controller Y button maps to SDL button Y."
-msgstr "SDLボタンYにマップされる、Xboxゲームコントローラ Yボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1052
 msgid "Xbox game controller back button maps to SDL back button."
-msgstr "SDL backボタンにマップされる、Xbox ゲーム コントローラ backボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1055
 msgid "Xbox game controller start button maps to SDL start button."
-msgstr "SDL startボタンにマップされる、Xbox ゲーム コントローラ startボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1058
 msgid "Xbox game controller home button maps to SDL guide button."
-msgstr "SDL guideボタンにマップされる、Xboxゲームコントローラ homeボタン。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1061
 msgid "Xbox game controller left stick button maps to SDL left stick button."
 msgstr ""
-"SDL 左スティックボタンにマップされる、Xboxゲーム コントローラ 左スティックボ"
-"タン。"
 
 #: doc/classes/@GlobalScope.xml:1064
 msgid "Xbox game controller right stick button maps to SDL right stick button."
 msgstr ""
-"SDL 右スティックボタンにマップされる、Xboxゲーム コントローラ 右スティックボ"
-"タン。"
 
 #: doc/classes/@GlobalScope.xml:1067
 msgid ""
 "Xbox game controller left bumper button maps to SDL left shoulder button."
 msgstr ""
-"SDL 左ショルダーボタンにマップされる、Xboxゲーム コントローラ 左バンパーボタ"
-"ン。"
 
 #: doc/classes/@GlobalScope.xml:1070
 msgid ""
 "Xbox game controller right bumper button maps to SDL right shoulder button."
 msgstr ""
-"SDL 右ショルダーボタンにマップされる、Xboxゲーム コントローラ 右バンパーボタ"
-"ン。"
 
 #: doc/classes/@GlobalScope.xml:1073
 msgid "The maximum number of game controller buttons."
-msgstr "ゲームコントローラ ボタンの最大数。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1076
 msgid "An invalid game controller axis."
-msgstr "無効なゲームコントローラ軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1079
 msgid "Game controller left joystick x-axis."
-msgstr "ゲームコントローラの左ジョイスティック x軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1082
 msgid "Game controller left joystick y-axis."
-msgstr "ゲームコントローラの左ジョイスティック y軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1085
 msgid "Game controller right joystick x-axis."
-msgstr "ゲームコントローラの右ジョイスティック x軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1088
 msgid "Game controller right joystick y-axis."
-msgstr "ゲームコントローラの右ジョイスティック y軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1091
 msgid "Game controller left trigger axis."
-msgstr "ゲームコントローラの左トリガー軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1094
 msgid "Game controller right trigger axis."
-msgstr "ゲームコントローラの右トリガー軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1097
 msgid "The number of SDL game controller axes."
-msgstr "SDLゲームコントローラ軸の数。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1100
 msgid "Game controller joystick 0 x-axis."
-msgstr "ゲームコントローラ ジョイスティック0 X軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1103
 msgid "Game controller joystick 0 y-axis."
-msgstr "ゲームコントローラ ジョイスティック0 Y軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1106
 msgid "Game controller joystick 1 x-axis."
-msgstr "ゲームコントローラ ジョイスティック1 X軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1109
 msgid "Game controller joystick 1 y-axis."
-msgstr "ゲームコントローラ ジョイスティック1 Y軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1112
 msgid "Game controller joystick 2 x-axis."
-msgstr "ゲームコントローラ ジョイスティック2 X軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1115
 msgid "Game controller joystick 2 y-axis."
-msgstr "ゲームコントローラ ジョイスティック2 Y軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1118
 msgid "Game controller joystick 3 x-axis."
-msgstr "ゲームコントローラ ジョイスティック3 X軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1121
 msgid "Game controller joystick 3 y-axis."
-msgstr "ゲームコントローラ ジョイスティック3 Y軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1124
 msgid "Game controller joystick 4 x-axis."
-msgstr "ゲームコントローラ ジョイスティック4 X軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1127
 msgid "Game controller joystick 4 y-axis."
-msgstr "ゲームコントローラ ジョイスティック4 Y軸。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1130
 msgid "The maximum number of game controller axes."
-msgstr "ゲームコントローラ軸の最大数。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1133
 msgid "MIDI note OFF message."
-msgstr "MIDIノート オフメッセージ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1136
 msgid "MIDI note ON message."
-msgstr "MIDIノート オンメッセージ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1139
 msgid "MIDI aftertouch message."
-msgstr "MIDIアフタータッチ メッセージ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1142
 msgid "MIDI control change message."
-msgstr "MIDIコントロールチェンジ メッセージ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1145
 msgid "MIDI program change message."
-msgstr "MIDIプログラムチェンジ メッセージ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1148
 msgid "MIDI channel pressure message."
-msgstr "MIDIチャンネルプレッシャー メッセージ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1151
 msgid "MIDI pitch bend message."
-msgstr "MIDIピッチベンド メッセージ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1154
 msgid ""
@@ -3389,219 +2734,204 @@ msgid ""
 "    print(\"Still failing!\")\n"
 "[/codeblock]"
 msgstr ""
-"[enum Error] を返すメソッドは、エラーが起こらなかったときは [constant OK] を"
-"返します。関数の多くはエラーコードを返さずに、標準出力にエラーメッセージを送"
-"るので注意してください。\n"
-"[constant OK] の値は 0 なので、他のすべての失敗コードは正の整数になっていて、"
-"ブール値チェックでも使えます。例えば:\n"
-"[codeblock]\n"
-"var err = method_that_returns_error()\n"
-"if err != OK:\n"
-"    print(\"失敗！\")\n"
-"# あるいは、同様に:\n"
-"if err:\n"
-"    print(\"また失敗！\")\n"
-"[/codeblock]"
 
 #: doc/classes/@GlobalScope.xml:1166
 msgid "Generic error."
-msgstr "汎用エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1169
 msgid "Unavailable error."
-msgstr "利用不可エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1172
 msgid "Unconfigured error."
-msgstr "未設定エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1175
 msgid "Unauthorized error."
-msgstr "未認証エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1178
 msgid "Parameter range error."
-msgstr "パラメータ範囲エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1181
 msgid "Out of memory (OOM) error."
-msgstr "メモリ不足 (Out of memory) エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1184
 msgid "File: Not found error."
-msgstr "ファイル: 未検出エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1187
 msgid "File: Bad drive error."
-msgstr "ファイル: 不正なドライブ エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1190
 msgid "File: Bad path error."
-msgstr "ファイル: 不正なパス エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1193
 msgid "File: No permission error."
-msgstr "ファイル: 無権限エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1196
 msgid "File: Already in use error."
-msgstr "ファイル: 使用中エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1199
 msgid "File: Can't open error."
-msgstr "ファイル: 読み取り不可エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1202
 msgid "File: Can't write error."
-msgstr "ファイル: 書き込み不可エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1205
 msgid "File: Can't read error."
-msgstr "ファイル: 読み込み不可エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1208
 msgid "File: Unrecognized error."
-msgstr "ファイル: 認識失敗エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1211
 msgid "File: Corrupt error."
-msgstr "ファイル: 破損エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1214
 msgid "File: Missing dependencies error."
-msgstr "ファイル: 依存ファイル不足エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1217
 msgid "File: End of file (EOF) error."
-msgstr "ファイル: End of file (EOF) エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1220
 msgid "Can't open error."
-msgstr "読み込み不可エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1223
 msgid "Can't create error."
-msgstr "作成不可エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1226
 msgid "Query failed error."
-msgstr "クエリ失敗エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1229
 msgid "Already in use error."
-msgstr "使用中エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1232
 msgid "Locked error."
-msgstr "ロック中エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1235
 msgid "Timeout error."
-msgstr "時間切れエラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1238
 msgid "Can't connect error."
-msgstr "接続不能エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1241
 msgid "Can't resolve error."
-msgstr "解決不能エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1244
 msgid "Connection error."
-msgstr "接続エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1247
 msgid "Can't acquire resource error."
-msgstr "リソース確保不能エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1250
 msgid "Can't fork process error."
-msgstr "プロセス フォーク不能エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1253
 msgid "Invalid data error."
-msgstr "不正なデータ エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1256
 msgid "Invalid parameter error."
-msgstr "不正なパラメータ エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1259
 msgid "Already exists error."
-msgstr "すでに存在エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1262
 msgid "Does not exist error."
-msgstr "存在せずエラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1265
 msgid "Database: Read error."
-msgstr "データベース: 読み込みエラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1268
 msgid "Database: Write error."
-msgstr "データベース: 書き込みエラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1271
 msgid "Compilation failed error."
-msgstr "コンパイル失敗エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1274
 msgid "Method not found error."
-msgstr "メソッド不明エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1277
 msgid "Linking failed error."
-msgstr "リンク失敗エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1280
 msgid "Script failed error."
-msgstr "スクリプト失敗エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1283
 msgid "Cycling link (import cycle) error."
-msgstr "循環リンク(インポート循環)エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1286
 msgid "Invalid declaration error."
-msgstr "不正な宣言エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1289
 msgid "Duplicate symbol error."
-msgstr "シンボル重複エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1292
 msgid "Parse error."
-msgstr "パース エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1295
 msgid "Busy error."
-msgstr "ビジー エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1298
 msgid "Skip error."
-msgstr "スキップ エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1301
 msgid "Help error."
-msgstr "ヘルプ エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1304
 msgid "Bug error."
-msgstr "バグ エラー。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1307
 msgid ""
 "Printer on fire error. (This is an easter egg, no engine methods return this "
 "error code.)"
 msgstr ""
-"プリンター発火エラー。(これはイースターエッグで、このエラーコードを返すエンジ"
-"ンメソッドは無い)"
 
 #: doc/classes/@GlobalScope.xml:1310
 msgid "No hint for the edited property."
-msgstr "編集済みプロパティ用のヒントなし。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1313
 msgid ""
@@ -3612,12 +2942,6 @@ msgid ""
 "above the max or below the min values. Example: [code]\"-360,360,1,"
 "or_greater,or_lesser\"[/code]."
 msgstr ""
-"整数または浮動小数点数プロパティについて、ヒント文字列 [code]\"min,max\"[/"
-"code] または [code]\"min,max,step\"[/code] で指定された範囲内にあるべきことを"
-"示すヒント。ヒント文字列には、オプションで [code]\"or_greater\"[/code] およ"
-"び/または [code]\"or_lesser\"[/code] を含めることができ、それぞれ最大値より上"
-"または最小値より下への手動入力を可能にします。例 [code]\"-360,360,1,"
-"or_greater,or_lesser\"[/code]。"
 
 #: doc/classes/@GlobalScope.xml:1316
 msgid ""
@@ -3628,12 +2952,6 @@ msgid ""
 "respectively above the max or below the min values. Example: "
 "[code]\"0.01,100,0.01,or_greater\"[/code]."
 msgstr ""
-"整数または浮動小数点数のプロパティについて、ヒント文字列 [code]\"min,max\"[/"
-"code] または [code]\"min,max,step\"[/code] で指定された指数の範囲内にあるべき"
-"であることを示すヒント。ヒント文字列は、オプションで [code]\"or_greater\"[/"
-"code] および/または [code]\"or_lesser\"[/code] を含むことができ、それぞれ最大"
-"値より上または最小値より下への手動入力を可能にします。例: "
-"[code]\"0.01,100,0.01,or_greater\"[/code]。"
 
 #: doc/classes/@GlobalScope.xml:1319
 msgid ""
@@ -3641,9 +2959,6 @@ msgid ""
 "pick in a list specified via a hint string such as [code]\"Hello,Something,"
 "Else\"[/code]."
 msgstr ""
-"整数、浮動小数点数、文字列のプロパティが、[code]\"Hello,Something,Else\"[/"
-"code]のような、ヒント文字列で指定されたリストの中で選択するための列挙値である"
-"というヒント。"
 
 #: doc/classes/@GlobalScope.xml:1322
 msgid ""
@@ -3652,14 +2967,10 @@ msgid ""
 "the curve horizontally and/or [code]\"inout\"[/code] to also include in/out "
 "easing."
 msgstr ""
-"浮動小数点数プロパティが累乗イージング関数を介して編集されるべきであるという"
-"ヒント。ヒント文字列には、曲線を水平方向に反転させるための[code]\"attenuation"
-"\"[/code] 、および/または、イン/アウト・イージングを含めるための "
-"[code]\"inout\"[/code] を含めることができます。"
 
 #: doc/classes/@GlobalScope.xml:1325 doc/classes/@GlobalScope.xml:1328
 msgid "Deprecated hint, unused."
-msgstr "非推奨のヒント、未使用。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1331
 msgid ""
@@ -3667,41 +2978,30 @@ msgid ""
 "example, to allow toggling bits 0, 1, 2 and 4, the hint could be something "
 "like [code]\"Bit0,Bit1,Bit2,,Bit4\"[/code]."
 msgstr ""
-"整数プロパティが、指定されたビットフラグを持つビットマスクであるというヒン"
-"ト。例えば、ビット 0, 1, 2, 4 をトグルできるようにするには、ヒントは "
-"[code]\"Bit0,Bit1,Bit2,,Bit4\"[/code] のようなものになります。"
 
 #: doc/classes/@GlobalScope.xml:1334
 msgid ""
 "Hints that an integer property is a bitmask using the optionally named 2D "
 "render layers."
 msgstr ""
-"整数プロパティが、オプションで指定された 2D レンダー レイヤーを使用したビット"
-"マスクであることのヒント。"
 
 #: doc/classes/@GlobalScope.xml:1337
 msgid ""
 "Hints that an integer property is a bitmask using the optionally named 2D "
 "physics layers."
 msgstr ""
-"整数プロパティが、オプションで指定された 2D 物理レイヤーを使用したビットマス"
-"クであることのヒント。"
 
 #: doc/classes/@GlobalScope.xml:1340
 msgid ""
 "Hints that an integer property is a bitmask using the optionally named 3D "
 "render layers."
 msgstr ""
-"整数プロパティが、オプションで指定された 3D レンダー レイヤーを使用したビット"
-"マスクであることのヒント。"
 
 #: doc/classes/@GlobalScope.xml:1343
 msgid ""
 "Hints that an integer property is a bitmask using the optionally named 3D "
 "physics layers."
 msgstr ""
-"整数プロパティが、オプションで指定された 3D 物理レイヤーを使用したビットマス"
-"クであることのヒント。"
 
 #: doc/classes/@GlobalScope.xml:1346
 msgid ""
@@ -3709,18 +3009,12 @@ msgid ""
 "file dialog for picking the path. The hint string can be a set of filters "
 "with wildcards like [code]\"*.png,*.jpg\"[/code]."
 msgstr ""
-"文字列プロパティがファイルへのパスであることのヒント。これを編集すると、パス"
-"を選択するためのファイル ダイアログが表示されます。ヒント文字列は、[code]\"*."
-"png,*.jpg\"[/code] のようなワイルドカードを含むフィルタのセットにすることがで"
-"きます。"
 
 #: doc/classes/@GlobalScope.xml:1349
 msgid ""
 "Hints that a string property is a path to a directory. Editing it will show "
 "a file dialog for picking the path."
 msgstr ""
-"文字列プロパティがディレクトリへのパスであることのヒント。これを編集すると、"
-"パスを選択するためのファイル ダイアログが表示されます。"
 
 #: doc/classes/@GlobalScope.xml:1352
 msgid ""
@@ -3729,19 +3023,12 @@ msgid ""
 "hint string can be a set of filters with wildcards like [code]\"*.png,*.jpg"
 "\"[/code]."
 msgstr ""
-"文字列プロパティが、プロジェクトフォルダ外のファイルへの絶対パスであることの"
-"ヒント。これを編集すると、パスを選択するためのファイル ダイアログが表示されま"
-"す。ヒント文字列は、[code]\"*.png,*.jpg\"[/code] のようなワイルドカードを含む"
-"フィルタのセットにすることができます。"
 
 #: doc/classes/@GlobalScope.xml:1355
 msgid ""
 "Hints that a string property is an absolute path to a directory outside the "
 "project folder. Editing it will show a file dialog for picking the path."
 msgstr ""
-"文字列プロパティが、プロジェクトフォルダ外のディレクトリへの絶対パスであるこ"
-"とのヒント。これを編集すると、パスを選択するためのファイル ダイアログが表示さ"
-"れます。"
 
 #: doc/classes/@GlobalScope.xml:1358
 msgid ""
@@ -3749,18 +3036,12 @@ msgid ""
 "optionally specified via the hint string (e.g. [code]\"Texture2D\"[/code]). "
 "Editing it will show a popup menu of valid resource types to instantiate."
 msgstr ""
-"プロパティが [Resource] 派生型のインスタンスであることを示すヒント。任意でさ"
-"らに詳しくヒント文字列 (例: [code]\"Texture2D\"[/code]) を指定できます。これ"
-"を編集すると、インスタンス化可能なリソース型をポップアップメニューで表示しま"
-"す。"
 
 #: doc/classes/@GlobalScope.xml:1361
 msgid ""
 "Hints that a string property is text with line breaks. Editing it will show "
 "a text input field where line breaks can be typed."
 msgstr ""
-"文字列プロパティが、改行のあるテキストであることのヒント。これを編集すると、"
-"改行を入力できるテキスト入力フィールドが表示されます。"
 
 #: doc/classes/@GlobalScope.xml:1364
 msgid ""
@@ -3768,400 +3049,382 @@ msgid ""
 "input field, whenever the property is empty. The hint string is the "
 "placeholder text to use."
 msgstr ""
-"文字列プロパティが空の場合は常に、そのプロパティの入力フィールドにプレースホ"
-"ルダ テキストが表示されるべきというヒント。ヒント文字列は、使用するプレースホ"
-"ルダ テキストになります。"
 
 #: doc/classes/@GlobalScope.xml:1367
 msgid ""
 "Hints that a color property should be edited without changing its alpha "
 "component, i.e. only R, G and B channels are edited."
 msgstr ""
-"カラープロパティのアルファ成分を変更せずに編集するべきというヒント。つまり、"
-"R、G、Bチャンネルのみを編集できます。"
 
 #: doc/classes/@GlobalScope.xml:1370
 msgid "Hints that an image is compressed using lossy compression."
-msgstr "画像が非可逆圧縮を使用して圧縮されているというヒント。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1373
 msgid "Hints that an image is compressed using lossless compression."
-msgstr "画像はロスレス圧縮により圧縮されているというヒント。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1376
 msgid "The property is serialized and saved in the scene file (default)."
 msgstr ""
-"プロパティはシリアライズされ、シーンファイルに保存されます (デフォルト) 。"
 
 #: doc/classes/@GlobalScope.xml:1379
 msgid "The property is shown in the editor inspector (default)."
-msgstr "プロパティはエディタのインスペクタに表示されます (デフォルト) 。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1382 doc/classes/@GlobalScope.xml:1385
 msgid "Deprecated usage flag, unused."
-msgstr "非推奨の使用量フラグ、未使用。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1388
 msgid "The property can be checked in the editor inspector."
-msgstr "プロパティは、エディタのインスペクタでチェックが付けられます。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1391
 msgid "The property is checked in the editor inspector."
-msgstr "プロパティは、エディタのインスペクタでチェックが付いています。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1394
 msgid "The property is a translatable string."
-msgstr "プロパティは翻訳可能な文字列です。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1397
 msgid "Used to group properties together in the editor."
-msgstr "エディタ内でプロパティをグループ化するために使用します。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1400
 msgid "Used to categorize properties together in the editor."
-msgstr "エディタ内でプロパティをまとめて分類するのに使用します。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1403
 msgid ""
 "Used to group properties together in the editor in a subgroup (under a "
 "group)."
 msgstr ""
-"エディタ内でプロパティをサブグループ (グループの下) にまとめてグループ化する"
-"のに使用します。"
 
 #: doc/classes/@GlobalScope.xml:1406
 msgid "The property does not save its state in [PackedScene]."
-msgstr "プロパティは、その状態を [PackedScene] に保存しません。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1409
 msgid "Editing the property prompts the user for restarting the editor."
 msgstr ""
-"プロパティを編集すると、エディタの再起動を促すプロンプトが表示されます。"
 
 #: doc/classes/@GlobalScope.xml:1412
 msgid ""
 "The property is a script variable which should be serialized and saved in "
 "the scene file."
 msgstr ""
-"このプロパティはスクリプト変数であり、シーンファイルにシリアライズして保存す"
-"る必要があります。"
 
 #: doc/classes/@GlobalScope.xml:1415
 msgid "Default usage (storage, editor and network)."
-msgstr "デフォルトの使用量 (ストレージ、エディタ、ネットワーク) 。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1418
 msgid ""
 "Default usage for translatable strings (storage, editor, network and "
 "internationalized)."
 msgstr ""
-"翻訳可能な文字列 (ストレージ、エディタ、ネットワーク、国際化) でのデフォルト"
-"の使用量。"
 
 #: doc/classes/@GlobalScope.xml:1421
 msgid ""
 "Default usage but without showing the property in the editor (storage, "
 "network)."
 msgstr ""
-"デフォルトの使用量ですが、エディタにプロパティを表示しません (ストレージ、"
-"ネットワーク) 。"
 
 #: doc/classes/@GlobalScope.xml:1424
 msgid "Flag for a normal method."
-msgstr "通常メソッド用のフラグ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1427
 msgid "Flag for an editor method."
-msgstr "エディタメソッド用のフラグ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1430 doc/classes/@GlobalScope.xml:1436
 #: doc/classes/@GlobalScope.xml:1442
 msgid "Deprecated method flag, unused."
-msgstr "廃止予定のメソッドフラグ、未使用。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1433
 msgid "Flag for a constant method."
-msgstr "定数メソッド用のフラグ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1439
 msgid "Flag for a virtual method."
-msgstr "仮想メソッド用のフラグ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1445
 msgid "Default method flags."
-msgstr "デフォルトのメソッド用フラグ。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1448
 msgid "Variable is [code]null[/code]."
-msgstr "変数は [code]null[/code]。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1451
 msgid "Variable is of type [bool]."
-msgstr "変数は [bool] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1454
 msgid "Variable is of type [int]."
-msgstr "変数は [int] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1457
 msgid "Variable is of type [float] (real)."
-msgstr "変数は [float] 型(実数)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1460
 msgid "Variable is of type [String]."
-msgstr "変数は [String] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1463
 msgid "Variable is of type [Vector2]."
-msgstr "変数は [Vector2] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1466
 msgid "Variable is of type [Vector2i]."
-msgstr "変数は [Vector2i] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1469
 msgid "Variable is of type [Rect2]."
-msgstr "変数は [Rect2] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1472
 msgid "Variable is of type [Rect2i]."
-msgstr "変数は [Rect2i] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1475
 msgid "Variable is of type [Vector3]."
-msgstr "変数は [Vector3] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1478
 msgid "Variable is of type [Vector3i]."
-msgstr "変数は [Vector3i] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1481
 msgid "Variable is of type [Transform2D]."
-msgstr "変数は [Transform2D] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1484
 msgid "Variable is of type [Plane]."
-msgstr "変数は [Plane] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1487
 msgid "Variable is of type [Quat]."
-msgstr "変数は [Quat] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1490
 msgid "Variable is of type [AABB]."
-msgstr "変数は [AABB] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1493
 msgid "Variable is of type [Basis]."
-msgstr "変数は [Basis] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1496
 msgid "Variable is of type [Transform]."
-msgstr "変数は [Transform] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1499
 msgid "Variable is of type [Color]."
-msgstr "変数は [Color] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1502
 msgid "Variable is of type [StringName]."
-msgstr "変数は [StringName] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1505
 msgid "Variable is of type [NodePath]."
-msgstr "変数は [NodePath] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1508
 msgid "Variable is of type [RID]."
-msgstr "変数は [RID] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1511
 msgid "Variable is of type [Object]."
-msgstr "変数は [Object] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1514
 msgid "Variable is of type [Callable]."
-msgstr "変数は [Callable] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1517
 msgid "Variable is of type [Signal]."
-msgstr "変数は [Signal] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1520
 msgid "Variable is of type [Dictionary]."
-msgstr "変数は [Dictionary] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1523
 msgid "Variable is of type [Array]."
-msgstr "変数は [Array] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1526
 msgid "Variable is of type [PackedByteArray]."
-msgstr "変数は [PackedByteArray] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1529
 msgid "Variable is of type [PackedInt32Array]."
-msgstr "変数は [PackedInt32Array] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1532
 msgid "Variable is of type [PackedInt64Array]."
-msgstr "変数は [PackedInt64Array] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1535
 msgid "Variable is of type [PackedFloat32Array]."
-msgstr "変数は [PackedFloat32Array] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1538
 msgid "Variable is of type [PackedFloat64Array]."
-msgstr "変数は [PackedFloat64Array] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1541
 msgid "Variable is of type [PackedStringArray]."
-msgstr "変数は [PackedStringArray] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1544
 msgid "Variable is of type [PackedVector2Array]."
-msgstr "変数は [PackedVector2Array] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1547
 msgid "Variable is of type [PackedVector3Array]."
-msgstr "変数は [PackedVector3Array] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1550
 msgid "Variable is of type [PackedColorArray]."
-msgstr "変数は [PackedColorArray] 型。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1553
 msgid "Represents the size of the [enum Variant.Type] enum."
-msgstr "[enum Variant.Type] enumのサイズを表す。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1556
 msgid "Equality operator ([code]==[/code])."
-msgstr "等価演算子 ([code]==[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1559
 msgid "Inequality operator ([code]!=[/code])."
-msgstr "非等価演算子 ([code]!=[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1562
 msgid "Less than operator ([code]<[/code])."
-msgstr "小なり演算子 ([code]<[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1565
 msgid "Less than or equal operator ([code]<=[/code])."
-msgstr "小なりイコール演算子 ([code]<=[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1568
 msgid "Greater than operator ([code]>[/code])."
-msgstr "大なり演算子 ([code]>[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1571
 msgid "Greater than or equal operator ([code]>=[/code])."
-msgstr "大なりイコール演算子 ([code]>=[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1574
 msgid "Addition operator ([code]+[/code])."
-msgstr "加算演算子 ([code]+[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1577
 msgid "Subtraction operator ([code]-[/code])."
-msgstr "減算演算子 ([code]-[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1580
 msgid "Multiplication operator ([code]*[/code])."
-msgstr "乗算演算子 ([code]*[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1583
 msgid "Division operator ([code]/[/code])."
-msgstr "除算演算子 ([code]/[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1586
 msgid "Unary negation operator ([code]-[/code])."
-msgstr "単項マイナス演算子 ([code]-[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1589
 msgid "Unary plus operator ([code]+[/code])."
-msgstr "単項プラス演算子 ([code]+[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1592
 msgid "Remainder/modulo operator ([code]%[/code])."
-msgstr "剰余/モジュロ 演算子 ([code]%[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1595
 msgid "String concatenation operator ([code]+[/code])."
-msgstr "文字列結合演算子 ([code]+[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1598
 msgid "Left shift operator ([code]<<[/code])."
-msgstr "左シフト演算子 ([code]<<[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1601
 msgid "Right shift operator ([code]>>[/code])."
-msgstr "右シフト演算子 ([code]>>[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1604
 msgid "Bitwise AND operator ([code]&[/code])."
-msgstr "ビット単位AND演算子 ([code]&[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1607
 msgid "Bitwise OR operator ([code]|[/code])."
-msgstr "ビット単位OR演算子 ([code]|[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1610
 msgid "Bitwise XOR operator ([code]^[/code])."
-msgstr "ビット単位XOR演算子 ([code]^[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1613
 msgid "Bitwise NOT operator ([code]~[/code])."
-msgstr "ビット単位NOT演算子 ([code]~[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1616
 msgid "Logical AND operator ([code]and[/code] or [code]&&[/code])."
-msgstr "論理AND演算子 ([code]and[/code] または [code]&&[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1619
 msgid "Logical OR operator ([code]or[/code] or [code]||[/code])."
-msgstr "論理OR演算子 ([code]or[/code] または [code]||[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1622
 msgid "Logical XOR operator (not implemented in GDScript)."
-msgstr "論理XOR演算子 (GDScriptでは未実装)。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1625
 msgid "Logical NOT operator ([code]not[/code] or [code]![/code])."
-msgstr "論理NOT演算子 ([code]not[/code] または [code]![/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1628
 msgid "Logical IN operator ([code]in[/code])."
-msgstr "論理IN演算子 ([code]in[/code])。"
+msgstr ""
 
 #: doc/classes/@GlobalScope.xml:1631
 msgid "Represents the size of the [enum Variant.Operator] enum."
-msgstr "[enum Variant.Operator] enumのサイズを表す。"
+msgstr ""
 
 #: doc/classes/AABB.xml:4
 msgid "Axis-Aligned Bounding Box."
-msgstr "軸平行境界ボックス。"
+msgstr ""
 
 #: doc/classes/AABB.xml:7
 msgid ""
 "AABB consists of a position, a size, and several utility functions. It is "
 "typically used for fast overlap tests."
 msgstr ""
-"AABBは位置、大きさ、およびいくつかのユーティリティ関数からなります。主に高速"
-"なオーバーラップ検出に使用されます。"
 
 #: doc/classes/AABB.xml:10 doc/classes/Plane.xml:10 doc/classes/Rect2.xml:11
 #: doc/classes/Rect2i.xml:11 doc/classes/Transform.xml:11
 #: doc/classes/Vector2.xml:12 doc/classes/Vector2i.xml:12
 #: doc/classes/Vector3.xml:12 doc/classes/Vector3i.xml:12
 msgid "https://docs.godotengine.org/en/latest/tutorials/math/index.html"
-msgstr "https://docs.godotengine.org/ja/latest/tutorials/math/index.html"
+msgstr ""
 
 #: doc/classes/AABB.xml:21
-#, fuzzy
 msgid "Constructs an [AABB] from a position and size."
-msgstr "オプションのコンストラクタ。位置とサイズを受け取ります。"
+msgstr ""
 
 #: doc/classes/AABB.xml:28
 msgid ""
@@ -4173,102 +3436,90 @@ msgstr ""
 msgid ""
 "Returns [code]true[/code] if this [AABB] completely encloses another one."
 msgstr ""
-"この [AABB] がもうひとつを完全に内包する場合 [code]true[/code] を返します。"
 
 #: doc/classes/AABB.xml:46
 msgid "Returns this [AABB] expanded to include a given point."
-msgstr "与えられたポイントを含むよう拡大した [AABB] を返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:53
 msgid "Returns the volume of the [AABB]."
-msgstr "[AABB] の体積を返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:62
 msgid "Gets the position of the 8 endpoints of the [AABB] in space."
-msgstr "空間にある [AABB] の 8 ポイントの位置を返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:69
 msgid "Returns the normalized longest axis of the [AABB]."
-msgstr "[AABB] の最長軸を正規化して返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:76
 msgid ""
 "Returns the index of the longest axis of the [AABB] (according to "
 "[Vector3]'s [code]AXIS_*[/code] constants)."
 msgstr ""
-"[AABB] の最長軸のインデックスを返します ([Vector3]の [code]AXIS_*[/code] 定数"
-"に基づく)。"
 
 #: doc/classes/AABB.xml:83
 msgid "Returns the scalar length of the longest axis of the [AABB]."
-msgstr "[AABB] の最長軸の長さをスカラー数で返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:90
 msgid "Returns the normalized shortest axis of the [AABB]."
-msgstr "[AABB] の最短軸を正規化して返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:97
 msgid ""
 "Returns the index of the shortest axis of the [AABB] (according to "
 "[Vector3]::AXIS* enum)."
 msgstr ""
-"[AABB] の最短軸のインデックスを返します ([Vector3] の [code]AXIS_*[/code] 定"
-"数に基づく)。"
 
 #: doc/classes/AABB.xml:104
 msgid "Returns the scalar length of the shortest axis of the [AABB]."
-msgstr "[AABB] の最短軸の長さをスカラー数で返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:113
 msgid ""
 "Returns the support point in a given direction. This is useful for collision "
 "detection algorithms."
 msgstr ""
-"指定した方向のサポートポイントを返します。これは、衝突検出アルゴリズム向けに"
-"便利です。"
 
 #: doc/classes/AABB.xml:122
 msgid ""
 "Returns a copy of the [AABB] grown a given amount of units towards all the "
 "sides."
-msgstr "与えられた量だけ全面方向に拡大した [AABB] のコピーを返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:129
 msgid "Returns [code]true[/code] if the [AABB] is flat or empty."
-msgstr "[AABB] が平坦あるいは空である場合に [code]true[/code] を返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:136
 msgid "Returns [code]true[/code] if the [AABB] is empty."
-msgstr "[AABB] が空である場合に [code]true[/code] を返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:145
 msgid "Returns [code]true[/code] if the [AABB] contains a point."
-msgstr "[AABB] がポイントを含む場合に [code]true[/code] を返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:154
 msgid ""
 "Returns the intersection between two [AABB]. An empty AABB (size 0,0,0) is "
 "returned on failure."
 msgstr ""
-"2つの [AABB] の交差部を返します。失敗した時は、空の AABB (大きさ 0,0,0)が返り"
-"ます。"
 
 #: doc/classes/AABB.xml:163
 msgid "Returns [code]true[/code] if the [AABB] overlaps with another."
 msgstr ""
-"この [AABB] がもう一方と重なっているときに [code]true[/code] を返します。"
 
 #: doc/classes/AABB.xml:172
 msgid "Returns [code]true[/code] if the [AABB] is on both sides of a plane."
-msgstr "[AABB] が特定の平面の両側にある場合、[code]true[/code] を返します。"
+msgstr ""
 
 #: doc/classes/AABB.xml:183
 msgid ""
 "Returns [code]true[/code] if the [AABB] intersects the line segment between "
 "[code]from[/code] and [code]to[/code]."
 msgstr ""
-"[code]from[/code] から [code]to[/code] までの線分にこの [AABB] が交差していれ"
-"ば [code]true[/code] を返します。"
 
 #: doc/classes/AABB.xml:192
 msgid ""
@@ -4276,25 +3527,18 @@ msgid ""
 "approximately equal, by calling [method @GDScript.is_equal_approx] on each "
 "component."
 msgstr ""
-"この [AABB] と [code]aabb[/code] がほぼ等しければ [code]true[/code] を返しま"
-"す。それぞれのコンポーネントで [method @GDScript.is_equal_approx] が呼ばれま"
-"す。"
 
 #: doc/classes/AABB.xml:201
 msgid ""
 "Returns a larger [AABB] that contains both this [AABB] and [code]with[/code]."
 msgstr ""
-"この [AABB] と [code]with[/code] を両方含む、より大きな [AABB] を返します。"
 
 #: doc/classes/AABB.xml:207 doc/classes/Rect2.xml:174
 #: doc/classes/Rect2i.xml:163
-#, fuzzy
 msgid ""
 "Ending corner. This is calculated as [code]position + size[/code]. Setting "
 "this value will change the size."
 msgstr ""
-"終端。これは [code]position + size[/code] として計算されます。このプロパティ"
-"を変更すると、同時に [member size] も変わります。"
 
 #: doc/classes/AABB.xml:210 doc/classes/Rect2.xml:177
 #: doc/classes/Rect2i.xml:166
@@ -4311,15 +3555,13 @@ msgstr ""
 
 #: doc/classes/AcceptDialog.xml:4
 msgid "Base dialog for user notification."
-msgstr "ユーザー通知のための基本ダイアログ。"
+msgstr ""
 
 #: doc/classes/AcceptDialog.xml:7
 msgid ""
 "This dialog is useful for small notifications to the user about an event. It "
 "can only be accepted or closed, with the same result."
 msgstr ""
-"このダイアログは、イベント発生をユーザーに小さく通知するのに便利です。了承す"
-"ることおよび閉じることのみができ、結果はいずれも同じです。"
 
 #: doc/classes/AcceptDialog.xml:22
 msgid ""
@@ -4329,39 +3571,30 @@ msgid ""
 "If [code]true[/code], [code]right[/code] will place the button to the right "
 "of any sibling buttons."
 msgstr ""
-"ラベル [code]text[/code] およびカスタムの [code]action[/code] からなるボタン"
-"をダイアログに追加し、その生成されたボタンを返します。押されたときは、"
-"[code]action[/code] がシグナル [signal custom_action] に渡されます。\n"
-"もし [code]right[/code] が [code]true[/code] であれば、他のボタンすべての右側"
-"に配置されます。"
 
 #: doc/classes/AcceptDialog.xml:32
 msgid ""
 "Adds a button with label [code]name[/code] and a cancel action to the dialog "
 "and returns the created button."
 msgstr ""
-"ラベル [code]name[/code] とキャンセルアクションを持つボタンをダイアログに追加"
-"し、作成したボタンを返します。"
 
 #: doc/classes/AcceptDialog.xml:39
 msgid "Returns the label used for built-in text."
-msgstr "組み込みテキストに使用されているラベルを返します。"
+msgstr ""
 
 #: doc/classes/AcceptDialog.xml:46
 msgid "Returns the OK [Button] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/AcceptDialog.xml:55
 msgid ""
 "Registers a [LineEdit] in the dialog. When the enter key is pressed, the "
 "dialog will be accepted."
 msgstr ""
-"ダイアログに [LineEdit] を登録します。Enterキーを押すとダイアログは承諾されま"
-"す。"
 
 #: doc/classes/AcceptDialog.xml:61
 msgid "Sets autowrapping for the text in the dialog."
-msgstr "ダイアログ内のテキストの自動折り返しを設定します。"
+msgstr ""
 
 #: doc/classes/AcceptDialog.xml:64
 msgid ""
@@ -4376,34 +3609,22 @@ msgid ""
 "dialog if the input is valid. As such, this property can't be used in "
 "[FileDialog] to disable hiding the dialog when pressing OK."
 msgstr ""
-"[code]true[/code] の場合、OKボタンを押すとダイアログが非表示になります。例え"
-"ば、[signal confirmed] シグナルを受信した時に入力を確認したい場合や、独自のロ"
-"ジックでダイアログを非表示にする処理をしたい場合は、[code]false[/code]にして"
-"ください。\n"
-"[b]注: [/b] このクラスから派生したいくつかのノードでは、異なるデフォルト値を"
-"持つことができ、それらの独自の組み込みロジックがこの設定をオーバーライドする"
-"可能性があります。例えば、[FileDialog] のデフォルト値は [code]false[/code] で"
-"あり、OKを押したときに呼び出される独自の入力検証コードを持っています。そのた"
-"め、このプロパティは [FileDialog] において OK を押したときにダイアログが非表"
-"示になるのを無効にするためには使用できません。"
 
 #: doc/classes/AcceptDialog.xml:68
 msgid "The text displayed by the dialog."
-msgstr "ダイアログで表示されるテキスト。"
+msgstr ""
 
 #: doc/classes/AcceptDialog.xml:83
 msgid "Emitted when the dialog is accepted, i.e. the OK button is pressed."
-msgstr "ダイアログを承諾したとき、つまりOKボタンが押されたときに発信されます。"
+msgstr ""
 
 #: doc/classes/AcceptDialog.xml:90
 msgid "Emitted when a custom button is pressed. See [method add_button]."
 msgstr ""
-"カスタムボタンが押されたときに表示されます。[method add_button] を参照してく"
-"ださい。"
 
 #: doc/classes/AESContext.xml:4
 msgid "Interface to low level AES encryption features."
-msgstr "低レベルAES暗号化機能へのインターフェース。"
+msgstr ""
 
 #: doc/classes/AESContext.xml:7
 msgid ""
@@ -4442,60 +3663,18 @@ msgid ""
 "    assert(decrypted == data.to_utf8())\n"
 "[/codeblock]"
 msgstr ""
-"このクラスは、生データの AES 暗号化/復号化へのアクセスを提供します。AES-ECB "
-"と AES-CBC の両方に対応しています。\n"
-"[codeblock]\n"
-"extends Node\n"
-"\n"
-"var aes = AESContext.new()\n"
-"\n"
-"func _ready():\n"
-"    var key = \"My secret key!!!\" # キーは16バイトか32バイトでなければなりま"
-"せん。\n"
-"    var data = \"My secret text!!\" # データサイズは16バイトの倍数でなければ"
-"なりません。必要なら文字を付け足します。\n"
-"    # ECB 暗号化\n"
-"    aes.start(AESContext.MODE_ECB_ENCRYPT, key.to_utf8())\n"
-"    var encrypted = aes.update(data.to_utf8())\n"
-"    aes.finish()\n"
-"    # ECB 復号化\n"
-"    aes.start(AESContext.MODE_ECB_DECRYPT, key.to_utf8())\n"
-"    var decrypted = aes.update(encrypted)\n"
-"    aes.finish()\n"
-"    # ECB チェック\n"
-"    assert(decrypted == data.to_utf8())\n"
-"\n"
-"    var iv = \"My secret iv!!!\" # IVは正確に16バイトである必要があります。\n"
-"    # CBC 暗号化\n"
-"    aes.start(AESContext.MODE_CBC_ENCRYPT, key.to_utf8(), iv.to_utf8())\n"
-"    encrypted = aes.update(data.to_utf8())\n"
-"    aes.finish()\n"
-"    # CBC 復号化\n"
-"    aes.start(AESContext.MODE_CBC_DECRYPT, key.to_utf8(), iv.to_utf8())\n"
-"    decrypted = aes.update(encrypted)\n"
-"    aes.finish()\n"
-"    # CBC チェック\n"
-"    assert(decrypted == data.to_utf8())\n"
-"[/codeblock]"
 
 #: doc/classes/AESContext.xml:47
 msgid "Close this AES context so it can be started again. See [method start]."
 msgstr ""
-"この AES コンテキストを閉じて、再度開始できるようにします。[method start] を"
-"参照してください。"
 
 #: doc/classes/AESContext.xml:54
-#, fuzzy
 msgid ""
 "Get the current IV state for this context (IV gets updated when calling "
 "[method update]). You normally don't need this function.\n"
 "Note: This function only makes sense when the context is started with "
 "[constant MODE_CBC_ENCRYPT] or [constant MODE_CBC_DECRYPT]."
 msgstr ""
-"このコンテキストの現在の IV ステートを取得します(IVは [method update] を呼び"
-"出すと更新されます)。通常はこの関数は必要ありません。\n"
-"注: この関数は、コンテキストが [constant MODE_CBC_ENCRYPT] または [constant "
-"MODE_CBC_DECRYPT] で開始された場合にのみ意味を持ちます。"
 
 #: doc/classes/AESContext.xml:68
 msgid ""
@@ -4504,11 +3683,6 @@ msgid ""
 "(initialization vector) of exactly 16 bytes, is only needed when [code]mode[/"
 "code] is either [constant MODE_CBC_ENCRYPT] or [constant MODE_CBC_DECRYPT]."
 msgstr ""
-"与えられた [code]mode[/code] で AES コンテキストを起動します。16バイトまたは"
-"32バイトの [code]key[/code] が必要です。[code]mode[/code] が [constant "
-"MODE_CBC_ENCRYPT] または [constant MODE_CBC_DECRYPT] の場合にのみ、正確に16バ"
-"イトの [code]iv[/code] (initialization vector 初期化ベクトル) がさらに必要に"
-"なります。"
 
 #: doc/classes/AESContext.xml:77
 msgid ""
@@ -4518,47 +3692,40 @@ msgid ""
 "Note: The size of [code]src[/code] must be a multiple of 16. Apply some "
 "padding if needed."
 msgstr ""
-"この AES コンテキストに対して必要な操作を実行します。与えられた [code]src[/"
-"code] を暗号化 (または復号化) した結果を含む [PackedByteArray] を返します。動"
-"作モードについては [method start] を参照してください。\n"
-"注: [code]src[/code] のサイズは16の倍数でなければなりません。必要であれば、い"
-"くらかパディングを加えてください。"
 
 #: doc/classes/AESContext.xml:84
 msgid "AES electronic codebook encryption mode."
-msgstr "AES Electronic Codebook 暗号化モード。"
+msgstr ""
 
 #: doc/classes/AESContext.xml:87
 msgid "AES electronic codebook decryption mode."
-msgstr "AES Electronic Codebook 復号化モード。"
+msgstr ""
 
 #: doc/classes/AESContext.xml:90
 msgid "AES cipher blocker chaining encryption mode."
-msgstr "AES Cipher Block Chaining 暗号化モード。"
+msgstr ""
 
 #: doc/classes/AESContext.xml:93
 msgid "AES cipher blocker chaining decryption mode."
-msgstr "AES Cipher Block Chaining 復号化モード。"
+msgstr ""
 
 #: doc/classes/AESContext.xml:96
 msgid "Maximum value for the mode enum."
-msgstr "モード用enumの最大値。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:4
 msgid "Sprite node that can use multiple textures for animation."
-msgstr "アニメーション用に複数のテクスチャを使用できるSpriteノード。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:7 doc/classes/AnimatedSprite3D.xml:7
 msgid ""
 "Animations are created using a [SpriteFrames] resource, which can be "
 "configured in the editor via the SpriteFrames panel."
 msgstr ""
-"アニメーションは [SpriteFrames] リソースを使って作成し、エディタ上の"
-"SpriteFramesパネルにて設定できます。"
 
 #: doc/classes/AnimatedSprite2D.xml:16 doc/classes/AnimatedSprite3D.xml:16
 msgid "Returns [code]true[/code] if an animation is currently being played."
-msgstr "アニメーションが再生中であれば [code]true[/code] を返します。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:27
 msgid ""
@@ -4566,67 +3733,61 @@ msgid ""
 "provided, the current animation is played. If [code]backwards[/code] is "
 "[code]true[/code], the animation will be played in reverse."
 msgstr ""
-"アニメーション名 [code]anim[/code] のアニメーションを再生します。もし "
-"[code]anim[/code] が与えられなかった場合は、現在のアニメーションが再生されま"
-"す。もし [code]backwards[/code] が [code]true[/code] であれば、アニメーション"
-"は逆再生されます。"
 
 #: doc/classes/AnimatedSprite2D.xml:34 doc/classes/AnimatedSprite3D.xml:32
 msgid "Stops the current animation (does not reset the frame counter)."
-msgstr "現在のアニメーションを停止します (frameカウンターはリセットされない)。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:40 doc/classes/AnimatedSprite3D.xml:38
 msgid ""
 "The current animation from the [code]frames[/code] resource. If this value "
 "changes, the [code]frame[/code] counter is reset."
 msgstr ""
-"[code]frames[/code] リソースからの現在のアニメーション。この値が変わると、"
-"[code]frame[/code] カウンタはリセットされます。"
 
 #: doc/classes/AnimatedSprite2D.xml:43 doc/classes/SpriteBase3D.xml:55
 msgid "If [code]true[/code], texture will be centered."
-msgstr "[code]true[/code] であれば、テクスチャは中央になります。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:46 doc/classes/Sprite2D.xml:41
 #: doc/classes/SpriteBase3D.xml:61 doc/classes/TextureButton.xml:19
 #: doc/classes/TextureRect.xml:18
 msgid "If [code]true[/code], texture is flipped horizontally."
-msgstr "[code]true[/code] であれば、テクスチャは水平に反転されます。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:49 doc/classes/Sprite2D.xml:44
 #: doc/classes/SpriteBase3D.xml:64 doc/classes/TextureButton.xml:22
 #: doc/classes/TextureRect.xml:21
 msgid "If [code]true[/code], texture is flipped vertically."
-msgstr "[code]true[/code] であれば、テクスチャは垂直に反転されます。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:52 doc/classes/AnimatedSprite3D.xml:41
 msgid "The displayed animation frame's index."
-msgstr "表示されているアニメーションフレームのインデックス。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:55 doc/classes/AnimatedSprite3D.xml:44
 msgid "The [SpriteFrames] resource containing the animation(s)."
-msgstr "アニメーションを格納している [SpriteFrames] リソース。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:58 doc/classes/Sprite2D.xml:60
 #: doc/classes/SpriteBase3D.xml:70
 msgid "The texture's drawing offset."
-msgstr "テクスチャの描写オフセット。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:61 doc/classes/AnimatedSprite3D.xml:47
 msgid "If [code]true[/code], the [member animation] is currently playing."
-msgstr "[code]true[/code] であれば、[member animation] が現在再生中。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:64
 msgid "Strength of the specular light effect of this [AnimatedSprite2D]."
-msgstr "この [AnimatedSprite2D] のスペキュラ光エフェクトの強さ。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:67 doc/classes/Sprite2D.xml:75
 msgid "The color of the specular light effect."
-msgstr "スペキュラ光エフェクトの色。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:70
 msgid "The animation speed is multiplied by this value."
-msgstr "アニメーションの速度はこの値で乗算されます。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite2D.xml:76
 msgid ""
@@ -4634,32 +3795,25 @@ msgid ""
 "the animation is looping, this signal is emitted every time the last frame "
 "is drawn."
 msgstr ""
-"アニメーションが終了したとき (最後のフレームを再生したとき) に発せられます。"
-"アニメーションがループしている場合は、最後のフレームが描画されるたびにこのシ"
-"グナルが発信されます。"
 
 #: doc/classes/AnimatedSprite2D.xml:81 doc/classes/AnimatedSprite3D.xml:53
 msgid "Emitted when [member frame] changed."
-msgstr "[member frame] が変更されたときに発信されます。"
+msgstr ""
 
 #: doc/classes/AnimatedSprite3D.xml:4
 msgid ""
 "2D sprite node in 3D world, that can use multiple 2D textures for animation."
 msgstr ""
-"3Dワールド内での2Dスプライトノード。複数の2Dテクスチャを使ってアニメーション"
-"を行うことができます。"
 
 #: doc/classes/AnimatedSprite3D.xml:25
 msgid ""
 "Plays the animation named [code]anim[/code]. If no [code]anim[/code] is "
 "provided, the current animation is played."
 msgstr ""
-"[code]anim[/code] という名前のアニメーションを再生します。[code]anim[/code] "
-"が指定されていない場合は、現在のアニメーションを再生します。"
 
 #: doc/classes/AnimatedTexture.xml:4
 msgid "Proxy texture for simple frame-based animations."
-msgstr "シンプルなフレームベース アニメーションのためのプロキシ テクスチャ。"
+msgstr ""
 
 #: doc/classes/AnimatedTexture.xml:7
 msgid ""
@@ -4677,26 +3831,14 @@ msgid ""
 "Also, it doesn't support [AtlasTexture]. Each frame needs to be separate "
 "image."
 msgstr ""
-"[AnimatedTexture] はフレームベースのアニメーションのためのリソースフォーマッ"
-"トで、複数のテクスチャをフレームごとにあらかじめ定義された遅延時間で自動的に"
-"連結することができます。[AnimationPlayer] や [AnimatedSprite2D] とは異なり、"
-"これは [Node] ではありませんが、しかし [Texture2D] リソースが使用できる場所で"
-"あればどこでも使用できるという利点があります。\n"
-"アニメーションの再生は、[member fps] プロパティと各フレームのオプションの遅"
-"延 ([method set_frame_delay] を参照) によって制御されます。アニメーションは"
-"ループします。つまり、最後のフレームを再生した後、自動的に0フレーム目から再開"
-"します。\n"
-"[AnimatedTexture] は今のところ、すべてのフレームテクスチャが同じサイズである"
-"ことが要求されます。また、[AtlasTexture] には対応していません。各フレームは別"
-"の画像にする必要があります。"
 
 #: doc/classes/AnimatedTexture.xml:20
 msgid "Returns the given frame's delay value."
-msgstr "指定したフレームの遅延値を返します。"
+msgstr ""
 
 #: doc/classes/AnimatedTexture.xml:29
 msgid "Returns the given frame's [Texture2D]."
-msgstr "与えられたフレームの [Texture2D] を返します。"
+msgstr ""
 
 #: doc/classes/AnimatedTexture.xml:40
 msgid ""
@@ -4714,18 +3856,6 @@ msgid ""
 "Total duration: 2.7 s\n"
 "[/codeblock]"
 msgstr ""
-"[member fps] で定義された時間間隔に追加される、このフレームから次のフレームま"
-"での追加の遅延時間(秒単位)を設定します。デフォルトでは、フレームに遅延は定義"
-"されていません。遅延値が定義されている場合、このフレームと次のフレーム間の最"
-"終的な時間間隔は [code]1.0 / fps + 遅延値[/code] になります。\n"
-"例えば、合計3フレーム、2 FPS、2フレーム目のフレーム遅延が1.2のアニメーション"
-"の場合、結果として以下のように再生されます。\n"
-"[codeblock]\n"
-"Frame 0: 0.5 秒 (1 / fps)\n"
-"Frame 1: 1.7 秒 (1 / fps + 1.2)\n"
-"Frame 2: 0.5 秒 (1 / fps)\n"
-"合計時間: 2.7 秒\n"
-"[/codeblock]"
 
 #: doc/classes/AnimatedTexture.xml:58
 msgid ""
@@ -4736,16 +3866,10 @@ msgid ""
 "in mind that only frames from 0 to [member frames] - 1 will be part of the "
 "animation."
 msgstr ""
-"与えられたフレームに [Texture2D] を割り当てます。フレームIDは0から始まるの"
-"で、最初のフレームはID 0、アニメーションの最後のフレームはID [member frames] "
-"- 1となります。\n"
-"テクスチャの数は [constant MAX_FRAMES] まで自由に定義できますが、0から "
-"[member frames] - 1までのフレームのみがアニメーション部となることに注意してく"
-"ださい。"
 
 #: doc/classes/AnimatedTexture.xml:65
 msgid "Sets the currently visible frame of the texture."
-msgstr "テクスチャの現在表示されているフレームを設定します。"
+msgstr ""
 
 #: doc/classes/AnimatedTexture.xml:68
 msgid ""
@@ -4757,14 +3881,6 @@ msgid ""
 "For example, an animation with 8 frames, no frame delay and a [code]fps[/"
 "code] value of 2 will run for 4 seconds, with each frame lasting 0.5 seconds."
 msgstr ""
-"アニメーションの速度を、1秒当たりのフレーム数で指定します。この値は、アニメー"
-"ションの2つのフレーム間におけるデフォルトの時間間隔を定義し、それにより "
-"[member frames] プロパティに基づきアニメーションループ全体の再生時間を定義し"
-"ます。値が0の場合、1秒あたりのフレーム数は事前定義されず、アニメーションは各"
-"フレームのフレーム遅延に応じて再生されます ([method set_frame_delay] を参"
-"照) 。\n"
-"例えば、8フレーム、フレーム遅延なし、[code]fps[/code] の値が2のアニメーション"
-"は、各フレームの持続時間が0.5秒で、4秒間再生されます。"
 
 #: doc/classes/AnimatedTexture.xml:72
 msgid ""
@@ -4773,10 +3889,6 @@ msgid ""
 "for the animation to take new frames into account. The maximum number of "
 "frames is [constant MAX_FRAMES]."
 msgstr ""
-"アニメーションで使用するフレーム数。フレーム自体は [method "
-"set_frame_texture] により別に作成することができますが、新しいフレームを有効に"
-"するためにはこの値を設定する必要があります。最大フレーム数は [constant "
-"MAX_FRAMES] です。"
 
 #: doc/classes/AnimatedTexture.xml:75
 msgid ""
@@ -4784,9 +3896,6 @@ msgid ""
 "back to the first frame after reaching the end. Note that reaching the end "
 "will not set [member pause] to [code]true[/code]."
 msgstr ""
-"[code]true[/code]の場合、アニメーションは一度だけ再生され、終了しても最初のフ"
-"レームにはループバックしません。終了しても [member pause] は [code]true[/"
-"code] に設定されないので注意してください。"
 
 #: doc/classes/AnimatedTexture.xml:78
 msgid ""
@@ -4794,26 +3903,18 @@ msgid ""
 "at [member current_frame]). The animation will continue from where it was "
 "paused when changing this property to [code]false[/code]."
 msgstr ""
-"[code]true[/code] の場合、アニメーションは現在の位置 (つまり [member "
-"current_frame] の位置) で一時停止します。このプロパティを [code]false[/code] "
-"に変更すると、一時停止した場所からアニメーションを続行します。"
 
 #: doc/classes/AnimatedTexture.xml:83
 msgid ""
 "The maximum number of frames supported by [AnimatedTexture]. If you need "
 "more frames in your animation, use [AnimationPlayer] or [AnimatedSprite2D]."
 msgstr ""
-"[AnimatedTexture] がサポートする最大フレーム数です。それ以上のフレーム数が必"
-"要な場合は、 [AnimatedPlayer] や [AnimatedSprite2D] を使用してください。"
 
 #: doc/classes/Animation.xml:4
 msgid "Contains data used to animate everything in the engine."
 msgstr ""
-"エンジン内のすべてのものをアニメーション化するために使用されるデータが含まれ"
-"ています。"
 
 #: doc/classes/Animation.xml:7
-#, fuzzy
 msgid ""
 "An Animation resource contains data used to animate everything in the "
 "engine. Animations are divided into tracks, and each track must be linked to "
@@ -4834,41 +3935,20 @@ msgid ""
 "each with its own set of dedicated methods. Check [enum TrackType] to see "
 "available types."
 msgstr ""
-"Animation リソースには、エンジン内のすべてのものをアニメーション化するために"
-"使用されるデータが含まれています。アニメーションはトラックに分割されており、"
-"各トラックはノードにリンクされていなければなりません。そのノードの状態は、ト"
-"ラックに時間キー (イベント) を追加することで、時間の経過とともに変更すること"
-"ができます。\n"
-"[codeblock]\n"
-"# これはノード「Enemy」を右に移動させるアニメーションを作成します\n"
-"# 1秒間で100ピクセル。\n"
-"var animation = Animation.new()\n"
-"var track_index = animation.add_track(Animation.TYPE_VALUE)\n"
-"animation.track_set_path(track_index, \"Enemy:position.x\")\n"
-"animation.track_insert_key(track_index, 0.0, 0)\n"
-"animation.track_insert_key(track_index, 0.5, 100)\n"
-"[/codeblock]\n"
-"Animation は単なるデータコンテナであり、再生するためには [AnimationPlayer] な"
-"どのノードに追加する必要があります。アニメーショントラックには様々なタイプが"
-"あり、それぞれに専用のメソッドが用意されています。 [enum TrackType] をチェッ"
-"クして、利用可能なタイプを確認してください。"
 
 #: doc/classes/Animation.xml:20 doc/classes/AnimationPlayer.xml:13
 msgid "https://docs.godotengine.org/en/latest/tutorials/animation/index.html"
-msgstr "https://docs.godotengine.org/ja/latest/tutorials/animation/index.html"
+msgstr ""
 
 #: doc/classes/Animation.xml:31
 msgid "Adds a track to the Animation."
-msgstr "アニメーションにトラックを追加します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:42
 msgid ""
 "Returns the animation name at the key identified by [code]key_idx[/code]. "
 "The [code]track_idx[/code] must be the index of an Animation Track."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーのアニメーション名を返します。"
-"[code]track_idx[/code] はアニメーショントラックのインデックスでなければなりま"
-"せん。"
 
 #: doc/classes/Animation.xml:55
 msgid ""
@@ -4876,18 +3956,12 @@ msgid ""
 "code] (in seconds). The [code]track_idx[/code] must be the index of an "
 "Animation Track."
 msgstr ""
-"指定された [code]time[/code] (秒数) に値 [code]animation[/code] をキーとして"
-"挿入します。[code]track_idx[/code] はアニメーショントラックのインデックスでな"
-"ければなりません。"
 
 #: doc/classes/Animation.xml:68
 msgid ""
 "Sets the key identified by [code]key_idx[/code] to value [code]animation[/"
 "code]. The [code]track_idx[/code] must be the index of an Animation Track."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーを、値 [code]animation[/code] で設定しま"
-"す。[code]track_idx[/code] はアニメーショントラックのインデックスでなければな"
-"りません。"
 
 #: doc/classes/Animation.xml:79
 msgid ""
@@ -4896,10 +3970,6 @@ msgid ""
 "End offset is the number of seconds cut off at the ending of the audio "
 "stream."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーの後端オフセットを返します。"
-"[code]track_idx[/code] はオーディオトラックのインデックスでなければなりませ"
-"ん。\n"
-"後端オフセットは、オーディオストリームの終了時にカットオフされる秒数です。"
 
 #: doc/classes/Animation.xml:91
 msgid ""
@@ -4908,19 +3978,12 @@ msgid ""
 "Start offset is the number of seconds cut off at the beginning of the audio "
 "stream."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーの始端オフセットを返します。 "
-"[code]track_idx[/code] はオーディオトラックのインデックスでなければなりませ"
-"ん。\n"
-"始端オフセットは、オーディオストリームの先頭で切り取られる秒数です。"
 
 #: doc/classes/Animation.xml:103
 msgid ""
 "Returns the audio stream of the key identified by [code]key_idx[/code]. The "
 "[code]track_idx[/code] must be the index of an Audio Track."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーのオーディオストリームを返します。"
-"[code]track_idx[/code] はオーディオトラックのインデックスである必要がありま"
-"す。"
 
 #: doc/classes/Animation.xml:120
 msgid ""
@@ -4930,12 +3993,6 @@ msgid ""
 "[code]start_offset[/code] is the number of seconds cut off at the beginning "
 "of the audio stream, while [code]end_offset[/code] is at the ending."
 msgstr ""
-"オーディオトラックのキーを秒数 [code]time[/code] に挿入します。 "
-"[code]track_idx[/code] はオーディオトラックのインデックスである必要がありま"
-"す。\n"
-"[code]stream[/code] は再生する [AudioStream] リソースです。 "
-"[code]start_offset[/code] はオーディオストリームの先端でカットオフする秒数、"
-"一方 [code]end_offset[/code] は後端でカットオフする秒数です。"
 
 #: doc/classes/Animation.xml:134
 msgid ""
@@ -4943,9 +4000,6 @@ msgid ""
 "[code]offset[/code]. The [code]track_idx[/code] must be the index of an "
 "Audio Track."
 msgstr ""
-"[code]key_idx[/code] で指定されるキーの後端オフセットを値 [code]offset[/"
-"code] で設定します。[code]track_idx[/code] はオーディオトラックのインデックス"
-"でなければなりません。"
 
 #: doc/classes/Animation.xml:147
 msgid ""
@@ -4953,9 +4007,6 @@ msgid ""
 "[code]offset[/code]. The [code]track_idx[/code] must be the index of an "
 "Audio Track."
 msgstr ""
-"[code]key_idx[/code] で指定されるキーの始端オフセットを値 [code]offset[/"
-"code] に設定します。[code]track_idx[/code] はオーディオトラックのインデックス"
-"でなければなりません。"
 
 #: doc/classes/Animation.xml:160
 msgid ""
@@ -4963,33 +4014,24 @@ msgid ""
 "[code]offset[/code]. The [code]track_idx[/code] must be the index of an "
 "Audio Track."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーのストリームを値 [code]offset[/code] で"
-"設定します。[code]track_idx[/code] はオーディオトラックのインデックスでなけれ"
-"ばなりません。"
 
 #: doc/classes/Animation.xml:171
 msgid ""
 "Returns the in handle of the key identified by [code]key_idx[/code]. The "
 "[code]track_idx[/code] must be the index of a Bezier Track."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーのインハンドルを返します。 "
-"[code]track_idx[/code] はベジェトラックのインデックスでなければなりません。"
 
 #: doc/classes/Animation.xml:182
 msgid ""
 "Returns the out handle of the key identified by [code]key_idx[/code]. The "
 "[code]track_idx[/code] must be the index of a Bezier Track."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーのアウトハンドルを返します。 "
-"[code]track_idx[/code] はベジェトラックのインデックスでなければなりません。"
 
 #: doc/classes/Animation.xml:193
 msgid ""
 "Returns the value of the key identified by [code]key_idx[/code]. The "
 "[code]track_idx[/code] must be the index of a Bezier Track."
 msgstr ""
-"[code]key_idx[/code] で指定されたキーの値を返します。 [code]track_idx[/code] "
-"はベジェトラックのインデックスでなければなりません。"
 
 #: doc/classes/Animation.xml:210
 msgid ""
@@ -4999,19 +4041,12 @@ msgid ""
 "point, [code]out_handle[/code] is the right-side one, while [code]value[/"
 "code] is the actual value at this point."
 msgstr ""
-"指定された秒数 [code]time[/code] にベジェトラックのキーを挿入します。"
-"[code]track_idx[/code] はベジェトラックのインデックスでなければなりません。\n"
-"[code]in_handle[/code] は追加したベジェ曲線点の左側の重み、 "
-"[code]out_handle[/code] は右側の重み、 [code]value[/code] はこの時点での実際"
-"の値です。"
 
 #: doc/classes/Animation.xml:222
 msgid ""
 "Returns the interpolated value at the given [code]time[/code] (in seconds). "
 "The [code]track_idx[/code] must be the index of a Bezier Track."
 msgstr ""
-"指定された [code]time[/code] (秒数) における補間値を返します。 "
-"[code]track_idx[/code] はベジェトラックのインデックスでなければなりません。"
 
 #: doc/classes/Animation.xml:235
 msgid ""
@@ -5019,9 +4054,6 @@ msgid ""
 "[code]in_handle[/code]. The [code]track_idx[/code] must be the index of a "
 "Bezier Track."
 msgstr ""
-"[code]key_idx[/code] として識別されるキーのインハンドルを値 [code]in_handle[/"
-"code] に設定します。 [code]track_idx[/code] はベジェトラックのインデックスで"
-"なければなりません。"
 
 #: doc/classes/Animation.xml:248
 msgid ""
@@ -5029,198 +4061,165 @@ msgid ""
 "[code]out_handle[/code]. The [code]track_idx[/code] must be the index of a "
 "Bezier Track."
 msgstr ""
-"[code]key_idx[/code] として識別されるキーのアウトハンドルを値 "
-"[code]out_handle[/code] に設定します。 [code]track_idx[/code] はベジェトラッ"
-"クのインデックスでなければなりません。"
 
 #: doc/classes/Animation.xml:261
 msgid ""
 "Sets the value of the key identified by [code]key_idx[/code] to the given "
 "value. The [code]track_idx[/code] must be the index of a Bezier Track."
 msgstr ""
-"[code]key_idx[/code] として識別されるキーの値を、指定された値に設定します。 "
-"[code]track_idx[/code] はベジェトラックのインデックスでなければなりません。"
 
 #: doc/classes/Animation.xml:268
 msgid "Clear the animation (clear all tracks and reset all)."
-msgstr "アニメーションをクリアする (全トラックをクリアしてすべてリセット) 。"
+msgstr ""
 
 #: doc/classes/Animation.xml:279
 msgid ""
 "Adds a new track that is a copy of the given track from [code]to_animation[/"
 "code]."
 msgstr ""
-"[code]to_animation[/code] で与えられたトラックのコピーである、新しいトラック"
-"を追加します。"
 
 #: doc/classes/Animation.xml:288
 msgid ""
 "Returns the index of the specified track. If the track is not found, return "
 "-1."
 msgstr ""
-"指定したトラックのインデックスを返します。指定したトラックが見つからなかった"
-"場合は -1 を返します。"
 
 #: doc/classes/Animation.xml:295
 msgid "Returns the amount of tracks in the animation."
-msgstr "アニメーションのトラック数を返します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:308
 msgid ""
 "Returns all the key indices of a method track, given a position and delta "
 "time."
 msgstr ""
-"位置とデルタ時間を指定して、メソッドトラックのすべてのキーインデックスを返し"
-"ます。"
 
 #: doc/classes/Animation.xml:319
 msgid "Returns the method name of a method track."
-msgstr "メソッドトラックのメソッド名を返します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:330
 msgid ""
 "Returns the arguments values to be called on a method track for a given key "
 "in a given track."
 msgstr ""
-"指定されたトラック内の指定されたキーにおいて、メソッドトラックで呼び出される"
-"引数の値を返します。"
 
 #: doc/classes/Animation.xml:339
 msgid "Removes a track by specifying the track index."
-msgstr "トラックインデックスを指定してトラックを削除します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:352
 msgid ""
 "Finds the key index by time in a given track. Optionally, only find it if "
 "the exact time is given."
 msgstr ""
-"トラック内で指定された時間のキーインデックスを見つけます。オプションでは、正"
-"確な時間が指定されている場合にのみ見つけます。"
 
 #: doc/classes/Animation.xml:361
 msgid ""
 "Returns [code]true[/code] if the track at [code]idx[/code] wraps the "
 "interpolation loop. New tracks wrap the interpolation loop by default."
 msgstr ""
-"[code]idx[/code] のトラックが補間ループをラップしている場合、 [code]true[/"
-"code] を返します。新しいトラックはデフォルトで補間ループをラップします。"
 
 #: doc/classes/Animation.xml:370
 msgid "Returns the interpolation type of a given track."
-msgstr "指定されたトラックの補間タイプを返します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:379
 msgid "Returns the amount of keys in a given track."
-msgstr "指定したトラックのキー数を返します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:390
 msgid "Returns the time at which the key is located."
-msgstr "キーが配置されている時間を返します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:401
 msgid ""
 "Returns the transition curve (easing) for a specific key (see the built-in "
 "math function [method @GDScript.ease])."
 msgstr ""
-"特定のキーの遷移曲線 (イージング) を返します (組み込みの数学関数 [method "
-"@GDScript.ease] を参照) 。"
 
 #: doc/classes/Animation.xml:412
 msgid "Returns the value of a given key in a given track."
-msgstr "指定されたトラック内の、指定されたキーの値を返します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:421
 msgid ""
 "Gets the path of a track. For more information on the path format, see "
 "[method track_set_path]."
 msgstr ""
-"トラックのパスを取得します。パスの形式については [method track_set_path] を参"
-"照してください。"
 
 #: doc/classes/Animation.xml:430
 msgid "Gets the type of a track."
-msgstr "トラックの種類を取得します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:445
 msgid "Insert a generic key in a given track."
-msgstr "指定されたトラックに通常キーを挿入します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:454
 msgid ""
 "Returns [code]true[/code] if the track at index [code]idx[/code] is enabled."
 msgstr ""
-"インデックス [code]idx[/code] のトラックが有効な場合、 [code]true[/code] を返"
-"します。"
 
 #: doc/classes/Animation.xml:463
 msgid ""
 "Returns [code]true[/code] if the given track is imported. Else, return "
 "[code]false[/code]."
 msgstr ""
-"指定したトラックがインポートされている場合、 [code]true[/code] を返します。そ"
-"うでなければ、 [code]false[/code] を返します。"
 
 #: doc/classes/Animation.xml:472
 msgid "Moves a track down."
-msgstr "トラックを下に移動させます。"
+msgstr ""
 
 #: doc/classes/Animation.xml:483
 msgid ""
 "Changes the index position of track [code]idx[/code] to the one defined in "
 "[code]to_idx[/code]."
 msgstr ""
-"トラック [code]idx[/code] のインデックス位置を [code]to_idx[/code] で定義した"
-"ものに変更します。"
 
 #: doc/classes/Animation.xml:492
 msgid "Moves a track up."
-msgstr "トラックを上に移動させます。"
+msgstr ""
 
 #: doc/classes/Animation.xml:503
 msgid "Removes a key by index in a given track."
-msgstr "指定されたトラックにあるキーを、インデックスにより削除します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:514
 msgid "Removes a key by position (seconds) in a given track."
-msgstr "指定されたトラックにあるキーを、位置 (秒) によって削除します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:525
 msgid "Enables/disables the given track. Tracks are enabled by default."
 msgstr ""
-"指定されたトラックを有効/無効にします。デフォルトではトラックは有効になってい"
-"ます。"
 
 #: doc/classes/Animation.xml:536
 msgid "Sets the given track as imported or not."
-msgstr "与えられたトラックが、インポートされたかどうかを設定します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:547
 msgid ""
 "If [code]true[/code], the track at [code]idx[/code] wraps the interpolation "
 "loop."
 msgstr ""
-"[code]true[/code] の場合、[code]idx[/code] のトラックは補間ループをラップしま"
-"す。"
 
 #: doc/classes/Animation.xml:558
 msgid "Sets the interpolation type of a given track."
-msgstr "指定されたトラックの補間タイプを設定します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:571
 msgid "Sets the time of an existing key."
-msgstr "既存のキーの時間を設定します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:584
 msgid ""
 "Sets the transition curve (easing) for a specific key (see the built-in math "
 "function [method @GDScript.ease])."
 msgstr ""
-"特定のキーの遷移曲線 (イージング) を設定します (組み込みの数学関数 "
-"[method@GDScript.ease] を参照) 。"
 
 #: doc/classes/Animation.xml:597
 msgid "Sets the value of an existing key."
-msgstr "既存のキーの値を設定します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:608
 msgid ""
@@ -5231,24 +4230,16 @@ msgid ""
 "For example, [code]\"character/skeleton:ankle\"[/code] or [code]\"character/"
 "mesh:transform/local\"[/code]."
 msgstr ""
-"トラックのパスを設定します。パスは、ノードへの有効なシーンツリーパスでなけれ"
-"ばならず、アニメーションを再現するノードの親ノードから始まるパスを指定する必"
-"要があります。プロパティやボーンを制御するトラックは、[code]\":\"[/code] で区"
-"切ってパスの後に名前を追加しなければなりません。\n"
-"例えば、[code]\"character/skeleton:ankle\"[/code] や [code]\"character/mesh:"
-"transform/local\"[/code] などです。"
 
 #: doc/classes/Animation.xml:620
 msgid ""
 "Swaps the track [code]idx[/code]'s index position with the track "
 "[code]with_idx[/code]."
 msgstr ""
-"トラック [code]idx[/code] のインデックス位置を、トラック [code]with_idx[/"
-"code] と入れ替えます。"
 
 #: doc/classes/Animation.xml:637
 msgid "Insert a transform key for a transform track."
-msgstr "トランスフォームトラックにトランスフォームキーを挿入します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:648
 msgid ""
@@ -5256,23 +4247,20 @@ msgid ""
 "seconds). An array consisting of 3 elements: position ([Vector3]), rotation "
 "([Quat]) and scale ([Vector3])."
 msgstr ""
-"指定された時間 (秒) におけるトランスフォームトラックの補間値を返します。位置"
-"([Vector3])、回転([Quat])、スケール([Vector3]) の3つの要素からなる配列です。"
 
 #: doc/classes/Animation.xml:661
 msgid ""
 "Returns all the key indices of a value track, given a position and delta "
 "time."
 msgstr ""
-"位置とデルタ時間を指定して、値トラックのすべてのキーインデックスを返します。"
 
 #: doc/classes/Animation.xml:670
 msgid "Returns the update mode of a value track."
-msgstr "値トラックの更新モードを返します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:681
 msgid "Sets the update mode (see [enum UpdateMode]) of a value track."
-msgstr "値トラックの更新モード ([enum UpdateMode] を参照) を設定します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:687
 msgid ""
@@ -5280,9 +4268,6 @@ msgid ""
 "[b]Note:[/b] Length is not delimited by the last key, as this one may be "
 "before or after the end to ensure correct interpolation and looping."
 msgstr ""
-"アニメーションの全長 (秒) 。\n"
-"[b]注:[/b] 最後のキーは終了時よりも前か後にあるかもしれないので、正しい補間と"
-"ルーピングのため、長さは最後のキーでは定められません。"
 
 #: doc/classes/Animation.xml:691
 msgid ""
@@ -5290,41 +4275,32 @@ msgid ""
 "interpolation of animation cycles, and for hinting the player that it must "
 "restart the animation."
 msgstr ""
-"アニメーションがループしなければならないことを示すフラグ。これは、アニメー"
-"ションのサイクルを正しく補間したり、アニメーションを再スタートさせる必要があ"
-"ることをプレーヤーに知らせるヒントとして使用されます。"
 
 #: doc/classes/Animation.xml:694
 msgid "The animation step value."
-msgstr "アニメーションのステップ値。"
+msgstr ""
 
 #: doc/classes/Animation.xml:700
 msgid ""
 "Emitted when there's a change in the list of tracks, e.g. tracks are added, "
 "moved or have changed paths."
 msgstr ""
-"トラックが追加されたり、移動されたり、パスが変更されたりした場合など、トラッ"
-"クのリストに変更があった場合に発信されます。"
 
 #: doc/classes/Animation.xml:706
 msgid ""
 "Value tracks set values in node properties, but only those which can be "
 "Interpolated."
 msgstr ""
-"値トラックは、ノードのプロパティの値を設定します。ただし、補間可能な値のみ可"
-"能です。"
 
 #: doc/classes/Animation.xml:709
 msgid ""
 "Transform tracks are used to change node local transforms or skeleton pose "
 "bones. Transitions are interpolated."
 msgstr ""
-"トランスフォーム トラックは、ノードのローカル トランスフォームや、スケルトン"
-"ポーズのボーンを変更するために使用されます。遷移は補間されます。"
 
 #: doc/classes/Animation.xml:712
 msgid "Method tracks call functions with given arguments per key."
-msgstr "メソッドトラックは、キーごとに与えられた引数で関数を呼び出します。"
+msgstr ""
 
 #: doc/classes/Animation.xml:715
 msgid ""
@@ -5332,9 +4308,6 @@ msgid ""
 "also be used to animate sub-properties of vectors and colors (e.g. alpha "
 "value of a [Color])."
 msgstr ""
-"ベジェトラックは、カスタムのカーブを使用して値を補間するために使用されます。"
-"ベジェトラックは、ベクターやカラーのサブプロパティをアニメーション化するため"
-"にも使用できます (例: [Color] のアルファ値) 。"
 
 #: doc/classes/Animation.xml:718
 msgid ""
@@ -5342,51 +4315,44 @@ msgid ""
 "[AudioStreamPlayer]. The stream can be trimmed and previewed in the "
 "animation."
 msgstr ""
-"オーディオトラックは、いずれかの種類の [AudioStreamPlayer] 上でオーディオスト"
-"リームを再生します。ストリームはアニメーション内でトリミングしたり、プレ"
-"ビューしたりすることができます。"
 
 #: doc/classes/Animation.xml:721
 msgid "Animation tracks play animations in other [AnimationPlayer] nodes."
 msgstr ""
-"アニメーショントラックは、他の [AnimationPlayer] ノードでアニメーションを再生"
-"します。"
 
 #: doc/classes/Animation.xml:724
 msgid "No interpolation (nearest value)."
-msgstr "補間なし (直近の値) 。"
+msgstr ""
 
 #: doc/classes/Animation.xml:727
 msgid "Linear interpolation."
-msgstr "線形補間。"
+msgstr ""
 
 #: doc/classes/Animation.xml:730
 msgid "Cubic interpolation."
-msgstr "キュービック補間。"
+msgstr ""
 
 #: doc/classes/Animation.xml:733
 msgid "Update between keyframes."
-msgstr "キーフレーム間で更新する。"
+msgstr ""
 
 #: doc/classes/Animation.xml:736
 msgid "Update at the keyframes and hold the value."
-msgstr "キーフレームで更新し、値を保持する。"
+msgstr ""
 
 #: doc/classes/Animation.xml:739
 msgid "Update at the keyframes."
-msgstr "キーフレームで更新する。"
+msgstr ""
 
 #: doc/classes/Animation.xml:742
 msgid ""
 "Same as linear interpolation, but also interpolates from the current value "
 "(i.e. dynamically at runtime) if the first key isn't at 0 seconds."
 msgstr ""
-"線形補間と同じですが、最初のキーが0秒時点にない場合は、現在の値から補間しま"
-"す (実行時に動的に) 。"
 
 #: doc/classes/AnimationNode.xml:4
 msgid "Base resource for [AnimationTree] nodes."
-msgstr "[AnimationTree] ノードの基底リソース。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:7
 msgid ""
@@ -5395,10 +4361,6 @@ msgid ""
 "Inherit this when creating nodes mainly for use in [AnimationNodeBlendTree], "
 "otherwise [AnimationRootNode] should be used instead."
 msgstr ""
-"[AnimationTree] ノードの基底リソース。 一般的に、直接使うことはありませんが、"
-"カスタムブレンド式を使うカスタムノードを作成することができます。\n"
-"主に [AnimationNodeBlendTree] で使用するノードを作成する場合はこれを継承し、"
-"それ以外の場合は [AnimationRootNode] を使用してください。"
 
 #: doc/classes/AnimationNode.xml:11 doc/classes/AnimationNodeAdd2.xml:10
 #: doc/classes/AnimationNodeAdd3.xml:14
@@ -5420,16 +4382,12 @@ msgid ""
 "https://docs.godotengine.org/en/latest/tutorials/animation/animation_tree."
 "html"
 msgstr ""
-"https://docs.godotengine.org/ja/latest/tutorials/animation/animation_tree."
-"html"
 
 #: doc/classes/AnimationNode.xml:20
 msgid ""
 "Adds an input to the node. This is only useful for nodes created for use in "
 "an [AnimationNodeBlendTree]."
 msgstr ""
-"ノードに入力を追加します。これは [AnimationNodeBlendTree] で使用するために作"
-"成されたノードでのみ有用です。"
 
 #: doc/classes/AnimationNode.xml:37
 msgid ""
@@ -5437,10 +4395,6 @@ msgid ""
 "linked [AnimationPlayer]). A [code]time[/code] and [code]delta[/code] may be "
 "passed, as well as whether [code]seek[/code] happened."
 msgstr ""
-"アニメーションを [code]blend[/code] 量でブレンドします (名前はリンクされた "
-"[AnimationPlayer] で有効でなければなりません) 。[code]time[/code] と "
-"[code]delta[/code] を渡したり、[code]seek[/code] が発生したかどうかを渡すこと"
-"もできます。"
 
 #: doc/classes/AnimationNode.xml:56
 msgid ""
@@ -5450,11 +4404,6 @@ msgid ""
 "absolute. A filter mode may be optionally passed (see [enum FilterAction] "
 "for options)."
 msgstr ""
-"入力をブレンドします。これは [AnimationNodeBlendTree] のために作成されたノー"
-"ドに対してのみ有用です。[code]time[/code] パラメータは相対的なデルタ値です"
-"が、しかし [code]seek[/code] が [code]true[/code] の場合は絶対値です。オプ"
-"ションでフィルタモードを渡すことができます (オプションについては [enum "
-"FilterAction] を参照) 。"
 
 #: doc/classes/AnimationNode.xml:77
 msgid ""
@@ -5462,55 +4411,44 @@ msgid ""
 "nodes). This function is only useful if you inherit from [AnimationRootNode] "
 "instead, else editors will not display your node for addition."
 msgstr ""
-"もうひとつのアニメーションノードをブレンドします (このノードに子アニメーショ"
-"ンノードが含まれている場合)。この関数は [AnimationRootNode] を継承している場"
-"合にのみ有用で、そうでなければエディタは追加用ノードを表示しません。"
 
 #: doc/classes/AnimationNode.xml:84
 msgid "Gets the text caption for this node (used by some editors)."
-msgstr "このノードのテキストキャプションを取得します (特定のエディタで使用)。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:93
 msgid ""
 "Gets a child node by index (used by editors inheriting from "
 "[AnimationRootNode])."
 msgstr ""
-"子ノードをインデックスで取得します ([AnimationRootNode] を継承したエディタで"
-"使用)。"
 
 #: doc/classes/AnimationNode.xml:100
 msgid ""
 "Gets all children nodes in order as a [code]name: node[/code] dictionary. "
 "Only useful when inheriting [AnimationRootNode]."
 msgstr ""
-"すべての子ノードを順番通りに [code]name: node[/code] の辞書として取得します。"
-"[AnimationRootNode] を継承する場合にのみ有用です。"
 
 #: doc/classes/AnimationNode.xml:107
 msgid ""
 "Amount of inputs in this node, only useful for nodes that go into "
 "[AnimationNodeBlendTree]."
-msgstr "ノードの入力数。[AnimationNodeBlendTree] 内のノードでのみ有用です。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:116
 msgid "Gets the name of an input by index."
-msgstr "入力の名前をインデックスで取得します。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:125
 msgid ""
 "Gets the value of a parameter. Parameters are custom local memory used for "
 "your nodes, given a resource can be reused in multiple trees."
 msgstr ""
-"特定のパラメータの値を取得します。パラメータはノードに使用されるカスタムの"
-"ローカルメモリで、与えられたリソースは複数のツリーで再利用できます。"
 
 #: doc/classes/AnimationNode.xml:134
 msgid ""
 "Gets the default value of a parameter. Parameters are custom local memory "
 "used for your nodes, given a resource can be reused in multiple trees."
 msgstr ""
-"特定のパラメータのデフォルト値を取得します。パラメータはノードに使用されるカ"
-"スタムのローカルメモリで、与えられたリソースは複数のツリーで再利用できます。"
 
 #: doc/classes/AnimationNode.xml:141
 msgid ""
@@ -5518,22 +4456,16 @@ msgid ""
 "memory used for your nodes, given a resource can be reused in multiple "
 "trees. Format is similar to [method Object.get_property_list]."
 msgstr ""
-"パラメータのプロパティ情報を取得します。パラメータは、ノードのために使われる"
-"カスタムのローカルメモリで、与えられたリソースは複数のツリーで再利用できま"
-"す。フォーマットは [method Object.get_property_list] に似ています。"
 
 #: doc/classes/AnimationNode.xml:148
 msgid ""
 "Returns [code]true[/code] whether you want the blend tree editor to display "
 "filter editing on this node."
 msgstr ""
-"このノードで編集するフィルターを、ブレンドツリーエディタにて表示させたい場合"
-"は [code]true[/code] を返すようにします。"
 
 #: doc/classes/AnimationNode.xml:157
 msgid "Returns [code]true[/code] whether a given path is filtered."
 msgstr ""
-"指定したパスがフィルタリングされていれば [code]true[/code] を返します。"
 
 #: doc/classes/AnimationNode.xml:168
 msgid ""
@@ -5546,39 +4478,28 @@ msgid ""
 "This function should return the time left for the current animation to "
 "finish (if unsure, pass the value from the main blend being called)."
 msgstr ""
-"カスタムノードが処理されたときに呼び出される、ユーザー定義のコールバックで"
-"す。[code]time[/code] パラメータは相対的なデルタ値ですが、[code]seek[/code] "
-"が [code]true[/code] の場合は絶対値になります。\n"
-"ここでは、[method blend_input] 関数、[method blend_node] 関数、または "
-"[method blend_animation] 関数を呼び出してください。また、[method "
-"get_parameter] や [method set_parameter] を使ってローカルメモリを変更すること"
-"もできます。\n"
-"この関数は、現在のアニメーションが終了するまでの残り時間を返します (不明なと"
-"きは、呼び出されたメイン ブレンドの値を渡します)。"
 
 #: doc/classes/AnimationNode.xml:179
 msgid "Removes an input, call this only when inactive."
-msgstr "入力を削除します。非アクティブ時にのみ呼び出してください。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:190
 msgid "Adds or removes a path for the filter."
-msgstr "このフィルタのパスを追加あるいは除去します。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:201
 msgid ""
 "Sets a custom parameter. These are used as local storage, because resources "
 "can be reused across the tree or scenes."
 msgstr ""
-"カスタムパラメータを設定します。リソースはツリーやシーン全体で再利用できるた"
-"め、これらはローカルストレージとして機能します。"
 
 #: doc/classes/AnimationNode.xml:207
 msgid "If [code]true[/code], filtering is enabled."
-msgstr "もし [code]true[/code] であれば、フィルタリングは有効になります。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:213
 msgid "Called when the node was removed from the graph."
-msgstr "グラフからノードが除去された際に発信されます。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:218
 msgid ""
@@ -5587,39 +4508,32 @@ msgid ""
 "[AnimationNodeBlendSpace1D], [AnimationNodeBlendSpace2D], "
 "[AnimationNodeStateMachine], and [AnimationNodeBlendTree]."
 msgstr ""
-"このクラスを継承していて内部ツリーを持つノードの、いずれかのノードが変化した"
-"ときに発信します。このシグナルを発信するノードは、"
-"[AnimationNodeBlendSpace1D]、[AnimationNodeBlendSpace2D]、"
-"[AnimationNodeStateMachine]、および [AnimationNodeBlendTree] です。"
 
 #: doc/classes/AnimationNode.xml:224
 msgid "Do not use filtering."
-msgstr "フィルタリングは未使用。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:227
 msgid "Paths matching the filter will be allowed to pass."
-msgstr "フィルタにマッチするパスの通過を許可。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:230
 msgid "Paths matching the filter will be discarded."
-msgstr "フィルタにマッチするパスの通過を拒否。"
+msgstr ""
 
 #: doc/classes/AnimationNode.xml:233
 msgid "Paths matching the filter will be blended (by the blend value)."
-msgstr "フィルターにマッチしたパスはブレンドされる (ブレンド値にて)。"
+msgstr ""
 
 #: doc/classes/AnimationNodeAdd2.xml:4
 msgid "Blends two animations additively inside of an [AnimationNodeBlendTree]."
 msgstr ""
-"[AnimationNodeBlendTree] 内で2つのアニメーションを加算してブレンドします。"
 
 #: doc/classes/AnimationNodeAdd2.xml:7
 msgid ""
 "A resource to add to an [AnimationNodeBlendTree]. Blends two animations "
 "additively based on an amount value in the [code][0.0, 1.0][/code] range."
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソースです。[code][0.0, 1.0][/code] の範"
-"囲に基づき、2つのアニメーションを加算ブレンドします。"
 
 #: doc/classes/AnimationNodeAdd2.xml:16 doc/classes/AnimationNodeAdd3.xml:20
 #: doc/classes/AnimationNodeBlend2.xml:16
@@ -5629,15 +4543,12 @@ msgid ""
 "code] when calling [method AnimationNode.blend_input], forcing the blended "
 "animations to update every frame."
 msgstr ""
-"[code]true[/code] の場合、[method AnimationNode.blend_input] を呼び出す際に"
-"[code]optimization[/code] を [code]false[/code] に設定し、ブレンドされたアニ"
-"メーションをフレームごとに強制的に更新します。"
 
 #: doc/classes/AnimationNodeAdd3.xml:4
 msgid ""
 "Blends two of three animations additively inside of an "
 "[AnimationNodeBlendTree]."
-msgstr "[AnimationNodeBlendTree] 内で2つのアニメーションを加算ブレンドします。"
+msgstr ""
 
 #: doc/classes/AnimationNodeAdd3.xml:7
 msgid ""
@@ -5651,18 +4562,10 @@ msgid ""
 "- A +add animation to blend with when the blend amount is in the [code][0.0, "
 "1.0][/code] range"
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソースです。[code][-1.0, 1.0][/code] の"
-"範囲に基づいて、3つのうち2つのアニメーションを加算ブレンドします。\n"
-"このノードには3つの入力があります:\n"
-"- 追加対象となるベースアニメーション\n"
-"- ブレンド量が [code][-1.0, 0.0][/code] の範囲内にあるときにブレンドする -"
-"add アニメーション\n"
-"- ブレンド量が [code][0.0, 1.0][/code] の範囲内にあるときにブレンドする +add "
-"アニメーション"
 
 #: doc/classes/AnimationNodeAnimation.xml:4
 msgid "Input animation to use in an [AnimationNodeBlendTree]."
-msgstr "[AnimationNodeBlendTree] 内で使用する入力アニメーション。"
+msgstr ""
 
 #: doc/classes/AnimationNodeAnimation.xml:7
 msgid ""
@@ -5670,36 +4573,28 @@ msgid ""
 "set using the [member animation] property. Use it as an input for "
 "[AnimationNode] that blend animations together."
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソースです。[member animation] プロパ"
-"ティを使用する出力セットがひとつだけあります。アニメーションをブレンドする "
-"[AnimationNode] の入力として使用します。"
 
 #: doc/classes/AnimationNodeAnimation.xml:16
 msgid ""
 "Animation to use as an output. It is one of the animations provided by "
 "[member AnimationTree.anim_player]."
 msgstr ""
-"出力として使用するアニメーション。[member AnimationTree.anim_player] が用意し"
-"たアニメーションのひとつです。"
 
 #: doc/classes/AnimationNodeBlend2.xml:4
 msgid "Blends two animations linearly inside of an [AnimationNodeBlendTree]."
-msgstr "[AnimationNodeBlendTree] 内で2つのアニメーションを線形ブレンドします。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlend2.xml:7
 msgid ""
 "A resource to add to an [AnimationNodeBlendTree]. Blends two animations "
 "linearly based on an amount value in the [code][0.0, 1.0][/code] range."
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソースです。2つのアニメーションを [code]"
-"[0.0, 1.0][/code] の範囲に基づいて線形ブレンドします。"
 
 #: doc/classes/AnimationNodeBlend3.xml:4
 msgid ""
 "Blends two of three animations linearly inside of an "
 "[AnimationNodeBlendTree]."
 msgstr ""
-"[AnimationNodeBlendTree] 内にある3つのアニメーションを線形ブレンドします。"
 
 #: doc/classes/AnimationNodeBlend3.xml:7
 msgid ""
@@ -5713,23 +4608,12 @@ msgid ""
 "- A +blend animation to blend with when the blend amount is in the [code]"
 "[0.0, 1.0][/code] range"
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソースです。[code][-1.0, 1.0][/code] の"
-"範囲に基づいて、3つのアニメーションのうち2つのアニメーションを線形ブレンドし"
-"ます。\n"
-"このノードには3つの入力があります:\n"
-"- ベースとなるアニメーション\n"
-"- ブレンド量が [code][-1.0, 0.0][/code] の範囲内のときにブレンドする -blend "
-"アニメーション。\n"
-"- ブレンド量が [code][0.0, 1.0][/code] の範囲内のときにブレンドする +blend ア"
-"ニメーション"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:4
 msgid ""
 "Blends linearly between two of any number of [AnimationNode] of any type "
 "placed on a virtual axis."
 msgstr ""
-"仮想軸上に配置された任意の種類、任意の数の [AnimationNode] のうち、2つを線形"
-"ブレンドします。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:7
 msgid ""
@@ -5741,11 +4625,6 @@ msgid ""
 "You can set the extents of the axis using the [member min_space] and [member "
 "max_space]."
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソースです。\n"
-"これは仮想軸であり、あらゆる種類の [AnimationNode] を [add_blend_point "
-"method] を使って追加することができます。\n"
-"ノードの現在値に最も近い2つの [AnimationNode] の線形ブレンドを出力します。\n"
-"軸の範囲は [member min_space] および [member max_space] で設定できます。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:26
 msgid ""
@@ -5755,31 +4634,25 @@ msgid ""
 "for [code]at_index[/code], the point is inserted at the end of the blend "
 "points array."
 msgstr ""
-"仮想軸上の [code]node[/code] を表す新しいポイントを、[code]pos[/code] で指定"
-"した位置に追加します。引数 [code]at_index[/code] で指定したインデックスに挿入"
-"することもできます。[code]at_index[/code] にデフォルト値を使用した場合は、ブ"
-"レンドポイント配列の最後に挿入されます。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:33
 msgid "Returns the number of points on the blend axis."
-msgstr "ブレンド軸上のポイントの数を返します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:42
 msgid ""
 "Returns the [AnimationNode] referenced by the point at index [code]point[/"
 "code]."
 msgstr ""
-"インデックス [code]point[/code] のポイントが参照している [AnimationNode] を返"
-"します。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:51
 #: doc/classes/AnimationNodeBlendSpace2D.xml:65
 msgid "Returns the position of the point at index [code]point[/code]."
-msgstr "インデックス [code]point[/code] のポイントの位置を返します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:60
 msgid "Removes the point at index [code]point[/code] from the blend axis."
-msgstr "ブレンド軸からインデックス [code]point[/code] のポイントを削除します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:71
 #: doc/classes/AnimationNodeBlendSpace2D.xml:112
@@ -5787,8 +4660,6 @@ msgid ""
 "Changes the [AnimationNode] referenced by the point at index [code]point[/"
 "code]."
 msgstr ""
-"インデックス [code]point[/code] のポイントが参照する [AnimationNode] を変更し"
-"ます。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:82
 #: doc/classes/AnimationNodeBlendSpace2D.xml:123
@@ -5796,39 +4667,32 @@ msgid ""
 "Updates the position of the point at index [code]point[/code] on the blend "
 "axis."
 msgstr ""
-"ブレンド軸上にあるインデックス [code]point[/code] のポイントの位置を更新しま"
-"す。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:88
 msgid ""
 "The blend space's axis's upper limit for the points' position. See [method "
 "add_blend_point]."
 msgstr ""
-"ブレンド空間軸のポイント位置の上限。[method add_blend_point] を参照してくださ"
-"い。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:91
 msgid ""
 "The blend space's axis's lower limit for the points' position. See [method "
 "add_blend_point]."
 msgstr ""
-"ブレンド空間軸のポイント位置の下限。[method add_blend_point] を参照してくださ"
-"い。"
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:94
 msgid "Position increment to snap to when moving a point on the axis."
-msgstr "軸上でポイントを移動するときにスナップする位置増加量。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace1D.xml:97
 msgid "Label of the virtual axis of the blend space."
-msgstr "ブレンド空間の仮想軸のラベル。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:4
 msgid ""
 "Blends linearly between three [AnimationNode] of any type placed in a 2D "
 "space."
 msgstr ""
-"2D空間に配置された任意のタイプの [AnimationNode] を3つ線形ブレンドします。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:7
 msgid ""
@@ -5840,13 +4704,6 @@ msgid ""
 "[code]true[/code]. Otherwise, use [method add_triangle] and [method "
 "remove_triangle] to create up the blend space by hand."
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソースです。\n"
-"このノードを使うと、[Vector2] の重みを使って3つのアニメーション間を線形ブレン"
-"ドすることができます。\n"
-"ブレンド空間には [method add_blend_point] で頂点を追加でき、[member "
-"auto_triangles] を [code]true[/code] に設定することで自動的に三角形にすること"
-"ができます。それ以外の場合は、[method add_triangle] と [method "
-"remove_triangle] を使ってブレンド空間を手作業で作成します。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:25
 msgid ""
@@ -5856,10 +4713,6 @@ msgid ""
 "[code]at_index[/code], the point is inserted at the end of the blend points "
 "array."
 msgstr ""
-"[code]pos[/code] で設定した位置に、[code]node[/code] を表す新しいポイントを追"
-"加します。引数 [code]at_index[/code] で指定したインデックスに挿入できます。"
-"[code]at_index[/code] のデフォルト値を使用した場合、そのポイントはブレンドポ"
-"イント配列の最後に挿入されます。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:40
 msgid ""
@@ -5869,46 +4722,35 @@ msgid ""
 "default value for [code]at_index[/code], the point is inserted at the end of "
 "the blend points array."
 msgstr ""
-"3つのポイント [code]x[/code]、[code]y[/code]、[code]z[/code] からなる新しい三"
-"角形を作成します。三角形は重なり合うことができます。三角形を特定のインデック"
-"スに挿入するには、[code]at_index[/code] 引数を使用します。[code]at_index[/"
-"code] のデフォルト値を使用した場合、そのポイントはブレンドポイント配列の最後"
-"に挿入されます。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:47
 msgid "Returns the number of points in the blend space."
-msgstr "ブレンド空間内のポイント数を返します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:56
 msgid ""
 "Returns the [AnimationRootNode] referenced by the point at index "
 "[code]point[/code]."
 msgstr ""
-"インデックス [code]point[/code] のポイントが参照する [AnimationRootNode] を返"
-"します。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:72
 msgid "Returns the number of triangles in the blend space."
-msgstr "ブレンド空間内の三角形の数を返します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:83
 msgid ""
 "Returns the position of the point at index [code]point[/code] in the "
 "triangle of index [code]triangle[/code]."
 msgstr ""
-"インデックス [code]triangle[/code] の三角形内にある、インデックス "
-"[code]point[/code] のポイントの位置を返します。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:92
 msgid "Removes the point at index [code]point[/code] from the blend space."
 msgstr ""
-"ブレンド空間からインデックス [code]point[/code] のポイントを削除します。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:101
 msgid ""
 "Removes the triangle at index [code]triangle[/code] from the blend space."
 msgstr ""
-"ブレンド空間からインデックス [code]triangle[/code] の三角形を削除します。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:129
 msgid ""
@@ -5916,166 +4758,143 @@ msgid ""
 "mesh updates every time you add or remove points with [method "
 "add_blend_point] and [method remove_blend_point]."
 msgstr ""
-"[code]true[/code]の場合は、ブレンド空間は自動的に三角形になります。[method "
-"add_blend_point] と [method remove_blend_point] でポイントを追加または削除す"
-"るたびにメッシュが更新されます。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:132
 msgid ""
 "Controls the interpolation between animations. See [enum BlendMode] "
 "constants."
 msgstr ""
-"アニメーション間の補間を制御します。[enum BlendMode] 定数を参照してください。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:135
 msgid ""
 "The blend space's X and Y axes' upper limit for the points' position. See "
 "[method add_blend_point]."
 msgstr ""
-"ブレンド空間のX軸およびY軸におけるポイント位置の上限。[method "
-"add_blend_point] を参照してください。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:138
 msgid ""
 "The blend space's X and Y axes' lower limit for the points' position. See "
 "[method add_blend_point]."
 msgstr ""
-"ブレンド空間のX軸およびY軸におけるポイント位置の下限。[method "
-"add_blend_point] を参照してください。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:141
 msgid "Position increment to snap to when moving a point."
-msgstr "ポイントの移動時にスナップする位置の増加分。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:144
 msgid "Name of the blend space's X axis."
-msgstr "ブレンド空間のX軸の名前。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:147
 msgid "Name of the blend space's Y axis."
-msgstr "ブレンド空間のY軸の名前。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:153
 msgid ""
 "Emitted every time the blend space's triangles are created, removed, or when "
 "one of their vertices changes position."
 msgstr ""
-"ブレンドスペースの三角形の作成、削除、および頂点の位置が変わるたびに発信され"
-"ます。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:159
 msgid "The interpolation between animations is linear."
-msgstr "アニメーション間の補間は線形です。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:162
 msgid ""
 "The blend space plays the animation of the node the blending position is "
 "closest to. Useful for frame-by-frame 2D animations."
 msgstr ""
-"このブレンドスペースでは、ブレンド位置が最も近いノードのアニメーションを再生"
-"します。フレーム単位の2Dアニメーションに便利です。"
 
 #: doc/classes/AnimationNodeBlendSpace2D.xml:165
 msgid ""
 "Similar to [constant BLEND_MODE_DISCRETE], but starts the new animation at "
 "the last animation's playback position."
 msgstr ""
-"[constant BLEND_MODE_DISCRETE] と似ていますが、最後のアニメーションの再生位置"
-"から新しいアニメーションを開始します。"
 
 #: doc/classes/AnimationNodeBlendTree.xml:4
 msgid "[AnimationTree] node resource that contains many blend type nodes."
-msgstr "ブレンドタイプのノードを多数含む [AnimationTree] ノードリソース。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:7
 msgid ""
 "This node may contain a sub-tree of any other blend type nodes, such as mix, "
 "blend2, blend3, one shot, etc. This is one of the most commonly used roots."
 msgstr ""
-"このノードは、mix、blend2、blend3、ワンショットなど、他の任意のブレンドタイプ"
-"のノードをサブツリーとして含むことができます。これは、一般的によく使用される"
-"ルートの1つです。"
 
 #: doc/classes/AnimationNodeBlendTree.xml:23
 msgid ""
 "Adds an [AnimationNode] at the given [code]position[/code]. The [code]name[/"
 "code] is used to identify the created sub-node later."
 msgstr ""
-"指定された [code]position[/code] に [AnimationNode] を追加します。"
-"[code]name[/code] は、作成されたサブノードを後で識別するために使用されます。"
 
 #: doc/classes/AnimationNodeBlendTree.xml:36
 msgid ""
 "Connects the output of an [AnimationNode] as input for another "
 "[AnimationNode], at the input port specified by [code]input_index[/code]."
 msgstr ""
-"ある [AnimationNode] の出力を、[code]input_index[/code] で指定された入力ポー"
-"トに、別の [AnimationNode] の入力として接続します。"
 
 #: doc/classes/AnimationNodeBlendTree.xml:47
 msgid "Disconnects the node connected to the specified input."
-msgstr "指定された入力に接続されているノードを切断します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:56
 msgid "Returns the sub-node with the specified [code]name[/code]."
-msgstr "指定した [code]name[/code] のサブノードを返します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:65
 msgid ""
 "Returns the position of the sub-node with the specified [code]name[/code]."
-msgstr "指定した名前 [code]name[/code] のサブノードの位置を返します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:74
 msgid ""
 "Returns [code]true[/code] if a sub-node with specified [code]name[/code] "
 "exists."
 msgstr ""
-"指定された名前 [code]name[/code] のサブノードが存在する場合、[code]true[/"
-"code] を返します。"
 
 #: doc/classes/AnimationNodeBlendTree.xml:83
 msgid "Removes a sub-node."
-msgstr "サブノードを除去します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:94
 msgid "Changes the name of a sub-node."
-msgstr "サブノードの名前を変更します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:105
 msgid "Modifies the position of a sub-node."
-msgstr "サブノードの位置を変更します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:111
 msgid "The global offset of all sub-nodes."
-msgstr "すべてのサブノードのグローバルオフセット。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:116
 msgid "The connection was successful."
-msgstr "接続成功。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:119
 msgid "The input node is [code]null[/code]."
-msgstr "入力ノードが [code]null[/code]。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:122
 msgid "The specified input port is out of range."
-msgstr "指定された入力ポートが範囲外。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:125
 msgid "The output node is [code]null[/code]."
-msgstr "出力ノードが [code]null[/code]。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:128
 msgid "Input and output nodes are the same."
-msgstr "入力と出力ノードが同一。"
+msgstr ""
 
 #: doc/classes/AnimationNodeBlendTree.xml:131
 msgid "The specified connection already exists."
-msgstr "指定された接続は存在済み。"
+msgstr ""
 
 #: doc/classes/AnimationNodeOneShot.xml:4
 msgid "Plays an animation once in [AnimationNodeBlendTree]."
-msgstr "[AnimationNodeBlendTree] 内のアニメーションを1回再生します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeOneShot.xml:7
 msgid ""
@@ -6083,21 +4902,16 @@ msgid ""
 "sub-animation and return once it finishes. Blend times for fading in and out "
 "can be customized, as well as filters."
 msgstr ""
-"[AnimationNodeBlendTree] に追加するリソース。このノードはサブアニメーションを"
-"実行し、終了すると戻ります。フェードインとフェードアウトのブレンド時間やフィ"
-"ルターをカスタマイズすることができます。"
 
 #: doc/classes/AnimationNodeOneShot.xml:30
 msgid ""
 "If [code]true[/code], the sub-animation will restart automatically after "
 "finishing."
 msgstr ""
-"[code]true[/code] の場合、サブアニメーションの終了後に自動的に再度再生しま"
-"す。"
 
 #: doc/classes/AnimationNodeOneShot.xml:33
 msgid "The delay after which the automatic restart is triggered, in seconds."
-msgstr "自動再度再生が開始された後の遅延時間を秒単位で指定します。"
+msgstr ""
 
 #: doc/classes/AnimationNodeOneShot.xml:36
 msgid ""
@@ -6105,16 +4919,14 @@ msgid ""
 "seconds) between 0 and this value will be added to [member "
 "autorestart_delay]."
 msgstr ""
-"[member autorestart] が [code]true[/code] の場合、0からこの値の間でランダムな"
-"追加遅延時間 (秒単位) が [member autorestart_delay] に追加されます。"
 
 #: doc/classes/AnimationNodeOutput.xml:4
 msgid "Generic output node to be added to [AnimationNodeBlendTree]."
-msgstr "[AnimationNodeBlendTree] に追加する汎用出力ノードです。"
+msgstr ""
 
 #: doc/classes/AnimationNodeStateMachine.xml:4
 msgid "State machine for control of animations."
-msgstr "アニメーションを制御するためのステートマシンです。"
+msgstr ""
 
 #: doc/classes/AnimationNodeStateMachine.xml:7
 msgid ""
@@ -6129,15 +4941,6 @@ msgid ""
 "state_machine.travel(\"some_state\")\n"
 "[/codeblock]"
 msgstr ""
-"グラフで接続される、アニメーションの状態を表す複数のノードを含みます。ノード"
-"の遷移は、最短パスアルゴリズムを使用して、自動またはコードで設定できます。プ"
-"ログラムで制御するには、[AnimationTree] ノードから "
-"[AnimationNodeStateMachinePlayback] オブジェクトを取得してください。\n"
-"[b]例:[/b]\n"
-"[codeblock]\n"
-"var state_machine = $AnimationTree.get(\"parameters/playback\")\n"
-"state_machine.travel(\"some_state\")\n"
-"[/codeblock]"
 
 #: doc/classes/AnimationNodeStateMachine.xml:28
 msgid ""
@@ -6352,8 +5155,6 @@ msgid ""
 "This node can be used to cause a seek command to happen to any sub-children "
 "of the graph. After setting the time, this value returns to -1."
 msgstr ""
-"このノードは、グラフのどんな副子ノードに対してもシーク命令を送ります。時間を"
-"セットした後は、値は -1 に戻ります。"
 
 #: doc/classes/AnimationNodeTransition.xml:4
 msgid "A generic animation transition node for [AnimationTree]."
@@ -6422,48 +5223,37 @@ msgid ""
 "Triggers the [code]anim_to[/code] animation when the [code]anim_from[/code] "
 "animation completes."
 msgstr ""
-"[code]anim_from[/code] アニメーションが終了したとき、[code]anim_to[/code] ア"
-"ニメーションを再生します。"
 
 #: doc/classes/AnimationPlayer.xml:60
 msgid ""
 "[AnimationPlayer] caches animated nodes. It may not notice if a node "
 "disappears; [method clear_caches] forces it to update the cache again."
 msgstr ""
-"[AnimationPlayer] はアニメーションノードをキャッシュします。そのノードが消え"
-"た場合でも気づかないかもしれません; [method clear_caches] は強制的にキャッ"
-"シュを再更新します。"
 
 #: doc/classes/AnimationPlayer.xml:67
 msgid "Clears all queued, unplayed animations."
 msgstr ""
-"キューに入っている、再生されていないアニメーションをすべてクリアします。"
 
 #: doc/classes/AnimationPlayer.xml:76
 msgid ""
 "Returns the name of [code]animation[/code] or an empty string if not found."
 msgstr ""
-"[code]animation[/code] の名前を返します。もし無ければ、空の文字列を返します。"
 
 #: doc/classes/AnimationPlayer.xml:85
 msgid ""
 "Returns the [Animation] with key [code]name[/code] or [code]null[/code] if "
 "not found."
 msgstr ""
-"キー [code]name[/code] を持つ [Animation] を返すか、見つからない場合は "
-"[code]null[/code] を返します。"
 
 #: doc/classes/AnimationPlayer.xml:92
 msgid "Returns the list of stored animation names."
-msgstr "格納されているアニメーション名のリストを返します。"
+msgstr ""
 
 #: doc/classes/AnimationPlayer.xml:103
 msgid ""
 "Gets the blend time (in seconds) between two animations, referenced by their "
 "names."
 msgstr ""
-"名前によって参照される2つのアニメーション間の、ブレンド時間 (秒) を取得しま"
-"す。"
 
 #: doc/classes/AnimationPlayer.xml:110
 msgid ""
@@ -6472,9 +5262,6 @@ msgid ""
 "[code]custom_speed[/code] argument specified when calling the [method play] "
 "method."
 msgstr ""
-"現在のアニメーションの実際の再生速度を取得します。再生停止時は 0 になります。"
-"この速度は [member playback_speed] プロパティに、[method play] メソッドの呼び"
-"出し時に指定された [code]custom_speed[/code] 引数を掛け合わせたものです。"
 
 #: doc/classes/AnimationPlayer.xml:117
 msgid ""
@@ -10688,11 +9475,10 @@ msgstr ""
 
 #: doc/classes/Basis.xml:13 doc/classes/Transform.xml:12
 #: doc/classes/Transform2D.xml:11
-#, fuzzy
 msgid ""
 "https://docs.godotengine.org/en/latest/tutorials/math/"
 "matrices_and_transforms.html"
-msgstr "https://docs.godotengine.org/ja/latest/tutorials/math/index.html"
+msgstr ""
 
 #: doc/classes/Basis.xml:14 doc/classes/Transform.xml:13
 msgid ""
@@ -19556,14 +18342,12 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorInspector.xml:37
-#, fuzzy
 msgid "Emitted when a property is removed from the inspector."
-msgstr "プロパティは、エディタのインスペクタでチェックが付いています。"
+msgstr ""
 
 #: doc/classes/EditorInspector.xml:44
-#, fuzzy
 msgid "Emitted when a property is edited in the inspector."
-msgstr "プロパティは、エディタのインスペクタでチェックが付いています。"
+msgstr ""
 
 #: doc/classes/EditorInspector.xml:51
 msgid ""
@@ -19573,9 +18357,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorInspector.xml:58
-#, fuzzy
 msgid "Emitted when a property is selected in the inspector."
-msgstr "プロパティは、エディタのインスペクタでチェックが付いています。"
+msgstr ""
 
 #: doc/classes/EditorInspector.xml:67
 msgid ""
@@ -19586,9 +18369,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorInspector.xml:77
-#, fuzzy
 msgid "Emitted when a resource is selected in the inspector."
-msgstr "プロパティは、エディタのインスペクタでチェックが付いています。"
+msgstr ""
 
 #: doc/classes/EditorInspector.xml:82
 msgid ""
@@ -19688,9 +18470,8 @@ msgid "Returns the edited (current) scene's root [Node]."
 msgstr ""
 
 #: doc/classes/EditorInterface.xml:47
-#, fuzzy
 msgid "Returns the editor's [EditorSettings] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:54
 msgid ""
@@ -19700,14 +18481,12 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorInterface.xml:62
-#, fuzzy
 msgid "Returns the editor's [FileSystemDock] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:69
-#, fuzzy
 msgid "Returns the editor's [EditorInspector] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:76
 msgid "Returns an [Array] with the file paths of the currently opened scenes."
@@ -19720,19 +18499,16 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorInterface.xml:90
-#, fuzzy
 msgid "Returns the editor's [EditorFileSystem] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:97
-#, fuzzy
 msgid "Returns the editor's [EditorResourcePreview] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:104
-#, fuzzy
 msgid "Returns the editor's [ScriptEditor] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:111
 msgid ""
@@ -19742,34 +18518,26 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorInterface.xml:118
-#, fuzzy
 msgid "Returns the editor's [EditorSelection] instance."
-msgstr "OK [Button] インスタンスを返します。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:129
-#, fuzzy
 msgid ""
 "Shows the given property on the given [code]object[/code] in the editor's "
 "Inspector dock."
-msgstr "プロパティは、エディタのインスペクタでチェックが付けられます。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:136
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if a scene is currently being played, [code]false[/"
 "code] otherwise. Paused scenes are considered as being played."
 msgstr ""
-"ドメインがファイナライズ中であれば [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: doc/classes/EditorInterface.xml:145
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if the specified [code]plugin[/code] is enabled. "
 "The plugin name is the same as its directory name."
 msgstr ""
-"インデックス [code]idx[/code] のトラックが有効な場合、 [code]true[/code] を返"
-"します。"
 
 #: doc/classes/EditorInterface.xml:156
 msgid ""
@@ -19828,9 +18596,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorInterface.xml:251
-#, fuzzy
 msgid "Stops the scene that is currently playing."
-msgstr "[code]true[/code] であれば、[member animation] が現在再生中。"
+msgstr ""
 
 #: doc/classes/EditorInterface.xml:257
 msgid ""
@@ -19928,13 +18695,10 @@ msgid "Returns the Node3D node associated with this gizmo."
 msgstr ""
 
 #: doc/classes/EditorNode3DGizmo.xml:149
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if the handle at index [code]index[/code] is "
 "highlighted by being hovered with the mouse."
 msgstr ""
-"インデックス [code]idx[/code] のトラックが有効な場合、 [code]true[/code] を返"
-"します。"
 
 #: doc/classes/EditorNode3DGizmo.xml:156
 msgid ""
@@ -20897,9 +19661,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorSettings.xml:55
-#, fuzzy
 msgid "Erases the setting whose name is specified by [code]property[/code]."
-msgstr "指定した [code]name[/code] のサブノードを返します。"
+msgstr ""
 
 #: doc/classes/EditorSettings.xml:62
 msgid "Returns the list of favorite files and directories for this project."
@@ -20940,13 +19703,10 @@ msgid ""
 msgstr ""
 
 #: doc/classes/EditorSettings.xml:116
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if the setting specified by [code]name[/code] "
 "exists, [code]false[/code] otherwise."
 msgstr ""
-"ドメインがファイナライズ中であれば [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: doc/classes/EditorSettings.xml:125
 msgid ""
@@ -23808,32 +22568,24 @@ msgid ""
 "Returns [code]true[/code] if the domain is being finalized, [code]false[/"
 "code] otherwise."
 msgstr ""
-"ドメインがファイナライズ中であれば [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: modules/mono/doc_classes/GodotSharp.xml:56
 msgid ""
 "Returns [code]true[/code] if the Mono runtime is initialized, [code]false[/"
 "code] otherwise."
 msgstr ""
-"Monoランタイムが初期化完了すれば [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: modules/mono/doc_classes/GodotSharp.xml:63
 msgid ""
 "Returns [code]true[/code] if the Mono runtime is shutting down, [code]false[/"
 "code] otherwise."
 msgstr ""
-"Monoランタイムが終了途中であれば [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: modules/mono/doc_classes/GodotSharp.xml:70
 msgid ""
 "Returns [code]true[/code] if the scripts domain is loaded, [code]false[/"
 "code] otherwise."
 msgstr ""
-"スクリプトドメインが読み込まれたら [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: doc/classes/GPUParticles2D.xml:4
 msgid "2D particle emitter."
@@ -28473,7 +27225,6 @@ msgid ""
 msgstr ""
 
 #: doc/classes/JSONParseResult.xml:24
-#, fuzzy
 msgid ""
 "A [Variant] containing the parsed JSON. Use [method @GDScript.typeof] or the "
 "[code]is[/code] keyword to check if it is what you expect. For example, if "
@@ -28495,21 +27246,6 @@ msgid ""
 "    push_error(\"Unexpected results.\")\n"
 "[/codeblock]"
 msgstr ""
-"JSONテキストをパースしてVariantにします (正しいかどうかは [method typeof] で"
-"確認してください)。\n"
-"JSONの規格で定義されているのは数値型のみで、整数型と浮動小数点数型は無いので"
-"気をつけてください。そのため、JSONテキストをパースする際は、すべての数値型は "
-"[float] 型に変換されます。\n"
-"Godotの辞書と異なり、JSONオブジェクトはキーの順序を保持しないので、JSONから作"
-"成された辞書のキー順序は信頼してはいけません。その一方でJSONの配列は、要素の"
-"順序を維持します:\n"
-"[codeblock]\n"
-"p = parse_json('[\"a\", \"b\", \"c\"]')\n"
-"if typeof(p) == TYPE_ARRAY:\n"
-"    print(p[0]) # a と表示\n"
-"else:\n"
-"    print(\"想定外の結果\")\n"
-"[/codeblock]"
 
 #: doc/classes/KinematicBody2D.xml:4
 msgid "Kinematic body 2D node."
@@ -34332,11 +33068,10 @@ msgstr ""
 
 #: doc/classes/Object.xml:23 doc/classes/Reference.xml:12
 #: doc/classes/Resource.xml:11
-#, fuzzy
 msgid ""
 "https://docs.godotengine.org/en/latest/getting_started/workflow/"
 "best_practices/node_alternatives.html"
-msgstr "https://docs.godotengine.org/ja/latest/tutorials/math/index.html"
+msgstr ""
 
 #: doc/classes/Object.xml:32
 msgid ""
@@ -35737,10 +34472,8 @@ msgstr ""
 #: doc/classes/PackedInt32Array.xml:54 doc/classes/PackedInt64Array.xml:54
 #: doc/classes/PackedStringArray.xml:53 doc/classes/PackedVector2Array.xml:53
 #: doc/classes/PackedVector3Array.xml:53
-#, fuzzy
 msgid "Returns [code]true[/code] if the array contains [code]value[/code]."
 msgstr ""
-"文字列の長さが [code]0[/code] に等しければ [code]true[/code] を返します。"
 
 #: doc/classes/PackedByteArray.xml:94
 msgid ""
@@ -37067,9 +35800,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Performance.xml:54
-#, fuzzy
 msgid "Returns the names of active custom monitors in an array."
-msgstr "指定されたトラック内の、指定されたキーの値を返します。"
+msgstr ""
 
 #: doc/classes/Performance.xml:63
 msgid ""
@@ -39531,12 +38263,10 @@ msgid "Returns a copy of the plane, normalized."
 msgstr ""
 
 #: doc/classes/Plane.xml:143
-#, fuzzy
 msgid ""
 "Returns the orthogonal projection of [code]point[/code] into a point in the "
 "plane."
 msgstr ""
-"[code]animation[/code] の名前を返します。もし無ければ、空の文字列を返します。"
 
 #: doc/classes/Plane.xml:149
 msgid ""
@@ -42977,8 +41707,6 @@ msgstr ""
 msgid ""
 "Returns [code]true[/code] if this [Rect2i] completely encloses another one."
 msgstr ""
-"この [Rect2i] が、もうひとつを完全に内包している場合は [code]true[/code] を返"
-"します。"
 
 #: doc/classes/Rect2i.xml:80
 msgid "Returns this [Rect2i] expanded to include a given point."
@@ -43007,15 +41735,12 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Rect2i.xml:129
-#, fuzzy
 msgid "Returns [code]true[/code] if the [Rect2i] is flat or empty."
 msgstr ""
-"[code]s[/code] がゼロあるいは、ほぼゼロであれば [code]true[/code] を返しま"
-"す。"
 
 #: doc/classes/Rect2i.xml:138
 msgid "Returns [code]true[/code] if the [Rect2i] contains a point."
-msgstr "ポイントが [Rect2i] 内にあれば [code]true[/code] を返します。"
+msgstr ""
 
 #: doc/classes/Rect2i.xml:147
 msgid ""
@@ -43163,9 +41888,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/ReflectionProbe.xml:38
-#, fuzzy
 msgid "If [code]true[/code], reflections will ignore sky contribution."
-msgstr "[code]true[/code] であれば、テクスチャは中央になります。"
+msgstr ""
 
 #: doc/classes/ReflectionProbe.xml:41
 msgid ""
@@ -48813,9 +47537,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/SpringArm3D.xml:35
-#, fuzzy
 msgid "Returns the spring arm's current length."
-msgstr "指定したフレームの遅延値を返します。"
+msgstr ""
 
 #: doc/classes/SpringArm3D.xml:44
 msgid ""
@@ -49716,7 +48439,6 @@ msgstr ""
 msgid ""
 "Returns [code]true[/code] if the length of the string equals [code]0[/code]."
 msgstr ""
-"文字列の長さが [code]0[/code] に等しければ [code]true[/code] を返します。"
 
 #: doc/classes/String.xml:394
 msgid "Returns [code]true[/code] if the string ends with the given string."
@@ -52414,11 +51136,10 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Thread.xml:11
-#, fuzzy
 msgid ""
 "https://docs.godotengine.org/en/latest/tutorials/threads/thread_safe_apis."
 "html"
-msgstr "https://docs.godotengine.org/ja/latest/tutorials/math/index.html"
+msgstr ""
 
 #: doc/classes/Thread.xml:18
 msgid ""
@@ -53266,9 +51987,8 @@ msgid "Constructs a Transform from a [Basis] and [Vector3]."
 msgstr ""
 
 #: doc/classes/Transform.xml:48
-#, fuzzy
 msgid "Constructs a Transform from a [Transform2D]."
-msgstr "トランスフォームトラックにトランスフォームキーを挿入します。"
+msgstr ""
 
 #: doc/classes/Transform.xml:57
 msgid ""
@@ -54783,13 +53503,10 @@ msgid ""
 msgstr ""
 
 #: doc/classes/UDPServer.xml:62
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if a packet with a new address/port combination "
 "was received on the socket."
 msgstr ""
-"スクリプトドメインが読み込まれたら [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: doc/classes/UDPServer.xml:69
 msgid ""
@@ -55481,9 +54198,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Vector2.xml:56
-#, fuzzy
 msgid "Returns the angle to the given vector, in radians."
-msgstr "2つのベクトルの剰余を返します。"
+msgstr ""
 
 #: doc/classes/Vector2.xml:65
 msgid ""
@@ -55515,9 +54231,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Vector2.xml:106
-#, fuzzy
 msgid "Returns the cross product of this vector and [code]with[/code]."
-msgstr "インデックス [code]point[/code] のポイントの位置を返します。"
+msgstr ""
 
 #: doc/classes/Vector2.xml:121
 msgid ""
@@ -55540,9 +54255,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Vector2.xml:149
-#, fuzzy
 msgid "Returns the distance between this vector and [code]to[/code]."
-msgstr "インデックス [code]point[/code] のポイントの位置を返します。"
+msgstr ""
 
 #: doc/classes/Vector2.xml:158
 msgid ""
@@ -55573,17 +54287,13 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Vector2.xml:184 doc/classes/Vector3.xml:160
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if the vector is normalized, and false otherwise."
 msgstr ""
-"Monoランタイムが初期化完了すれば [code]true[/code] を返し、それ以外では "
-"[code]false[/code] を返します。"
 
 #: doc/classes/Vector2.xml:191 doc/classes/Vector3.xml:167
-#, fuzzy
 msgid "Returns the length (magnitude) of this vector."
-msgstr "2つのベクトルの剰余を返します。"
+msgstr ""
 
 #: doc/classes/Vector2.xml:198 doc/classes/Vector3.xml:174
 msgid ""
@@ -55791,9 +54501,8 @@ msgid "Returns a [Vector3] with the given components."
 msgstr ""
 
 #: doc/classes/Vector3.xml:50
-#, fuzzy
 msgid "Returns the minimum angle to the given vector, in radians."
-msgstr "2つのベクトルの剰余を返します。"
+msgstr ""
 
 #: doc/classes/Vector3.xml:66
 msgid ""
@@ -55802,9 +54511,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Vector3.xml:75
-#, fuzzy
 msgid "Returns the cross product of this vector and [code]b[/code]."
-msgstr "インデックス [code]point[/code] のポイントの位置を返します。"
+msgstr ""
 
 #: doc/classes/Vector3.xml:90
 msgid ""
@@ -55815,9 +54523,8 @@ msgid ""
 msgstr ""
 
 #: doc/classes/Vector3.xml:118
-#, fuzzy
 msgid "Returns the distance between this vector and [code]b[/code]."
-msgstr "指定した [code]name[/code] のサブノードを返します。"
+msgstr ""
 
 #: doc/classes/Vector3.xml:127
 msgid ""
@@ -55871,9 +54578,8 @@ msgid "Returns the outer product with [code]b[/code]."
 msgstr ""
 
 #: doc/classes/Vector3.xml:254
-#, fuzzy
 msgid "Returns this vector projected onto another vector [code]b[/code]."
-msgstr "インデックス [code]point[/code] のポイントの位置を返します。"
+msgstr ""
 
 #: doc/classes/Vector3.xml:263
 msgid "Returns this vector reflected from a plane defined by the given normal."
@@ -57372,8 +56078,6 @@ msgid ""
 "Easing function, based on exponent. 0 is constant, 1 is linear, 0 to 1 is "
 "ease-in, 1+ is ease out. Negative values are in-out/out in."
 msgstr ""
-"指数によるイージング関数です。0 は不変、1 は等速、0 から 1 の間はイーズイン、"
-"1 より上はイーズアウトです。負の値はインアウト / アウトインになります。"
 
 #: modules/visual_script/doc_classes/VisualScriptBuiltinFunc.xml:93
 msgid ""
@@ -59289,8 +57993,6 @@ msgid ""
 "Returns falloff based on the dot product of surface normal and view "
 "direction of camera (pass associated inputs to it)."
 msgstr ""
-"サーフェス法線とカメラのビュー方向(関連する入力を渡す)の内積に基づいて減衰を"
-"返します。"
 
 #: doc/classes/VisualShaderNodeGlobalExpression.xml:4
 msgid ""
@@ -60074,7 +58776,7 @@ msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:26
 msgid "Returns the opposite value of the parameter."
-msgstr "パラメータの反対の値を返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:29
 msgid "Returns [code]1/vector[/code]."
@@ -60082,96 +58784,96 @@ msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:32
 msgid "Converts RGB vector to HSV equivalent."
-msgstr "RGBベクトルをHSVベクトルに変換。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:35
 msgid "Converts HSV vector to RGB equivalent."
-msgstr "HSVベクトルをRGBベクトルに変換。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:38
 msgid "Returns the absolute value of the parameter."
-msgstr "パラメータの絶対値を返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:41
 msgid "Returns the arc-cosine of the parameter."
-msgstr "パラメータの逆コサインを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:44
 msgid "Returns the inverse hyperbolic cosine of the parameter."
-msgstr "パラメータの逆双曲線余弦を返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:47
 msgid "Returns the arc-sine of the parameter."
-msgstr "パラメータの逆サインを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:50
 msgid "Returns the inverse hyperbolic sine of the parameter."
-msgstr "パラメータの双曲線逆サインを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:53
 msgid "Returns the arc-tangent of the parameter."
-msgstr "パラメータの逆タンジェントを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:56
 msgid "Returns the inverse hyperbolic tangent of the parameter."
-msgstr "パラメータの双曲線逆タンジェントを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:59
 msgid ""
 "Finds the nearest integer that is greater than or equal to the parameter."
-msgstr "パラメータ以上の最も近い整数を検索します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:62
 msgid "Returns the cosine of the parameter."
-msgstr "パラメータのコサインを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:65
 msgid "Returns the hyperbolic cosine of the parameter."
-msgstr "パラメータの双曲線コサインを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:68
 msgid "Converts a quantity in radians to degrees."
-msgstr "ラジアン単位の数量を度に変換します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:71
 msgid "Base-e Exponential."
-msgstr "ベースe指数。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:74
 msgid "Base-2 Exponential."
-msgstr "2を底とする指数。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:77
 msgid "Finds the nearest integer less than or equal to the parameter."
-msgstr "パラメータ以下の最も近い整数を検索します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:80
 msgid "Computes the fractional part of the argument."
-msgstr "引数の小数部を計算します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:83
 msgid "Returns the inverse of the square root of the parameter."
-msgstr "パラメータの平方根の逆数を返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:86
 msgid "Natural logarithm."
-msgstr "自然対数。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:89
 msgid "Base-2 logarithm."
-msgstr "2を底とする対数。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:92
 msgid "Converts a quantity in degrees to radians."
-msgstr "度単位の量をラジアンに変換します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:95
 msgid "Finds the nearest integer to the parameter."
-msgstr "パラメータに最も近い整数を検索します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:98
 msgid "Finds the nearest even integer to the parameter."
-msgstr "パラメータに最も近い偶数の整数を検索します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:101
 msgid ""
@@ -60182,23 +58884,23 @@ msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:104
 msgid "Returns the sine of the parameter."
-msgstr "パラメータのサインを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:107
 msgid "Returns the hyperbolic sine of the parameter."
-msgstr "パラメータの双曲サインを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:110
 msgid "Returns the square root of the parameter."
-msgstr "パラメータの平方根を返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:113
 msgid "Returns the tangent of the parameter."
-msgstr "パラメータのタンジェントを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:116
 msgid "Returns the hyperbolic tangent of the parameter."
-msgstr "パラメータの双曲タンジェントを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorFunc.xml:119
 msgid ""
@@ -60257,11 +58959,11 @@ msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorOp.xml:29
 msgid "Divides vector by vector."
-msgstr "ベクトルでベクトルを除算します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorOp.xml:32
 msgid "Returns the remainder of the two vectors."
-msgstr "2つのベクトルの剰余を返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorOp.xml:35
 msgid ""
@@ -60279,11 +58981,11 @@ msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorOp.xml:44
 msgid "Calculates the cross product of two vectors."
-msgstr "2つのベクトルの外積を計算します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorOp.xml:47
 msgid "Returns the arc-tangent of the parameters."
-msgstr "複数パラメータの逆タンジェントを返します。"
+msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorOp.xml:50
 msgid ""
@@ -60292,13 +58994,10 @@ msgid ""
 msgstr ""
 
 #: doc/classes/VisualShaderNodeVectorOp.xml:53
-#, fuzzy
 msgid ""
 "Vector step operator. Returns [code]0.0[/code] if [code]a[/code] is smaller "
 "than [code]b[/code] and [code]1.0[/code] otherwise."
 msgstr ""
-"もし [code]a[/code] と [code]b[/code] がほとんど等しいならば [code]true[/"
-"code] を返します。"
 
 #: doc/classes/VisualShaderNodeVectorRefract.xml:4
 msgid ""
@@ -61563,13 +60262,10 @@ msgid ""
 msgstr ""
 
 #: doc/classes/XRController3D.xml:65
-#, fuzzy
 msgid ""
 "Returns [code]true[/code] if the button at index [code]button[/code] is "
 "pressed. See [enum JoyButtonList]."
 msgstr ""
-"[code]s[/code] がゼロあるいは、ほぼゼロであれば [code]true[/code] を返しま"
-"す。"
 
 #: doc/classes/XRController3D.xml:71
 msgid ""
@@ -62090,372 +60786,3 @@ msgstr ""
 msgid ""
 "If [code]true[/code], child nodes are sorted, otherwise sorting is disabled."
 msgstr ""
-
-#~ msgid ""
-#~ "Returns [code]true[/code] if [code]a[/code] and [code]b[/code] are "
-#~ "approximately equal to each other."
-#~ msgstr ""
-#~ "もし [code]a[/code] と [code]b[/code] がほとんど等しいならば [code]true[/"
-#~ "code] を返します。"
-
-#~ msgid ""
-#~ "Returns the nearest larger power of 2 for integer [code]value[/code].\n"
-#~ "[codeblock]\n"
-#~ "nearest_po2(3) # Returns 4\n"
-#~ "nearest_po2(4) # Returns 4\n"
-#~ "nearest_po2(5) # Returns 8\n"
-#~ "[/codeblock]"
-#~ msgstr ""
-#~ "整数 [code]value[/code] 以上で1 番近い2の冪数を返します。\n"
-#~ "[codeblock]\n"
-#~ "nearest_po2(3) # 4 と返る\n"
-#~ "nearest_po2(4) # 4 と返る\n"
-#~ "nearest_po2(5) # 8 と返る\n"
-#~ "[/codeblock]"
-
-#~ msgid ""
-#~ "Returns a resource from the filesystem that is loaded during script "
-#~ "parsing.\n"
-#~ "[b]Note:[/b] Resource paths can be obtained by right clicking on a "
-#~ "resource in the Assets Panel and choosing \"Copy Path\".\n"
-#~ "[codeblock]\n"
-#~ "# Load a scene called main located in the root of the project directory.\n"
-#~ "var main = preload(\"res://main.tscn\")\n"
-#~ "[/codeblock]"
-#~ msgstr ""
-#~ "ファイルシステムにあるリソースを、スクリプトのパース中に読み込みます。\n"
-#~ "[b]注:[/b] リソースのパスは、ファイルシステム ドック内にあるリソースを右ク"
-#~ "リックして「パスをコピー」を選べば得られます。\n"
-#~ "[codeblock]\n"
-#~ "# プロジェクト ディレクトリのルートにある main という名前のシーンを読み込"
-#~ "む。\n"
-#~ "var main = preload(\"res://main.tscn\")\n"
-#~ "[/codeblock]"
-
-#~ msgid ""
-#~ "Returns a number smoothly interpolated between the [code]from[/code] and "
-#~ "[code]to[/code], based on the [code]weight[/code]. Similar to [method "
-#~ "lerp], but interpolates faster at the beginning and slower at the end.\n"
-#~ "[codeblock]\n"
-#~ "smoothstep(0, 2, 0.5) # Returns 0.15\n"
-#~ "smoothstep(0, 2, 1.0) # Returns 0.5\n"
-#~ "smoothstep(0, 2, 2.0) # Returns 1.0\n"
-#~ "[/codeblock]"
-#~ msgstr ""
-#~ "[code]from[/code] から [code]to[/code] の間を、[code]weight[/code] によっ"
-#~ "てスムーズに補完して値を返します。[method lerp] と似ていますが、開始時はよ"
-#~ "り進めて、最終時はより遅れて補完します。\n"
-#~ "[codeblock]\n"
-#~ "smoothstep(0, 2, 0.5) # 返り値は 0.15\n"
-#~ "smoothstep(0, 2, 1.0) # 返り値は 0.5\n"
-#~ "smoothstep(0, 2, 2.0) # 返り値は 1.0\n"
-#~ "[/codeblock]"
-
-#~ msgid ""
-#~ "Returns the square root of [code]s[/code].\n"
-#~ "[codeblock]\n"
-#~ "sqrt(9) # Returns 3\n"
-#~ "[/codeblock]"
-#~ msgstr ""
-#~ "[code]s[/code] の平方根を返します。\n"
-#~ "[codeblock]\n"
-#~ "sqrt(9) # 3 と返す\n"
-#~ "[/codeblock]"
-
-#~ msgid ""
-#~ "Converts a Variant [code]var[/code] to JSON text and return the result. "
-#~ "Useful for serializing data to store or send over the network.\n"
-#~ "[codeblock]\n"
-#~ "a = { \"a\": 1, \"b\": 2 }\n"
-#~ "b = to_json(a)\n"
-#~ "print(b) # {\"a\":1, \"b\":2}\n"
-#~ "[/codeblock]"
-#~ msgstr ""
-#~ "Variant [code]var[/code] をJSONテキストに変換してから返します。保存したり"
-#~ "ネットワーク上で送信したりするためのデータをシリアライズする際に便利で"
-#~ "す。\n"
-#~ "[codeblock]\n"
-#~ "a = { \"a\": 1, \"b\": 2 }\n"
-#~ "b = to_json(a)\n"
-#~ "print(b) # {\"a\":1, \"b\":2}\n"
-#~ "[/codeblock]"
-
-#~ msgid ""
-#~ "Stops the function execution and returns the current suspended state to "
-#~ "the calling function.\n"
-#~ "From the caller, call [method GDScriptFunctionState.resume] on the state "
-#~ "to resume execution. This invalidates the state. Within the resumed "
-#~ "function, [code]yield()[/code] returns whatever was passed to the "
-#~ "[code]resume()[/code] function call.\n"
-#~ "If passed an object and a signal, the execution is resumed when the "
-#~ "object emits the given signal. In this case, [code]yield()[/code] returns "
-#~ "the argument passed to [code]emit_signal()[/code] if the signal takes "
-#~ "only one argument, or an array containing all the arguments passed to "
-#~ "[code]emit_signal()[/code] if the signal takes multiple arguments.\n"
-#~ "You can also use [code]yield[/code] to wait for a function to finish:\n"
-#~ "[codeblock]\n"
-#~ "func _ready():\n"
-#~ "    yield(countdown(), \"completed\") # waiting for the countdown() "
-#~ "function to complete\n"
-#~ "    print('Ready')\n"
-#~ "\n"
-#~ "func countdown():\n"
-#~ "    yield(get_tree(), \"idle_frame\") # returns a GDScriptFunctionState "
-#~ "object to _ready()\n"
-#~ "    print(3)\n"
-#~ "    yield(get_tree().create_timer(1.0), \"timeout\")\n"
-#~ "    print(2)\n"
-#~ "    yield(get_tree().create_timer(1.0), \"timeout\")\n"
-#~ "    print(1)\n"
-#~ "    yield(get_tree().create_timer(1.0), \"timeout\")\n"
-#~ "\n"
-#~ "# prints:\n"
-#~ "# 3\n"
-#~ "# 2\n"
-#~ "# 1\n"
-#~ "# Ready\n"
-#~ "[/codeblock]\n"
-#~ "When yielding on a function, the [code]completed[/code] signal will be "
-#~ "emitted automatically when the function returns. It can, therefore, be "
-#~ "used as the [code]signal[/code] parameter of the [code]yield[/code] "
-#~ "method to resume.\n"
-#~ "In order to yield on a function, the resulting function should also "
-#~ "return a [code]GDScriptFunctionState[/code]. Notice "
-#~ "[code]yield(get_tree(), \"idle_frame\")[/code] from the above example."
-#~ msgstr ""
-#~ "現在の関数の実行を一時停止して、停止中の現在のステートを、呼び出し元の関数"
-#~ "に返します。\n"
-#~ "呼び出し元からは、そのステートの [method GDScriptFunctionState.resume] を"
-#~ "呼び出せば実行再開できます。これはステートを取り消します。再開された関数内"
-#~ "では、[code]yield()[/code] は [code]resume()[/code] 関数に渡されたすべての"
-#~ "引数を返します。\n"
-#~ "オブジェクトとシグナルを渡せば、その渡されたシグナルをオブジェクトが発信し"
-#~ "たときに、実行が再開されます。この場合 [code]yield()[/code] は、"
-#~ "[code]emit_signal()[/code] に渡された引数を返します。もし、そのシグナルの"
-#~ "引数がひとつだけなら引数をそのまま返し、引数が複数あれば "
-#~ "[code]emit_signal()[/code] に渡されたすべての引数を含む配列を返します。\n"
-#~ "関数の実行が完了するまで待ちたいときにも [code]yield[/code] は使えます:\n"
-#~ "[codeblock]\n"
-#~ "func _ready():\n"
-#~ "    yield(countdown(), \"completed\") # countdown() 関数が完了するまで待"
-#~ "つ\n"
-#~ "    print('Ready')\n"
-#~ "\n"
-#~ "func countdown():\n"
-#~ "    yield(get_tree(), \"idle_frame\") # GDScriptFunctionStateオブジェクト"
-#~ "を _ready() に返す\n"
-#~ "    print(3)\n"
-#~ "    yield(get_tree().create_timer(1.0), \"timeout\")\n"
-#~ "    print(2)\n"
-#~ "    yield(get_tree().create_timer(1.0), \"timeout\")\n"
-#~ "    print(1)\n"
-#~ "    yield(get_tree().create_timer(1.0), \"timeout\")\n"
-#~ "\n"
-#~ "# 結果:\n"
-#~ "# 3\n"
-#~ "# 2\n"
-#~ "# 1\n"
-#~ "# Ready\n"
-#~ "[/codeblock]\n"
-#~ "関数をyieldすると、関数がreturnするときに [code]completed[/code] シグナル"
-#~ "が自動的に発信されます。そのため、これを [code]yield[/code] メソッドの "
-#~ "[code]signal[/code] パラメータにすれば再開できます。\n"
-#~ "関数をyieldするには、その結果となる関数もまた  "
-#~ "[code]GDScriptFunctionState[/code] を返す必要があります。上記の例の "
-#~ "[code]yield(get_tree(), \"idle_frame\")[/code] に注目してみてください。"
-
-#~ msgid ""
-#~ "Macro constant that expands to an expression of type float that "
-#~ "represents a NaN.\n"
-#~ "The NaN values are used to identify undefined or non-representable values "
-#~ "for floating-point elements, such as the square root of negative numbers "
-#~ "or the result of 0/0."
-#~ msgstr ""
-#~ "NaNを表現する浮動小数点数型として展開するマクロ定数。\n"
-#~ "NaN値は、浮動小数点数の要素において、負数の平方根や 0/0 の結果といった、未"
-#~ "定義または表現不能な値を識別するのに使います。"
-
-#~ msgid "Beginning corner."
-#~ msgstr "始端。"
-
-#~ msgid "Size from position to end."
-#~ msgstr "position から end までの大きさ。"
-
-#~ msgid "Gamepad button 0."
-#~ msgstr "ゲームパッド ボタン0。"
-
-#~ msgid "Gamepad button 1."
-#~ msgstr "ゲームパッド ボタン1。"
-
-#~ msgid "Gamepad button 2."
-#~ msgstr "ゲームパッド ボタン2。"
-
-#~ msgid "Gamepad button 3."
-#~ msgstr "ゲームパッド ボタン3。"
-
-#~ msgid "Gamepad button 4."
-#~ msgstr "ゲームパッド ボタン4。"
-
-#~ msgid "Gamepad button 5."
-#~ msgstr "ゲームパッド ボタン5。"
-
-#~ msgid "Gamepad button 6."
-#~ msgstr "ゲームパッド ボタン6。"
-
-#~ msgid "Gamepad button 7."
-#~ msgstr "ゲームパッド ボタン7。"
-
-#~ msgid "Gamepad button 8."
-#~ msgstr "ゲームパッド ボタン8。"
-
-#~ msgid "Gamepad button 9."
-#~ msgstr "ゲームパッド ボタン9。"
-
-#~ msgid "Gamepad button 10."
-#~ msgstr "ゲームパッド ボタン10。"
-
-#~ msgid "Gamepad button 11."
-#~ msgstr "ゲームパッド ボタン11。"
-
-#~ msgid "Gamepad button 12."
-#~ msgstr "ゲームパッド ボタン12。"
-
-#~ msgid "Gamepad button 13."
-#~ msgstr "ゲームパッド ボタン13。"
-
-#~ msgid "Gamepad button 14."
-#~ msgstr "ゲームパッド ボタン14。"
-
-#~ msgid "Gamepad button 15."
-#~ msgstr "ゲームパッド ボタン15。"
-
-#~ msgid "Represents the maximum number of joystick buttons supported."
-#~ msgstr "サポートされるジョイスティック ボタンの最大数を表す。"
-
-#~ msgid "DualShock circle button."
-#~ msgstr "デュアルショック丸ボタン。"
-
-#~ msgid "DualShock X button."
-#~ msgstr "デュアルショックXボタン。"
-
-#~ msgid "DualShock square button."
-#~ msgstr "デュアルショック四角ボタン。"
-
-#~ msgid "DualShock triangle button."
-#~ msgstr "デュアルショック三角ボタン。"
-
-#~ msgid "Nintendo controller B button."
-#~ msgstr "任天堂コントローラBボタン。"
-
-#~ msgid "Nintendo controller X button."
-#~ msgstr "任天堂コントローラXボタン。"
-
-#~ msgid "Nintendo controller Y button."
-#~ msgstr "任天堂コントローラYボタン。"
-
-#~ msgid "Grip (side) buttons on a VR controller."
-#~ msgstr "VRコントローラのグリップ(サイド)ボタン。"
-
-#~ msgid "Push down on the touchpad or main joystick on a VR controller."
-#~ msgstr "VRコントローラのタッチパッドあるいはメインジョイスティックの押下。"
-
-#~ msgid "Trigger on a VR controller."
-#~ msgstr "VRコントローラのトリガー。"
-
-#~ msgid ""
-#~ "A button on the right Oculus Touch controller, X button on the left "
-#~ "controller (also when used in OpenVR)."
-#~ msgstr ""
-#~ "Oculus Touchの右コントローラAボタン、左コントローラのXボタン (OpenVRでの使"
-#~ "用時)。"
-
-#~ msgid ""
-#~ "B button on the right Oculus Touch controller, Y button on the left "
-#~ "controller (also when used in OpenVR)."
-#~ msgstr ""
-#~ "Oculus Touchの右コントローラBボタン、左コントローラのYボタン (OpenVRでの使"
-#~ "用時)。"
-
-#~ msgid "Menu button on either Oculus Touch controller."
-#~ msgstr "どちらかのOculus Touchコントローラのメニューボタン。"
-
-#~ msgid ""
-#~ "Menu button in OpenVR (Except when Oculus Touch controllers are used)."
-#~ msgstr "OpenVRでのメニューボタン (Oculus Touchコントローラ使用時を除く)。"
-
-#~ msgid "Gamepad button Select."
-#~ msgstr "ゲームパッドのSelectボタン。"
-
-#~ msgid "Gamepad button Start."
-#~ msgstr "ゲームパッドのStartボタン。"
-
-#~ msgid "Gamepad DPad up."
-#~ msgstr "ゲームパッドの十字ボタン上。"
-
-#~ msgid "Gamepad DPad down."
-#~ msgstr "ゲームパッドの十字ボタン下。"
-
-#~ msgid "Gamepad DPad left."
-#~ msgstr "ゲームパッドの十字ボタン左。"
-
-#~ msgid "Gamepad DPad right."
-#~ msgstr "ゲームパッドの十字ボタン右。"
-
-#~ msgid "Gamepad left trigger."
-#~ msgstr "ゲームパッドの左トリガー。"
-
-#~ msgid "Gamepad left stick click."
-#~ msgstr "ゲームパッドの左スティック クリック。"
-
-#~ msgid "Gamepad right trigger."
-#~ msgstr "ゲームパッドの右トリガー。"
-
-#~ msgid "Gamepad right stick click."
-#~ msgstr "ゲームパッドの右スティック クリック。"
-
-#~ msgid "Gamepad left stick horizontal axis."
-#~ msgstr "ゲームパッドの左スティック水平軸。"
-
-#~ msgid "Gamepad right stick horizontal axis."
-#~ msgstr "ゲームパッドの右スティック水平軸。"
-
-#~ msgid "Generic gamepad axis 4."
-#~ msgstr "汎用ゲームパッド軸 4。"
-
-#~ msgid "Generic gamepad axis 5."
-#~ msgstr "汎用ゲームパッド軸 5。"
-
-#~ msgid "Generic gamepad axis 8."
-#~ msgstr "汎用ゲームパッド軸 8。"
-
-#~ msgid "Generic gamepad axis 9."
-#~ msgstr "汎用ゲームパッド軸 9。"
-
-#~ msgid "Represents the maximum number of joystick axes supported."
-#~ msgstr "サポートされるジョイスティック軸の最大数を表す。"
-
-#~ msgid "Gamepad left analog trigger."
-#~ msgstr "ゲームパッドの左アナログトリガー。"
-
-#~ msgid "Gamepad right analog trigger."
-#~ msgstr "ゲームパッドの右アナログトリガー。"
-
-#~ msgid "VR Controller analog trigger."
-#~ msgstr "VRコントローラのアナログトリガー。"
-
-#~ msgid "VR Controller analog grip (side buttons)."
-#~ msgstr "VRコントローラのアナロググリップ (側面のボタン)。"
-
-#~ msgid ""
-#~ "OpenVR touchpad X axis (Joystick axis on Oculus Touch and Windows MR "
-#~ "controllers)."
-#~ msgstr ""
-#~ "OpenVRタッチパッドX軸 (Oculus TouchおよびWindows MRコントローラのジョイス"
-#~ "ティック軸)。"
-
-#~ msgid ""
-#~ "OpenVR touchpad Y axis (Joystick axis on Oculus Touch and Windows MR "
-#~ "controllers)."
-#~ msgstr ""
-#~ "OpenVRタッチパッドY軸 (Oculus TouchおよびWindows MRコントローラのジョイス"
-#~ "ティック軸)。"
