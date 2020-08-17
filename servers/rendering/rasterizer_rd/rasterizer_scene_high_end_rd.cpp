@@ -1145,11 +1145,19 @@ void RasterizerSceneHighEndRD::_setup_environment(RID p_environment, RID p_rende
 	scene_state.ubo.time = time;
 
 	scene_state.ubo.gi_upscale_for_msaa = false;
+	scene_state.ubo.volumetric_fog_enabled = false;
+	scene_state.ubo.fog_enabled = false;
 
 	if (p_render_buffers.is_valid()) {
 		RenderBufferDataHighEnd *render_buffers = (RenderBufferDataHighEnd *)render_buffers_get_data(p_render_buffers);
 		if (render_buffers->msaa != RS::VIEWPORT_MSAA_DISABLED) {
 			scene_state.ubo.gi_upscale_for_msaa = true;
+		}
+
+		if (render_buffers_has_volumetric_fog(p_render_buffers)) {
+			scene_state.ubo.volumetric_fog_enabled = true;
+			scene_state.ubo.volumetric_fog_inv_length = 1.0 / render_buffers_get_volumetric_fog_end(p_render_buffers);
+			scene_state.ubo.volumetric_fog_detail_spread = 1.0 / render_buffers_get_volumetric_fog_detail_spread(p_render_buffers); //reverse lookup
 		}
 	}
 #if 0
@@ -1265,11 +1273,28 @@ void RasterizerSceneHighEndRD::_setup_environment(RID p_environment, RID p_rende
 		scene_state.ubo.ssao_ao_affect = environment_get_ssao_ao_affect(p_environment);
 		scene_state.ubo.ssao_light_affect = environment_get_ssao_light_affect(p_environment);
 
-		Color ao_color = environment_get_ao_color(p_environment);
+		Color ao_color = environment_get_ao_color(p_environment).to_linear();
 		scene_state.ubo.ao_color[0] = ao_color.r;
 		scene_state.ubo.ao_color[1] = ao_color.g;
 		scene_state.ubo.ao_color[2] = ao_color.b;
 		scene_state.ubo.ao_color[3] = ao_color.a;
+
+		scene_state.ubo.fog_enabled = environment_is_fog_enabled(p_environment);
+		scene_state.ubo.fog_density = environment_get_fog_density(p_environment);
+		scene_state.ubo.fog_height = environment_get_fog_height(p_environment);
+		scene_state.ubo.fog_height_density = environment_get_fog_height_density(p_environment);
+		if (scene_state.ubo.fog_height_density >= 0.0001) {
+			scene_state.ubo.fog_height_density = 1.0 / scene_state.ubo.fog_height_density;
+		}
+
+		Color fog_color = environment_get_fog_light_color(p_environment).to_linear();
+		float fog_energy = environment_get_fog_light_energy(p_environment);
+
+		scene_state.ubo.fog_light_color[0] = fog_color.r * fog_energy;
+		scene_state.ubo.fog_light_color[1] = fog_color.g * fog_energy;
+		scene_state.ubo.fog_light_color[2] = fog_color.b * fog_energy;
+
+		scene_state.ubo.fog_sun_scatter = environment_get_fog_sun_scatter(p_environment);
 
 	} else {
 		if (p_reflection_probe.is_valid() && storage->reflection_probe_is_interior(reflection_probe_instance_get_probe(p_reflection_probe))) {
@@ -1754,6 +1779,7 @@ void RasterizerSceneHighEndRD::_render_scene(RID p_render_buffer, const Transfor
 		RD::get_singleton()->draw_list_end();
 
 		if (render_buffer && render_buffer->msaa != RS::VIEWPORT_MSAA_DISABLED) {
+			RENDER_TIMESTAMP("Resolve Depth Pre-Pass");
 			if (depth_pass_mode == PASS_MODE_DEPTH_NORMAL_ROUGHNESS || depth_pass_mode == PASS_MODE_DEPTH_NORMAL_ROUGHNESS_GIPROBE) {
 				static int texture_samples[RS::VIEWPORT_MSAA_MAX] = { 1, 2, 4, 8, 16 };
 				storage->get_effects()->resolve_gi(render_buffer->depth_msaa, render_buffer->normal_roughness_buffer_msaa, using_giprobe ? render_buffer->giprobe_buffer_msaa : RID(), render_buffer->depth, render_buffer->normal_roughness_buffer, using_giprobe ? render_buffer->giprobe_buffer : RID(), Vector2i(render_buffer->width, render_buffer->height), texture_samples[render_buffer->msaa]);
@@ -2502,7 +2528,17 @@ void RasterizerSceneHighEndRD::_update_render_buffers_uniform_set(RID p_render_b
 			u.ids.push_back(render_buffers_get_gi_probe_buffer(p_render_buffers));
 			uniforms.push_back(u);
 		}
-
+		{
+			RD::Uniform u;
+			u.binding = 10;
+			u.type = RD::UNIFORM_TYPE_TEXTURE;
+			RID vfog = render_buffers_get_volumetric_fog_texture(p_render_buffers);
+			if (vfog.is_null()) {
+				vfog = storage->texture_rd_get_default(RasterizerStorageRD::DEFAULT_RD_TEXTURE_3D_WHITE);
+			}
+			u.ids.push_back(vfog);
+			uniforms.push_back(u);
+		}
 		rb->uniform_set = RD::get_singleton()->uniform_set_create(uniforms, default_shader_rd, RENDER_BUFFERS_UNIFORM_SET);
 	}
 }
@@ -2813,6 +2849,13 @@ RasterizerSceneHighEndRD::RasterizerSceneHighEndRD(RasterizerStorageRD *p_storag
 			u.binding = 9;
 			u.type = RD::UNIFORM_TYPE_UNIFORM_BUFFER;
 			u.ids.push_back(render_buffers_get_default_gi_probe_buffer());
+			uniforms.push_back(u);
+		}
+		{
+			RD::Uniform u;
+			u.binding = 10;
+			u.type = RD::UNIFORM_TYPE_TEXTURE;
+			u.ids.push_back(storage->texture_rd_get_default(RasterizerStorageRD::DEFAULT_RD_TEXTURE_3D_WHITE));
 			uniforms.push_back(u);
 		}
 

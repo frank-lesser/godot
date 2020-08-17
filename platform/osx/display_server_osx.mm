@@ -45,7 +45,6 @@
 #include <IOKit/hid/IOHIDLib.h>
 
 #if defined(OPENGL_ENABLED)
-#include "drivers/gles2/rasterizer_gles2.h"
 //TODO - reimplement OpenGLES
 
 #import <AppKit/NSOpenGLView.h>
@@ -2375,7 +2374,11 @@ void DisplayServerOSX::_update_window(WindowData p_wd) {
 		[p_wd.window_object setHidesOnDeactivate:YES];
 	} else {
 		// Reset these when our window is not a borderless window that covers up the screen
-		[p_wd.window_object setLevel:NSNormalWindowLevel];
+		if (p_wd.on_top) {
+			[p_wd.window_object setLevel:NSFloatingWindowLevel];
+		} else {
+			[p_wd.window_object setLevel:NSNormalWindowLevel];
+		}
 		[p_wd.window_object setHidesOnDeactivate:NO];
 	}
 }
