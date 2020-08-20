@@ -495,17 +495,13 @@ DisplayServer::WindowID DisplayServerWindows::create_sub_window(WindowMode p_mod
 
 	_update_window_style(window_id);
 
-	return window_id;
-}
-
-void DisplayServerWindows::show_window(WindowID p_id) {
-	WindowData &wd = windows[p_id];
-
-	ShowWindow(wd.hWnd, wd.no_focus ? SW_SHOWNOACTIVATE : SW_SHOW); // Show The Window
-	if (!wd.no_focus) {
+	ShowWindow(wd.hWnd, (p_flags & WINDOW_FLAG_NO_FOCUS_BIT) ? SW_SHOWNOACTIVATE : SW_SHOW); // Show The Window
+	if (!(p_flags & WINDOW_FLAG_NO_FOCUS_BIT)) {
 		SetForegroundWindow(wd.hWnd); // Slightly Higher Priority
 		SetFocus(wd.hWnd); // Sets Keyboard Focus To
 	}
+
+	return window_id;
 }
 
 void DisplayServerWindows::delete_sub_window(WindowID p_window) {
@@ -2037,8 +2033,8 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					Ref<InputEventMouseMotion> mm;
 					mm.instance();
 					mm->set_window_id(window_id);
-					mm->set_control(GetKeyState(VK_CONTROL) != 0);
-					mm->set_shift(GetKeyState(VK_SHIFT) != 0);
+					mm->set_control(GetKeyState(VK_CONTROL) < 0);
+					mm->set_shift(GetKeyState(VK_SHIFT) < 0);
 					mm->set_alt(alt_mem);
 
 					mm->set_pressure(windows[window_id].last_pressure);
@@ -2180,8 +2176,8 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 				mm->set_tilt(Vector2((float)pen_info.tiltX / 90, (float)pen_info.tiltY / 90));
 			}
 
-			mm->set_control((wParam & MK_CONTROL) != 0);
-			mm->set_shift((wParam & MK_SHIFT) != 0);
+			mm->set_control(GetKeyState(VK_CONTROL) < 0);
+			mm->set_shift(GetKeyState(VK_SHIFT) < 0);
 			mm->set_alt(alt_mem);
 
 			mm->set_button_mask(last_button_state);
@@ -3143,7 +3139,9 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 		}
 	}
 
-	show_window(MAIN_WINDOW_ID);
+	ShowWindow(windows[MAIN_WINDOW_ID].hWnd, SW_SHOW); // Show The Window
+	SetForegroundWindow(windows[MAIN_WINDOW_ID].hWnd); // Slightly Higher Priority
+	SetFocus(windows[MAIN_WINDOW_ID].hWnd); // Sets Keyboard Focus To
 
 #if defined(VULKAN_ENABLED)
 
