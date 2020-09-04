@@ -42,7 +42,7 @@ static String format_error_message(DWORD id) {
 	size_t size = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM | FORMAT_MESSAGE_IGNORE_INSERTS,
 			nullptr, id, MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT), (LPWSTR)&messageBuffer, 0, nullptr);
 
-	String msg = "Error " + itos(id) + ": " + String(messageBuffer, size);
+	String msg = "Error " + itos(id) + ": " + String::utf16((const char16_t *)messageBuffer, size);
 
 	LocalFree(messageBuffer);
 
@@ -78,7 +78,7 @@ String DisplayServerWindows::get_name() const {
 }
 
 void DisplayServerWindows::alert(const String &p_alert, const String &p_title) {
-	MessageBoxW(nullptr, p_alert.c_str(), p_title.c_str(), MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
+	MessageBoxW(nullptr, (LPCWSTR)(p_alert.utf16().get_data()), (LPCWSTR)(p_title.utf16().get_data()), MB_OK | MB_ICONEXCLAMATION | MB_TASKMODAL);
 }
 
 void DisplayServerWindows::_set_mouse_mode_impl(MouseMode p_mode) {
@@ -177,11 +177,12 @@ void DisplayServerWindows::clipboard_set(const String &p_text) {
 	}
 	EmptyClipboard();
 
-	HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, (text.length() + 1) * sizeof(CharType));
+	Char16String utf16 = text.utf16();
+	HGLOBAL mem = GlobalAlloc(GMEM_MOVEABLE, (utf16.length() + 1) * sizeof(WCHAR));
 	ERR_FAIL_COND_MSG(mem == nullptr, "Unable to allocate memory for clipboard contents.");
 
 	LPWSTR lptstrCopy = (LPWSTR)GlobalLock(mem);
-	memcpy(lptstrCopy, text.c_str(), (text.length() + 1) * sizeof(CharType));
+	memcpy(lptstrCopy, utf16.get_data(), (utf16.length() + 1) * sizeof(WCHAR));
 	GlobalUnlock(mem);
 
 	SetClipboardData(CF_UNICODETEXT, mem);
@@ -218,7 +219,7 @@ String DisplayServerWindows::clipboard_get() const {
 		if (mem != nullptr) {
 			LPWSTR ptr = (LPWSTR)GlobalLock(mem);
 			if (ptr != nullptr) {
-				ret = String((CharType *)ptr);
+				ret = String::utf16((const char16_t *)ptr);
 				GlobalUnlock(mem);
 			};
 		};
@@ -493,15 +494,21 @@ DisplayServer::WindowID DisplayServerWindows::create_sub_window(WindowMode p_mod
 		wd.no_focus = true;
 	}
 
-	_update_window_style(window_id);
+	return window_id;
+}
 
-	ShowWindow(wd.hWnd, (p_flags & WINDOW_FLAG_NO_FOCUS_BIT) ? SW_SHOWNOACTIVATE : SW_SHOW); // Show The Window
-	if (!(p_flags & WINDOW_FLAG_NO_FOCUS_BIT)) {
+void DisplayServerWindows::show_window(WindowID p_id) {
+	WindowData &wd = windows[p_id];
+
+	if (p_id != MAIN_WINDOW_ID) {
+		_update_window_style(p_id);
+	}
+
+	ShowWindow(wd.hWnd, wd.no_focus ? SW_SHOWNOACTIVATE : SW_SHOW); // Show The Window
+	if (!wd.no_focus) {
 		SetForegroundWindow(wd.hWnd); // Slightly Higher Priority
 		SetFocus(wd.hWnd); // Sets Keyboard Focus To
 	}
-
-	return window_id;
 }
 
 void DisplayServerWindows::delete_sub_window(WindowID p_window) {
@@ -587,7 +594,7 @@ void DisplayServerWindows::window_set_title(const String &p_title, WindowID p_wi
 	_THREAD_SAFE_METHOD_
 
 	ERR_FAIL_COND(!windows.has(p_window));
-	SetWindowTextW(windows[p_window].hWnd, p_title.c_str());
+	SetWindowTextW(windows[p_window].hWnd, (LPCWSTR)(p_title.utf16().get_data()));
 }
 
 int DisplayServerWindows::window_get_current_screen(WindowID p_window) const {
@@ -1131,17 +1138,10 @@ void DisplayServerWindows::window_set_ime_position(const Point2i &p_pos, WindowI
 void DisplayServerWindows::console_set_visible(bool p_enabled) {
 	_THREAD_SAFE_METHOD_
 
-	if (console_visible == p_enabled) {
+	if (console_visible == p_enabled)
 		return;
-	}
-	if (p_enabled && GetConsoleWindow() == nullptr) { // Open new console if not attached.
-		own_console = true;
-		AllocConsole();
-	}
-	if (own_console) { // Note: Do not hide parent console.
-		ShowWindow(GetConsoleWindow(), p_enabled ? SW_SHOW : SW_HIDE);
-		console_visible = p_enabled;
-	}
+	ShowWindow(GetConsoleWindow(), p_enabled ? SW_SHOW : SW_HIDE);
+	console_visible = p_enabled;
 }
 
 bool DisplayServerWindows::is_console_visible() const {
@@ -1424,13 +1424,13 @@ String DisplayServerWindows::keyboard_get_layout_language(int p_index) const {
 	HKL *layouts = (HKL *)memalloc(layout_count * sizeof(HKL));
 	GetKeyboardLayoutList(layout_count, layouts);
 
-	wchar_t buf[LOCALE_NAME_MAX_LENGTH];
-	memset(buf, 0, LOCALE_NAME_MAX_LENGTH * sizeof(wchar_t));
+	WCHAR buf[LOCALE_NAME_MAX_LENGTH];
+	memset(buf, 0, LOCALE_NAME_MAX_LENGTH * sizeof(WCHAR));
 	LCIDToLocaleName(MAKELCID(LOWORD(layouts[p_index]), SORT_DEFAULT), buf, LOCALE_NAME_MAX_LENGTH, 0);
 
 	memfree(layouts);
 
-	return String(buf).substr(0, 2);
+	return String::utf16((const char16_t *)buf).substr(0, 2);
 }
 
 String _get_full_layout_name_from_registry(HKL p_layout) {
@@ -1438,17 +1438,17 @@ String _get_full_layout_name_from_registry(HKL p_layout) {
 	String ret;
 
 	HKEY hkey;
-	wchar_t layout_text[1024];
-	memset(layout_text, 0, 1024 * sizeof(wchar_t));
+	WCHAR layout_text[1024];
+	memset(layout_text, 0, 1024 * sizeof(WCHAR));
 
-	if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, (LPCWSTR)id.c_str(), 0, KEY_QUERY_VALUE, &hkey) != ERROR_SUCCESS) {
+	if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, (LPCWSTR)(id.utf16().get_data()), 0, KEY_QUERY_VALUE, &hkey) != ERROR_SUCCESS) {
 		return ret;
 	}
 
 	DWORD buffer = 1024;
 	DWORD vtype = REG_SZ;
 	if (RegQueryValueExW(hkey, L"Layout Text", NULL, &vtype, (LPBYTE)layout_text, &buffer) == ERROR_SUCCESS) {
-		ret = String(layout_text);
+		ret = String::utf16((const char16_t *)layout_text);
 	}
 	RegCloseKey(hkey);
 	return ret;
@@ -1464,15 +1464,15 @@ String DisplayServerWindows::keyboard_get_layout_name(int p_index) const {
 
 	String ret = _get_full_layout_name_from_registry(layouts[p_index]); // Try reading full name from Windows registry, fallback to locale name if failed (e.g. on Wine).
 	if (ret == String()) {
-		wchar_t buf[LOCALE_NAME_MAX_LENGTH];
-		memset(buf, 0, LOCALE_NAME_MAX_LENGTH * sizeof(wchar_t));
+		WCHAR buf[LOCALE_NAME_MAX_LENGTH];
+		memset(buf, 0, LOCALE_NAME_MAX_LENGTH * sizeof(WCHAR));
 		LCIDToLocaleName(MAKELCID(LOWORD(layouts[p_index]), SORT_DEFAULT), buf, LOCALE_NAME_MAX_LENGTH, 0);
 
-		wchar_t name[1024];
-		memset(name, 0, 1024 * sizeof(wchar_t));
+		WCHAR name[1024];
+		memset(name, 0, 1024 * sizeof(WCHAR));
 		GetLocaleInfoEx(buf, LOCALE_SLOCALIZEDDISPLAYNAME, (LPWSTR)&name, 1024);
 
-		ret = String(name);
+		ret = String::utf16((const char16_t *)name);
 	}
 	memfree(layouts);
 
@@ -2712,7 +2712,7 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 		case WM_DROPFILES: {
 			HDROP hDropInfo = (HDROP)wParam;
 			const int buffsize = 4096;
-			wchar_t buf[buffsize];
+			WCHAR buf[buffsize];
 
 			int fcount = DragQueryFileW(hDropInfo, 0xFFFFFFFF, nullptr, 0);
 
@@ -2720,7 +2720,7 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 
 			for (int i = 0; i < fcount; i++) {
 				DragQueryFileW(hDropInfo, i, buf, buffsize);
-				String file = buf;
+				String file = String::utf16((const char16_t *)buf);
 				files.push_back(file);
 			}
 
@@ -3022,18 +3022,7 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 	shift_mem = false;
 	control_mem = false;
 	meta_mem = false;
-
-	if (AttachConsole(ATTACH_PARENT_PROCESS)) {
-		FILE *_file = nullptr;
-		freopen_s(&_file, "CONOUT$", "w", stdout);
-		freopen_s(&_file, "CONOUT$", "w", stderr);
-		freopen_s(&_file, "CONIN$", "r", stdin);
-
-		printf("\n");
-		console_visible = true;
-	} else {
-		console_visible = false;
-	}
+	console_visible = IsWindowVisible(GetConsoleWindow());
 	hInstance = ((OS_Windows *)OS::get_singleton())->get_hinstance();
 
 	pressrc = 0;
@@ -3139,9 +3128,7 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Win
 		}
 	}
 
-	ShowWindow(windows[MAIN_WINDOW_ID].hWnd, SW_SHOW); // Show The Window
-	SetForegroundWindow(windows[MAIN_WINDOW_ID].hWnd); // Slightly Higher Priority
-	SetFocus(windows[MAIN_WINDOW_ID].hWnd); // Sets Keyboard Focus To
+	show_window(MAIN_WINDOW_ID);
 
 #if defined(VULKAN_ENABLED)
 

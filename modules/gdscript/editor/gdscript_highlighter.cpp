@@ -33,15 +33,15 @@
 #include "../gdscript_tokenizer.h"
 #include "editor/editor_settings.h"
 
-static bool _is_char(CharType c) {
+static bool _is_char(char32_t c) {
 	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-static bool _is_hex_symbol(CharType c) {
+static bool _is_hex_symbol(char32_t c) {
 	return ((c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F'));
 }
 
-static bool _is_bin_symbol(CharType c) {
+static bool _is_bin_symbol(char32_t c) {
 	return (c == '0' || c == '1');
 }
 
@@ -119,7 +119,7 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting(int p_line) 
 
 						/* search the line */
 						bool match = true;
-						const CharType *start_key = color_regions[c].start_key.c_str();
+						const char32_t *start_key = color_regions[c].start_key.get_data();
 						for (int k = 0; k < start_key_length; k++) {
 							if (start_key[k] != str[from + k]) {
 								match = false;
@@ -153,18 +153,16 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting(int p_line) 
 
 				/* if we are in one find the end key */
 				if (in_region != -1) {
-					/* check there is enough room */
-					int chars_left = line_length - from;
-					int end_key_length = color_regions[in_region].end_key.length();
-					if (chars_left < end_key_length) {
-						continue;
-					}
-
 					/* search the line */
 					int region_end_index = -1;
-					const CharType *end_key = color_regions[in_region].start_key.c_str();
+					int end_key_length = color_regions[in_region].end_key.length();
+					const char32_t *end_key = color_regions[in_region].end_key.get_data();
 					for (; from < line_length; from++) {
-						if (!is_a_symbol) {
+						if (line_length - from < end_key_length) {
+							break;
+						}
+
+						if (!is_symbol(str[from])) {
 							continue;
 						}
 
@@ -173,9 +171,10 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting(int p_line) 
 							continue;
 						}
 
+						region_end_index = from;
 						for (int k = 0; k < end_key_length; k++) {
-							if (end_key[k] == str[from + k]) {
-								region_end_index = from;
+							if (end_key[k] != str[from + k]) {
+								region_end_index = -1;
 								break;
 							}
 						}
@@ -192,7 +191,7 @@ Dictionary GDScriptSyntaxHighlighter::_get_line_syntax_highlighting(int p_line) 
 					previous_type = REGION;
 					previous_text = "";
 					previous_column = j;
-					j = from;
+					j = from + (end_key_length - 1);
 					if (region_end_index == -1) {
 						color_region_cache[p_line] = in_region;
 					}
@@ -572,8 +571,12 @@ void GDScriptSyntaxHighlighter::add_color_region(const String &p_start_key, cons
 		}
 	}
 
+	int at = 0;
 	for (int i = 0; i < color_regions.size(); i++) {
 		ERR_FAIL_COND_MSG(color_regions[i].start_key == p_start_key, "color region with start key '" + p_start_key + "' already exists.");
+		if (p_start_key.length() < color_regions[i].start_key.length()) {
+			at++;
+		}
 	}
 
 	ColorRegion color_region;
@@ -581,7 +584,8 @@ void GDScriptSyntaxHighlighter::add_color_region(const String &p_start_key, cons
 	color_region.start_key = p_start_key;
 	color_region.end_key = p_end_key;
 	color_region.line_only = p_line_only;
-	color_regions.push_back(color_region);
+	color_regions.insert(at, color_region);
+	clear_highlighting_cache();
 }
 
 Ref<EditorSyntaxHighlighter> GDScriptSyntaxHighlighter::_create() const {
