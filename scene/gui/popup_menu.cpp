@@ -101,9 +101,11 @@ Size2 PopupMenu::_get_contents_minimum_size() const {
 		minsize.width += check_w;
 	}
 
-	int height_limit = get_usable_parent_rect().size.height;
-	if (minsize.height > height_limit) {
-		minsize.height = height_limit;
+	if (is_inside_tree()) {
+		int height_limit = get_usable_parent_rect().size.height;
+		if (minsize.height > height_limit) {
+			minsize.height = height_limit;
+		}
 	}
 
 	return minsize;
@@ -282,14 +284,15 @@ void PopupMenu::_gui_input(const Ref<InputEvent> &p_event) {
 	}
 
 	// Make an area which does not include v scrollbar, so that items are not activated when dragging scrollbar.
-	Rect2 item_clickable_area = control->get_global_rect();
-	float scroll_width = scroll_container->get_v_scrollbar()->is_visible_in_tree() ? scroll_container->get_v_scrollbar()->get_size().width : 0;
-	item_clickable_area.set_size(Size2(item_clickable_area.size.width - scroll_width, item_clickable_area.size.height));
+	Rect2 item_clickable_area = scroll_container->get_rect();
+	if (scroll_container->get_v_scrollbar()->is_visible_in_tree()) {
+		item_clickable_area.size.width -= scroll_container->get_v_scrollbar()->get_size().width;
+	}
 
 	Ref<InputEventMouseButton> b = p_event;
 
 	if (b.is_valid()) {
-		if (!item_clickable_area.has_point(b->get_global_position())) {
+		if (!item_clickable_area.has_point(b->get_position())) {
 			return;
 		}
 
@@ -331,7 +334,7 @@ void PopupMenu::_gui_input(const Ref<InputEvent> &p_event) {
 	Ref<InputEventMouseMotion> m = p_event;
 
 	if (m.is_valid()) {
-		if (!item_clickable_area.has_point(m->get_global_position())) {
+		if (!item_clickable_area.has_point(m->get_position())) {
 			return;
 		}
 

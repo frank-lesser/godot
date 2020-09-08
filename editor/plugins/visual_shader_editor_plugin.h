@@ -63,7 +63,9 @@ class VisualShaderEditor : public VBoxContainer {
 	Button *add_node;
 	Button *preview_shader;
 
-	OptionButton *edit_type;
+	OptionButton *edit_type = nullptr;
+	OptionButton *edit_type_standart;
+	OptionButton *edit_type_particles;
 
 	PanelContainer *error_panel;
 	Label *error_label;
@@ -84,6 +86,19 @@ class VisualShaderEditor : public VBoxContainer {
 	MenuButton *tools;
 
 	bool preview_showed;
+	bool particles_mode;
+
+	enum TypeFlags {
+		TYPE_FLAGS_VERTEX = 1,
+		TYPE_FLAGS_FRAGMENT = 2,
+		TYPE_FLAGS_LIGHT = 4,
+	};
+
+	enum ParticlesTypeFlags {
+		TYPE_FLAGS_EMIT = 1,
+		TYPE_FLAGS_PROCESS = 2,
+		TYPE_FLAGS_END = 4
+	};
 
 	enum ToolsMenuOptions {
 		EXPAND_ALL,
@@ -233,6 +248,8 @@ class VisualShaderEditor : public VBoxContainer {
 
 	void _input_select_item(Ref<VisualShaderNodeInput> input, String name);
 	void _uniform_select_item(Ref<VisualShaderNodeUniformRef> p_uniform, String p_name);
+
+	VisualShader::Type get_current_shader_type() const;
 
 	void _add_input_port(int p_node, int p_port, int p_port_type, const String &p_name);
 	void _remove_input_port(int p_node, int p_port);
