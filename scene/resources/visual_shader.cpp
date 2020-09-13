@@ -317,6 +317,14 @@ VisualShaderNodeCustom::VisualShaderNodeCustom() {
 
 /////////////////////////////////////////////////////////
 
+void VisualShader::set_shader_type(Type p_type) {
+	current_type = p_type;
+}
+
+VisualShader::Type VisualShader::get_shader_type() const {
+	return current_type;
+}
+
 void VisualShader::set_version(const String &p_version) {
 	version = p_version;
 }
@@ -1501,11 +1509,11 @@ void VisualShader::_update_shader() const {
 		if (shader_mode != Shader::MODE_PARTICLES) {
 			func_code += "\nvoid " + String(func_name[i]) + "() {\n";
 		}
+		insertion_pos.insert(i, code.get_string_length() + func_code.get_string_length());
 
 		Set<int> processed;
 		Error err = _write_node(Type(i), global_code, global_code_per_node, global_code_per_func, func_code, default_tex_params, input_connections, output_connections, NODE_ID_OUTPUT, processed, false, classes);
 		ERR_FAIL_COND(err != OK);
-		insertion_pos.insert(i, code.get_string_length());
 
 		if (shader_mode == Shader::MODE_PARTICLES) {
 			code_map.insert(i, func_code);
@@ -1616,6 +1624,9 @@ void VisualShader::_bind_methods() {
 	BIND_ENUM_CONSTANT(TYPE_VERTEX);
 	BIND_ENUM_CONSTANT(TYPE_FRAGMENT);
 	BIND_ENUM_CONSTANT(TYPE_LIGHT);
+	BIND_ENUM_CONSTANT(TYPE_EMIT);
+	BIND_ENUM_CONSTANT(TYPE_PROCESS);
+	BIND_ENUM_CONSTANT(TYPE_END);
 	BIND_ENUM_CONSTANT(TYPE_MAX);
 
 	BIND_CONSTANT(NODE_ID_INVALID);

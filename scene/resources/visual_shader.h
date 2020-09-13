@@ -69,6 +69,8 @@ public:
 	};
 
 private:
+	Type current_type;
+
 	struct Node {
 		Ref<VisualShaderNode> node;
 		Vector2 position;
@@ -123,6 +125,10 @@ protected:
 	bool _set(const StringName &p_name, const Variant &p_value);
 	bool _get(const StringName &p_name, Variant &r_ret) const;
 	void _get_property_list(List<PropertyInfo> *p_list) const;
+
+public: // internal methods
+	void set_shader_type(Type p_type);
+	Type get_shader_type() const;
 
 public:
 	void set_version(const String &p_version);
