@@ -65,20 +65,16 @@ bool VisualShaderNode::is_port_separator(int p_index) const {
 
 bool VisualShaderNode::is_output_port_connected(int p_port) const {
 	if (connected_output_ports.has(p_port)) {
-		return connected_output_ports[p_port];
+		return connected_output_ports[p_port] > 0;
 	}
 	return false;
 }
 
 void VisualShaderNode::set_output_port_connected(int p_port, bool p_connected) {
 	if (p_connected) {
-		connected_output_ports[p_port] = true;
-		++connected_output_count;
+		connected_output_ports[p_port]++;
 	} else {
-		--connected_output_count;
-		if (connected_output_count == 0) {
-			connected_output_ports[p_port] = false;
-		}
+		connected_output_ports[p_port]--;
 	}
 }
 
@@ -99,6 +95,14 @@ bool VisualShaderNode::is_generate_input_var(int p_port) const {
 
 bool VisualShaderNode::is_code_generated() const {
 	return true;
+}
+
+bool VisualShaderNode::is_show_prop_names() const {
+	return false;
+}
+
+bool VisualShaderNode::is_use_prop_slots() const {
+	return false;
 }
 
 Vector<VisualShader::DefaultTextureParam> VisualShaderNode::get_default_texture_parameters(VisualShader::Type p_type, int p_id) const {
@@ -2123,6 +2127,15 @@ void VisualShaderNodeUniformRef::clear_uniforms() {
 	uniforms.clear();
 }
 
+bool VisualShaderNodeUniformRef::has_uniform(const String &p_name) {
+	for (List<VisualShaderNodeUniformRef::Uniform>::Element *E = uniforms.front(); E; E = E->next()) {
+		if (E->get().name == p_name) {
+			return true;
+		}
+	}
+	return false;
+}
+
 String VisualShaderNodeUniformRef::get_caption() const {
 	return "UniformRef";
 }
@@ -2140,10 +2153,6 @@ String VisualShaderNodeUniformRef::get_input_port_name(int p_port) const {
 }
 
 int VisualShaderNodeUniformRef::get_output_port_count() const {
-	if (uniform_name == "[None]") {
-		return 0;
-	}
-
 	switch (uniform_type) {
 		case UniformType::UNIFORM_TYPE_FLOAT:
 			return 1;
@@ -2162,7 +2171,7 @@ int VisualShaderNodeUniformRef::get_output_port_count() const {
 		default:
 			break;
 	}
-	return 0;
+	return 1;
 }
 
 VisualShaderNodeUniformRef::PortType VisualShaderNodeUniformRef::get_output_port_type(int p_port) const {
@@ -2222,8 +2231,8 @@ String VisualShaderNodeUniformRef::get_output_port_name(int p_port) const {
 
 void VisualShaderNodeUniformRef::set_uniform_name(const String &p_name) {
 	uniform_name = p_name;
-	if (p_name != "[None]") {
-		uniform_type = get_uniform_type_by_name(p_name);
+	if (uniform_name != "[None]") {
+		uniform_type = get_uniform_type_by_name(uniform_name);
 	} else {
 		uniform_type = UniformType::UNIFORM_TYPE_FLOAT;
 	}
@@ -2264,6 +2273,9 @@ VisualShaderNodeUniformRef::UniformType VisualShaderNodeUniformRef::get_uniform_
 String VisualShaderNodeUniformRef::generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview) const {
 	switch (uniform_type) {
 		case UniformType::UNIFORM_TYPE_FLOAT:
+			if (uniform_name == "[None]") {
+				return "\t" + p_output_vars[0] + " = 0.0;\n";
+			}
 			return "\t" + p_output_vars[0] + " = " + get_uniform_name() + ";\n";
 		case UniformType::UNIFORM_TYPE_INT:
 			return "\t" + p_output_vars[0] + " = " + get_uniform_name() + ";\n";
@@ -2286,16 +2298,29 @@ String VisualShaderNodeUniformRef::generate_code(Shader::Mode p_mode, VisualShad
 	return "";
 }
 
+void VisualShaderNodeUniformRef::_set_uniform_type(int p_uniform_type) {
+	uniform_type = (UniformType)p_uniform_type;
+}
+
+int VisualShaderNodeUniformRef::_get_uniform_type() const {
+	return (int)uniform_type;
+}
+
 void VisualShaderNodeUniformRef::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_uniform_name", "name"), &VisualShaderNodeUniformRef::set_uniform_name);
 	ClassDB::bind_method(D_METHOD("get_uniform_name"), &VisualShaderNodeUniformRef::get_uniform_name);
 
+	ClassDB::bind_method(D_METHOD("_set_uniform_type", "type"), &VisualShaderNodeUniformRef::_set_uniform_type);
+	ClassDB::bind_method(D_METHOD("_get_uniform_type"), &VisualShaderNodeUniformRef::_get_uniform_type);
+
 	ADD_PROPERTY(PropertyInfo(Variant::STRING_NAME, "uniform_name", PROPERTY_HINT_ENUM, ""), "set_uniform_name", "get_uniform_name");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "uniform_type", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR | PROPERTY_USAGE_INTERNAL), "_set_uniform_type", "_get_uniform_type");
 }
 
 Vector<StringName> VisualShaderNodeUniformRef::get_editable_properties() const {
 	Vector<StringName> props;
 	props.push_back("uniform_name");
+	props.push_back("uniform_type");
 	return props;
 }
 
@@ -2700,6 +2725,7 @@ void VisualShaderNodeGroupBase::add_input_port(int p_id, int p_type, const Strin
 	}
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 void VisualShaderNodeGroupBase::remove_input_port(int p_id) {
@@ -2724,6 +2750,7 @@ void VisualShaderNodeGroupBase::remove_input_port(int p_id) {
 	}
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 int VisualShaderNodeGroupBase::get_input_port_count() const {
@@ -2768,6 +2795,7 @@ void VisualShaderNodeGroupBase::add_output_port(int p_id, int p_type, const Stri
 	}
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 void VisualShaderNodeGroupBase::remove_output_port(int p_id) {
@@ -2792,6 +2820,7 @@ void VisualShaderNodeGroupBase::remove_output_port(int p_id) {
 	}
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 int VisualShaderNodeGroupBase::get_output_port_count() const {
@@ -2838,6 +2867,7 @@ void VisualShaderNodeGroupBase::set_input_port_type(int p_id, int p_type) {
 	inputs = inputs.insert(index, itos(p_type));
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 VisualShaderNodeGroupBase::PortType VisualShaderNodeGroupBase::get_input_port_type(int p_id) const {
@@ -2873,6 +2903,7 @@ void VisualShaderNodeGroupBase::set_input_port_name(int p_id, const String &p_na
 	inputs = inputs.insert(index, p_name);
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 String VisualShaderNodeGroupBase::get_input_port_name(int p_id) const {
@@ -2908,6 +2939,7 @@ void VisualShaderNodeGroupBase::set_output_port_type(int p_id, int p_type) {
 	outputs = outputs.insert(index, itos(p_type));
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 VisualShaderNodeGroupBase::PortType VisualShaderNodeGroupBase::get_output_port_type(int p_id) const {
@@ -2943,6 +2975,7 @@ void VisualShaderNodeGroupBase::set_output_port_name(int p_id, const String &p_n
 	outputs = outputs.insert(index, p_name);
 
 	_apply_port_changes();
+	emit_changed();
 }
 
 String VisualShaderNodeGroupBase::get_output_port_name(int p_id) const {
@@ -3053,6 +3086,7 @@ String VisualShaderNodeExpression::get_caption() const {
 
 void VisualShaderNodeExpression::set_expression(const String &p_expression) {
 	expression = p_expression;
+	emit_changed();
 }
 
 String VisualShaderNodeExpression::get_expression() const {

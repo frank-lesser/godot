@@ -14,6 +14,7 @@
 	<tutorials>
 		<link title="Viewport and canvas transforms">https://docs.godotengine.org/en/latest/tutorials/2d/2d_transforms.html</link>
 		<link title="Custom drawing in 2D">https://docs.godotengine.org/en/latest/tutorials/2d/custom_drawing_in_2d.html</link>
+		<link title="Audio Spectrum Demo">https://godotengine.org/asset-library/asset/528</link>
 	</tutorials>
 	<methods>
 		<method name="_draw" qualifiers="virtual">
@@ -318,13 +319,22 @@
 			<description>
 				Draws [code]text[/code] using the specified [code]font[/code] at the [code]position[/code] (top-left corner). The text will have its color multiplied by [code]modulate[/code]. If [code]clip_w[/code] is greater than or equal to 0, the text will be clipped if it exceeds the specified width.
 				[b]Example using the default project font:[/b]
-				[codeblock]
+				[codeblocks]
+				[gdscript]
 				# If using this method in a script that redraws constantly, move the
 				# `default_font` declaration to a member variable assigned in `_ready()`
 				# so the Control is only created once.
 				var default_font = Control.new().get_font("font")
 				draw_string(default_font, Vector2(64, 64), "Hello world")
-				[/codeblock]
+				[/gdscript]
+				[csharp]
+				// If using this method in a script that redraws constantly, move the
+				// `default_font` declaration to a member variable assigned in `_ready()`
+				// so the Control is only created once.
+				Font defaultFont = new Control().GetFont("font");
+				DrawString(defaultFont, new Vector2(64, 64), "Hello world");
+				[/csharp]
+				[/codeblocks]
 				See also [method Font.draw].
 			</description>
 		</method>
@@ -516,13 +526,6 @@
 				Returns [code]true[/code] if local transform notifications are communicated to children.
 			</description>
 		</method>
-		<method name="is_set_as_toplevel" qualifiers="const">
-			<return type="bool">
-			</return>
-			<description>
-				Returns [code]true[/code] if the node is set as top-level. See [method set_as_toplevel].
-			</description>
-		</method>
 		<method name="is_transform_notification_enabled" qualifiers="const">
 			<return type="bool">
 			</return>
@@ -553,15 +556,6 @@
 			</argument>
 			<description>
 				Transformations issued by [code]event[/code]'s inputs are applied in local space instead of global space.
-			</description>
-		</method>
-		<method name="set_as_toplevel">
-			<return type="void">
-			</return>
-			<argument index="0" name="enable" type="bool">
-			</argument>
-			<description>
-				If [code]enable[/code] is [code]true[/code], the node won't inherit its transform from parent canvas items.
 			</description>
 		</method>
 		<method name="set_notify_local_transform">
@@ -612,6 +606,9 @@
 		</member>
 		<member name="show_behind_parent" type="bool" setter="set_draw_behind_parent" getter="is_draw_behind_parent_enabled" default="false">
 			If [code]true[/code], the object draws behind its parent.
+		</member>
+		<member name="top_level" type="bool" setter="set_as_top_level" getter="is_set_as_top_level">
+			If [code]true[/code], the node will not inherit its transform from parent [CanvasItem]s.
 		</member>
 		<member name="show_on_top" type="bool" setter="_set_on_top" getter="_is_on_top">
 			If [code]true[/code], the object draws on top of its parent.

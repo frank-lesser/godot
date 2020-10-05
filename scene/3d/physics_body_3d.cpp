@@ -737,7 +737,7 @@ String RigidBody3D::get_configuration_warning() const {
 	String warning = CollisionObject3D::get_configuration_warning();
 
 	if ((get_mode() == MODE_RIGID || get_mode() == MODE_CHARACTER) && (ABS(t.basis.get_axis(0).length() - 1.0) > 0.05 || ABS(t.basis.get_axis(1).length() - 1.0) > 0.05 || ABS(t.basis.get_axis(2).length() - 1.0) > 0.05)) {
-		if (warning != String()) {
+		if (!warning.empty()) {
 			warning += "\n\n";
 		}
 		warning += TTR("Size changes to RigidBody3D (in character or rigid modes) will be overridden by the physics engine when running.\nChange the size in children collision shapes instead.");
@@ -2606,7 +2606,7 @@ void PhysicalBone3D::_start_physics_simulation() {
 	PhysicsServer3D::get_singleton()->body_set_collision_layer(get_rid(), get_collision_layer());
 	PhysicsServer3D::get_singleton()->body_set_collision_mask(get_rid(), get_collision_mask());
 	PhysicsServer3D::get_singleton()->body_set_force_integration_callback(get_rid(), this, "_direct_state_changed");
-	set_as_toplevel(true);
+	set_as_top_level(true);
 	_internal_simulate_physics = true;
 }
 
@@ -2626,7 +2626,7 @@ void PhysicalBone3D::_stop_physics_simulation() {
 	if (_internal_simulate_physics) {
 		PhysicsServer3D::get_singleton()->body_set_force_integration_callback(get_rid(), nullptr, "");
 		parent_skeleton->set_bone_global_pose_override(bone_id, Transform(), 0.0, false);
-		set_as_toplevel(false);
+		set_as_top_level(false);
 		_internal_simulate_physics = false;
 	}
 }

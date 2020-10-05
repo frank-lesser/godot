@@ -128,7 +128,6 @@ void OSIPhone::initialize_modules() {
 #ifdef GAME_CENTER_ENABLED
 	game_center = memnew(GameCenter);
 	Engine::get_singleton()->add_singleton(Engine::Singleton("GameCenter", game_center));
-	game_center->connect();
 #endif
 
 #ifdef STOREKIT_ENABLED
@@ -272,7 +271,6 @@ String OSIPhone::get_model_name() const {
 Error OSIPhone::shell_open(String p_uri) {
 	NSString *urlPath = [[NSString alloc] initWithUTF8String:p_uri.utf8().get_data()];
 	NSURL *url = [NSURL URLWithString:urlPath];
-	[urlPath release];
 
 	if (![[UIApplication sharedApplication] canOpenURL:url]) {
 		return ERR_CANT_OPEN;
@@ -280,11 +278,7 @@ Error OSIPhone::shell_open(String p_uri) {
 
 	printf("opening url %s\n", p_uri.utf8().get_data());
 
-	//    if (@available(iOS 10, *)) {
 	[[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
-	//    } else {
-	//        [[UIApplication sharedApplication] openURL:url];
-	//    }
 
 	return OK;
 };

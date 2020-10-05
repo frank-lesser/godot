@@ -1274,9 +1274,13 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	}
 
 	if (rtm >= 0 && rtm < 3) {
+#ifdef NO_THREADS
+		rtm = OS::RENDER_THREAD_UNSAFE; // No threads available on this platform.
+#else
 		if (editor) {
 			rtm = OS::RENDER_THREAD_SAFE;
 		}
+#endif
 		OS::get_singleton()->_render_thread_mode = OS::RenderThreadMode(rtm);
 	}
 
@@ -1365,6 +1369,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 					"0,33200,1,or_greater")); // No negative numbers
 
 	GLOBAL_DEF("display/window/ios/hide_home_indicator", true);
+	GLOBAL_DEF("input_devices/pointing/ios/touch_delay", 0.150);
 
 	Engine::get_singleton()->set_frame_delay(frame_delay);
 
@@ -1565,7 +1570,6 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 		Color boot_bg_color = GLOBAL_DEF("application/boot_splash/bg_color", boot_splash_bg_color);
 		if (boot_logo.is_valid()) {
-			OS::get_singleton()->_msec_splash = OS::get_singleton()->get_ticks_msec();
 			RenderingServer::get_singleton()->set_boot_image(boot_logo, boot_bg_color, boot_logo_scale,
 					boot_logo_filter);
 

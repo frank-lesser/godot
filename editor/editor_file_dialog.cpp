@@ -559,7 +559,7 @@ void EditorFileDialog::_item_list_item_rmb_selected(int p_item, const Vector2 &p
 			continue;
 		}
 		Dictionary item_meta = item_list->get_item_metadata(i);
-		if (item_meta["path"] == "res://.import") {
+		if (String(item_meta["path"]).begins_with("res://.godot")) {
 			allow_delete = false;
 			break;
 		}
@@ -1646,7 +1646,7 @@ EditorFileDialog::EditorFileDialog() {
 	filter->connect("item_selected", callable_mp(this, &EditorFileDialog::_filter_selected));
 
 	confirm_save = memnew(ConfirmationDialog);
-	//confirm_save->set_as_toplevel(true);
+	//confirm_save->set_as_top_level(true);
 	add_child(confirm_save);
 	confirm_save->connect("confirmed", callable_mp(this, &EditorFileDialog::_save_confirm_pressed));
 

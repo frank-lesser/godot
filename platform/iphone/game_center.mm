@@ -52,6 +52,7 @@ extern "C" {
 GameCenter *GameCenter::instance = NULL;
 
 void GameCenter::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("authenticate"), &GameCenter::authenticate);
 	ClassDB::bind_method(D_METHOD("is_authenticated"), &GameCenter::is_authenticated);
 
 	ClassDB::bind_method(D_METHOD("post_score"), &GameCenter::post_score);
@@ -66,40 +67,28 @@ void GameCenter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("pop_pending_event"), &GameCenter::pop_pending_event);
 };
 
-void GameCenter::return_connect_error(const char *p_error_description) {
-	authenticated = false;
-	Dictionary ret;
-	ret["type"] = "authentication";
-	ret["result"] = "error";
-	ret["error_code"] = 0;
-	ret["error_description"] = p_error_description;
-	pending_events.push_back(ret);
-}
-
-void GameCenter::connect() {
+Error GameCenter::authenticate() {
 	//if this class isn't available, game center isn't implemented
 	if ((NSClassFromString(@"GKLocalPlayer")) == nil) {
-		return_connect_error("GameCenter not available");
-		return;
+		return ERR_UNAVAILABLE;
 	}
 
 	GKLocalPlayer *player = [GKLocalPlayer localPlayer];
-	if (![player respondsToSelector:@selector(authenticateHandler)]) {
-		return_connect_error("GameCenter doesn't respond to 'authenticateHandler'");
-		return;
-	}
+	ERR_FAIL_COND_V(![player respondsToSelector:@selector(authenticateHandler)], ERR_UNAVAILABLE);
 
 	ViewController *root_controller = (ViewController *)((AppDelegate *)[[UIApplication sharedApplication] delegate]).window.rootViewController;
-	if (!root_controller) {
-		return_connect_error("Window doesn't have root ViewController");
-		return;
-	}
+	ERR_FAIL_COND_V(!root_controller, FAILED);
 
 	// This handler is called several times.  First when the view needs to be shown, then again
 	// after the view is cancelled or the user logs in.  Or if the user's already logged in, it's
 	// called just once to confirm they're authenticated.  This is why no result needs to be specified
 	// in the presentViewController phase. In this case, more calls to this function will follow.
+	_weakify(root_controller);
+	_weakify(player);
 	player.authenticateHandler = (^(UIViewController *controller, NSError *error) {
+		_strongify(root_controller);
+		_strongify(player);
+
 		if (controller) {
 			[root_controller presentViewController:controller animated:YES completion:nil];
 		} else {
@@ -126,6 +115,8 @@ void GameCenter::connect() {
 			pending_events.push_back(ret);
 		};
 	});
+
+	return OK;
 };
 
 bool GameCenter::is_authenticated() {
@@ -137,8 +128,8 @@ Error GameCenter::post_score(Dictionary p_score) {
 	float score = p_score["score"];
 	String category = p_score["category"];
 
-	NSString *cat_str = [[[NSString alloc] initWithUTF8String:category.utf8().get_data()] autorelease];
-	GKScore *reporter = [[[GKScore alloc] initWithLeaderboardIdentifier:cat_str] autorelease];
+	NSString *cat_str = [[NSString alloc] initWithUTF8String:category.utf8().get_data()];
+	GKScore *reporter = [[GKScore alloc] initWithLeaderboardIdentifier:cat_str];
 	reporter.value = score;
 
 	ERR_FAIL_COND_V([GKScore respondsToSelector:@selector(reportScores)], ERR_UNAVAILABLE);
@@ -166,8 +157,8 @@ Error GameCenter::award_achievement(Dictionary p_params) {
 	String name = p_params["name"];
 	float progress = p_params["progress"];
 
-	NSString *name_str = [[[NSString alloc] initWithUTF8String:name.utf8().get_data()] autorelease];
-	GKAchievement *achievement = [[[GKAchievement alloc] initWithIdentifier:name_str] autorelease];
+	NSString *name_str = [[NSString alloc] initWithUTF8String:name.utf8().get_data()];
+	GKAchievement *achievement = [[GKAchievement alloc] initWithIdentifier:name_str];
 	ERR_FAIL_COND_V(!achievement, FAILED);
 
 	ERR_FAIL_COND_V([GKAchievement respondsToSelector:@selector(reportAchievements)], ERR_UNAVAILABLE);
@@ -311,7 +302,7 @@ Error GameCenter::show_game_center(Dictionary p_params) {
 		}
 	}
 
-	GKGameCenterViewController *controller = [[[GKGameCenterViewController alloc] init] autorelease];
+	GKGameCenterViewController *controller = [[GKGameCenterViewController alloc] init];
 	ERR_FAIL_COND_V(!controller, FAILED);
 
 	ViewController *root_controller = (ViewController *)((AppDelegate *)[[UIApplication sharedApplication] delegate]).window.rootViewController;
@@ -323,7 +314,7 @@ Error GameCenter::show_game_center(Dictionary p_params) {
 		controller.leaderboardIdentifier = nil;
 		if (p_params.has("leaderboard_name")) {
 			String name = p_params["leaderboard_name"];
-			NSString *name_str = [[[NSString alloc] initWithUTF8String:name.utf8().get_data()] autorelease];
+			NSString *name_str = [[NSString alloc] initWithUTF8String:name.utf8().get_data()];
 			controller.leaderboardIdentifier = name_str;
 		}
 	}

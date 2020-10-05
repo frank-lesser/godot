@@ -4959,11 +4959,6 @@ void AnimationTrackEditor::_scroll_input(const Ref<InputEvent> &p_event) {
 		box_selection->set_size(rect.size);
 
 		box_select_rect = rect;
-
-		if (get_local_mouse_position().y < 0) {
-			//avoid box selection from going up and lose focus to viewport
-			warp_mouse(Vector2(mm->get_position().x, 0));
-		}
 	}
 }
 
@@ -5763,7 +5758,7 @@ AnimationTrackEditor::AnimationTrackEditor() {
 
 	box_selection = memnew(Control);
 	add_child(box_selection);
-	box_selection->set_as_toplevel(true);
+	box_selection->set_as_top_level(true);
 	box_selection->set_mouse_filter(MOUSE_FILTER_IGNORE);
 	box_selection->hide();
 	box_selection->connect("draw", callable_mp(this, &AnimationTrackEditor::_box_selection_draw));

@@ -251,7 +251,7 @@ bool SceneTreeEditor::_add_nodes(Node *p_node, TreeItem *p_parent) {
 	if (can_rename) { //should be can edit..
 
 		String warning = p_node->get_configuration_warning();
-		if (warning != String()) {
+		if (!warning.empty()) {
 			item->add_button(0, get_theme_icon("NodeWarning", "EditorIcons"), BUTTON_WARNING, false, TTR("Node configuration warning:") + "\n" + p_node->get_configuration_warning());
 		}
 
@@ -776,6 +776,9 @@ void SceneTreeEditor::_renamed() {
 	if (new_name == n->get_name()) {
 		return;
 	}
+
+	// Trim leading/trailing whitespace to prevent node names from containing accidental whitespace, which would make it more difficult to get the node via `get_node()`.
+	new_name = new_name.strip_edges();
 
 	if (!undo_redo) {
 		n->set_name(new_name);

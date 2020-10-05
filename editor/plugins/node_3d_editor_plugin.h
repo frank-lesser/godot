@@ -412,7 +412,7 @@ private:
 
 	real_t zoom_indicator_delay;
 
-	RID move_gizmo_instance[3], move_plane_gizmo_instance[3], rotate_gizmo_instance[3], scale_gizmo_instance[3], scale_plane_gizmo_instance[3];
+	RID move_gizmo_instance[3], move_plane_gizmo_instance[3], rotate_gizmo_instance[4], scale_gizmo_instance[3], scale_plane_gizmo_instance[3];
 
 	String last_message;
 	String message;
@@ -450,7 +450,7 @@ private:
 	Point2i _get_warped_mouse_motion(const Ref<InputEventMouseMotion> &p_ev_mouse_motion) const;
 
 	Vector3 _get_instance_position(const Point2 &p_pos) const;
-	static AABB _calculate_spatial_bounds(const Node3D *p_parent, bool p_exclude_toplevel_transform = true);
+	static AABB _calculate_spatial_bounds(const Node3D *p_parent, bool p_exclude_top_level_transform = true);
 	void _create_preview(const Vector<String> &files) const;
 	void _remove_preview();
 	bool _cyclical_dependency_exists(const String &p_target_scene_path, Node *p_desired_node);
@@ -600,11 +600,13 @@ private:
 	bool grid_enable[3]; //should be always visible if true
 	bool grid_enabled;
 
-	Ref<ArrayMesh> move_gizmo[3], move_plane_gizmo[3], rotate_gizmo[3], scale_gizmo[3], scale_plane_gizmo[3];
+	Ref<ArrayMesh> move_gizmo[3], move_plane_gizmo[3], rotate_gizmo[4], scale_gizmo[3], scale_plane_gizmo[3];
 	Ref<StandardMaterial3D> gizmo_color[3];
 	Ref<StandardMaterial3D> plane_gizmo_color[3];
+	Ref<ShaderMaterial> rotate_gizmo_color[3];
 	Ref<StandardMaterial3D> gizmo_color_hl[3];
 	Ref<StandardMaterial3D> plane_gizmo_color_hl[3];
+	Ref<ShaderMaterial> rotate_gizmo_color_hl[3];
 
 	int over_gizmo_handle;
 	float snap_translate_value;

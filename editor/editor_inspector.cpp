@@ -48,7 +48,7 @@ Size2 EditorProperty::get_minimum_size() const {
 		if (!c) {
 			continue;
 		}
-		if (c->is_set_as_toplevel()) {
+		if (c->is_set_as_top_level()) {
 			continue;
 		}
 		if (!c->is_visible()) {
@@ -117,7 +117,7 @@ void EditorProperty::_notification(int p_what) {
 				if (!c) {
 					continue;
 				}
-				if (c->is_set_as_toplevel()) {
+				if (c->is_set_as_top_level()) {
 					continue;
 				}
 				if (c == bottom_editor) {
@@ -179,7 +179,7 @@ void EditorProperty::_notification(int p_what) {
 			if (!c) {
 				continue;
 			}
-			if (c->is_set_as_toplevel()) {
+			if (c->is_set_as_top_level()) {
 				continue;
 			}
 			if (c == bottom_editor) {
@@ -1133,7 +1133,7 @@ void EditorInspectorSection::_notification(int p_what) {
 			if (!c) {
 				continue;
 			}
-			if (c->is_set_as_toplevel()) {
+			if (c->is_set_as_top_level()) {
 				continue;
 			}
 			if (!c->is_visible_in_tree()) {
@@ -1225,7 +1225,7 @@ Size2 EditorInspectorSection::get_minimum_size() const {
 		if (!c) {
 			continue;
 		}
-		if (c->is_set_as_toplevel()) {
+		if (c->is_set_as_top_level()) {
 			continue;
 		}
 		if (!c->is_visible()) {
@@ -1969,7 +1969,7 @@ void EditorInspector::refresh() {
 	if (refresh_countdown > 0 || changing) {
 		return;
 	}
-	refresh_countdown = refresh_interval_cache;
+	refresh_countdown = EditorSettings::get_singleton()->get("docks/property_editor/auto_refresh_interval");
 }
 
 Object *EditorInspector::get_edited_object() {
@@ -2332,8 +2332,6 @@ void EditorInspector::_node_removed(Node *p_node) {
 void EditorInspector::_notification(int p_what) {
 	if (p_what == NOTIFICATION_READY) {
 		EditorFeatureProfileManager::get_singleton()->connect("current_feature_profile_changed", callable_mp(this, &EditorInspector::_feature_profile_changed));
-		refresh_interval_cache = EDITOR_GET("docks/property_editor/auto_refresh_interval");
-		refresh_countdown = refresh_interval_cache;
 	}
 
 	if (p_what == NOTIFICATION_ENTER_TREE) {
@@ -2369,9 +2367,6 @@ void EditorInspector::_notification(int p_what) {
 					}
 				}
 			}
-		} else {
-			// Restart countdown if <= 0
-			refresh_countdown = refresh_interval_cache;
 		}
 
 		changing++;
@@ -2403,9 +2398,6 @@ void EditorInspector::_notification(int p_what) {
 		} else if (is_inside_tree()) {
 			add_theme_style_override("bg", get_theme_stylebox("bg", "Tree"));
 		}
-
-		refresh_interval_cache = EDITOR_GET("docks/property_editor/auto_refresh_interval");
-		refresh_countdown = refresh_interval_cache;
 
 		update_tree();
 	}
@@ -2570,7 +2562,6 @@ EditorInspector::EditorInspector() {
 	update_all_pending = false;
 	update_tree_pending = false;
 	refresh_countdown = 0;
-	refresh_interval_cache = 0;
 	read_only = false;
 	search_box = nullptr;
 	keying = false;

@@ -1529,6 +1529,9 @@ public:
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
 
+	virtual bool is_show_prop_names() const override;
+	virtual bool is_use_prop_slots() const override;
+
 	void set_hint(Hint p_hint);
 	Hint get_hint() const;
 
@@ -1591,6 +1594,9 @@ public:
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
 
+	virtual bool is_show_prop_names() const override;
+	virtual bool is_use_prop_slots() const override;
+
 	void set_hint(Hint p_hint);
 	Hint get_hint() const;
 
@@ -1644,6 +1650,9 @@ public:
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
 
+	virtual bool is_show_prop_names() const override;
+	virtual bool is_use_prop_slots() const override;
+
 	void set_default_value_enabled(bool p_enabled);
 	bool is_default_value_enabled() const;
 
@@ -1682,6 +1691,8 @@ public:
 
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
+
+	virtual bool is_show_prop_names() const override;
 
 	void set_default_value_enabled(bool p_enabled);
 	bool is_default_value_enabled() const;
@@ -1722,6 +1733,9 @@ public:
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
 
+	virtual bool is_show_prop_names() const override;
+	virtual bool is_use_prop_slots() const override;
+
 	void set_default_value_enabled(bool p_enabled);
 	bool is_default_value_enabled() const;
 
@@ -1760,6 +1774,9 @@ public:
 
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const override;
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
+
+	virtual bool is_show_prop_names() const override;
+	virtual bool is_use_prop_slots() const override;
 
 	void set_default_value_enabled(bool p_enabled);
 	bool is_default_value_enabled() const;
@@ -2121,14 +2138,14 @@ class VisualShaderNodeMultiplyAdd : public VisualShaderNode {
 	GDCLASS(VisualShaderNodeMultiplyAdd, VisualShaderNode);
 
 public:
-	enum Type {
-		TYPE_SCALAR,
-		TYPE_VECTOR,
-		TYPE_MAX,
+	enum OpType {
+		OP_TYPE_SCALAR,
+		OP_TYPE_VECTOR,
+		OP_TYPE_MAX,
 	};
 
 protected:
-	Type type = TYPE_SCALAR;
+	OpType op_type = OP_TYPE_SCALAR;
 
 protected:
 	static void _bind_methods();
@@ -2146,14 +2163,14 @@ public:
 
 	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const override; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
 
-	void set_type(Type p_type);
-	Type get_type() const;
+	void set_op_type(OpType p_type);
+	OpType get_op_type() const;
 
 	virtual Vector<StringName> get_editable_properties() const override;
 
 	VisualShaderNodeMultiplyAdd();
 };
 
-VARIANT_ENUM_CAST(VisualShaderNodeMultiplyAdd::Type)
+VARIANT_ENUM_CAST(VisualShaderNodeMultiplyAdd::OpType)
 
 #endif // VISUAL_SHADER_NODES_H
