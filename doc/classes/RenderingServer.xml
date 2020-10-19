@@ -583,6 +583,12 @@
 				Modulates all colors in the given canvas.
 			</description>
 		</method>
+		<method name="create_local_rendering_device" qualifiers="const">
+			<return type="RenderingDevice">
+			</return>
+			<description>
+			</description>
+		</method>
 		<method name="directional_light_create">
 			<return type="RID">
 			</return>
@@ -712,7 +718,7 @@
 			</argument>
 			<argument index="1" name="enable" type="bool">
 			</argument>
-			<argument index="2" name="level_flags" type="int">
+			<argument index="2" name="levels" type="PackedFloat32Array">
 			</argument>
 			<argument index="3" name="intensity" type="float">
 			</argument>
@@ -1627,7 +1633,6 @@
 			<argument index="3" name="blend_shapes" type="Array" default="[  ]">
 			</argument>
 			<argument index="4" name="lods" type="Dictionary" default="{
-
 }">
 			</argument>
 			<argument index="5" name="compress_format" type="int" default="31744">
@@ -3574,22 +3579,24 @@
 		<constant name="INSTANCE_PARTICLES" value="4" enum="InstanceType">
 			The instance is a particle emitter.
 		</constant>
-		<constant name="INSTANCE_LIGHT" value="5" enum="InstanceType">
+		<constant name="INSTANCE_PARTICLES_COLLISION" value="5" enum="InstanceType">
+		</constant>
+		<constant name="INSTANCE_LIGHT" value="6" enum="InstanceType">
 			The instance is a light.
 		</constant>
-		<constant name="INSTANCE_REFLECTION_PROBE" value="6" enum="InstanceType">
+		<constant name="INSTANCE_REFLECTION_PROBE" value="7" enum="InstanceType">
 			The instance is a reflection probe.
 		</constant>
-		<constant name="INSTANCE_DECAL" value="7" enum="InstanceType">
+		<constant name="INSTANCE_DECAL" value="8" enum="InstanceType">
 			The instance is a decal.
 		</constant>
-		<constant name="INSTANCE_GI_PROBE" value="8" enum="InstanceType">
+		<constant name="INSTANCE_GI_PROBE" value="9" enum="InstanceType">
 			The instance is a GI probe.
 		</constant>
-		<constant name="INSTANCE_LIGHTMAP" value="9" enum="InstanceType">
+		<constant name="INSTANCE_LIGHTMAP" value="10" enum="InstanceType">
 			The instance is a lightmap.
 		</constant>
-		<constant name="INSTANCE_MAX" value="10" enum="InstanceType">
+		<constant name="INSTANCE_MAX" value="11" enum="InstanceType">
 			Represents the size of the [enum InstanceType] enum.
 		</constant>
 		<constant name="INSTANCE_GEOMETRY_MASK" value="30" enum="InstanceType">

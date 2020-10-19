@@ -2322,6 +2322,7 @@ void RasterizerSceneRD::_setup_sky(RID p_environment, RID p_render_buffers, cons
 	sky_scene_state.ubo.z_far = p_projection.get_z_far();
 	sky_scene_state.ubo.fog_enabled = environment_is_fog_enabled(p_environment);
 	sky_scene_state.ubo.fog_density = environment_get_fog_density(p_environment);
+	sky_scene_state.ubo.fog_aerial_perspective = environment_get_fog_aerial_perspective(p_environment);
 	Color fog_color = environment_get_fog_light_color(p_environment).to_linear();
 	float fog_energy = environment_get_fog_light_energy(p_environment);
 	sky_scene_state.ubo.fog_light_color[0] = fog_color.r * fog_energy;
@@ -2932,11 +2933,12 @@ void RasterizerSceneRD::environment_set_tonemap(RID p_env, RS::EnvironmentToneMa
 	env->auto_exp_scale = p_auto_exp_scale;
 }
 
-void RasterizerSceneRD::environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, RS::EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap) {
+void RasterizerSceneRD::environment_set_glow(RID p_env, bool p_enable, Vector<float> p_levels, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, RS::EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap) {
 	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
+	ERR_FAIL_COND_MSG(p_levels.size() != 7, "Size of array of glow levels must be 7");
 	env->glow_enabled = p_enable;
-	env->glow_levels = p_level_flags;
+	env->glow_levels = p_levels;
 	env->glow_intensity = p_intensity;
 	env->glow_strength = p_strength;
 	env->glow_mix = p_mix;
@@ -2971,7 +2973,7 @@ void RasterizerSceneRD::environment_set_sdfgi(RID p_env, bool p_enable, RS::Envi
 	env->sdfgi_y_scale = p_y_scale;
 }
 
-void RasterizerSceneRD::environment_set_fog(RID p_env, bool p_enable, const Color &p_light_color, float p_light_energy, float p_sun_scatter, float p_density, float p_height, float p_height_density) {
+void RasterizerSceneRD::environment_set_fog(RID p_env, bool p_enable, const Color &p_light_color, float p_light_energy, float p_sun_scatter, float p_density, float p_height, float p_height_density, float p_fog_aerial_perspective) {
 	Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND(!env);
 
@@ -2982,6 +2984,7 @@ void RasterizerSceneRD::environment_set_fog(RID p_env, bool p_enable, const Colo
 	env->fog_density = p_density;
 	env->fog_height = p_height;
 	env->fog_height_density = p_height_density;
+	env->fog_aerial_perspective = p_fog_aerial_perspective;
 }
 
 bool RasterizerSceneRD::environment_is_fog_enabled(RID p_env) const {
@@ -3020,6 +3023,12 @@ float RasterizerSceneRD::environment_get_fog_height_density(RID p_env) const {
 	const Environment *env = environment_owner.getornull(p_env);
 	ERR_FAIL_COND_V(!env, 0);
 	return env->fog_height_density;
+}
+
+float RasterizerSceneRD::environment_get_fog_aerial_perspective(RID p_env) const {
+	const Environment *env = environment_owner.getornull(p_env);
+	ERR_FAIL_COND_V(!env, 0);
+	return env->fog_aerial_perspective;
 }
 
 void RasterizerSceneRD::environment_set_volumetric_fog(RID p_env, bool p_enable, float p_density, const Color &p_light, float p_light_energy, float p_length, float p_detail_spread, float p_gi_inject, RenderingServer::EnvVolumetricFogShadowFilter p_shadow_filter) {
@@ -5237,25 +5246,21 @@ void RasterizerSceneRD::_render_buffers_post_process_and_tonemap(RID p_render_bu
 	}
 
 	int max_glow_level = -1;
-	int glow_mask = 0;
 
 	if (can_use_effects && env && env->glow_enabled) {
 		/* see that blur textures are allocated */
 
-		if (rb->blur[0].texture.is_null()) {
+		if (rb->blur[1].texture.is_null()) {
 			_allocate_blur_textures(rb);
 			_render_buffers_uniform_set_changed(p_render_buffers);
 		}
 
 		for (int i = 0; i < RS::MAX_GLOW_LEVELS; i++) {
-			if (env->glow_levels & (1 << i)) {
+			if (env->glow_levels[i] > 0.0) {
 				if (i >= rb->blur[1].mipmaps.size()) {
 					max_glow_level = rb->blur[1].mipmaps.size() - 1;
-					glow_mask |= 1 << max_glow_level;
-
 				} else {
 					max_glow_level = i;
-					glow_mask |= (1 << i);
 				}
 			}
 		}
@@ -5269,9 +5274,9 @@ void RasterizerSceneRD::_render_buffers_post_process_and_tonemap(RID p_render_bu
 				if (env->auto_exposure && rb->luminance.current.is_valid()) {
 					luminance_texture = rb->luminance.current;
 				}
-				storage->get_effects()->gaussian_glow(rb->texture, rb->blur[0].mipmaps[i + 1].texture, rb->blur[1].mipmaps[i].texture, Size2i(vp_w, vp_h), env->glow_strength, glow_high_quality, true, env->glow_hdr_luminance_cap, env->exposure, env->glow_bloom, env->glow_hdr_bleed_threshold, env->glow_hdr_bleed_scale, luminance_texture, env->auto_exp_scale);
+				storage->get_effects()->gaussian_glow(rb->texture, rb->blur[1].mipmaps[i].texture, Size2i(vp_w, vp_h), env->glow_strength, glow_high_quality, true, env->glow_hdr_luminance_cap, env->exposure, env->glow_bloom, env->glow_hdr_bleed_threshold, env->glow_hdr_bleed_scale, luminance_texture, env->auto_exp_scale);
 			} else {
-				storage->get_effects()->gaussian_glow(rb->blur[1].mipmaps[i - 1].texture, rb->blur[0].mipmaps[i + 1].texture, rb->blur[1].mipmaps[i].texture, Size2i(vp_w, vp_h), env->glow_strength, glow_high_quality);
+				storage->get_effects()->gaussian_glow(rb->blur[1].mipmaps[i - 1].texture, rb->blur[1].mipmaps[i].texture, Size2i(vp_w, vp_h), env->glow_strength, glow_high_quality);
 			}
 		}
 	}
@@ -5294,7 +5299,9 @@ void RasterizerSceneRD::_render_buffers_post_process_and_tonemap(RID p_render_bu
 			tonemap.use_glow = true;
 			tonemap.glow_mode = RasterizerEffectsRD::TonemapSettings::GlowMode(env->glow_blend_mode);
 			tonemap.glow_intensity = env->glow_blend_mode == RS::ENV_GLOW_BLEND_MODE_MIX ? env->glow_mix : env->glow_intensity;
-			tonemap.glow_level_flags = glow_mask;
+			for (int i = 0; i < RS::MAX_GLOW_LEVELS; i++) {
+				tonemap.glow_levels[i] = env->glow_levels[i];
+			}
 			tonemap.glow_texture_size.x = rb->blur[1].mipmaps[0].width;
 			tonemap.glow_texture_size.y = rb->blur[1].mipmaps[0].height;
 			tonemap.glow_use_bicubic_upscale = glow_bicubic_upscale;
@@ -7511,6 +7518,23 @@ void RasterizerSceneRD::render_sdfgi(RID p_render_buffers, int p_region, Instanc
 	}
 }
 
+void RasterizerSceneRD::render_particle_collider_heightfield(RID p_collider, const Transform &p_transform, InstanceBase **p_cull_result, int p_cull_count) {
+	ERR_FAIL_COND(!storage->particles_collision_is_heightfield(p_collider));
+	Vector3 extents = storage->particles_collision_get_extents(p_collider) * p_transform.basis.get_scale();
+	CameraMatrix cm;
+	cm.set_orthogonal(-extents.x, extents.x, -extents.z, extents.z, 0, extents.y * 2.0);
+
+	Vector3 cam_pos = p_transform.origin;
+	cam_pos.y += extents.y;
+
+	Transform cam_xform;
+	cam_xform.set_look_at(cam_pos, cam_pos - p_transform.basis.get_axis(Vector3::AXIS_Y), -p_transform.basis.get_axis(Vector3::AXIS_Z).normalized());
+
+	RID fb = storage->particles_collision_get_heightfield_framebuffer(p_collider);
+
+	_render_particle_collider_heightfield(fb, cam_xform, cm, p_cull_result, p_cull_count);
+}
+
 void RasterizerSceneRD::render_sdfgi_static_lights(RID p_render_buffers, uint32_t p_cascade_count, const uint32_t *p_cascade_indices, const RID **p_positional_light_cull_result, const uint32_t *p_positional_light_cull_count) {
 	RenderBuffers *rb = render_buffers_owner.getornull(p_render_buffers);
 	ERR_FAIL_COND(!rb);
@@ -7975,6 +7999,7 @@ RasterizerSceneRD::RasterizerSceneRD(RasterizerStorageRD *p_storage) {
 		actions.renames["HALF_RES_COLOR"] = "half_res_color";
 		actions.renames["QUARTER_RES_COLOR"] = "quarter_res_color";
 		actions.renames["RADIANCE"] = "radiance";
+		actions.renames["FOG"] = "custom_fog";
 		actions.renames["LIGHT0_ENABLED"] = "directional_lights.data[0].enabled";
 		actions.renames["LIGHT0_DIRECTION"] = "directional_lights.data[0].direction_energy.xyz";
 		actions.renames["LIGHT0_ENERGY"] = "directional_lights.data[0].direction_energy.w";

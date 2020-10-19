@@ -31,6 +31,7 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include "core/callable_bind.h"
 #include "core/hash_map.h"
 #include "core/list.h"
 #include "core/map.h"
@@ -810,8 +811,5 @@ public:
 	static void debug_objects(DebugFunc p_func);
 	static int get_object_count();
 };
-
-//needed by macros
-#include "core/class_db.h"
 
 #endif // OBJECT_H

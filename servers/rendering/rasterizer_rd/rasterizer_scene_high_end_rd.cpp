@@ -1335,6 +1335,7 @@ void RasterizerSceneHighEndRD::_setup_environment(RID p_environment, RID p_rende
 		if (scene_state.ubo.fog_height_density >= 0.0001) {
 			scene_state.ubo.fog_height_density = 1.0 / scene_state.ubo.fog_height_density;
 		}
+		scene_state.ubo.fog_aerial_perspective = environment_get_fog_aerial_perspective(p_environment);
 
 		Color fog_color = environment_get_fog_light_color(p_environment).to_linear();
 		float fog_energy = environment_get_fog_light_energy(p_environment);
@@ -2014,6 +2015,39 @@ void RasterizerSceneHighEndRD::_render_shadow(RID p_framebuffer, InstanceBase **
 		//regular forward for now
 		RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(p_framebuffer, RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_READ, RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_READ);
 		_render_list(draw_list, RD::get_singleton()->framebuffer_get_format(p_framebuffer), render_list.elements, render_list.element_count, p_use_dp_flip, pass_mode, true, RID(), RID());
+		RD::get_singleton()->draw_list_end();
+	}
+}
+
+void RasterizerSceneHighEndRD::_render_particle_collider_heightfield(RID p_fb, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, InstanceBase **p_cull_result, int p_cull_count) {
+	RENDER_TIMESTAMP("Setup Render Collider Heightfield");
+
+	_update_render_base_uniform_set();
+
+	render_pass++;
+
+	scene_state.ubo.dual_paraboloid_side = 0;
+
+	_setup_environment(RID(), RID(), p_cam_projection, p_cam_transform, RID(), true, Vector2(1, 1), RID(), true, Color(), 0, p_cam_projection.get_z_far(), false, false);
+
+	render_list.clear();
+
+	PassMode pass_mode = PASS_MODE_SHADOW;
+
+	_fill_render_list(p_cull_result, p_cull_count, pass_mode);
+
+	_setup_view_dependant_uniform_set(RID(), RID(), nullptr, 0);
+
+	RENDER_TIMESTAMP("Render Collider Heightield");
+
+	render_list.sort_by_key(false);
+
+	_fill_instances(render_list.elements, render_list.element_count, true);
+
+	{
+		//regular forward for now
+		RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(p_fb, RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_READ, RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_READ);
+		_render_list(draw_list, RD::get_singleton()->framebuffer_get_format(p_fb), render_list.elements, render_list.element_count, false, pass_mode, true, RID(), RID());
 		RD::get_singleton()->draw_list_end();
 	}
 }
@@ -2728,6 +2762,9 @@ RasterizerSceneHighEndRD::RasterizerSceneHighEndRD(RasterizerStorageRD *p_storag
 		actions.renames["NORMAL_ROUGHNESS_TEXTURE"] = "normal_roughness_buffer";
 		actions.renames["DEPTH"] = "gl_FragDepth";
 		actions.renames["OUTPUT_IS_SRGB"] = "true";
+		actions.renames["FOG"] = "custom_fog";
+		actions.renames["RADIANCE"] = "custom_radiance";
+		actions.renames["IRRADIANCE"] = "custom_irradiance";
 
 		//for light
 		actions.renames["VIEW"] = "view";
@@ -2764,6 +2801,10 @@ RasterizerSceneHighEndRD::RasterizerSceneHighEndRD(RasterizerStorageRD *p_storag
 
 		actions.usage_defines["DIFFUSE_LIGHT"] = "#define USE_LIGHT_SHADER_CODE\n";
 		actions.usage_defines["SPECULAR_LIGHT"] = "#define USE_LIGHT_SHADER_CODE\n";
+
+		actions.usage_defines["FOG"] = "#define CUSTOM_FOG_USED\n";
+		actions.usage_defines["RADIANCE"] = "#define CUSTOM_RADIANCE_USED\n";
+		actions.usage_defines["IRRADIANCE"] = "#define CUSTOM_IRRADIANCE_USED\n";
 
 		actions.render_mode_defines["skip_vertex_transform"] = "#define SKIP_TRANSFORM_USED\n";
 		actions.render_mode_defines["world_vertex_coords"] = "#define VERTEX_WORLD_COORDS_USED\n";

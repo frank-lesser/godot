@@ -31,10 +31,10 @@
 #ifndef RENDERING_SERVER_H
 #define RENDERING_SERVER_H
 
+#include "core/class_db.h"
 #include "core/image.h"
 #include "core/math/geometry_3d.h"
 #include "core/math/transform_2d.h"
-#include "core/object.h"
 #include "core/rid.h"
 #include "core/typed_array.h"
 #include "core/variant.h"
@@ -578,6 +578,7 @@ public:
 	virtual void particles_set_process_material(RID p_particles, RID p_material) = 0;
 	virtual void particles_set_fixed_fps(RID p_particles, int p_fps) = 0;
 	virtual void particles_set_fractional_delta(RID p_particles, bool p_enable) = 0;
+	virtual void particles_set_collision_base_size(RID p_particles, float p_size) = 0;
 	virtual bool particles_is_inactive(RID p_particles) = 0;
 	virtual void particles_request_process(RID p_particles) = 0;
 	virtual void particles_restart(RID p_particles) = 0;
@@ -608,6 +609,43 @@ public:
 	virtual AABB particles_get_current_aabb(RID p_particles) = 0;
 
 	virtual void particles_set_emission_transform(RID p_particles, const Transform &p_transform) = 0; //this is only used for 2D, in 3D it's automatic
+
+	/* PARTICLES COLLISION API */
+
+	virtual RID particles_collision_create() = 0;
+
+	enum ParticlesCollisionType {
+		PARTICLES_COLLISION_TYPE_SPHERE_ATTRACT,
+		PARTICLES_COLLISION_TYPE_BOX_ATTRACT,
+		PARTICLES_COLLISION_TYPE_VECTOR_FIELD_ATTRACT,
+		PARTICLES_COLLISION_TYPE_SPHERE_COLLIDE,
+		PARTICLES_COLLISION_TYPE_BOX_COLLIDE,
+		PARTICLES_COLLISION_TYPE_SDF_COLLIDE,
+		PARTICLES_COLLISION_TYPE_HEIGHTFIELD_COLLIDE,
+	};
+
+	virtual void particles_collision_set_collision_type(RID p_particles_collision, ParticlesCollisionType p_type) = 0;
+	virtual void particles_collision_set_cull_mask(RID p_particles_collision, uint32_t p_cull_mask) = 0;
+	virtual void particles_collision_set_sphere_radius(RID p_particles_collision, float p_radius) = 0; //for spheres
+	virtual void particles_collision_set_box_extents(RID p_particles_collision, const Vector3 &p_extents) = 0; //for non-spheres
+	virtual void particles_collision_set_attractor_strength(RID p_particles_collision, float p_strength) = 0;
+	virtual void particles_collision_set_attractor_directionality(RID p_particles_collision, float p_directionality) = 0;
+	virtual void particles_collision_set_attractor_attenuation(RID p_particles_collision, float p_curve) = 0;
+	virtual void particles_collision_set_field_texture(RID p_particles_collision, RID p_texture) = 0; //for SDF and vector field, heightfield is dynamic
+
+	virtual void particles_collision_height_field_update(RID p_particles_collision) = 0; //for SDF and vector field
+
+	enum ParticlesCollisionHeightfieldResolution { //longest axis resolution
+		PARTICLES_COLLISION_HEIGHTFIELD_RESOLUTION_256,
+		PARTICLES_COLLISION_HEIGHTFIELD_RESOLUTION_512,
+		PARTICLES_COLLISION_HEIGHTFIELD_RESOLUTION_1024,
+		PARTICLES_COLLISION_HEIGHTFIELD_RESOLUTION_2048,
+		PARTICLES_COLLISION_HEIGHTFIELD_RESOLUTION_4096,
+		PARTICLES_COLLISION_HEIGHTFIELD_RESOLUTION_8192,
+		PARTICLES_COLLISION_HEIGHTFIELD_RESOLUTION_MAX,
+	};
+
+	virtual void particles_collision_set_height_field_resolution(RID p_particles_collision, ParticlesCollisionHeightfieldResolution p_resolution) = 0; //for SDF and vector field
 
 	/* CAMERA API */
 
@@ -794,7 +832,7 @@ public:
 		ENV_GLOW_BLEND_MODE_MIX,
 	};
 
-	virtual void environment_set_glow(RID p_env, bool p_enable, int p_level_flags, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap) = 0;
+	virtual void environment_set_glow(RID p_env, bool p_enable, Vector<float> p_levels, float p_intensity, float p_strength, float p_mix, float p_bloom_threshold, EnvironmentGlowBlendMode p_blend_mode, float p_hdr_bleed_threshold, float p_hdr_bleed_scale, float p_hdr_luminance_cap) = 0;
 
 	virtual void environment_glow_set_use_bicubic_upscale(bool p_enable) = 0;
 	virtual void environment_glow_set_use_high_quality(bool p_enable) = 0;
@@ -876,7 +914,7 @@ public:
 
 	virtual void environment_set_sdfgi_frames_to_converge(EnvironmentSDFGIFramesToConverge p_frames) = 0;
 
-	virtual void environment_set_fog(RID p_env, bool p_enable, const Color &p_light_color, float p_light_energy, float p_sun_scatter, float p_density, float p_height, float p_height_density) = 0;
+	virtual void environment_set_fog(RID p_env, bool p_enable, const Color &p_light_color, float p_light_energy, float p_sun_scatter, float p_density, float p_height, float p_height_density, float p_aerial_perspective) = 0;
 
 	enum EnvVolumetricFogShadowFilter {
 		ENV_VOLUMETRIC_FOG_SHADOW_FILTER_DISABLED,
@@ -965,6 +1003,7 @@ public:
 		INSTANCE_MULTIMESH,
 		INSTANCE_IMMEDIATE,
 		INSTANCE_PARTICLES,
+		INSTANCE_PARTICLES_COLLISION,
 		INSTANCE_LIGHT,
 		INSTANCE_REFLECTION_PROBE,
 		INSTANCE_DECAL,

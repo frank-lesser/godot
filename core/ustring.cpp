@@ -787,28 +787,45 @@ signed char String::naturalnocasecmp_to(const String &p_str) const {
 			if (!*that_str) {
 				return 1;
 			} else if (IS_DIGIT(*this_str)) {
-				int64_t this_int, that_int;
-
 				if (!IS_DIGIT(*that_str)) {
 					return -1;
 				}
 
-				/* Compare the numbers */
-				this_int = to_int(this_str, -1, true);
-				that_int = to_int(that_str, -1, true);
+				// Keep ptrs to start of numerical sequences
+				const char32_t *this_substr = this_str;
+				const char32_t *that_substr = that_str;
 
-				if (this_int < that_int) {
-					return -1;
-				} else if (this_int > that_int) {
-					return 1;
-				}
-
-				/* Skip */
+				// Compare lengths of both numerical sequences, ignoring leading zeros
 				while (IS_DIGIT(*this_str)) {
 					this_str++;
 				}
 				while (IS_DIGIT(*that_str)) {
 					that_str++;
+				}
+				while (*this_substr == '0') {
+					this_substr++;
+				}
+				while (*that_substr == '0') {
+					that_substr++;
+				}
+				int this_len = this_str - this_substr;
+				int that_len = that_str - that_substr;
+
+				if (this_len < that_len) {
+					return -1;
+				} else if (this_len > that_len) {
+					return 1;
+				}
+
+				// If lengths equal, compare lexicographically
+				while (this_substr != this_str && that_substr != that_str) {
+					if (*this_substr < *that_substr) {
+						return -1;
+					} else if (*this_substr > *that_substr) {
+						return 1;
+					}
+					this_substr++;
+					that_substr++;
 				}
 			} else if (IS_DIGIT(*that_str)) {
 				return 1;
@@ -4713,6 +4730,69 @@ String String::unquote() const {
 	}
 
 	return substr(1, length() - 2);
+}
+
+Vector<uint8_t> String::to_ascii_buffer() const {
+	const String *s = this;
+	if (s->empty()) {
+		return Vector<uint8_t>();
+	}
+	CharString charstr = s->ascii();
+
+	Vector<uint8_t> retval;
+	size_t len = charstr.length();
+	retval.resize(len);
+	uint8_t *w = retval.ptrw();
+	copymem(w, charstr.ptr(), len);
+
+	return retval;
+}
+
+Vector<uint8_t> String::to_utf8_buffer() const {
+	const String *s = this;
+	if (s->empty()) {
+		return Vector<uint8_t>();
+	}
+	CharString charstr = s->utf8();
+
+	Vector<uint8_t> retval;
+	size_t len = charstr.length();
+	retval.resize(len);
+	uint8_t *w = retval.ptrw();
+	copymem(w, charstr.ptr(), len);
+
+	return retval;
+}
+
+Vector<uint8_t> String::to_utf16_buffer() const {
+	const String *s = this;
+	if (s->empty()) {
+		return Vector<uint8_t>();
+	}
+	Char16String charstr = s->utf16();
+
+	Vector<uint8_t> retval;
+	size_t len = charstr.length() * 2;
+	retval.resize(len);
+	uint8_t *w = retval.ptrw();
+	copymem(w, (const void *)charstr.ptr(), len);
+
+	return retval;
+}
+
+Vector<uint8_t> String::to_utf32_buffer() const {
+	const String *s = this;
+	if (s->empty()) {
+		return Vector<uint8_t>();
+	}
+
+	Vector<uint8_t> retval;
+	size_t len = s->length() * 4;
+	retval.resize(len);
+	uint8_t *w = retval.ptrw();
+	copymem(w, (const void *)s->ptr(), len);
+
+	return retval;
 }
 
 #ifdef TOOLS_ENABLED

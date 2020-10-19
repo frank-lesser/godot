@@ -1,9 +1,10 @@
 name: 🤖 Android Builds
 on: [push, pull_request]
 
-# Global Cache Settings
+# Global Settings
 env:
   GODOT_BASE_BRANCH: master
+  SCONSFLAGS: platform=android verbose=yes warnings=all werror=yes --jobs=2
   SCONS_CACHE_LIMIT: 4096
 
 jobs:
@@ -26,14 +27,14 @@ jobs:
       - name: Configure dependencies
         run: |
          sudo apt-get install openjdk-8-jdk
-         echo "::set-env name=JAVA_HOME::usr/lib/jvm/java-8-openjdk-amd64"
+         echo 'JAVA_HOME=usr/lib/jvm/java-8-openjdk-amd64' >> $GITHUB_ENV
 
       - name: Install Android SDK and NDK
         run: |
-          echo "::set-env name=PATH::/usr/lib/jvm/java-8-openjdk-amd64/jre/bin:${PATH}"
+          echo '/usr/lib/jvm/java-8-openjdk-amd64/jre/bin' >> $GITHUB_PATH
           java -version
-          echo "::set-env name=ANDROID_HOME::$(pwd)/godot-dev/build-tools/android-sdk"
-          echo "::set-env name=ANDROID_NDK_ROOT::$(pwd)/godot-dev/build-tools/android-ndk"
+          echo "ANDROID_HOME=$(pwd)/godot-dev/build-tools/android-sdk" >> $GITHUB_ENV
+          echo "ANDROID_NDK_ROOT=$(pwd)/godot-dev/build-tools/android-ndk" >> $GITHUB_ENV
           misc/ci/android-tools-linux.sh
           source ~/.bashrc
 
@@ -70,4 +71,11 @@ jobs:
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
-          scons -j2 verbose=yes warnings=all werror=yes platform=android target=release tools=no
+          scons target=release tools=no
+          ls -l bin/
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ github.job }}
+          path: bin/*
+          retention-days: 14

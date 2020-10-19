@@ -452,6 +452,7 @@ public:
 	BIND1(particles_restart, RID)
 	BIND6(particles_emit, RID, const Transform &, const Vector3 &, const Color &, const Color &, uint32_t)
 	BIND2(particles_set_subemitter, RID, RID)
+	BIND2(particles_set_collision_base_size, RID, float)
 
 	BIND2(particles_set_draw_order, RID, RS::ParticlesDrawOrder)
 
@@ -460,6 +461,21 @@ public:
 
 	BIND1R(AABB, particles_get_current_aabb, RID)
 	BIND2(particles_set_emission_transform, RID, const Transform &)
+
+	/* PARTICLES COLLISION */
+
+	BIND0R(RID, particles_collision_create)
+
+	BIND2(particles_collision_set_collision_type, RID, ParticlesCollisionType)
+	BIND2(particles_collision_set_cull_mask, RID, uint32_t)
+	BIND2(particles_collision_set_sphere_radius, RID, float)
+	BIND2(particles_collision_set_box_extents, RID, const Vector3 &)
+	BIND2(particles_collision_set_attractor_strength, RID, float)
+	BIND2(particles_collision_set_attractor_directionality, RID, float)
+	BIND2(particles_collision_set_attractor_attenuation, RID, float)
+	BIND2(particles_collision_set_field_texture, RID, RID)
+	BIND1(particles_collision_height_field_update, RID)
+	BIND2(particles_collision_set_height_field_resolution, RID, ParticlesCollisionHeightfieldResolution)
 
 #undef BINDBASE
 //from now on, calls forwarded to this singleton
@@ -565,7 +581,7 @@ public:
 	BIND9(environment_set_ssao, RID, bool, float, float, float, float, float, EnvironmentSSAOBlur, float)
 	BIND2(environment_set_ssao_quality, EnvironmentSSAOQuality, bool)
 
-	BIND11(environment_set_glow, RID, bool, int, float, float, float, float, EnvironmentGlowBlendMode, float, float, float)
+	BIND11(environment_set_glow, RID, bool, Vector<float>, float, float, float, float, EnvironmentGlowBlendMode, float, float, float)
 	BIND1(environment_glow_set_use_bicubic_upscale, bool)
 	BIND1(environment_glow_set_use_high_quality, bool)
 
@@ -573,7 +589,7 @@ public:
 
 	BIND6(environment_set_adjustment, RID, bool, float, float, float, RID)
 
-	BIND8(environment_set_fog, RID, bool, const Color &, float, float, float, float, float)
+	BIND9(environment_set_fog, RID, bool, const Color &, float, float, float, float, float, float)
 	BIND9(environment_set_volumetric_fog, RID, bool, float, const Color &, float, float, float, float, EnvVolumetricFogShadowFilter)
 
 	BIND2(environment_set_volumetric_fog_volume_size, int, int)

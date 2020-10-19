@@ -1621,6 +1621,22 @@ vec4 volumetric_fog_process(vec2 screen_uv, float z) {
 vec4 fog_process(vec3 vertex) {
 	vec3 fog_color = scene_data.fog_light_color;
 
+	if (scene_data.fog_aerial_perspective > 0.0) {
+		vec3 sky_fog_color = vec3(0.0);
+		vec3 cube_view = scene_data.radiance_inverse_xform * vertex;
+		// mip_level always reads from the second mipmap and higher so the fog is always slightly blurred
+		float mip_level = mix(1.0 / MAX_ROUGHNESS_LOD, 1.0, 1.0 - (abs(vertex.z) - scene_data.z_near) / (scene_data.z_far - scene_data.z_near));
+#ifdef USE_RADIANCE_CUBEMAP_ARRAY
+		float lod, blend;
+		blend = modf(mip_level * MAX_ROUGHNESS_LOD, lod);
+		sky_fog_color = texture(samplerCubeArray(radiance_cubemap, material_samplers[SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP]), vec4(cube_view, lod)).rgb;
+		sky_fog_color = mix(sky_fog_color, texture(samplerCubeArray(radiance_cubemap, material_samplers[SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP]), vec4(cube_view, lod + 1)).rgb, blend);
+#else
+		sky_fog_color = textureLod(samplerCube(radiance_cubemap, material_samplers[SAMPLER_LINEAR_WITH_MIPMAPS_CLAMP]), cube_view, mip_level * MAX_ROUGHNESS_LOD).rgb;
+#endif //USE_RADIANCE_CUBEMAP_ARRAY
+		fog_color = mix(fog_color, sky_fog_color, scene_data.fog_aerial_perspective);
+	}
+
 	if (scene_data.fog_sun_scatter > 0.001) {
 		vec4 sun_scatter = vec4(0.0);
 		float sun_total = 0.0;
@@ -1676,6 +1692,15 @@ void main() {
 	float clearcoat_gloss = 0.0;
 	float anisotropy = 0.0;
 	vec2 anisotropy_flow = vec2(1.0, 0.0);
+#if defined(CUSTOM_FOG_USED)
+	vec4 custom_fog = vec4(0.0);
+#endif
+#if defined(CUSTOM_RADIANCE_USED)
+	vec4 custom_radiance = vec4(0.0);
+#endif
+#if defined(CUSTOM_IRRADIANCE_USED)
+	vec4 custom_irradiance = vec4(0.0);
+#endif
 
 #if defined(AO_USED)
 	float ao = 1.0;
@@ -1893,6 +1918,10 @@ FRAGMENT_SHADER_CODE
 		specular_light *= scene_data.ambient_light_color_energy.a;
 	}
 
+#if defined(CUSTOM_RADIANCE_USED)
+	specular_light = mix(specular_light, custom_radiance.rgb, custom_radiance.a);
+#endif
+
 #ifndef USE_LIGHTMAP
 	//lightmap overrides everything
 	if (scene_data.use_ambient_light) {
@@ -1910,7 +1939,9 @@ FRAGMENT_SHADER_CODE
 		}
 	}
 #endif // USE_LIGHTMAP
-
+#if defined(CUSTOM_IRRADIANCE_USED)
+	ambient_light = mix(specular_light, custom_irradiance.rgb, custom_irradiance.a);
+#endif
 #endif //!defined(MODE_RENDER_DEPTH) && !defined(MODE_UNSHADED)
 
 	//radiance
@@ -2726,17 +2757,23 @@ FRAGMENT_SHADER_CODE
 	specular_buffer = vec4(specular_light, metallic);
 #endif
 
+	// Draw "fixed" fog before volumetric fog to ensure volumetric fog can appear in front of the sky.
+	if (scene_data.fog_enabled) {
+		vec4 fog = fog_process(vertex);
+		diffuse_buffer.rgb = mix(diffuse_buffer.rgb, fog.rgb, fog.a);
+		specular_buffer.rgb = mix(specular_buffer.rgb, vec3(0.0), fog.a);
+	}
+
 	if (scene_data.volumetric_fog_enabled) {
 		vec4 fog = volumetric_fog_process(screen_uv, -vertex.z);
 		diffuse_buffer.rgb = mix(diffuse_buffer.rgb, fog.rgb, fog.a);
 		specular_buffer.rgb = mix(specular_buffer.rgb, vec3(0.0), fog.a);
 	}
 
-	if (scene_data.fog_enabled) {
-		vec4 fog = fog_process(vertex);
-		diffuse_buffer.rgb = mix(diffuse_buffer.rgb, fog.rgb, fog.a);
-		specular_buffer.rgb = mix(specular_buffer.rgb, vec3(0.0), fog.a);
-	}
+#if defined(CUSTOM_FOG_USED)
+	diffuse_buffer.rgb = mix(diffuse_buffer.rgb, custom_fog.rgb, custom_fog.a);
+	specular_buffer.rgb = mix(specular_buffer.rgb, vec3(0.0), custom_fog.a);
+#endif //CUSTOM_FOG_USED
 
 #else //MODE_MULTIPLE_RENDER_TARGETS
 
@@ -2747,15 +2784,20 @@ FRAGMENT_SHADER_CODE
 	//frag_color = vec4(1.0);
 #endif //USE_NO_SHADING
 
+	// Draw "fixed" fog before volumetric fog to ensure volumetric fog can appear in front of the sky.
+	if (scene_data.fog_enabled) {
+		vec4 fog = fog_process(vertex);
+		frag_color.rgb = mix(frag_color.rgb, fog.rgb, fog.a);
+	}
+
 	if (scene_data.volumetric_fog_enabled) {
 		vec4 fog = volumetric_fog_process(screen_uv, -vertex.z);
 		frag_color.rgb = mix(frag_color.rgb, fog.rgb, fog.a);
 	}
 
-	if (scene_data.fog_enabled) {
-		vec4 fog = fog_process(vertex);
-		frag_color.rgb = mix(frag_color.rgb, fog.rgb, fog.a);
-	}
+#if defined(CUSTOM_FOG_USED)
+	frag_color.rgb = mix(frag_color.rgb, custom_fog.rgb, custom_fog.a);
+#endif //CUSTOM_FOG_USED
 
 #endif //MODE_MULTIPLE_RENDER_TARGETS
 
