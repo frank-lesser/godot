@@ -111,13 +111,15 @@ struct _VariantCall {
 		InternalMethod(void (T::*p_method)(P...), const Vector<Variant> &p_default_args
 #ifdef DEBUG_ENABLED
 				,
-				const Vector<String> &p_arg_names
+				const Vector<String> &p_arg_names, const StringName &p_method_name, Variant::Type p_base_type
 #endif
 		) {
 			method = p_method;
 			default_values = p_default_args;
 #ifdef DEBUG_ENABLED
 			argument_names = p_arg_names;
+			method_name = p_method_name;
+			base_type = p_base_type;
 #endif
 		}
 	};
@@ -175,13 +177,15 @@ struct _VariantCall {
 		InternalMethodR(R (T::*p_method)(P...), const Vector<Variant> &p_default_args
 #ifdef DEBUG_ENABLED
 				,
-				const Vector<String> &p_arg_names
+				const Vector<String> &p_arg_names, const StringName &p_method_name, Variant::Type p_base_type
 #endif
 		) {
 			method = p_method;
 			default_values = p_default_args;
 #ifdef DEBUG_ENABLED
 			argument_names = p_arg_names;
+			method_name = p_method_name;
+			base_type = p_base_type;
 #endif
 		}
 	};
@@ -238,13 +242,15 @@ struct _VariantCall {
 		InternalMethodRC(R (T::*p_method)(P...) const, const Vector<Variant> &p_default_args
 #ifdef DEBUG_ENABLED
 				,
-				const Vector<String> &p_arg_names
+				const Vector<String> &p_arg_names, const StringName &p_method_name, Variant::Type p_base_type
 #endif
 		) {
 			method = p_method;
 			default_values = p_default_args;
 #ifdef DEBUG_ENABLED
 			argument_names = p_arg_names;
+			method_name = p_method_name;
+			base_type = p_base_type;
 #endif
 		}
 	};
@@ -338,13 +344,15 @@ struct _VariantCall {
 		InternalMethodRS(R (*p_method)(T *, P...), const Vector<Variant> &p_default_args
 #ifdef DEBUG_ENABLED
 				,
-				const Vector<String> &p_arg_names
+				const Vector<String> &p_arg_names, const StringName &p_method_name, Variant::Type p_base_type
 #endif
 		) {
 			method = p_method;
 			default_values = p_default_args;
 #ifdef DEBUG_ENABLED
 			argument_names = p_arg_names;
+			method_name = p_method_name;
+			base_type = p_base_type;
 #endif
 		}
 	};
@@ -397,7 +405,7 @@ struct _VariantCall {
 		InternalMethodVC(MethodVC p_method, uint32_t p_flags, const Vector<Variant::Type> &p_argument_types, const Variant::Type &p_return_type
 #ifdef DEBUG_ENABLED
 				,
-				const Vector<String> &p_arg_names
+				const Vector<String> &p_arg_names, const StringName &p_method_name, Variant::Type p_base_type
 #endif
 		) {
 			methodvc = p_method;
@@ -406,6 +414,8 @@ struct _VariantCall {
 			base_flags = p_flags;
 #ifdef DEBUG_ENABLED
 			argument_names = p_arg_names;
+			method_name = p_method_name;
+			base_type = p_base_type;
 #endif
 		}
 	};
@@ -427,7 +437,7 @@ struct _VariantCall {
 		ERR_FAIL_COND(type_internal_methods[GetTypeInfo<T>::VARIANT_TYPE].has(p_name));
 #endif
 #ifdef DEBUG_ENABLED
-		Variant::InternalMethod *m = memnew((InternalMethod<T, P...>)(p_method, p_default_args, p_argument_names));
+		Variant::InternalMethod *m = memnew((InternalMethod<T, P...>)(p_method, p_default_args, p_argument_names, p_name, GetTypeInfo<T>::VARIANT_TYPE));
 #else
 		Variant::InternalMethod *m = memnew((InternalMethod<T, P...>)(p_method, p_default_args));
 #endif
@@ -449,7 +459,7 @@ struct _VariantCall {
 
 #endif
 #ifdef DEBUG_ENABLED
-		Variant::InternalMethod *m = memnew((InternalMethodRC<T, R, P...>)(p_method, p_default_args, p_argument_names));
+		Variant::InternalMethod *m = memnew((InternalMethodRC<T, R, P...>)(p_method, p_default_args, p_argument_names, p_name, GetTypeInfo<T>::VARIANT_TYPE));
 #else
 		Variant::InternalMethod *m = memnew((InternalMethodRC<T, R, P...>)(p_method, p_default_args));
 #endif
@@ -471,7 +481,7 @@ struct _VariantCall {
 #endif
 
 #ifdef DEBUG_ENABLED
-		Variant::InternalMethod *m = memnew((InternalMethodR<T, R, P...>)(p_method, p_default_args, p_argument_names));
+		Variant::InternalMethod *m = memnew((InternalMethodR<T, R, P...>)(p_method, p_default_args, p_argument_names, p_name, GetTypeInfo<T>::VARIANT_TYPE));
 #else
 		Variant::InternalMethod *m = memnew((InternalMethodR<T, R, P...>)(p_method, p_default_args));
 #endif
@@ -504,7 +514,7 @@ struct _VariantCall {
 #endif
 
 #ifdef DEBUG_ENABLED
-		Variant::InternalMethod *m = memnew((InternalMethodRS<T, R, P...>)(p_method, p_default_args, p_argument_names));
+		Variant::InternalMethod *m = memnew((InternalMethodRS<T, R, P...>)(p_method, p_default_args, p_argument_names, p_name, GetTypeInfo<T>::VARIANT_TYPE));
 #else
 		Variant::InternalMethod *m = memnew((InternalMethodRS<T, R, P...>)(p_method, p_default_args));
 #endif
@@ -527,7 +537,7 @@ struct _VariantCall {
 	) {
 
 #ifdef DEBUG_ENABLED
-		Variant::InternalMethod *m = memnew(InternalMethodVC(p_method, p_flags, p_argument_types, p_return_type, p_argument_names));
+		Variant::InternalMethod *m = memnew(InternalMethodVC(p_method, p_flags, p_argument_types, p_return_type, p_argument_names, p_name, p_type));
 #else
 		Variant::InternalMethod *m = memnew(InternalMethodVC(p_method, p_flags, p_argument_types, p_return_type));
 #endif
@@ -1354,7 +1364,7 @@ void register_variant_methods() {
 	bind_method(String, naturalnocasecmp_to, sarray("to"), varray());
 	bind_method(String, length, sarray(), varray());
 	bind_method(String, substr, sarray("from", "len"), varray(-1));
-	bind_methodv("find", static_cast<int (String::*)(const String &, int) const>(&String::find), sarray("what", "from"), varray(0));
+	bind_methodv(find, static_cast<int (String::*)(const String &, int) const>(&String::find), sarray("what", "from"), varray(0));
 	bind_method(String, count, sarray("what", "from", "to"), varray(0, 0));
 	bind_method(String, countn, sarray("what", "from", "to"), varray(0, 0));
 	bind_method(String, findn, sarray("what", "from"), varray(0));
@@ -1362,7 +1372,7 @@ void register_variant_methods() {
 	bind_method(String, rfindn, sarray("what", "from"), varray(-1));
 	bind_method(String, match, sarray("expr"), varray());
 	bind_method(String, matchn, sarray("expr"), varray());
-	bind_methodv("begins_with", static_cast<bool (String::*)(const String &) const>(&String::begins_with), sarray("text"), varray());
+	bind_methodv(begins_with, static_cast<bool (String::*)(const String &) const>(&String::begins_with), sarray("text"), varray());
 	bind_method(String, ends_with, sarray("text"), varray());
 	bind_method(String, is_subsequence_of, sarray("text"), varray());
 	bind_method(String, is_subsequence_ofi, sarray("text"), varray());
@@ -1370,7 +1380,7 @@ void register_variant_methods() {
 	bind_method(String, similarity, sarray("text"), varray());
 
 	bind_method(String, format, sarray("values", "placeholder"), varray("{_}"));
-	bind_methodv("replace", static_cast<String (String::*)(const String &, const String &) const>(&String::replace), sarray("what", "forwhat"), varray());
+	bind_methodv(replace, static_cast<String (String::*)(const String &, const String &) const>(&String::replace), sarray("what", "forwhat"), varray());
 	bind_method(String, replacen, sarray("what", "forwhat"), varray());
 	bind_method(String, repeat, sarray("count"), varray());
 	bind_method(String, insert, sarray("position", "what"), varray());
@@ -1500,7 +1510,7 @@ void register_variant_methods() {
 	bind_method(Rect2, merge, sarray("b"), varray());
 	bind_method(Rect2, expand, sarray("to"), varray());
 	bind_method(Rect2, grow, sarray("by"), varray());
-	bind_methodv("grow_margin", &Rect2::grow_margin_bind, sarray("margin", "by"), varray());
+	bind_methodv(grow_margin, &Rect2::grow_margin_bind, sarray("margin", "by"), varray());
 	bind_method(Rect2, grow_individual, sarray("left", "top", "right", "bottom"), varray());
 	bind_method(Rect2, abs, sarray(), varray());
 
@@ -1515,7 +1525,7 @@ void register_variant_methods() {
 	bind_method(Rect2i, merge, sarray("b"), varray());
 	bind_method(Rect2i, expand, sarray("to"), varray());
 	bind_method(Rect2i, grow, sarray("by"), varray());
-	bind_methodv("grow_margin", &Rect2i::grow_margin_bind, sarray("margin", "by"), varray());
+	bind_methodv(grow_margin, &Rect2i::grow_margin_bind, sarray("margin", "by"), varray());
 	bind_method(Rect2i, grow_individual, sarray("left", "top", "right", "bottom"), varray());
 	bind_method(Rect2i, abs, sarray(), varray());
 
@@ -1571,9 +1581,9 @@ void register_variant_methods() {
 	bind_method(Plane, distance_to, sarray("point"), varray());
 	bind_method(Plane, has_point, sarray("point", "epsilon"), varray(CMP_EPSILON));
 	bind_method(Plane, project, sarray("point"), varray());
-	bind_methodv("intersect_3", &Plane::intersect_3_bind, sarray("b", "c"), varray());
-	bind_methodv("intersects_ray", &Plane::intersects_ray_bind, sarray("from", "dir"), varray());
-	bind_methodv("intersects_segment", &Plane::intersects_segment_bind, sarray("from", "to"), varray());
+	bind_methodv(intersect_3, &Plane::intersect_3_bind, sarray("b", "c"), varray());
+	bind_methodv(intersects_ray, &Plane::intersects_ray_bind, sarray("from", "dir"), varray());
+	bind_methodv(intersects_segment, &Plane::intersects_segment_bind, sarray("from", "to"), varray());
 
 	/* Quaternion */
 
@@ -1686,7 +1696,7 @@ void register_variant_methods() {
 	bind_method(Basis, transposed, sarray(), varray());
 	bind_method(Basis, orthonormalized, sarray(), varray());
 	bind_method(Basis, determinant, sarray(), varray());
-	bind_methodv("rotated", static_cast<Basis (Basis::*)(const Vector3 &, float) const>(&Basis::rotated), sarray("axis", "phi"), varray());
+	bind_methodv(rotated, static_cast<Basis (Basis::*)(const Vector3 &, float) const>(&Basis::rotated), sarray("axis", "phi"), varray());
 	bind_method(Basis, scaled, sarray("scale"), varray());
 	bind_method(Basis, get_scale, sarray(), varray());
 	bind_method(Basis, get_euler, sarray(), varray());
@@ -1724,8 +1734,8 @@ void register_variant_methods() {
 	bind_method(::AABB, get_shortest_axis_index, sarray(), varray());
 	bind_method(::AABB, get_shortest_axis_size, sarray(), varray());
 	bind_method(::AABB, get_endpoint, sarray("idx"), varray());
-	bind_methodv("intersects_segment", &AABB::intersects_segment_bind, sarray("from", "to"), varray());
-	bind_methodv("intersects_ray", &AABB::intersects_ray_bind, sarray("from", "dir"), varray());
+	bind_methodv(intersects_segment, &AABB::intersects_segment_bind, sarray("from", "to"), varray());
+	bind_methodv(intersects_ray, &AABB::intersects_ray_bind, sarray("from", "dir"), varray());
 
 	/* Transform */
 

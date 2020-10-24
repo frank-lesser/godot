@@ -98,7 +98,7 @@ jobs:
 
       # Upload cache on completion and check it out now
       - name: Load .scons_cache directory
-        id: linux-editor-cache
+        id: linux-sanitizers-cache
         uses: actions/cache@v2
         with:
           path: ${{github.workspace}}/.scons_cache/
@@ -137,12 +137,6 @@ jobs:
       - name: Unit Tests
         run: |
           ./bin/godot.linuxbsd.tools.64s --test
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ github.job }}
-          path: bin/*
-          retention-days: 14
 
   linux-template-mono:
     runs-on: "ubuntu-20.04"
@@ -197,7 +191,7 @@ jobs:
         env:
           SCONS_CACHE: ${{github.workspace}}/.scons_cache/
         run: |
-          scons target=release tools=no module_mono_enabled=yes mono_glue=no
+          scons target=release tools=no module_mono_enabled=yes mono_glue=no debug_symbols=no
           ls -l bin/
 
       - uses: actions/upload-artifact@v2
