@@ -3170,6 +3170,24 @@ bool Viewport::is_snap_controls_to_pixels_enabled() const {
 	return snap_controls_to_pixels;
 }
 
+void Viewport::set_snap_2d_transforms_to_pixel(bool p_enable) {
+	snap_2d_transforms_to_pixel = p_enable;
+	RS::get_singleton()->viewport_set_snap_2d_transforms_to_pixel(viewport, snap_2d_transforms_to_pixel);
+}
+
+bool Viewport::is_snap_2d_transforms_to_pixel_enabled() const {
+	return snap_2d_transforms_to_pixel;
+}
+
+void Viewport::set_snap_2d_vertices_to_pixel(bool p_enable) {
+	snap_2d_vertices_to_pixel = p_enable;
+	RS::get_singleton()->viewport_set_snap_2d_vertices_to_pixel(viewport, snap_2d_vertices_to_pixel);
+}
+
+bool Viewport::is_snap_2d_vertices_to_pixel_enabled() const {
+	return snap_2d_vertices_to_pixel;
+}
+
 bool Viewport::gui_is_dragging() const {
 	return gui.dragging;
 }
@@ -3224,11 +3242,28 @@ void Viewport::_validate_property(PropertyInfo &property) const {
 }
 
 void Viewport::set_default_canvas_item_texture_filter(DefaultCanvasItemTextureFilter p_filter) {
+	ERR_FAIL_INDEX(p_filter, DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_MAX);
+
 	if (default_canvas_item_texture_filter == p_filter) {
 		return;
 	}
 	default_canvas_item_texture_filter = p_filter;
-	_propagate_update_default_filter(this);
+	switch (default_canvas_item_texture_filter) {
+		case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST:
+			RS::get_singleton()->viewport_set_default_canvas_item_texture_filter(viewport, RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST);
+			break;
+		case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR:
+			RS::get_singleton()->viewport_set_default_canvas_item_texture_filter(viewport, RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR);
+			break;
+		case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS:
+			RS::get_singleton()->viewport_set_default_canvas_item_texture_filter(viewport, RS::CANVAS_ITEM_TEXTURE_FILTER_LINEAR_WITH_MIPMAPS);
+			break;
+		case DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS:
+			RS::get_singleton()->viewport_set_default_canvas_item_texture_filter(viewport, RS::CANVAS_ITEM_TEXTURE_FILTER_NEAREST_WITH_MIPMAPS);
+			break;
+		default: {
+		}
+	}
 }
 
 Viewport::DefaultCanvasItemTextureFilter Viewport::get_default_canvas_item_texture_filter() const {
@@ -3236,37 +3271,31 @@ Viewport::DefaultCanvasItemTextureFilter Viewport::get_default_canvas_item_textu
 }
 
 void Viewport::set_default_canvas_item_texture_repeat(DefaultCanvasItemTextureRepeat p_repeat) {
+	ERR_FAIL_INDEX(p_repeat, DEFAULT_CANVAS_ITEM_TEXTURE_REPEAT_MAX);
+
 	if (default_canvas_item_texture_repeat == p_repeat) {
 		return;
 	}
+
 	default_canvas_item_texture_repeat = p_repeat;
-	_propagate_update_default_repeat(this);
+
+	switch (default_canvas_item_texture_repeat) {
+		case DEFAULT_CANVAS_ITEM_TEXTURE_REPEAT_DISABLED:
+			RS::get_singleton()->viewport_set_default_canvas_item_texture_repeat(viewport, RS::CANVAS_ITEM_TEXTURE_REPEAT_DISABLED);
+			break;
+		case DEFAULT_CANVAS_ITEM_TEXTURE_REPEAT_ENABLED:
+			RS::get_singleton()->viewport_set_default_canvas_item_texture_repeat(viewport, RS::CANVAS_ITEM_TEXTURE_REPEAT_ENABLED);
+			break;
+		case DEFAULT_CANVAS_ITEM_TEXTURE_REPEAT_MIRROR:
+			RS::get_singleton()->viewport_set_default_canvas_item_texture_repeat(viewport, RS::CANVAS_ITEM_TEXTURE_REPEAT_MIRROR);
+			break;
+		default: {
+		}
+	}
 }
 
 Viewport::DefaultCanvasItemTextureRepeat Viewport::get_default_canvas_item_texture_repeat() const {
 	return default_canvas_item_texture_repeat;
-}
-
-void Viewport::_propagate_update_default_filter(Node *p_node) {
-	CanvasItem *ci = Object::cast_to<CanvasItem>(p_node);
-	if (ci) {
-		ci->_update_texture_filter_changed(false);
-	}
-
-	for (int i = 0; i < p_node->get_child_count(); i++) {
-		_propagate_update_default_filter(p_node->get_child(i));
-	}
-}
-
-void Viewport::_propagate_update_default_repeat(Node *p_node) {
-	CanvasItem *ci = Object::cast_to<CanvasItem>(p_node);
-	if (ci) {
-		ci->_update_texture_repeat_changed(false);
-	}
-
-	for (int i = 0; i < p_node->get_child_count(); i++) {
-		_propagate_update_default_repeat(p_node->get_child(i));
-	}
 }
 
 DisplayServer::WindowID Viewport::get_window_id() const {
@@ -3384,6 +3413,12 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_snap_controls_to_pixels", "enabled"), &Viewport::set_snap_controls_to_pixels);
 	ClassDB::bind_method(D_METHOD("is_snap_controls_to_pixels_enabled"), &Viewport::is_snap_controls_to_pixels_enabled);
 
+	ClassDB::bind_method(D_METHOD("set_snap_2d_transforms_to_pixel", "enabled"), &Viewport::set_snap_2d_transforms_to_pixel);
+	ClassDB::bind_method(D_METHOD("is_snap_2d_transforms_to_pixel_enabled"), &Viewport::is_snap_2d_transforms_to_pixel_enabled);
+
+	ClassDB::bind_method(D_METHOD("set_snap_2d_vertices_to_pixel", "enabled"), &Viewport::set_snap_2d_vertices_to_pixel);
+	ClassDB::bind_method(D_METHOD("is_snap_2d_vertices_to_pixel_enabled"), &Viewport::is_snap_2d_vertices_to_pixel_enabled);
+
 	ClassDB::bind_method(D_METHOD("set_shadow_atlas_quadrant_subdiv", "quadrant", "subdiv"), &Viewport::set_shadow_atlas_quadrant_subdiv);
 	ClassDB::bind_method(D_METHOD("get_shadow_atlas_quadrant_subdiv", "quadrant"), &Viewport::get_shadow_atlas_quadrant_subdiv);
 
@@ -3408,6 +3443,8 @@ void Viewport::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "world_2d", PROPERTY_HINT_RESOURCE_TYPE, "World2D", 0), "set_world_2d", "get_world_2d");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "transparent_bg"), "set_transparent_background", "has_transparent_background");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "handle_input_locally"), "set_handle_input_locally", "is_handling_input_locally");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "snap_2d_transforms_to_pixel"), "set_snap_2d_transforms_to_pixel", "is_snap_2d_transforms_to_pixel_enabled");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "snap_2d_vertices_to_pixel"), "set_snap_2d_vertices_to_pixel", "is_snap_2d_vertices_to_pixel_enabled");
 	ADD_GROUP("Rendering", "");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "msaa", PROPERTY_HINT_ENUM, "Disabled,2x,4x,8x,16x,AndroidVR 2x,AndroidVR 4x"), "set_msaa", "get_msaa");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "screen_space_aa", PROPERTY_HINT_ENUM, "Disabled,FXAA"), "set_screen_space_aa", "get_screen_space_aa");
@@ -3566,6 +3603,9 @@ Viewport::Viewport() {
 	debug_draw = DEBUG_DRAW_DISABLED;
 
 	snap_controls_to_pixels = true;
+	snap_2d_transforms_to_pixel = false;
+	snap_2d_vertices_to_pixel = false;
+
 	physics_last_mouse_state.alt = false;
 	physics_last_mouse_state.control = false;
 	physics_last_mouse_state.shift = false;

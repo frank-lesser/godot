@@ -431,6 +431,11 @@ public:
 	FUNC2(viewport_remove_canvas, RID, RID)
 	FUNC3(viewport_set_canvas_transform, RID, RID, const Transform2D &)
 	FUNC2(viewport_set_transparent_background, RID, bool)
+	FUNC2(viewport_set_snap_2d_transforms_to_pixel, RID, bool)
+	FUNC2(viewport_set_snap_2d_vertices_to_pixel, RID, bool)
+
+	FUNC2(viewport_set_default_canvas_item_texture_filter, RID, CanvasItemTextureFilter)
+	FUNC2(viewport_set_default_canvas_item_texture_repeat, RID, CanvasItemTextureRepeat)
 
 	FUNC2(viewport_set_global_canvas_transform, RID, const Transform2D &)
 	FUNC4(viewport_set_canvas_stacking, RID, RID, int, int)
@@ -583,8 +588,18 @@ public:
 	FUNC3(canvas_set_parent, RID, RID, float)
 	FUNC1(canvas_set_disable_scale, bool)
 
+	FUNCRID(canvas_texture)
+	FUNC3(canvas_texture_set_channel, RID, CanvasTextureChannel, RID)
+	FUNC3(canvas_texture_set_shading_parameters, RID, const Color &, float)
+
+	FUNC2(canvas_texture_set_texture_filter, RID, CanvasItemTextureFilter)
+	FUNC2(canvas_texture_set_texture_repeat, RID, CanvasItemTextureRepeat)
+
 	FUNCRID(canvas_item)
 	FUNC2(canvas_item_set_parent, RID, RID)
+
+	FUNC2(canvas_item_set_default_texture_filter, RID, CanvasItemTextureFilter)
+	FUNC2(canvas_item_set_default_texture_repeat, RID, CanvasItemTextureRepeat)
 
 	FUNC2(canvas_item_set_visible, RID, bool)
 	FUNC2(canvas_item_set_light_mask, RID, int)
@@ -600,23 +615,20 @@ public:
 
 	FUNC2(canvas_item_set_draw_behind_parent, RID, bool)
 
-	FUNC2(canvas_item_set_default_texture_filter, RID, CanvasItemTextureFilter)
-	FUNC2(canvas_item_set_default_texture_repeat, RID, CanvasItemTextureRepeat)
-
 	FUNC5(canvas_item_add_line, RID, const Point2 &, const Point2 &, const Color &, float)
 	FUNC4(canvas_item_add_polyline, RID, const Vector<Point2> &, const Vector<Color> &, float)
 	FUNC4(canvas_item_add_multiline, RID, const Vector<Point2> &, const Vector<Color> &, float)
 	FUNC3(canvas_item_add_rect, RID, const Rect2 &, const Color &)
 	FUNC4(canvas_item_add_circle, RID, const Point2 &, float, const Color &)
-	FUNC11(canvas_item_add_texture_rect, RID, const Rect2 &, RID, bool, const Color &, bool, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC12(canvas_item_add_texture_rect_region, RID, const Rect2 &, RID, const Rect2 &, const Color &, bool, RID, RID, const Color &, bool, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC15(canvas_item_add_nine_patch, RID, const Rect2 &, const Rect2 &, RID, const Vector2 &, const Vector2 &, NinePatchAxisMode, NinePatchAxisMode, bool, const Color &, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC11(canvas_item_add_primitive, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, float, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC10(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC14(canvas_item_add_triangle_array, RID, const Vector<int> &, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, const Vector<int> &, const Vector<float> &, RID, int, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC10(canvas_item_add_mesh, RID, const RID &, const Transform2D &, const Color &, RID, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC8(canvas_item_add_multimesh, RID, RID, RID, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
-	FUNC8(canvas_item_add_particles, RID, RID, RID, RID, RID, const Color &, CanvasItemTextureFilter, CanvasItemTextureRepeat)
+	FUNC6(canvas_item_add_texture_rect, RID, const Rect2 &, RID, bool, const Color &, bool)
+	FUNC7(canvas_item_add_texture_rect_region, RID, const Rect2 &, RID, const Rect2 &, const Color &, bool, bool)
+	FUNC10(canvas_item_add_nine_patch, RID, const Rect2 &, const Rect2 &, RID, const Vector2 &, const Vector2 &, NinePatchAxisMode, NinePatchAxisMode, bool, const Color &)
+	FUNC6(canvas_item_add_primitive, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID, float)
+	FUNC5(canvas_item_add_polygon, RID, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, RID)
+	FUNC9(canvas_item_add_triangle_array, RID, const Vector<int> &, const Vector<Point2> &, const Vector<Color> &, const Vector<Point2> &, const Vector<int> &, const Vector<float> &, RID, int)
+	FUNC5(canvas_item_add_mesh, RID, const RID &, const Transform2D &, const Color &, RID)
+	FUNC3(canvas_item_add_multimesh, RID, RID, RID)
+	FUNC3(canvas_item_add_particles, RID, RID, RID)
 	FUNC2(canvas_item_add_set_transform, RID, const Transform2D &)
 	FUNC2(canvas_item_add_clip_ignore, RID, bool)
 	FUNC2(canvas_item_set_sort_children_by_y, RID, bool)
@@ -631,6 +643,8 @@ public:
 	FUNC2(canvas_item_set_material, RID, RID)
 
 	FUNC2(canvas_item_set_use_parent_material, RID, bool)
+
+	FUNC6(canvas_item_set_canvas_group_mode, RID, CanvasGroupMode, float, bool, float, bool)
 
 	FUNC0R(RID, canvas_light_create)
 	FUNC2(canvas_light_attach_to_canvas, RID, RID)
@@ -650,7 +664,6 @@ public:
 	FUNC2(canvas_light_set_mode, RID, CanvasLightMode)
 
 	FUNC2(canvas_light_set_shadow_enabled, RID, bool)
-	FUNC2(canvas_light_set_shadow_buffer_size, RID, int)
 	FUNC2(canvas_light_set_shadow_filter, RID, CanvasLightShadowFilter)
 	FUNC2(canvas_light_set_shadow_color, RID, const Color &)
 	FUNC2(canvas_light_set_shadow_smooth, RID, float)
@@ -667,6 +680,8 @@ public:
 	FUNC2(canvas_occluder_polygon_set_shape_as_lines, RID, const Vector<Vector2> &)
 
 	FUNC2(canvas_occluder_polygon_set_cull_mode, RID, CanvasOccluderPolygonCullMode)
+
+	FUNC1(canvas_set_shadow_texture_size, int)
 
 	/* GLOBAL VARIABLES */
 

@@ -347,7 +347,7 @@ float DynamicFontAtSize::draw_char(RID p_canvas_item, const Point2 &p_pos, char3
 				modulate.r = modulate.g = modulate.b = 1.0;
 			}
 			RID texture = font->textures[ch->texture_idx].texture->get_rid();
-			RenderingServer::get_singleton()->canvas_item_add_texture_rect_region(p_canvas_item, Rect2(cpos, ch->rect.size), texture, ch->rect_uv, modulate, false, RID(), RID(), Color(1, 1, 1, 1), false);
+			RenderingServer::get_singleton()->canvas_item_add_texture_rect_region(p_canvas_item, Rect2(cpos, ch->rect.size), texture, ch->rect_uv, modulate, false, false);
 		}
 
 		advance = ch->advance;
@@ -458,8 +458,21 @@ DynamicFontAtSize::TexturePosition DynamicFontAtSize::_find_texture_pos_for_glyp
 			//zero texture
 			uint8_t *w = tex.imgdata.ptrw();
 			ERR_FAIL_COND_V(texsize * texsize * p_color_size > tex.imgdata.size(), ret);
-			for (int i = 0; i < texsize * texsize * p_color_size; i++) {
-				w[i] = 0;
+
+			// Initialize the texture to all-white pixels to prevent artifacts when the
+			// font is displayed at a non-default scale with filtering enabled.
+			if (p_color_size == 2) {
+				for (int i = 0; i < texsize * texsize * p_color_size; i += 2) {
+					w[i + 0] = 255;
+					w[i + 1] = 0;
+				}
+			} else {
+				for (int i = 0; i < texsize * texsize * p_color_size; i += 4) {
+					w[i + 0] = 255;
+					w[i + 1] = 255;
+					w[i + 2] = 255;
+					w[i + 3] = 0;
+				}
 			}
 		}
 		tex.offsets.resize(texsize);
