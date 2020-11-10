@@ -30,8 +30,8 @@
 
 #include "gdscript.h"
 
-#include "core/engine.h"
-#include "core/global_constants.h"
+#include "core/config/engine.h"
+#include "core/core_constants.h"
 #include "core/os/file_access.h"
 #include "gdscript_analyzer.h"
 #include "gdscript_compiler.h"
@@ -39,7 +39,7 @@
 #include "gdscript_tokenizer.h"
 
 #ifdef TOOLS_ENABLED
-#include "core/project_settings.h"
+#include "core/config/project_settings.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_settings.h"
 #endif
@@ -383,8 +383,8 @@ void GDScriptLanguage::debug_get_globals(List<String> *p_globals, List<Variant> 
 		}
 
 		bool skip = false;
-		for (int i = 0; i < GlobalConstants::get_global_constant_count(); i++) {
-			if (E->key() == GlobalConstants::get_global_constant_name(i)) {
+		for (int i = 0; i < CoreConstants::get_global_constant_count(); i++) {
+			if (E->key() == CoreConstants::get_global_constant_name(i)) {
 				skip = true;
 				break;
 			}
@@ -973,7 +973,8 @@ static void _find_identifiers_in_base(const GDScriptCompletionIdentifier &p_base
 			} break;
 			case GDScriptParser::DataType::BUILTIN: {
 				Callable::CallError err;
-				Variant tmp = Variant::construct(base_type.builtin_type, nullptr, 0, err);
+				Variant tmp;
+				Variant::construct(base_type.builtin_type, tmp, nullptr, 0, err);
 				if (err.error != Callable::CallError::CALL_OK) {
 					return;
 				}
@@ -1523,7 +1524,8 @@ static bool _guess_expression_type(GDScriptParser::CompletionContext &p_context,
 						found = _guess_identifier_type_from_base(c, base, id, r_type);
 					} else if (!found && index.type.kind == GDScriptParser::DataType::BUILTIN) {
 						Callable::CallError err;
-						Variant base_val = Variant::construct(base.type.builtin_type, nullptr, 0, err);
+						Variant base_val;
+						Variant::construct(base.type.builtin_type, base_val, nullptr, 0, err);
 						bool valid = false;
 						Variant res = base_val.get(index.value, &valid);
 						if (valid) {
@@ -1560,9 +1562,14 @@ static bool _guess_expression_type(GDScriptParser::CompletionContext &p_context,
 
 				Callable::CallError ce;
 				bool v1_use_value = p1.value.get_type() != Variant::NIL && p1.value.get_type() != Variant::OBJECT;
-				Variant v1 = (v1_use_value) ? p1.value : Variant::construct(p1.type.builtin_type, nullptr, 0, ce);
+				Variant d1;
+				Variant::construct(p1.type.builtin_type, d1, nullptr, 0, ce);
+				Variant d2;
+				Variant::construct(p2.type.builtin_type, d2, nullptr, 0, ce);
+
+				Variant v1 = (v1_use_value) ? p1.value : d1;
 				bool v2_use_value = p2.value.get_type() != Variant::NIL && p2.value.get_type() != Variant::OBJECT;
-				Variant v2 = (v2_use_value) ? p2.value : Variant::construct(p2.type.builtin_type, nullptr, 0, ce);
+				Variant v2 = (v2_use_value) ? p2.value : d2;
 				// avoid potential invalid ops
 				if ((op->variant_op == Variant::OP_DIVIDE || op->variant_op == Variant::OP_MODULE) && v2.get_type() == Variant::INT) {
 					v2 = 1;
@@ -1952,7 +1959,8 @@ static bool _guess_identifier_type_from_base(GDScriptParser::CompletionContext &
 			} break;
 			case GDScriptParser::DataType::BUILTIN: {
 				Callable::CallError err;
-				Variant tmp = Variant::construct(base_type.builtin_type, nullptr, 0, err);
+				Variant tmp;
+				Variant::construct(base_type.builtin_type, tmp, nullptr, 0, err);
 
 				if (err.error != Callable::CallError::CALL_OK) {
 					return false;
@@ -2102,7 +2110,8 @@ static bool _guess_method_return_type_from_base(GDScriptParser::CompletionContex
 			} break;
 			case GDScriptParser::DataType::BUILTIN: {
 				Callable::CallError err;
-				Variant tmp = Variant::construct(base_type.builtin_type, nullptr, 0, err);
+				Variant tmp;
+				Variant::construct(base_type.builtin_type, tmp, nullptr, 0, err);
 				if (err.error != Callable::CallError::CALL_OK) {
 					return false;
 				}
@@ -2139,9 +2148,9 @@ static void _find_enumeration_candidates(GDScriptParser::CompletionContext &p_co
 				r_result.insert(option.display, option);
 			}
 		} else {
-			for (int i = 0; i < GlobalConstants::get_global_constant_count(); i++) {
-				if (GlobalConstants::get_global_constant_enum(i) == current_enum) {
-					ScriptCodeCompletionOption option(GlobalConstants::get_global_constant_name(i), ScriptCodeCompletionOption::KIND_ENUM);
+			for (int i = 0; i < CoreConstants::get_global_constant_count(); i++) {
+				if (CoreConstants::get_global_constant_enum(i) == current_enum) {
+					ScriptCodeCompletionOption option(CoreConstants::get_global_constant_name(i), ScriptCodeCompletionOption::KIND_ENUM);
 					r_result.insert(option.display, option);
 				}
 			}
@@ -2257,7 +2266,7 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 			case GDScriptParser::DataType::BUILTIN: {
 				if (base.get_type() == Variant::NIL) {
 					Callable::CallError err;
-					base = Variant::construct(base_type.builtin_type, nullptr, 0, err);
+					Variant::construct(base_type.builtin_type, base, nullptr, 0, err);
 					if (err.error != Callable::CallError::CALL_OK) {
 						return;
 					}
@@ -2306,11 +2315,6 @@ static void _find_call_arguments(GDScriptParser::CompletionContext &p_context, c
 
 	if (GDScriptParser::get_builtin_function(call->function_name) < GDScriptFunctions::FUNC_MAX) {
 		MethodInfo info = GDScriptFunctions::get_info(GDScriptParser::get_builtin_function(call->function_name));
-
-		if ((info.name == "load" || info.name == "preload") && bool(EditorSettings::get_singleton()->get("text_editor/completion/complete_file_paths"))) {
-			_get_directory_contents(EditorFileSystem::get_singleton()->get_filesystem(), r_result);
-		}
-
 		r_arghint = _make_arguments_hint(info, p_argidx);
 		return;
 	} else if (GDScriptParser::get_builtin_type(call->function_name) < Variant::VARIANT_MAX) {
@@ -2883,7 +2887,7 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 					v = v_ref;
 				} else {
 					Callable::CallError err;
-					v = Variant::construct(base_type.builtin_type, NULL, 0, err);
+					Variant::construct(base_type.builtin_type, v, NULL, 0, err);
 					if (err.error != Callable::CallError::CALL_OK) {
 						break;
 					}

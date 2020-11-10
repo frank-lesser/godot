@@ -30,7 +30,7 @@
 
 #include "visual_script_func_nodes.h"
 
-#include "core/engine.h"
+#include "core/config/engine.h"
 #include "core/io/resource_loader.h"
 #include "core/os/os.h"
 #include "scene/main/node.h"
@@ -976,7 +976,7 @@ void VisualScriptPropertySet::_adjust_input_index(PropertyInfo &pinfo) const {
 	if (index != StringName()) {
 		Variant v;
 		Callable::CallError ce;
-		v = Variant::construct(pinfo.type, nullptr, 0, ce);
+		Variant::construct(pinfo.type, v, nullptr, 0, ce);
 		Variant i = v.get(index);
 		pinfo.type = i.get_type();
 	}
@@ -1117,7 +1117,7 @@ void VisualScriptPropertySet::_update_cache() {
 
 		Variant v;
 		Callable::CallError ce;
-		v = Variant::construct(basic_type, nullptr, 0, ce);
+		Variant::construct(basic_type, v, nullptr, 0, ce);
 
 		List<PropertyInfo> pinfo;
 		v.get_property_list(&pinfo);
@@ -1336,7 +1336,8 @@ void VisualScriptPropertySet::_validate_property(PropertyInfo &property) const {
 
 	if (property.name == "index") {
 		Callable::CallError ce;
-		Variant v = Variant::construct(type_cache.type, nullptr, 0, ce);
+		Variant v;
+		Variant::construct(type_cache.type, v, nullptr, 0, ce);
 		List<PropertyInfo> plist;
 		v.get_property_list(&plist);
 		String options = "";
@@ -1449,11 +1450,11 @@ public:
 
 	_FORCE_INLINE_ void _process_get(Variant &source, const Variant &p_argument, bool &valid) {
 		if (index != StringName() && assign_op == VisualScriptPropertySet::ASSIGN_OP_NONE) {
-			source.set_named(index, p_argument, &valid);
+			source.set_named(index, p_argument, valid);
 		} else {
 			Variant value;
 			if (index != StringName()) {
-				value = source.get_named(index, &valid);
+				value = source.get_named(index, valid);
 			} else {
 				value = source;
 			}
@@ -1497,7 +1498,7 @@ public:
 			}
 
 			if (index != StringName()) {
-				source.set_named(index, value, &valid);
+				source.set_named(index, value, valid);
 			} else {
 				source = value;
 			}
@@ -1562,12 +1563,12 @@ public:
 				bool valid;
 
 				if (needs_get) {
-					Variant value = v.get_named(property, &valid);
+					Variant value = v.get_named(property, valid);
 					_process_get(value, *p_inputs[1], valid);
-					v.set_named(property, value, &valid);
+					v.set_named(property, value, valid);
 
 				} else {
-					v.set_named(property, *p_inputs[1], &valid);
+					v.set_named(property, *p_inputs[1], valid);
 				}
 
 				if (!valid) {
@@ -1786,7 +1787,7 @@ void VisualScriptPropertyGet::_update_cache() {
 
 		Variant v;
 		Callable::CallError ce;
-		v = Variant::construct(basic_type, nullptr, 0, ce);
+		Variant::construct(basic_type, v, nullptr, 0, ce);
 
 		List<PropertyInfo> pinfo;
 		v.get_property_list(&pinfo);
@@ -2012,7 +2013,8 @@ void VisualScriptPropertyGet::_validate_property(PropertyInfo &property) const {
 
 	if (property.name == "index") {
 		Callable::CallError ce;
-		Variant v = Variant::construct(type_cache, nullptr, 0, ce);
+		Variant v;
+		Variant::construct(type_cache, v, nullptr, 0, ce);
 		List<PropertyInfo> plist;
 		v.get_property_list(&plist);
 		String options = "";
@@ -2111,7 +2113,7 @@ public:
 				*p_outputs[0] = object->get(property, &valid);
 
 				if (index != StringName()) {
-					*p_outputs[0] = p_outputs[0]->get_named(index);
+					*p_outputs[0] = p_outputs[0]->get_named(index, valid);
 				}
 
 				if (!valid) {
@@ -2140,7 +2142,7 @@ public:
 				*p_outputs[0] = another->get(property, &valid);
 
 				if (index != StringName()) {
-					*p_outputs[0] = p_outputs[0]->get_named(index);
+					*p_outputs[0] = p_outputs[0]->get_named(index, valid);
 				}
 
 				if (!valid) {
@@ -2156,7 +2158,7 @@ public:
 
 				*p_outputs[0] = v.get(property, &valid);
 				if (index != StringName()) {
-					*p_outputs[0] = p_outputs[0]->get_named(index);
+					*p_outputs[0] = p_outputs[0]->get_named(index, valid);
 				}
 
 				if (!valid) {
@@ -2368,7 +2370,8 @@ void register_visual_script_func_nodes() {
 		Variant::Type t = Variant::Type(i);
 		String type_name = Variant::get_type_name(t);
 		Callable::CallError ce;
-		Variant vt = Variant::construct(t, nullptr, 0, ce);
+		Variant vt;
+		Variant::construct(t, vt, nullptr, 0, ce);
 		List<MethodInfo> ml;
 		vt.get_method_list(&ml);
 

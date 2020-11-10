@@ -30,12 +30,12 @@
 
 #include "script_editor_plugin.h"
 
+#include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/io/resource_loader.h"
 #include "core/os/file_access.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
-#include "core/project_settings.h"
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/editor_node.h"
 #include "editor/editor_run_script.h"
@@ -2397,7 +2397,7 @@ void ScriptEditor::_editor_settings_changed() {
 
 	if (current_theme == "") {
 		current_theme = EditorSettings::get_singleton()->get("text_editor/theme/color_theme");
-	} else if (current_theme != EditorSettings::get_singleton()->get("text_editor/theme/color_theme")) {
+	} else if (current_theme != String(EditorSettings::get_singleton()->get("text_editor/theme/color_theme"))) {
 		current_theme = EditorSettings::get_singleton()->get("text_editor/theme/color_theme");
 		EditorSettings::get_singleton()->load_text_editor_theme();
 	}

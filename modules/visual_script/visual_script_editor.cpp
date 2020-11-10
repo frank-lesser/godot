@@ -30,11 +30,11 @@
 
 #include "visual_script_editor.h"
 
-#include "core/class_db.h"
 #include "core/input/input.h"
+#include "core/object/class_db.h"
+#include "core/object/script_language.h"
 #include "core/os/keyboard.h"
-#include "core/script_language.h"
-#include "core/variant.h"
+#include "core/variant/variant.h"
 #include "editor/editor_node.h"
 #include "editor/editor_resource_preview.h"
 #include "editor/editor_scale.h"
@@ -388,7 +388,7 @@ static Color _color_from_type(Variant::Type p_type, bool dark_theme = true) {
 			case Variant::NODE_PATH:
 				color = Color(0.41, 0.58, 0.93);
 				break;
-			case Variant::_RID:
+			case Variant::RID:
 				color = Color(0.41, 0.93, 0.6);
 				break;
 			case Variant::OBJECT:
@@ -494,7 +494,7 @@ static Color _color_from_type(Variant::Type p_type, bool dark_theme = true) {
 			case Variant::NODE_PATH:
 				color = Color(0.41, 0.58, 0.93);
 				break;
-			case Variant::_RID:
+			case Variant::RID:
 				color = Color(0.17, 0.9, 0.45);
 				break;
 			case Variant::OBJECT:
@@ -885,7 +885,7 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 							//not the same, reconvert
 							Callable::CallError ce;
 							const Variant *existingp = &value;
-							value = Variant::construct(left_type, &existingp, 1, ce, false);
+							Variant::construct(left_type, value, &existingp, 1, ce);
 						}
 
 						if (left_type == Variant::COLOR) {
@@ -1173,7 +1173,9 @@ String VisualScriptEditor::_sanitized_variant_text(const StringName &property_na
 	if (script->get_variable_info(property_name).type != Variant::NIL) {
 		Callable::CallError ce;
 		const Variant *converted = &var;
-		var = Variant::construct(script->get_variable_info(property_name).type, &converted, 1, ce, false);
+		Variant n;
+		Variant::construct(script->get_variable_info(property_name).type, n, &converted, 1, ce);
+		var = n;
 	}
 
 	return String(var);
@@ -3959,8 +3961,9 @@ void VisualScriptEditor::_default_value_edited(Node *p_button, int p_id, int p_i
 	Variant existing = vsn->get_default_input_value(p_input_port);
 	if (pinfo.type != Variant::NIL && existing.get_type() != pinfo.type) {
 		Callable::CallError ce;
-		const Variant *existingp = &existing;
-		existing = Variant::construct(pinfo.type, &existingp, 1, ce, false);
+		Variant e = existing;
+		const Variant *existingp = &e;
+		Variant::construct(pinfo.type, existing, &existingp, 1, ce);
 	}
 
 	default_value_edit->set_position(Object::cast_to<Control>(p_button)->get_global_position() + Vector2(0, Object::cast_to<Control>(p_button)->get_size().y));

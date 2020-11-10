@@ -94,14 +94,15 @@
 			<argument index="1" name="message" type="String" default="&quot;&quot;">
 			</argument>
 			<description>
-				Asserts that the [code]condition[/code] is [code]true[/code]. If the [code]condition[/code] is [code]false[/code], an error is generated and the program is halted until you resume it. Only executes in debug builds, or when running the game from the editor. Use it for debugging purposes, to make sure a statement is [code]true[/code] during development.
+				Asserts that the [code]condition[/code] is [code]true[/code]. If the [code]condition[/code] is [code]false[/code], an error is generated. When running from the editor, the running project will also be paused until you resume it. This can be used as a stronger form of [method push_error] for reporting errors to project developers or add-on users.
+				[b]Note:[/b] For performance reasons, the code inside [method assert] is only executed in debug builds or when running the project from the editor. Don't include code that has side effects in an [method assert] call. Otherwise, the project will behave differently when exported in release mode.
 				The optional [code]message[/code] argument, if given, is shown in addition to the generic "Assertion failed" message. You can use this to provide additional details about why the assertion failed.
 				[codeblock]
-				# Imagine we always want speed to be between 0 and 20
-				speed = -10
+				# Imagine we always want speed to be between 0 and 20.
+				var speed = -10
 				assert(speed &lt; 20) # True, the program will continue
 				assert(speed &gt;= 0) # False, the program will stop
-				assert(speed &gt;= 0 &amp;&amp; speed &lt; 20) # You can also combine the two conditional statements in one check
+				assert(speed &gt;= 0 and speed &lt; 20) # You can also combine the two conditional statements in one check
 				assert(speed &lt; 20, "speed = %f, but the speed limit is 20" % speed) # Show a message with clarifying details
 				[/codeblock]
 			</description>
@@ -383,24 +384,6 @@
 				 0.5  0.5  0.5
 				 1.0  1.0  1.0
 				 1.5  0.0  0.0
-				[/codeblock]
-			</description>
-		</method>
-		<method name="funcref">
-			<return type="FuncRef">
-			</return>
-			<argument index="0" name="instance" type="Object">
-			</argument>
-			<argument index="1" name="funcname" type="String">
-			</argument>
-			<description>
-				Returns a reference to the specified function [code]funcname[/code] in the [code]instance[/code] node. As functions aren't first-class objects in GDscript, use [code]funcref[/code] to store a [FuncRef] in a variable and call it later.
-				[codeblock]
-				func foo():
-				    return("bar")
-
-				a = funcref(self, "foo")
-				print(a.call_func()) # Prints bar
 				[/codeblock]
 			</description>
 		</method>
@@ -921,20 +904,6 @@
 				[/codeblock]
 			</description>
 		</method>
-		<method name="rand_range">
-			<return type="float">
-			</return>
-			<argument index="0" name="from" type="float">
-			</argument>
-			<argument index="1" name="to" type="float">
-			</argument>
-			<description>
-				Random range, any floating point value between [code]from[/code] and [code]to[/code].
-				[codeblock]
-				prints(rand_range(0, 1), rand_range(0, 1)) # Prints e.g. 0.135591 0.405263
-				[/codeblock]
-			</description>
-		</method>
 		<method name="rand_seed">
 			<return type="Array">
 			</return>
@@ -954,6 +923,20 @@
 				[/codeblock]
 			</description>
 		</method>
+		<method name="randf_range">
+			<return type="float">
+			</return>
+			<argument index="0" name="from" type="float">
+			</argument>
+			<argument index="1" name="to" type="float">
+			</argument>
+			<description>
+				Random range, any floating point value between [code]from[/code] and [code]to[/code].
+				[codeblock]
+				prints(randf_range(-10, 10), randf_range(-10, 10)) # Prints e.g. -3.844535 7.45315
+				[/codeblock]
+			</description>
+		</method>
 		<method name="randi">
 			<return type="int">
 			</return>
@@ -964,6 +947,21 @@
 				randi() % 20      # Returns random integer between 0 and 19
 				randi() % 100     # Returns random integer between 0 and 99
 				randi() % 100 + 1 # Returns random integer between 1 and 100
+				[/codeblock]
+			</description>
+		</method>
+		<method name="randi_range">
+			<return type="int">
+			</return>
+			<argument index="0" name="from" type="int">
+			</argument>
+			<argument index="1" name="to" type="int">
+			</argument>
+			<description>
+				Random range, any 32-bit integer value between [code]from[/code] and [code]to[/code] (inclusive). If [code]to[/code] is lesser than [code]from[/code] they are swapped.
+				[codeblock]
+				print(randi_range(0, 1)) # Prints 0 or 1
+				print(randi_range(-10, 1000)) # Prints any number from -10 to 1000
 				[/codeblock]
 			</description>
 		</method>

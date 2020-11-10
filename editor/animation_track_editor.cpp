@@ -228,9 +228,9 @@ public:
 							if (Variant::can_convert(args[idx].get_type(), t)) {
 								Variant old = args[idx];
 								Variant *ptrs[1] = { &old };
-								args.write[idx] = Variant::construct(t, (const Variant **)ptrs, 1, err);
+								Variant::construct(t, args.write[idx], (const Variant **)ptrs, 1, err);
 							} else {
-								args.write[idx] = Variant::construct(t, nullptr, 0, err);
+								Variant::construct(t, args.write[idx], nullptr, 0, err);
 							}
 							change_notify_deserved = true;
 							d_new["args"] = args;
@@ -846,9 +846,9 @@ public:
 									if (Variant::can_convert(args[idx].get_type(), t)) {
 										Variant old = args[idx];
 										Variant *ptrs[1] = { &old };
-										args.write[idx] = Variant::construct(t, (const Variant **)ptrs, 1, err);
+										Variant::construct(t, args.write[idx], (const Variant **)ptrs, 1, err);
 									} else {
-										args.write[idx] = Variant::construct(t, nullptr, 0, err);
+										Variant::construct(t, args.write[idx], nullptr, 0, err);
 									}
 									change_notify_deserved = true;
 									d_new["args"] = args;
@@ -3751,7 +3751,8 @@ PropertyInfo AnimationTrackEditor::_find_hint_for_track(int p_idx, NodePath &r_b
 	}
 
 	for (int i = 0; i < leftover_path.size() - 1; i++) {
-		property_info_base = property_info_base.get_named(leftover_path[i]);
+		bool valid;
+		property_info_base = property_info_base.get_named(leftover_path[i], valid);
 	}
 
 	List<PropertyInfo> pinfo;
@@ -4586,7 +4587,8 @@ void AnimationTrackEditor::_add_method_key(const String &p_method) {
 					params.push_back(arg);
 				} else {
 					Callable::CallError ce;
-					Variant arg = Variant::construct(E->get().arguments[i].type, nullptr, 0, ce);
+					Variant arg;
+					Variant::construct(E->get().arguments[i].type, arg, nullptr, 0, ce);
 					params.push_back(arg);
 				}
 			}

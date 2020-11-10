@@ -35,7 +35,7 @@
 #include "gdscript_functions.h"
 
 #ifdef DEBUG_ENABLED
-#include "core/string_builder.h"
+#include "core/string/string_builder.h"
 #endif
 
 Variant *GDScriptFunction::_get_variant(int p_address, GDScriptInstance *p_instance, GDScript *p_script, Variant &self, Variant &static_ref, Variant *p_stack, String &r_error) const {
@@ -331,7 +331,8 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 						return Variant();
 					}
 					if (argument_types[i].kind == GDScriptDataType::BUILTIN) {
-						Variant arg = Variant::construct(argument_types[i].builtin_type, &p_args[i], 1, r_err);
+						Variant arg;
+						Variant::construct(argument_types[i].builtin_type, arg, &p_args[i], 1, r_err);
 						memnew_placement(&stack[i], Variant(arg));
 					} else {
 						memnew_placement(&stack[i], Variant(*p_args[i]));
@@ -620,7 +621,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 				const StringName *index = &_global_names_ptr[indexname];
 
 				bool valid;
-				dst->set_named(*index, *value, &valid);
+				dst->set_named(*index, *value, valid);
 
 #ifdef DEBUG_ENABLED
 				if (!valid) {
@@ -647,10 +648,10 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 				bool valid;
 #ifdef DEBUG_ENABLED
 				//allow better error message in cases where src and dst are the same stack position
-				Variant ret = src->get_named(*index, &valid);
+				Variant ret = src->get_named(*index, valid);
 
 #else
-				*dst = src->get_named(*index, &valid);
+				*dst = src->get_named(*index, valid);
 #endif
 #ifdef DEBUG_ENABLED
 				if (!valid) {
@@ -755,7 +756,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 					if (Variant::can_convert_strict(src->get_type(), var_type)) {
 #endif // DEBUG_ENABLED
 						Callable::CallError ce;
-						*dst = Variant::construct(var_type, const_cast<const Variant **>(&src), 1, ce);
+						Variant::construct(var_type, *dst, const_cast<const Variant **>(&src), 1, ce);
 					} else {
 #ifdef DEBUG_ENABLED
 						err_text = "Trying to assign value of type '" + Variant::get_type_name(src->get_type()) +
@@ -857,7 +858,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 				GD_ERR_BREAK(to_type < 0 || to_type >= Variant::VARIANT_MAX);
 
 				Callable::CallError err;
-				*dst = Variant::construct(to_type, (const Variant **)&src, 1, err);
+				Variant::construct(to_type, *dst, (const Variant **)&src, 1, err);
 
 #ifdef DEBUG_ENABLED
 				if (err.error != Callable::CallError::CALL_OK) {
@@ -955,7 +956,7 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 
 				GET_VARIANT_PTR(dst, 3 + argc);
 				Callable::CallError err;
-				*dst = Variant::construct(t, (const Variant **)argptrs, argc, err);
+				Variant::construct(t, *dst, (const Variant **)argptrs, argc, err);
 
 #ifdef DEBUG_ENABLED
 				if (err.error != Callable::CallError::CALL_OK) {
@@ -1091,6 +1092,13 @@ Variant GDScriptFunction::call(GDScriptInstance *p_instance, const Variant **p_a
 							} else if (base->get_type() == Variant::OBJECT) {
 								err_text = "Attempted to free a locked object (calling or emitting).";
 								OPCODE_BREAK;
+							}
+						}
+					} else if (methodstr == "call_recursive" && basestr == "TreeItem") {
+						if (argc >= 1) {
+							methodstr = String(*argptrs[0]) + " (via TreeItem.call_recursive)";
+							if (err.error == Callable::CallError::CALL_ERROR_INVALID_ARGUMENT) {
+								err.argument += 1;
 							}
 						}
 					}

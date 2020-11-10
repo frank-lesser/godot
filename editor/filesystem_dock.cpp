@@ -30,13 +30,13 @@
 
 #include "filesystem_dock.h"
 
+#include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
-#include "core/list.h"
 #include "core/os/dir_access.h"
 #include "core/os/file_access.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
-#include "core/project_settings.h"
+#include "core/templates/list.h"
 #include "editor_feature_profile.h"
 #include "editor_node.h"
 #include "editor_resource_preview.h"
@@ -2665,7 +2665,8 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	editor = p_editor;
 	path = "res://";
 
-	ED_SHORTCUT("filesystem_dock/copy_path", TTR("Copy Path"), KEY_MASK_CMD | KEY_C);
+	// `KEY_MASK_CMD | KEY_C` conflicts with other editor shortcuts.
+	ED_SHORTCUT("filesystem_dock/copy_path", TTR("Copy Path"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_C);
 	ED_SHORTCUT("filesystem_dock/duplicate", TTR("Duplicate..."), KEY_MASK_CMD | KEY_D);
 	ED_SHORTCUT("filesystem_dock/delete", TTR("Delete"), KEY_DELETE);
 	ED_SHORTCUT("filesystem_dock/rename", TTR("Rename"));

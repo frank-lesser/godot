@@ -30,11 +30,11 @@
 
 #include "viewport.h"
 
+#include "core/config/project_settings.h"
 #include "core/core_string_names.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/input/input.h"
 #include "core/os/os.h"
-#include "core/project_settings.h"
 #include "scene/2d/collision_object_2d.h"
 #include "scene/3d/camera_3d.h"
 #include "scene/3d/collision_object_3d.h"
@@ -161,6 +161,11 @@ ViewportTexture::~ViewportTexture() {
 
 /////////////////////////////////////
 
+// Aliases used to provide custom styles to tooltips in the default
+// theme and editor theme.
+// TooltipPanel is also used for custom tooltips, while TooltipLabel
+// is only relevant for default tooltips.
+
 class TooltipPanel : public PopupPanel {
 	GDCLASS(TooltipPanel, PopupPanel);
 
@@ -175,6 +180,8 @@ public:
 	TooltipLabel() {}
 };
 
+/////////////////////////////////////
+
 Viewport::GUI::GUI() {
 	embed_subwindows_hint = false;
 	embedding_subwindows = false;
@@ -188,7 +195,7 @@ Viewport::GUI::GUI() {
 	mouse_over = nullptr;
 	drag_mouse_over = nullptr;
 
-	tooltip = nullptr;
+	tooltip_control = nullptr;
 	tooltip_popup = nullptr;
 	tooltip_label = nullptr;
 }
@@ -814,7 +821,14 @@ void Viewport::_notification(int p_what) {
 			}
 
 		} break;
-		case NOTIFICATION_WM_MOUSE_EXIT:
+		case NOTIFICATION_WM_MOUSE_EXIT: {
+			_drop_physics_mouseover();
+
+			// Unlike on loss of focus (NOTIFICATION_WM_WINDOW_FOCUS_OUT), do not
+			// drop the gui mouseover here, as a scrollbar may be dragged while the
+			// mouse is outside the window (without the window having lost focus).
+			// See bug #39634
+		} break;
 		case NOTIFICATION_WM_WINDOW_FOCUS_OUT: {
 			_drop_physics_mouseover();
 
@@ -1465,7 +1479,7 @@ void Viewport::_gui_sort_roots() {
 }
 
 void Viewport::_gui_cancel_tooltip() {
-	gui.tooltip = nullptr;
+	gui.tooltip_control = nullptr;
 	gui.tooltip_timer = -1;
 	if (gui.tooltip_popup) {
 		gui.tooltip_popup->queue_delete();
@@ -1474,21 +1488,23 @@ void Viewport::_gui_cancel_tooltip() {
 	}
 }
 
-String Viewport::_gui_get_tooltip(Control *p_control, const Vector2 &p_pos, Control **r_which) {
+String Viewport::_gui_get_tooltip(Control *p_control, const Vector2 &p_pos, Control **r_tooltip_owner) {
 	Vector2 pos = p_pos;
 	String tooltip;
 
 	while (p_control) {
 		tooltip = p_control->get_tooltip(pos);
 
-		if (r_which) {
-			*r_which = p_control;
+		if (r_tooltip_owner) {
+			*r_tooltip_owner = p_control;
 		}
 
-		if (tooltip != String()) {
+		// If we found a tooltip, we stop here.
+		if (!tooltip.empty()) {
 			break;
 		}
-		pos = p_control->get_transform().xform(pos);
+
+		// Otherwise, we check parent controls unless some conditions prevent it.
 
 		if (p_control->data.mouse_filter == Control::MOUSE_FILTER_STOP) {
 			break;
@@ -1497,6 +1513,9 @@ String Viewport::_gui_get_tooltip(Control *p_control, const Vector2 &p_pos, Cont
 			break;
 		}
 
+		// Transform cursor pos for parent control.
+		pos = p_control->get_transform().xform(pos);
+
 		p_control = p_control->get_parent_control();
 	}
 
@@ -1504,34 +1523,40 @@ String Viewport::_gui_get_tooltip(Control *p_control, const Vector2 &p_pos, Cont
 }
 
 void Viewport::_gui_show_tooltip() {
-	if (!gui.tooltip) {
+	if (!gui.tooltip_control) {
 		return;
 	}
 
-	Control *which = nullptr;
-	String tooltip = _gui_get_tooltip(gui.tooltip, gui.tooltip->get_global_transform().xform_inv(gui.last_mouse_pos), &which);
-	tooltip = tooltip.strip_edges();
-	if (tooltip.length() == 0) {
-		return; // bye
+	// Get the Control under cursor and the relevant tooltip text, if any.
+	Control *tooltip_owner = nullptr;
+	String tooltip_text = _gui_get_tooltip(
+			gui.tooltip_control,
+			gui.tooltip_control->get_global_transform().xform_inv(gui.last_mouse_pos),
+			&tooltip_owner);
+	tooltip_text.strip_edges();
+	if (tooltip_text.empty()) {
+		return; // Nothing to show.
 	}
 
+	// Remove previous popup if we change something.
 	if (gui.tooltip_popup) {
 		memdelete(gui.tooltip_popup);
 		gui.tooltip_popup = nullptr;
 		gui.tooltip_label = nullptr;
 	}
 
-	if (!which) {
+	if (!tooltip_owner) {
 		return;
 	}
 
-	Control *rp = which;
+	// Controls can implement `make_custom_tooltip` to provide their own tooltip.
+	// This should be a Control node which will be added as child to a TooltipPanel.
+	Control *base_tooltip = tooltip_owner->make_custom_tooltip(tooltip_text);
 
-	Control *base_tooltip = which->make_custom_tooltip(tooltip);
-
+	// If no custom tooltip is given, use a default implementation.
 	if (!base_tooltip) {
 		gui.tooltip_label = memnew(TooltipLabel);
-		gui.tooltip_label->set_text(tooltip);
+		gui.tooltip_label->set_text(tooltip_text);
 		base_tooltip = gui.tooltip_label;
 	}
 
@@ -1545,10 +1570,7 @@ void Viewport::_gui_show_tooltip() {
 
 	gui.tooltip_popup = panel;
 
-	rp->add_child(gui.tooltip_popup);
-
-	//if (gui.tooltip) // Avoids crash when rapidly switching controls.
-	//	gui.tooltip_popup->set_scale(gui.tooltip->get_global_transform().get_scale());
+	tooltip_owner->add_child(gui.tooltip_popup);
 
 	Point2 tooltip_offset = ProjectSettings::get_singleton()->get("display/mouse_cursor/tooltip_position_offset");
 	Rect2 r(gui.tooltip_pos + tooltip_offset, gui.tooltip_popup->get_contents_minimum_size());
@@ -1794,6 +1816,8 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 	if (mb.is_valid()) {
 		gui.key_event_accepted = false;
 
+		Control *over = nullptr;
+
 		Point2 mpos = mb->get_position();
 		if (mb->is_pressed()) {
 			Size2 pos = mpos;
@@ -1897,8 +1921,6 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			}
 
 			_gui_cancel_tooltip();
-			//gui.tooltip_popup->hide();
-
 		} else {
 			if (gui.drag_data.get_type() != Variant::NIL && mb->get_button_index() == BUTTON_LEFT) {
 				if (gui.drag_mouse_over) {
@@ -1947,6 +1969,31 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				_propagate_viewport_notification(this,NOTIFICATION_DRAG_END);
 				gui.drag_data=Variant(); //always clear
 			}*/
+
+			// In case the mouse was released after for example dragging a scrollbar,
+			// check whether the current control is different from the stored one. If
+			// it is different, rather than wait for it to be updated the next time the
+			// mouse is moved, notify the control so that it can e.g. drop the highlight.
+			// This code is duplicated from the mm.is_valid()-case further below.
+			if (gui.mouse_focus) {
+				over = gui.mouse_focus;
+			} else {
+				over = _gui_find_control(mpos);
+			}
+
+			if (gui.mouse_focus_mask == 0 && over != gui.mouse_over) {
+				if (gui.mouse_over) {
+					_gui_call_notification(gui.mouse_over, Control::NOTIFICATION_MOUSE_EXIT);
+				}
+
+				_gui_cancel_tooltip();
+
+				if (over) {
+					_gui_call_notification(over, Control::NOTIFICATION_MOUSE_ENTER);
+				}
+			}
+
+			gui.mouse_over = over;
 
 			set_input_as_handled();
 		}
@@ -2008,10 +2055,11 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 			}
 		}
 
+		// These sections of code are reused in the mb.is_valid() case further up
+		// for the purpose of notifying controls about potential changes in focus
+		// when the mousebutton is released.
 		if (gui.mouse_focus) {
 			over = gui.mouse_focus;
-			//recompute focus_inv_xform again here
-
 		} else {
 			over = _gui_find_control(mpos);
 		}
@@ -2052,8 +2100,8 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				bool is_tooltip_shown = false;
 
 				if (gui.tooltip_popup) {
-					if (can_tooltip && gui.tooltip) {
-						String tooltip = _gui_get_tooltip(over, gui.tooltip->get_global_transform().xform_inv(mpos));
+					if (can_tooltip && gui.tooltip_control) {
+						String tooltip = _gui_get_tooltip(over, gui.tooltip_control->get_global_transform().xform_inv(mpos));
 
 						if (tooltip.length() == 0) {
 							_gui_cancel_tooltip();
@@ -2078,13 +2126,11 @@ void Viewport::_gui_input_event(Ref<InputEvent> p_event) {
 				}
 
 				if (can_tooltip && !is_tooltip_shown) {
-					gui.tooltip = over;
-					gui.tooltip_pos = over->get_screen_transform().xform(pos); //(parent_xform * get_transform()).affine_inverse().xform(pos);
+					gui.tooltip_control = over;
+					gui.tooltip_pos = over->get_screen_transform().xform(pos);
 					gui.tooltip_timer = gui.tooltip_delay;
 				}
 			}
-
-			//pos = gui.focus_inv_xform.xform(pos);
 
 			mm->set_position(pos);
 
@@ -2436,7 +2482,7 @@ void Viewport::_gui_hide_control(Control *p_control) {
 	if (gui.drag_mouse_over == p_control) {
 		gui.drag_mouse_over = nullptr;
 	}
-	if (gui.tooltip == p_control) {
+	if (gui.tooltip_control == p_control) {
 		_gui_cancel_tooltip();
 	}
 }
@@ -2459,8 +2505,8 @@ void Viewport::_gui_remove_control(Control *p_control) {
 	if (gui.drag_mouse_over == p_control) {
 		gui.drag_mouse_over = nullptr;
 	}
-	if (gui.tooltip == p_control) {
-		gui.tooltip = nullptr;
+	if (gui.tooltip_control == p_control) {
+		gui.tooltip_control = nullptr;
 	}
 }
 
@@ -3579,14 +3625,13 @@ Viewport::Viewport() {
 
 	disable_input = false;
 
-	//window tooltip
+	// Window tooltip.
 	gui.tooltip_timer = -1;
 
-	//gui.tooltip_timer->force_parent_owned();
 	gui.tooltip_delay = GLOBAL_DEF("gui/timers/tooltip_delay_sec", 0.5);
 	ProjectSettings::get_singleton()->set_custom_property_info("gui/timers/tooltip_delay_sec", PropertyInfo(Variant::FLOAT, "gui/timers/tooltip_delay_sec", PROPERTY_HINT_RANGE, "0,5,0.01,or_greater")); // No negative numbers
 
-	gui.tooltip = nullptr;
+	gui.tooltip_control = nullptr;
 	gui.tooltip_label = nullptr;
 	gui.drag_preview = nullptr;
 	gui.drag_attempted = false;

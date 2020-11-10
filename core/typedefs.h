@@ -41,8 +41,8 @@
 #include "platform_config.h"
 
 // Should be available everywhere.
-#include "core/error_list.h"
-#include "core/int_types.h"
+#include "core/error/error_list.h"
+#include <cstdint>
 
 // Turn argument to string constant:
 // https://gcc.gnu.org/onlinedocs/cpp/Stringizing.html#Stringizing
@@ -191,6 +191,20 @@ static inline unsigned int nearest_shift(unsigned int p_number) {
 	}
 
 	return 0;
+}
+
+// constexpr function to find the floored log2 of a number
+template <typename T>
+constexpr T floor_log2(T x) {
+	return x < 2 ? x : 1 + floor_log2(x >> 1);
+}
+
+// Get the number of bits needed to represent the number.
+// IE, if you pass in 8, you will get 4.
+// If you want to know how many bits are needed to store 8 values however, pass in (8 - 1).
+template <typename T>
+constexpr T get_num_bits(T x) {
+	return floor_log2(x);
 }
 
 // Swap 16, 32 and 64 bits value for endianness.

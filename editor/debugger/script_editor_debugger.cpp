@@ -30,11 +30,11 @@
 
 #include "script_editor_debugger.h"
 
+#include "core/config/project_settings.h"
 #include "core/debugger/debugger_marshalls.h"
 #include "core/debugger/remote_debugger.h"
 #include "core/io/marshalls.h"
-#include "core/project_settings.h"
-#include "core/ustring.h"
+#include "core/string/ustring.h"
 #include "editor/debugger/editor_network_profiler.h"
 #include "editor/debugger/editor_performance_profiler.h"
 #include "editor/debugger/editor_profiler.h"
@@ -1023,7 +1023,7 @@ void ScriptEditorDebugger::_method_changed(Object *p_base, const StringName &p_n
 
 	for (int i = 0; i < VARIANT_ARG_MAX; i++) {
 		//no pointers, sorry
-		if (argptr[i] && (argptr[i]->get_type() == Variant::OBJECT || argptr[i]->get_type() == Variant::_RID)) {
+		if (argptr[i] && (argptr[i]->get_type() == Variant::OBJECT || argptr[i]->get_type() == Variant::RID)) {
 			return;
 		}
 	}

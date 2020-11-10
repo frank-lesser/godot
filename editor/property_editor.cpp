@@ -30,16 +30,16 @@
 
 #include "property_editor.h"
 
-#include "core/class_db.h"
+#include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/io/image_loader.h"
 #include "core/io/marshalls.h"
 #include "core/io/resource_loader.h"
 #include "core/math/expression.h"
+#include "core/object/class_db.h"
 #include "core/os/keyboard.h"
-#include "core/pair.h"
-#include "core/print_string.h"
-#include "core/project_settings.h"
+#include "core/string/print_string.h"
+#include "core/templates/pair.h"
 #include "editor/array_property_edit.h"
 #include "editor/create_dialog.h"
 #include "editor/dictionary_property_edit.h"
@@ -345,7 +345,7 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 		checks20[i]->hide();
 	}
 
-	type = (p_variant.get_type() != Variant::NIL && p_variant.get_type() != Variant::_RID && p_type != Variant::OBJECT) ? p_variant.get_type() : p_type;
+	type = (p_variant.get_type() != Variant::NIL && p_variant.get_type() != Variant::RID && p_type != Variant::OBJECT) ? p_variant.get_type() : p_type;
 
 	switch (type) {
 		case Variant::BOOL: {

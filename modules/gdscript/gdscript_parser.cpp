@@ -30,15 +30,15 @@
 
 #include "gdscript_parser.h"
 
+#include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
 #include "core/math/math_defs.h"
 #include "core/os/file_access.h"
-#include "core/project_settings.h"
 #include "gdscript.h"
 
 #ifdef DEBUG_ENABLED
 #include "core/os/os.h"
-#include "core/string_builder.h"
+#include "core/string/string_builder.h"
 #endif // DEBUG_ENABLED
 
 #ifdef TOOLS_ENABLED
@@ -65,7 +65,7 @@ Variant::Type GDScriptParser::get_builtin_type(const StringName &p_type) {
 		builtin_types["Basis"] = Variant::BASIS;
 		builtin_types["Transform"] = Variant::TRANSFORM;
 		builtin_types["Color"] = Variant::COLOR;
-		builtin_types["RID"] = Variant::_RID;
+		builtin_types["RID"] = Variant::RID;
 		builtin_types["Object"] = Variant::OBJECT;
 		builtin_types["StringName"] = Variant::STRING_NAME;
 		builtin_types["NodePath"] = Variant::NODE_PATH;
@@ -2486,26 +2486,28 @@ GDScriptParser::ExpressionNode *GDScriptParser::parse_call(ExpressionNode *p_pre
 		}
 	}
 
-	if (!check(GDScriptTokenizer::Token::PARENTHESIS_CLOSE)) {
-		// Arguments.
-		push_completion_call(call);
-		make_completion_context(COMPLETION_CALL_ARGUMENTS, call, 0, true);
-		int argument_index = 0;
-		do {
-			make_completion_context(COMPLETION_CALL_ARGUMENTS, call, argument_index++, true);
-			if (check(GDScriptTokenizer::Token::PARENTHESIS_CLOSE)) {
-				// Allow for trailing comma.
-				break;
-			}
-			ExpressionNode *argument = parse_expression(false);
-			if (argument == nullptr) {
-				push_error(R"(Expected expression as the function argument.)");
-			} else {
-				call->arguments.push_back(argument);
-			}
-		} while (match(GDScriptTokenizer::Token::COMMA));
-		pop_completion_call();
+	// Arguments.
+	CompletionType ct = COMPLETION_CALL_ARGUMENTS;
+	if (get_builtin_function(call->function_name) == GDScriptFunctions::RESOURCE_LOAD) {
+		ct = COMPLETION_RESOURCE_PATH;
 	}
+	push_completion_call(call);
+	int argument_index = 0;
+	do {
+		make_completion_context(ct, call, argument_index++, true);
+		if (check(GDScriptTokenizer::Token::PARENTHESIS_CLOSE)) {
+			// Allow for trailing comma.
+			break;
+		}
+		ExpressionNode *argument = parse_expression(false);
+		if (argument == nullptr) {
+			push_error(R"(Expected expression as the function argument.)");
+		} else {
+			call->arguments.push_back(argument);
+		}
+		ct = COMPLETION_CALL_ARGUMENTS;
+	} while (match(GDScriptTokenizer::Token::COMMA));
+	pop_completion_call();
 
 	pop_multiline();
 	consume(GDScriptTokenizer::Token::PARENTHESIS_CLOSE, R"*(Expected closing ")" after call arguments.)*");
@@ -2802,7 +2804,9 @@ bool GDScriptParser::validate_annotation_arguments(AnnotationNode *p_annotation)
 					Callable::CallError error;
 					Vector<Variant> args = varray(string->name);
 					const Variant *name = args.ptr();
-					p_annotation->resolved_arguments.push_back(Variant::construct(parameter.type, &(name), 1, error));
+					Variant r;
+					Variant::construct(parameter.type, r, &(name), 1, error);
+					p_annotation->resolved_arguments.push_back(r);
 					if (error.error != Callable::CallError::CALL_OK) {
 						push_error(vformat(R"(Expected %s as argument %d of annotation "%s").)", Variant::get_type_name(parameter.type), i + 1, p_annotation->name));
 						p_annotation->resolved_arguments.remove(p_annotation->resolved_arguments.size() - 1);
@@ -2824,7 +2828,9 @@ bool GDScriptParser::validate_annotation_arguments(AnnotationNode *p_annotation)
 				}
 				Callable::CallError error;
 				const Variant *args = &value;
-				p_annotation->resolved_arguments.push_back(Variant::construct(parameter.type, &(args), 1, error));
+				Variant r;
+				Variant::construct(parameter.type, r, &(args), 1, error);
+				p_annotation->resolved_arguments.push_back(r);
 				if (error.error != Callable::CallError::CALL_OK) {
 					push_error(vformat(R"(Expected %s as argument %d of annotation "%s").)", Variant::get_type_name(parameter.type), i + 1, p_annotation->name));
 					p_annotation->resolved_arguments.remove(p_annotation->resolved_arguments.size() - 1);

@@ -36,12 +36,26 @@
 
 #include "core/math/math_defs.h"
 #include "core/math/math_funcs.h"
-#include "core/ustring.h"
+#include "core/string/ustring.h"
 
 class Quat {
 public:
-	real_t x = 0, y = 0, z = 0, w = 1;
+	union {
+		struct {
+			real_t x;
+			real_t y;
+			real_t z;
+			real_t w;
+		};
+		real_t components[4] = { 0, 0, 0, 1.0 };
+	};
 
+	_FORCE_INLINE_ real_t &operator[](int idx) {
+		return components[idx];
+	}
+	_FORCE_INLINE_ const real_t &operator[](int idx) const {
+		return components[idx];
+	}
 	_FORCE_INLINE_ real_t length_squared() const;
 	bool is_equal_approx(const Quat &p_quat) const;
 	real_t length() const;
@@ -89,6 +103,10 @@ public:
 		Vector3 u(x, y, z);
 		Vector3 uv = u.cross(v);
 		return v + ((uv * w) + u.cross(uv)) * ((real_t)2);
+	}
+
+	_FORCE_INLINE_ Vector3 xform_inv(const Vector3 &v) const {
+		return inverse().xform(v);
 	}
 
 	_FORCE_INLINE_ void operator+=(const Quat &q);

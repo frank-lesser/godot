@@ -30,9 +30,9 @@
 
 #include "rasterizer_storage_rd.h"
 
-#include "core/engine.h"
+#include "core/config/engine.h"
+#include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
-#include "core/project_settings.h"
 #include "rasterizer_rd.h"
 #include "servers/rendering/shader_language.h"
 
@@ -1265,7 +1265,7 @@ void RasterizerStorageRD::canvas_texture_set_texture_repeat(RID p_canvas_texture
 	ct->clear_sets();
 }
 
-bool RasterizerStorageRD::canvas_texture_get_unifom_set(RID p_texture, RS::CanvasItemTextureFilter p_base_filter, RS::CanvasItemTextureRepeat p_base_repeat, RID p_base_shader, int p_base_set, RID &r_uniform_set, Size2i &r_size, Color &r_specular_shininess, bool &r_use_normal, bool &r_use_specular) {
+bool RasterizerStorageRD::canvas_texture_get_uniform_set(RID p_texture, RS::CanvasItemTextureFilter p_base_filter, RS::CanvasItemTextureRepeat p_base_repeat, RID p_base_shader, int p_base_set, RID &r_uniform_set, Size2i &r_size, Color &r_specular_shininess, bool &r_use_normal, bool &r_use_specular) {
 	CanvasTexture *ct = nullptr;
 
 	Texture *t = texture_owner.getornull(p_texture);

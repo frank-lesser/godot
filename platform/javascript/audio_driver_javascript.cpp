@@ -30,7 +30,7 @@
 
 #include "audio_driver_javascript.h"
 
-#include "core/project_settings.h"
+#include "core/config/project_settings.h"
 #include "godot_audio.h"
 
 #include <emscripten.h>
@@ -100,7 +100,7 @@ Error AudioDriverJavaScript::init() {
 	int latency = GLOBAL_GET("audio/output_latency");
 
 	channel_count = godot_audio_init(mix_rate, latency);
-	buffer_length = closest_power_of_2((latency * mix_rate / 1000) * channel_count);
+	buffer_length = closest_power_of_2(latency * mix_rate / 1000);
 	buffer_length = godot_audio_create_processor(buffer_length, channel_count);
 	if (!buffer_length) {
 		return FAILED;

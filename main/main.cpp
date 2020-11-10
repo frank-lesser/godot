@@ -30,6 +30,7 @@
 
 #include "main.h"
 
+#include "core/config/project_settings.h"
 #include "core/core_string_names.h"
 #include "core/crypto/crypto.h"
 #include "core/debugger/engine_debugger.h"
@@ -41,12 +42,11 @@
 #include "core/io/image_loader.h"
 #include "core/io/ip.h"
 #include "core/io/resource_loader.h"
-#include "core/message_queue.h"
+#include "core/object/message_queue.h"
 #include "core/os/dir_access.h"
 #include "core/os/os.h"
-#include "core/project_settings.h"
 #include "core/register_core_types.h"
-#include "core/translation.h"
+#include "core/string/translation.h"
 #include "core/version.h"
 #include "core/version_hash.gen.h"
 #include "drivers/register_driver_types.h"
@@ -1608,7 +1608,7 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 	GLOBAL_DEF("application/config/icon", String());
 	ProjectSettings::get_singleton()->set_custom_property_info("application/config/icon",
 			PropertyInfo(Variant::STRING, "application/config/icon",
-					PROPERTY_HINT_FILE, "*.png,*.webp"));
+					PROPERTY_HINT_FILE, "*.png,*.webp,*.svg,*.svgz"));
 
 	GLOBAL_DEF("application/config/macos_native_icon", String());
 	ProjectSettings::get_singleton()->set_custom_property_info("application/config/macos_native_icon",
@@ -2232,7 +2232,7 @@ bool Main::start() {
 
 #ifdef TOOLS_ENABLED
 			if (editor) {
-				if (game_path != GLOBAL_GET("application/run/main_scene") || !editor_node->has_scenes_in_session()) {
+				if (game_path != String(GLOBAL_GET("application/run/main_scene")) || !editor_node->has_scenes_in_session()) {
 					Error serr = editor_node->load_scene(local_game_path);
 					if (serr != OK) {
 						ERR_PRINT("Failed to load scene");

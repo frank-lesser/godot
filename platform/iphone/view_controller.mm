@@ -29,13 +29,14 @@
 /*************************************************************************/
 
 #import "view_controller.h"
-#include "core/project_settings.h"
+#include "core/config/project_settings.h"
 #include "display_server_iphone.h"
 #import "godot_view.h"
 #import "godot_view_renderer.h"
 #import "native_video_view.h"
 #include "os_iphone.h"
 
+#import <AVFoundation/AVFoundation.h>
 #import <GameController/GameController.h>
 
 @interface ViewController ()
@@ -213,15 +214,5 @@
 		return [self.videoView playVideoAtPath:filePath volume:videoVolume audio:audioTrack subtitle:subtitleTrack];
 	}
 }
-
-// MARK: Delegates
-
-#ifdef GAME_CENTER_ENABLED
-- (void)gameCenterViewControllerDidFinish:(GKGameCenterViewController *)gameCenterViewController {
-	//[gameCenterViewController dismissViewControllerAnimated:YES completion:^{GameCenter::get_singleton()->game_center_closed();}];//version for signaling when overlay is completely gone
-	GameCenter::get_singleton()->game_center_closed();
-	[gameCenterViewController dismissViewControllerAnimated:YES completion:nil];
-}
-#endif
 
 @end

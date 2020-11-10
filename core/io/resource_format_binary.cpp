@@ -30,11 +30,11 @@
 
 #include "resource_format_binary.h"
 
-#include "core/image.h"
+#include "core/config/project_settings.h"
 #include "core/io/file_access_compressed.h"
+#include "core/io/image.h"
 #include "core/io/marshalls.h"
 #include "core/os/dir_access.h"
-#include "core/project_settings.h"
 #include "core/version.h"
 
 //#define print_bl(m_what) print_line(m_what)
@@ -1467,7 +1467,7 @@ void ResourceFormatSaverBinaryInstance::write_variant(FileAccess *f, const Varia
 			}
 
 		} break;
-		case Variant::_RID: {
+		case Variant::RID: {
 			f->store_32(VARIANT_RID);
 			WARN_PRINT("Can't save RIDs.");
 			RID val = p_property;

@@ -31,7 +31,7 @@
 #ifndef EXPRESSION_H
 #define EXPRESSION_H
 
-#include "core/reference.h"
+#include "core/object/reference.h"
 
 class Expression : public Reference {
 	GDCLASS(Expression, Reference);
@@ -73,9 +73,10 @@ public:
 		MATH_MOVE_TOWARD,
 		MATH_DECTIME,
 		MATH_RANDOMIZE,
-		MATH_RAND,
+		MATH_RANDI,
 		MATH_RANDF,
-		MATH_RANDOM,
+		MATH_RANDF_RANGE,
+		MATH_RANDI_RANGE,
 		MATH_SEED,
 		MATH_RANDSEED,
 		MATH_DEG2RAD,
@@ -91,7 +92,6 @@ public:
 		LOGIC_CLAMP,
 		LOGIC_NEAREST_PO2,
 		OBJ_WEAKREF,
-		FUNC_FUNCREF,
 		TYPE_CONVERT,
 		TYPE_OF,
 		TYPE_EXISTS,

@@ -30,13 +30,12 @@
 
 #include "expression.h"
 
-#include "core/class_db.h"
-#include "core/func_ref.h"
 #include "core/io/marshalls.h"
 #include "core/math/math_funcs.h"
+#include "core/object/class_db.h"
+#include "core/object/reference.h"
 #include "core/os/os.h"
-#include "core/reference.h"
-#include "core/variant_parser.h"
+#include "core/variant/variant_parser.h"
 
 const char *Expression::func_name[Expression::FUNC_MAX] = {
 	"sin",
@@ -76,7 +75,8 @@ const char *Expression::func_name[Expression::FUNC_MAX] = {
 	"randomize",
 	"randi",
 	"randf",
-	"rand_range",
+	"randf_range",
+	"randi_range",
 	"seed",
 	"rand_seed",
 	"deg2rad",
@@ -92,7 +92,6 @@ const char *Expression::func_name[Expression::FUNC_MAX] = {
 	"clamp",
 	"nearest_po2",
 	"weakref",
-	"funcref",
 	"convert",
 	"typeof",
 	"type_exists",
@@ -127,7 +126,7 @@ String Expression::get_func_name(BuiltinFunc p_func) {
 int Expression::get_func_argument_count(BuiltinFunc p_func) {
 	switch (p_func) {
 		case MATH_RANDOMIZE:
-		case MATH_RAND:
+		case MATH_RANDI:
 		case MATH_RANDF:
 			return 0;
 		case MATH_SIN:
@@ -178,12 +177,12 @@ int Expression::get_func_argument_count(BuiltinFunc p_func) {
 		case MATH_POW:
 		case MATH_EASE:
 		case MATH_STEPIFY:
-		case MATH_RANDOM:
+		case MATH_RANDF_RANGE:
+		case MATH_RANDI_RANGE:
 		case MATH_POLAR2CARTESIAN:
 		case MATH_CARTESIAN2POLAR:
 		case LOGIC_MAX:
 		case LOGIC_MIN:
-		case FUNC_FUNCREF:
 		case TYPE_CONVERT:
 		case COLORN:
 			return 2;
@@ -397,16 +396,21 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 			Math::randomize();
 
 		} break;
-		case MATH_RAND: {
+		case MATH_RANDI: {
 			*r_return = Math::rand();
 		} break;
 		case MATH_RANDF: {
 			*r_return = Math::randf();
 		} break;
-		case MATH_RANDOM: {
+		case MATH_RANDF_RANGE: {
 			VALIDATE_ARG_NUM(0);
 			VALIDATE_ARG_NUM(1);
 			*r_return = Math::random((double)*p_inputs[0], (double)*p_inputs[1]);
+		} break;
+		case MATH_RANDI_RANGE: {
+			VALIDATE_ARG_NUM(0);
+			VALIDATE_ARG_NUM(1);
+			*r_return = Math::random((int)*p_inputs[0], (int)*p_inputs[1]);
 		} break;
 		case MATH_SEED: {
 			VALIDATE_ARG_NUM(0);
@@ -549,30 +553,6 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 			}
 
 		} break;
-		case FUNC_FUNCREF: {
-			if (p_inputs[0]->get_type() != Variant::OBJECT) {
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-				r_error.argument = 0;
-				r_error.expected = Variant::OBJECT;
-
-				return;
-			}
-			if (p_inputs[1]->get_type() != Variant::STRING && p_inputs[1]->get_type() != Variant::NODE_PATH) {
-				r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
-				r_error.argument = 1;
-				r_error.expected = Variant::STRING;
-
-				return;
-			}
-
-			Ref<FuncRef> fr = memnew(FuncRef);
-
-			fr->set_instance(*p_inputs[0]);
-			fr->set_function(*p_inputs[1]);
-
-			*r_return = fr;
-
-		} break;
 		case TYPE_CONVERT: {
 			VALIDATE_ARG_NUM(1);
 			int type = *p_inputs[1];
@@ -584,7 +564,7 @@ void Expression::exec_func(BuiltinFunc p_func, const Variant **p_inputs, Variant
 				return;
 
 			} else {
-				*r_return = Variant::construct(Variant::Type(type), p_inputs, 1, r_error);
+				Variant::construct(Variant::Type(type), *r_return, p_inputs, 1, r_error);
 			}
 		} break;
 		case TYPE_OF: {
@@ -1973,7 +1953,7 @@ bool Expression::_execute(const Array &p_inputs, Object *p_instance, Expression:
 			}
 
 			bool valid;
-			r_ret = base.get_named(index->name, &valid);
+			r_ret = base.get_named(index->name, valid);
 			if (!valid) {
 				r_error_str = vformat(RTR("Invalid named index '%s' for base type %s"), String(index->name), Variant::get_type_name(base.get_type()));
 				return true;
@@ -2041,7 +2021,7 @@ bool Expression::_execute(const Array &p_inputs, Object *p_instance, Expression:
 			}
 
 			Callable::CallError ce;
-			r_ret = Variant::construct(constructor->data_type, (const Variant **)argp.ptr(), argp.size(), ce);
+			Variant::construct(constructor->data_type, r_ret, (const Variant **)argp.ptr(), argp.size(), ce);
 
 			if (ce.error != Callable::CallError::CALL_OK) {
 				r_error_str = vformat(RTR("Invalid arguments to construct '%s'"), Variant::get_type_name(constructor->data_type));

@@ -35,9 +35,6 @@ def get_opts():
             " validation layers)",
             False,
         ),
-        BoolVariable("game_center", "Support for game center", True),
-        BoolVariable("store_kit", "Support for in-app store", True),
-        BoolVariable("icloud", "Support for iCloud", True),
         BoolVariable("ios_exceptions", "Enable exceptions", False),
         ("ios_triple", "Triple for ios toolchain", ""),
     ]
@@ -119,7 +116,7 @@ def configure(env):
         arch_flag = "i386" if env["arch"] == "x86" else env["arch"]
         env.Append(
             CCFLAGS=(
-                "-arch "
+                "-fobjc-arc -arch "
                 + arch_flag
                 + " -fobjc-abi-version=2 -fobjc-legacy-dispatch -fmessage-length=0 -fpascal-strings -fblocks"
                 " -fasm-blocks -isysroot $IPHONESDK -mios-simulator-version-min=13.0"
@@ -221,18 +218,6 @@ def configure(env):
             "ARKit",
         ]
     )
-
-    # Feature options
-    if env["game_center"]:
-        env.Append(CPPDEFINES=["GAME_CENTER_ENABLED"])
-        env.Append(LINKFLAGS=["-framework", "GameKit"])
-
-    if env["store_kit"]:
-        env.Append(CPPDEFINES=["STOREKIT_ENABLED"])
-        env.Append(LINKFLAGS=["-framework", "StoreKit"])
-
-    if env["icloud"]:
-        env.Append(CPPDEFINES=["ICLOUD_ENABLED"])
 
     env.Prepend(
         CPPPATH=[
