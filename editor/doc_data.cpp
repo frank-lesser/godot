@@ -736,6 +736,43 @@ void DocData::generate(bool p_basic_types) {
 			}
 			c.properties.push_back(pd);
 		}
+
+		List<StringName> utility_functions;
+		Variant::get_utility_function_list(&utility_functions);
+		utility_functions.sort_custom<StringName::AlphCompare>();
+		for (List<StringName>::Element *E = utility_functions.front(); E; E = E->next()) {
+			MethodDoc md;
+			md.name = E->get();
+			//return
+			if (Variant::has_utility_function_return_value(E->get())) {
+				PropertyInfo pi;
+				pi.type = Variant::get_utility_function_return_type(E->get());
+				if (pi.type == Variant::NIL) {
+					pi.usage = PROPERTY_USAGE_NIL_IS_VARIANT;
+				}
+				DocData::ArgumentDoc ad;
+				argument_doc_from_arginfo(ad, pi);
+				md.return_type = ad.type;
+			}
+
+			if (Variant::is_utility_function_vararg(E->get())) {
+				md.qualifiers = "vararg";
+			} else {
+				for (int i = 0; i < Variant::get_utility_function_argument_count(E->get()); i++) {
+					PropertyInfo pi;
+					pi.type = Variant::get_utility_function_argument_type(E->get(), i);
+					pi.name = Variant::get_utility_function_argument_name(E->get(), i);
+					if (pi.type == Variant::NIL) {
+						pi.usage = PROPERTY_USAGE_NIL_IS_VARIANT;
+					}
+					DocData::ArgumentDoc ad;
+					argument_doc_from_arginfo(ad, pi);
+					md.arguments.push_back(ad);
+				}
+			}
+
+			c.methods.push_back(md);
+		}
 	}
 
 	// Built-in script reference.

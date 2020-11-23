@@ -87,8 +87,8 @@ def configure(env):
 
     if env["arch"] == "arm64":
         print("Building for macOS 10.15+, platform arm64.")
-        env.Append(CCFLAGS=["-arch", "arm64", "-mmacosx-version-min=10.15", "-target", "arm64-apple-macos10.15"])
-        env.Append(LINKFLAGS=["-arch", "arm64", "-mmacosx-version-min=10.15", "-target", "arm64-apple-macos10.15"])
+        env.Append(CCFLAGS=["-arch", "arm64", "-mmacosx-version-min=10.15"])
+        env.Append(LINKFLAGS=["-arch", "arm64", "-mmacosx-version-min=10.15"])
     else:
         print("Building for macOS 10.12+, platform x86-64.")
         env.Append(CCFLAGS=["-arch", "x86_64", "-mmacosx-version-min=10.12"])
@@ -99,7 +99,6 @@ def configure(env):
             mpprefix = os.environ.get("MACPORTS_PREFIX", "/opt/local")
             mpclangver = env["macports_clang"]
             env["CC"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/clang"
-            env["LINK"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/clang++"
             env["CXX"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/clang++"
             env["AR"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-ar"
             env["RANLIB"] = mpprefix + "/libexec/llvm-" + mpclangver + "/bin/llvm-ranlib"
@@ -133,12 +132,6 @@ def configure(env):
         env["RANLIB"] = basecmd + "ranlib"
         env["AS"] = basecmd + "as"
         env.Append(CPPDEFINES=["__MACPORTS__"])  # hack to fix libvpx MM256_BROADCASTSI128_SI256 define
-
-    if env["CXX"] == "clang++":
-        # This should now work with clang++, re-enable if there are issues
-        # env.Append(CPPDEFINES=["TYPED_METHOD_BIND"])
-        env["CC"] = "clang"
-        env["LINK"] = "clang++"
 
     if env["use_ubsan"] or env["use_asan"] or env["use_tsan"]:
         env.extra_suffix += "s"

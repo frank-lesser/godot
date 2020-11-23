@@ -302,7 +302,7 @@ Error VulkanContext::_create_physical_device() {
 		/*flags*/ 0,
 		/*pApplicationInfo*/ &app,
 		/*enabledLayerCount*/ enabled_layer_count,
-		/*ppEnabledLayerNames*/ (const char *const *)instance_validation_layers,
+		/*ppEnabledLayerNames*/ (const char *const *)enabled_layers,
 		/*enabledExtensionCount*/ enabled_extension_count,
 		/*ppEnabledExtensionNames*/ (const char *const *)extension_names,
 	};
@@ -707,7 +707,8 @@ Error VulkanContext::_window_create(DisplayServer::WindowID p_window_id, VkSurfa
 		// We use a single GPU, but we need a surface to initialize the
 		// queues, so this process must be deferred until a surface
 		// is created.
-		_initialize_queues(p_surface);
+		Error err = _initialize_queues(p_surface);
+		ERR_FAIL_COND_V(err != OK, ERR_CANT_CREATE);
 	}
 
 	Window window;
@@ -1009,7 +1010,6 @@ Error VulkanContext::_update_swap_chain(Window *window) {
 
 	{
 		const VkAttachmentDescription attachment = {
-
 			/*flags*/ 0,
 			/*format*/ format,
 			/*samples*/ VK_SAMPLE_COUNT_1_BIT,

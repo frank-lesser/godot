@@ -4,10 +4,12 @@
 		Image datatype.
 	</brief_description>
 	<description>
-		Native image datatype. Contains image data, which can be converted to a [Texture2D], and several functions to interact with it. The maximum width and height for an [Image] are [constant MAX_WIDTH] and [constant MAX_HEIGHT].
-		[b]Note:[/b] The maximum image size is 16384×16384 pixels due to graphics hardware limitations. Larger images will fail to import.
+		Native image datatype. Contains image data which can be converted to an [ImageTexture] and provides commonly used [i]image processing[/i] methods. The maximum width and height for an [Image] are [constant MAX_WIDTH] and [constant MAX_HEIGHT].
+		An [Image] cannot be assigned to a [code]texture[/code] property of an object directly (such as [Sprite2D]), and has to be converted manually to an [ImageTexture] first.
+		[b]Note:[/b] The maximum image size is 16384×16384 pixels due to graphics hardware limitations. Larger images may fail to import.
 	</description>
 	<tutorials>
+		<link title="Importing images">https://docs.godotengine.org/en/latest/getting_started/workflow/assets/importing_images.html</link>
 	</tutorials>
 	<methods>
 		<method name="blend_rect">
@@ -267,16 +269,18 @@
 			<argument index="1" name="y" type="int">
 			</argument>
 			<description>
-				Returns the color of the pixel at [code](x, y)[/code]. This is the same as [method get_pixelv], but with two integer arguments instead of a [Vector2] argument.
+				Returns the color of the pixel at [code](x, y)[/code].
+				This is the same as [method get_pixelv], but with two integer arguments instead of a [Vector2i] argument.
 			</description>
 		</method>
 		<method name="get_pixelv" qualifiers="const">
 			<return type="Color">
 			</return>
-			<argument index="0" name="src" type="Vector2">
+			<argument index="0" name="point" type="Vector2i">
 			</argument>
 			<description>
-				Returns the color of the pixel at [code]src[/code]. This is the same as [method get_pixel], but with a [Vector2] argument instead of two integer arguments.
+				Returns the color of the pixel at [code]point[/code].
+				This is the same as [method get_pixel], but with a [Vector2i] argument instead of two integer arguments.
 			</description>
 		</method>
 		<method name="get_rect" qualifiers="const">
@@ -344,6 +348,8 @@
 			</argument>
 			<description>
 				Loads an image from file [code]path[/code]. See [url=https://docs.godotengine.org/en/latest/getting_started/workflow/assets/importing_images.html#supported-image-formats]Supported image formats[/url] for a list of supported image formats and limitations.
+				[b]Warning:[/b] This method should only be used in the editor or in cases when you need to load external images at run-time, such as images located at the [code]user://[/code] directory, and may not work in exported projects.
+				See also [ImageTexture] description for usage examples.
 			</description>
 		</method>
 		<method name="load_bmp_from_buffer">
@@ -471,28 +477,56 @@
 			<argument index="2" name="color" type="Color">
 			</argument>
 			<description>
-				Sets the [Color] of the pixel at [code](x, y)[/code]. Example:
-				[codeblock]
+				Sets the [Color] of the pixel at [code](x, y)[/code] to [code]color[/code]. Example:
+				[codeblocks]
+				[gdscript]
+				var img_width = 10
+				var img_height = 5
 				var img = Image.new()
 				img.create(img_width, img_height, false, Image.FORMAT_RGBA8)
-				img.set_pixel(x, y, color)
-				[/codeblock]
+
+				img.set_pixel(1, 2, Color.red) # Sets the color at (1, 2) to red.
+				[/gdscript]
+				[csharp]
+				int imgWidth = 10;
+				int imgHeight = 5;
+				var img = new Image();
+				img.Create(imgWidth, imgHeight, false, Image.Format.Rgba8);
+
+				img.SetPixel(1, 2, Colors.Red); // Sets the color at (1, 2) to red.
+				[/csharp]
+				[/codeblocks]
+				This is the same as [method set_pixelv], but with a two integer arguments instead of a [Vector2i] argument.
 			</description>
 		</method>
 		<method name="set_pixelv">
 			<return type="void">
 			</return>
-			<argument index="0" name="dst" type="Vector2">
+			<argument index="0" name="point" type="Vector2i">
 			</argument>
 			<argument index="1" name="color" type="Color">
 			</argument>
 			<description>
-				Sets the [Color] of the pixel at [code](dst.x, dst.y)[/code]. Note that the [code]dst[/code] values must be integers. Example:
-				[codeblock]
+				Sets the [Color] of the pixel at [code]point[/code] to [code]color[/code]. Example:
+				[codeblocks]
+				[gdscript]
+				var img_width = 10
+				var img_height = 5
 				var img = Image.new()
 				img.create(img_width, img_height, false, Image.FORMAT_RGBA8)
-				img.set_pixelv(Vector2(x, y), color)
-				[/codeblock]
+
+				img.set_pixelv(Vector2i(1, 2), Color.red) # Sets the color at (1, 2) to red.
+				[/gdscript]
+				[csharp]
+				int imgWidth = 10;
+				int imgHeight = 5;
+				var img = new Image();
+				img.Create(imgWidth, imgHeight, false, Image.Format.Rgba8);
+
+				img.SetPixelv(new Vector2i(1, 2), Colors.Red); // Sets the color at (1, 2) to red.
+				[/csharp]
+				[/codeblocks]
+				This is the same as [method set_pixel], but with a [Vector2i] argument instead of two integer arguments.
 			</description>
 		</method>
 		<method name="shrink_x2">

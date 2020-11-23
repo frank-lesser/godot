@@ -76,14 +76,10 @@ Files extracted from upstream source:
 
 ## doctest
 - Upstream: https://github.com/onqtam/doctest
-- Version: 1c8da00 (2.4.0)
+- Version: 8424be5 (2.4.1)
 - License: MIT
 
 Extracted from .zip provided. Extracted license and header only.
-
-Important: Some files have Godot-made changes.
-They are marked with `// -- GODOT start --` and `// -- GODOT end --`
-comments.
 
 ## enet
 
@@ -435,7 +431,7 @@ Collection of single-file libraries used in Godot components.
 ## nanosvg
 
 - Upstream: https://github.com/memononen/nanosvg
-- Version: git (25241c5a8f8451d41ab1b02ab2d865b01600d949, 2019)
+- Version: git (3e403ec72a9145cbbcc6c63d94a4caf079aafec2, 2020)
 - License: zlib
 
 Files extracted from the upstream source:

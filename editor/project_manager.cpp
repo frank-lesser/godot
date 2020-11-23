@@ -61,6 +61,7 @@ class ProjectDialog : public ConfirmationDialog {
 	GDCLASS(ProjectDialog, ConfirmationDialog);
 
 public:
+	bool is_folder_empty = true;
 	enum Mode {
 		MODE_NEW,
 		MODE_IMPORT,
@@ -218,7 +219,7 @@ private:
 
 					// check if the specified install folder is empty, even though this is not an error, it is good to check here
 					d->list_dir_begin();
-					bool is_empty = true;
+					is_folder_empty = true;
 					String n = d->get_next();
 					while (n != String()) {
 						if (!n.begins_with(".")) {
@@ -226,14 +227,14 @@ private:
 							// and hidden files/folders to be present.
 							// For instance, this lets users initialize a Git repository
 							// and still be able to create a project in the directory afterwards.
-							is_empty = false;
+							is_folder_empty = false;
 							break;
 						}
 						n = d->get_next();
 					}
 					d->list_dir_end();
 
-					if (!is_empty) {
+					if (!is_folder_empty) {
 						set_message(TTR("Please choose an empty folder."), MESSAGE_WARNING, INSTALL_PATH);
 						memdelete(d);
 						get_ok()->set_disabled(true);
@@ -258,7 +259,7 @@ private:
 		} else {
 			// check if the specified folder is empty, even though this is not an error, it is good to check here
 			d->list_dir_begin();
-			bool is_empty = true;
+			is_folder_empty = true;
 			String n = d->get_next();
 			while (n != String()) {
 				if (!n.begins_with(".")) {
@@ -266,18 +267,18 @@ private:
 					// and hidden files/folders to be present.
 					// For instance, this lets users initialize a Git repository
 					// and still be able to create a project in the directory afterwards.
-					is_empty = false;
+					is_folder_empty = false;
 					break;
 				}
 				n = d->get_next();
 			}
 			d->list_dir_end();
 
-			if (!is_empty) {
-				set_message(TTR("Please choose an empty folder."), MESSAGE_ERROR);
+			if (!is_folder_empty) {
+				set_message(TTR("The selected path is not empty. Choosing an empty folder is highly recommended."), MESSAGE_WARNING);
 				memdelete(d);
-				get_ok()->set_disabled(true);
-				return "";
+				get_ok()->set_disabled(false);
+				return valid_path;
 			}
 		}
 
@@ -416,6 +417,11 @@ private:
 		}
 	}
 
+	void _nonempty_confirmation_ok_pressed() {
+		is_folder_empty = true;
+		ok_pressed();
+	}
+
 	void ok_pressed() override {
 		String dir = project_path->get_text();
 
@@ -454,6 +460,18 @@ private:
 
 			} else {
 				if (mode == MODE_NEW) {
+					// Before we create a project, check that the target folder is empty.
+					// If not, we need to ask the user if they're sure they want to do this.
+					if (!is_folder_empty) {
+						ConfirmationDialog *cd = memnew(ConfirmationDialog);
+						cd->set_title(TTR("Warning: This folder is not empty"));
+						cd->set_text(TTR("You are about to create a Godot project in a non-empty folder.\nThe entire contents of this folder will be imported as project resources!\n\nAre you sure you wish to continue?"));
+						cd->get_ok()->connect("pressed", callable_mp(this, &ProjectDialog::_nonempty_confirmation_ok_pressed));
+						get_parent()->add_child(cd);
+						cd->popup_centered();
+						cd->grab_focus();
+						return;
+					}
 					ProjectSettings::CustomMap initial_settings;
 					if (rasterizer_button_group->get_pressed_button()->get_meta("driver_name") == "Vulkan") {
 						initial_settings["rendering/quality/driver/driver_name"] = "Vulkan";
@@ -2087,7 +2105,7 @@ void ProjectManager::_run_project_confirm() {
 		if (selected_main == "") {
 			run_error_diag->set_text(TTR("Can't run project: no main scene defined.\nPlease edit the project and set the main scene in the Project Settings under the \"Application\" category."));
 			run_error_diag->popup_centered();
-			return;
+			continue;
 		}
 
 		const String &selected = selected_list[i].project_key;
@@ -2097,7 +2115,7 @@ void ProjectManager::_run_project_confirm() {
 		if (!DirAccess::exists(path.plus_file(ProjectSettings::IMPORTED_FILES_PATH.right(6)))) {
 			run_error_diag->set_text(TTR("Can't run project: Assets need to be imported.\nPlease edit the project to trigger the initial import."));
 			run_error_diag->popup_centered();
-			return;
+			continue;
 		}
 
 		print_line("Running project: " + path + " (" + selected + ")");
@@ -2348,12 +2366,24 @@ ProjectManager::ProjectManager() {
 
 		switch (display_scale) {
 			case 0: {
-				// Try applying a suitable display scale automatically
+				// Try applying a suitable display scale automatically.
 #ifdef OSX_ENABLED
 				editor_set_scale(DisplayServer::get_singleton()->screen_get_max_scale());
 #else
 				const int screen = DisplayServer::get_singleton()->window_get_current_screen();
-				editor_set_scale(DisplayServer::get_singleton()->screen_get_dpi(screen) >= 192 && DisplayServer::get_singleton()->screen_get_size(screen).x > 2000 ? 2.0 : 1.0);
+				float scale;
+				if (DisplayServer::get_singleton()->screen_get_dpi(screen) >= 192 && DisplayServer::get_singleton()->screen_get_size(screen).y >= 1400) {
+					// hiDPI display.
+					scale = 2.0;
+				} else if (DisplayServer::get_singleton()->screen_get_size(screen).y <= 800) {
+					// Small loDPI display. Use a smaller display scale so that editor elements fit more easily.
+					// Icons won't look great, but this is better than having editor elements overflow from its window.
+					scale = 0.75;
+				} else {
+					scale = 1.0;
+				}
+
+				editor_set_scale(scale);
 #endif
 			} break;
 
@@ -2375,9 +2405,9 @@ ProjectManager::ProjectManager() {
 			case 6:
 				editor_set_scale(2.0);
 				break;
-			default: {
+			default:
 				editor_set_scale(EditorSettings::get_singleton()->get("interface/editor/custom_display_scale"));
-			} break;
+				break;
 		}
 
 		// Define a minimum window size to prevent UI elements from overlapping or being cut off

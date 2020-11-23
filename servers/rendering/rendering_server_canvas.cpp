@@ -115,7 +115,7 @@ void RenderingServerCanvas::_cull_canvas_item(Item *p_canvas_item, const Transfo
 	Rect2 rect = ci->get_rect();
 	Transform2D xform = ci->xform;
 	if (snapping_2d_transforms_to_pixel) {
-		xform.elements[2].floor();
+		xform.elements[2] = xform.elements[2].floor();
 	}
 	xform = p_transform * xform;
 
@@ -582,7 +582,6 @@ void RenderingServerCanvas::canvas_item_add_polyline(RID p_item, const Vector<Po
 		}
 
 		for (int i = 0; i < p_points.size(); i++) {
-
 			Vector2 t;
 			if (i == p_points.size() - 1) {
 				t = prev_t;
@@ -608,7 +607,6 @@ void RenderingServerCanvas::canvas_item_add_polyline(RID p_item, const Vector<Po
 			pline->triangles.write[i * 2 + 1] = p_points[i] - tangent;
 
 			if (pline->triangle_colors.size() > 1) {
-
 				pline->triangle_colors.write[i * 2 + 0] = p_colors[i];
 				pline->triangle_colors.write[i * 2 + 1] = p_colors[i];
 			}

@@ -334,8 +334,8 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print("  -d, --debug                      Debug (local stdout debugger).\n");
 	OS::get_singleton()->print("  -b, --breakpoints                Breakpoint list as source::line comma-separated pairs, no spaces (use %%20 instead).\n");
 	OS::get_singleton()->print("  --profiling                      Enable profiling in the script debugger.\n");
-#if DEBUG_ENABLED
 	OS::get_singleton()->print("  --vk-layers                      Enable Vulkan Validation layers for debugging.\n");
+#if DEBUG_ENABLED
 	OS::get_singleton()->print("  --gpu-abort                      Abort on GPU errors (usually validation layer errors), may help see the problem if your system freezes.\n");
 #endif
 	OS::get_singleton()->print("  --remote-debug <uri>             Remote debug (<protocol>://<host/IP>[:<port>], e.g. tcp://127.0.0.1:6007).\n");
@@ -698,9 +698,9 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		} else if (I->get() == "-w" || I->get() == "--windowed") { // force windowed window
 
 			init_windowed = true;
-#ifdef DEBUG_ENABLED
 		} else if (I->get() == "--vk-layers") {
 			Engine::singleton->use_validation_layers = true;
+#ifdef DEBUG_ENABLED
 		} else if (I->get() == "--gpu-abort") {
 			Engine::singleton->abort_on_gpu_errors = true;
 #endif
@@ -1143,7 +1143,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		use_custom_res = false;
 		input_map->load_default(); //keys for editor
 	} else {
-		input_map->load_from_globals(); //keys for game
+		input_map->load_from_project_settings(); //keys for game
 	}
 
 	if (bool(ProjectSettings::get_singleton()->get("application/run/disable_stdout"))) {
@@ -1890,14 +1890,6 @@ bool Main::start() {
 		return false;
 	}
 
-	if (_export_preset != "") {
-		if (positional_arg == "") {
-			String err = "Command line includes export parameter option, but no destination path was given.\n";
-			err += "Please specify the binary's file path to export to. Aborting export.";
-			ERR_PRINT(err);
-			return false;
-		}
-	}
 #endif
 
 	if (script == "" && game_path == "" && String(GLOBAL_DEF("application/run/main_scene", "")) != "") {
@@ -2396,7 +2388,6 @@ bool Main::iteration() {
 	for (int iters = 0; iters < advance.physics_steps; ++iters) {
 		uint64_t physics_begin = OS::get_singleton()->get_ticks_usec();
 
-		PhysicsServer3D::get_singleton()->sync();
 		PhysicsServer3D::get_singleton()->flush_queries();
 
 		PhysicsServer2D::get_singleton()->sync();

@@ -1513,7 +1513,7 @@ bool CanvasItemEditor::_gui_input_rotate(const Ref<InputEvent> &p_event) {
 	// Start rotation
 	if (drag_type == DRAG_NONE) {
 		if (b.is_valid() && b->get_button_index() == BUTTON_LEFT && b->is_pressed()) {
-			if ((b->get_control() && !b->get_alt() && tool == TOOL_SELECT) || tool == TOOL_ROTATE) {
+			if ((b->get_command() && !b->get_alt() && tool == TOOL_SELECT) || tool == TOOL_ROTATE) {
 				List<CanvasItem *> selection = _get_edited_canvas_items();
 
 				// Remove not movable nodes
@@ -3389,7 +3389,6 @@ void CanvasItemEditor::_draw_selection() {
 
 			if (canvas_item->_edit_use_rect()) {
 				Vector2 pre_drag_endpoints[4] = {
-
 					pre_drag_xform.xform(se->pre_drag_rect.position),
 					pre_drag_xform.xform(se->pre_drag_rect.position + Vector2(se->pre_drag_rect.size.x, 0)),
 					pre_drag_xform.xform(se->pre_drag_rect.position + se->pre_drag_rect.size),
