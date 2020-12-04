@@ -1249,12 +1249,34 @@ void ScriptEditor::_menu_option(int p_option) {
 
 				RES resource = current->get_edited_resource();
 				Ref<TextFile> text_file = resource;
+				Ref<Script> script = resource;
+
 				if (text_file != nullptr) {
 					current->apply_code();
 					_save_text_file(text_file, text_file->get_path());
 					break;
 				}
+
+				if (script != nullptr) {
+					const Vector<DocData::ClassDoc> &documentations = script->get_documentation();
+					for (int j = 0; j < documentations.size(); j++) {
+						const DocData::ClassDoc &doc = documentations.get(j);
+						if (EditorHelp::get_doc_data()->has_doc(doc.name)) {
+							EditorHelp::get_doc_data()->remove_doc(doc.name);
+						}
+					}
+				}
+
 				editor->save_resource(resource);
+
+				if (script != nullptr) {
+					const Vector<DocData::ClassDoc> &documentations = script->get_documentation();
+					for (int j = 0; j < documentations.size(); j++) {
+						const DocData::ClassDoc &doc = documentations.get(j);
+						EditorHelp::get_doc_data()->add_doc(doc);
+						update_doc(doc.name);
+					}
+				}
 
 			} break;
 			case FILE_SAVE_AS: {
@@ -1274,6 +1296,8 @@ void ScriptEditor::_menu_option(int p_option) {
 
 				RES resource = current->get_edited_resource();
 				Ref<TextFile> text_file = resource;
+				Ref<Script> script = resource;
+
 				if (text_file != nullptr) {
 					file_dialog->set_file_mode(EditorFileDialog::FILE_MODE_SAVE_FILE);
 					file_dialog->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
@@ -1289,9 +1313,27 @@ void ScriptEditor::_menu_option(int p_option) {
 					break;
 				}
 
+				if (script != nullptr) {
+					const Vector<DocData::ClassDoc> &documentations = script->get_documentation();
+					for (int j = 0; j < documentations.size(); j++) {
+						const DocData::ClassDoc &doc = documentations.get(j);
+						if (EditorHelp::get_doc_data()->has_doc(doc.name)) {
+							EditorHelp::get_doc_data()->remove_doc(doc.name);
+						}
+					}
+				}
+
 				editor->push_item(resource.ptr());
 				editor->save_resource_as(resource);
 
+				if (script != nullptr) {
+					const Vector<DocData::ClassDoc> &documentations = script->get_documentation();
+					for (int j = 0; j < documentations.size(); j++) {
+						const DocData::ClassDoc &doc = documentations.get(j);
+						EditorHelp::get_doc_data()->add_doc(doc);
+						update_doc(doc.name);
+					}
+				}
 			} break;
 
 			case FILE_TOOL_RELOAD:
@@ -1485,12 +1527,19 @@ void ScriptEditor::_notification(int p_what) {
 			EditorFileSystem::get_singleton()->connect("filesystem_changed", callable_mp(this, &ScriptEditor::_filesystem_changed));
 			[[fallthrough]];
 		}
+		case NOTIFICATION_TRANSLATION_CHANGED:
+		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED:
 		case NOTIFICATION_THEME_CHANGED: {
 			help_search->set_icon(get_theme_icon("HelpSearch", "EditorIcons"));
 			site_search->set_icon(get_theme_icon("Instance", "EditorIcons"));
 
-			script_forward->set_icon(get_theme_icon("Forward", "EditorIcons"));
-			script_back->set_icon(get_theme_icon("Back", "EditorIcons"));
+			if (is_layout_rtl()) {
+				script_forward->set_icon(get_theme_icon("Back", "EditorIcons"));
+				script_back->set_icon(get_theme_icon("Forward", "EditorIcons"));
+			} else {
+				script_forward->set_icon(get_theme_icon("Forward", "EditorIcons"));
+				script_back->set_icon(get_theme_icon("Back", "EditorIcons"));
+			}
 
 			members_overview_alphabeta_sort_button->set_icon(get_theme_icon("Sort", "EditorIcons"));
 
@@ -2311,11 +2360,33 @@ void ScriptEditor::save_all_scripts() {
 
 		if (edited_res->get_path() != "" && edited_res->get_path().find("local://") == -1 && edited_res->get_path().find("::") == -1) {
 			Ref<TextFile> text_file = edited_res;
+			Ref<Script> script = edited_res;
+
 			if (text_file != nullptr) {
 				_save_text_file(text_file, text_file->get_path());
 				continue;
 			}
+
+			if (script != nullptr) {
+				const Vector<DocData::ClassDoc> &documentations = script->get_documentation();
+				for (int j = 0; j < documentations.size(); j++) {
+					const DocData::ClassDoc &doc = documentations.get(j);
+					if (EditorHelp::get_doc_data()->has_doc(doc.name)) {
+						EditorHelp::get_doc_data()->remove_doc(doc.name);
+					}
+				}
+			}
+
 			editor->save_resource(edited_res); //external script, save it
+
+			if (script != nullptr) {
+				const Vector<DocData::ClassDoc> &documentations = script->get_documentation();
+				for (int j = 0; j < documentations.size(); j++) {
+					const DocData::ClassDoc &doc = documentations.get(j);
+					EditorHelp::get_doc_data()->add_doc(doc);
+					update_doc(doc.name);
+				}
+			}
 		}
 	}
 
@@ -2637,7 +2708,7 @@ void ScriptEditor::drop_data_fw(const Point2 &p_point, const Variant &p_data, Co
 	}
 }
 
-void ScriptEditor::_unhandled_input(const Ref<InputEvent> &p_event) {
+void ScriptEditor::_unhandled_key_input(const Ref<InputEvent> &p_event) {
 	if (!is_visible_in_tree() || !p_event->is_pressed() || p_event->is_echo()) {
 		return;
 	}
@@ -2891,6 +2962,18 @@ void ScriptEditor::_help_class_goto(const String &p_desc) {
 	_sort_list_on_update = true;
 	_update_script_names();
 	_save_layout();
+}
+
+void ScriptEditor::update_doc(const String &p_name) {
+	ERR_FAIL_COND(!EditorHelp::get_doc_data()->has_doc(p_name));
+
+	for (int i = 0; i < tab_container->get_child_count(); i++) {
+		EditorHelp *eh = Object::cast_to<EditorHelp>(tab_container->get_child(i));
+		if (eh && eh->get_class() == p_name) {
+			eh->update_doc();
+			return;
+		}
+	}
 }
 
 void ScriptEditor::_update_selected_editor_menu() {
@@ -3165,7 +3248,7 @@ void ScriptEditor::_bind_methods() {
 	ClassDB::bind_method("_update_script_connections", &ScriptEditor::_update_script_connections);
 	ClassDB::bind_method("_help_class_open", &ScriptEditor::_help_class_open);
 	ClassDB::bind_method("_live_auto_reload_running_scripts", &ScriptEditor::_live_auto_reload_running_scripts);
-	ClassDB::bind_method("_unhandled_input", &ScriptEditor::_unhandled_input);
+	ClassDB::bind_method("_unhandled_key_input", &ScriptEditor::_unhandled_key_input);
 	ClassDB::bind_method("_update_members_overview", &ScriptEditor::_update_members_overview);
 	ClassDB::bind_method("_update_recent_scripts", &ScriptEditor::_update_recent_scripts);
 
@@ -3292,12 +3375,13 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	ED_SHORTCUT("script_editor/window_move_down", TTR("Move Down"), KEY_MASK_SHIFT | KEY_MASK_ALT | KEY_DOWN);
 	ED_SHORTCUT("script_editor/next_script", TTR("Next script"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_PERIOD); // these should be KEY_GREATER and KEY_LESS but those don't work
 	ED_SHORTCUT("script_editor/prev_script", TTR("Previous script"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_COMMA);
-	set_process_unhandled_input(true);
+	set_process_unhandled_key_input(true);
 
 	file_menu = memnew(MenuButton);
-	menu_hb->add_child(file_menu);
 	file_menu->set_text(TTR("File"));
 	file_menu->set_switch_on_hover(true);
+	file_menu->set_shortcut_context(this);
+	menu_hb->add_child(file_menu);
 
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new", TTR("New Script...")), FILE_NEW);
 	file_menu->get_popup()->add_shortcut(ED_SHORTCUT("script_editor/new_textfile", TTR("New Text File...")), FILE_NEW_TEXTFILE);
@@ -3352,10 +3436,11 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	file_menu->get_popup()->connect("id_pressed", callable_mp(this, &ScriptEditor::_menu_option));
 
 	script_search_menu = memnew(MenuButton);
-	menu_hb->add_child(script_search_menu);
 	script_search_menu->set_text(TTR("Search"));
 	script_search_menu->set_switch_on_hover(true);
+	script_search_menu->set_shortcut_context(this);
 	script_search_menu->get_popup()->connect("id_pressed", callable_mp(this, &ScriptEditor::_menu_option));
+	menu_hb->add_child(script_search_menu);
 
 	MenuButton *debug_menu = memnew(MenuButton);
 	menu_hb->add_child(debug_menu);

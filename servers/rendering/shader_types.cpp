@@ -67,6 +67,12 @@ ShaderTypes::ShaderTypes() {
 	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["INSTANCE_ID"] = constt(ShaderLanguage::TYPE_INT);
 	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["INSTANCE_CUSTOM"] = constt(ShaderLanguage::TYPE_VEC4);
 	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["ROUGHNESS"] = ShaderLanguage::TYPE_FLOAT;
+	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["BONE_INDICES"] = ShaderLanguage::TYPE_UVEC4;
+	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["BONE_WEIGHTS"] = ShaderLanguage::TYPE_VEC4;
+	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["CUSTOM0"] = ShaderLanguage::TYPE_VEC4;
+	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["CUSTOM1"] = ShaderLanguage::TYPE_VEC4;
+	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["CUSTOM2"] = ShaderLanguage::TYPE_VEC4;
+	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].built_ins["CUSTOM3"] = ShaderLanguage::TYPE_VEC4;
 	shader_modes[RS::SHADER_SPATIAL].functions["vertex"].can_discard = false;
 
 	//builtins
@@ -251,6 +257,27 @@ ShaderTypes::ShaderTypes() {
 	shader_modes[RS::SHADER_CANVAS_ITEM].functions["fragment"].built_ins["AT_LIGHT_PASS"] = constt(ShaderLanguage::TYPE_BOOL);
 	shader_modes[RS::SHADER_CANVAS_ITEM].functions["fragment"].built_ins["SCREEN_TEXTURE"] = constt(ShaderLanguage::TYPE_SAMPLER2D);
 	shader_modes[RS::SHADER_CANVAS_ITEM].functions["fragment"].can_discard = true;
+
+	{
+		ShaderLanguage::StageFunctionInfo func;
+		func.arguments.push_back(ShaderLanguage::StageFunctionInfo::Argument("sdf_pos", ShaderLanguage::TYPE_VEC2));
+		func.return_type = ShaderLanguage::TYPE_FLOAT; //whether it could emit
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["fragment"].stage_functions["texture_sdf"] = func;
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["light"].stage_functions["texture_sdf"] = func;
+		func.return_type = ShaderLanguage::TYPE_VEC2; //whether it could emit
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["fragment"].stage_functions["sdf_to_screen_uv"] = func;
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["light"].stage_functions["sdf_to_screen_uv"] = func;
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["fragment"].stage_functions["texture_sdf_normal"] = func;
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["light"].stage_functions["texture_sdf_normal"] = func;
+	}
+
+	{
+		ShaderLanguage::StageFunctionInfo func;
+		func.arguments.push_back(ShaderLanguage::StageFunctionInfo::Argument("uv", ShaderLanguage::TYPE_VEC2));
+		func.return_type = ShaderLanguage::TYPE_VEC2; //whether it could emit
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["fragment"].stage_functions["screen_uv_to_sdf"] = func;
+		shader_modes[RS::SHADER_CANVAS_ITEM].functions["light"].stage_functions["screen_uv_to_sdf"] = func;
+	}
 
 	shader_modes[RS::SHADER_CANVAS_ITEM].functions["light"].built_ins["FRAGCOORD"] = constt(ShaderLanguage::TYPE_VEC4);
 	shader_modes[RS::SHADER_CANVAS_ITEM].functions["light"].built_ins["NORMAL"] = constt(ShaderLanguage::TYPE_VEC3);

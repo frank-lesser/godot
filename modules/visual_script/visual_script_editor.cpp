@@ -719,6 +719,7 @@ void VisualScriptEditor::_update_graph(int p_only_id) {
 				line_edit->set_text(node->get_text());
 				line_edit->set_expand_to_text_length(true);
 				line_edit->add_theme_font_override("font", get_theme_font("source", "EditorFonts"));
+				line_edit->add_theme_font_size_override("font_size", get_theme_font_size("source_size", "EditorFonts"));
 				gnode->add_child(line_edit);
 				line_edit->connect("text_changed", callable_mp(this, &VisualScriptEditor::_expression_text_changed), varray(E->get()));
 			} else {
@@ -4728,6 +4729,7 @@ VisualScriptEditor::VisualScriptEditor() {
 	saved_position = Vector2(0, 0);
 
 	edit_menu = memnew(MenuButton);
+	edit_menu->set_shortcut_context(this);
 	edit_menu->set_text(TTR("Edit"));
 	edit_menu->set_switch_on_hover(true);
 	edit_menu->get_popup()->add_shortcut(ED_GET_SHORTCUT("visual_script_editor/delete_selected"), EDIT_DELETE_NODES);
@@ -4929,7 +4931,6 @@ VisualScriptEditor::VisualScriptEditor() {
 	updating_members = false;
 
 	set_process_input(true);
-	set_process_unhandled_input(true);
 
 	default_value_edit = memnew(CustomPropertyEditor);
 	add_child(default_value_edit);

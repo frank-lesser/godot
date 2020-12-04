@@ -42,7 +42,7 @@
 #include "core/string/print_string.h"
 #include "node.h"
 #include "scene/debugger/scene_debugger.h"
-#include "scene/resources/dynamic_font.h"
+#include "scene/resources/font.h"
 #include "scene/resources/material.h"
 #include "scene/resources/mesh.h"
 #include "scene/resources/packed_scene.h"
@@ -1396,6 +1396,14 @@ SceneTree::SceneTree() {
 
 	bool snap_2d_vertices = GLOBAL_DEF("rendering/quality/2d/snap_2d_vertices_to_pixel", false);
 	root->set_snap_2d_vertices_to_pixel(snap_2d_vertices);
+
+	Viewport::SDFOversize sdf_oversize = Viewport::SDFOversize(int(GLOBAL_DEF("rendering/quality/2d_sdf/oversize", 1)));
+	root->set_sdf_oversize(sdf_oversize);
+	Viewport::SDFScale sdf_scale = Viewport::SDFScale(int(GLOBAL_DEF("rendering/quality/2d_sdf/scale", 1)));
+	root->set_sdf_scale(sdf_scale);
+
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/2d_sdf/oversize", PropertyInfo(Variant::INT, "rendering/quality/2d_sdf/oversize", PROPERTY_HINT_ENUM, "100%,120%,150%,200%"));
+	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/2d_sdf/scale", PropertyInfo(Variant::INT, "rendering/quality/2d_sdf/scale", PROPERTY_HINT_ENUM, "100%,50%,25%"));
 
 	{ //load default fallback environment
 		//get possible extensions

@@ -49,7 +49,7 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the acceleration of the device's accelerometer, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				Returns the acceleration of the device's accelerometer sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
 				Note this method returns an empty [Vector3] when running from the editor even when your device has an accelerometer. You must export your project to a supported device to read values from the accelerometer.
 				[b]Note:[/b] This method only works on iOS, Android, and UWP. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
@@ -102,7 +102,7 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the gravity of the device's accelerometer, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				Returns the gravity of the device's accelerometer sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
 				[b]Note:[/b] This method only works on Android and iOS. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
 		</method>
@@ -110,8 +110,8 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the rotation rate in rad/s around a device's X, Y, and Z axes of the gyroscope, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
-				[b]Note:[/b] This method only works on Android. On other platforms, it always returns [constant Vector3.ZERO].
+				Returns the rotation rate in rad/s around a device's X, Y, and Z axes of the gyroscope sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				[b]Note:[/b] This method only works on Android and iOS. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
 		</method>
 		<method name="get_joy_axis" qualifiers="const">
@@ -123,42 +123,6 @@
 			</argument>
 			<description>
 				Returns the current value of the joypad axis at given index (see [enum JoyAxisList]).
-			</description>
-		</method>
-		<method name="get_joy_axis_index_from_string">
-			<return type="int">
-			</return>
-			<argument index="0" name="axis" type="String">
-			</argument>
-			<description>
-				Returns the index of the provided axis name.
-			</description>
-		</method>
-		<method name="get_joy_axis_string">
-			<return type="String">
-			</return>
-			<argument index="0" name="axis_index" type="int">
-			</argument>
-			<description>
-				Receives a [enum JoyAxisList] axis and returns its equivalent name as a string.
-			</description>
-		</method>
-		<method name="get_joy_button_index_from_string">
-			<return type="int">
-			</return>
-			<argument index="0" name="button" type="String">
-			</argument>
-			<description>
-				Returns the index of the provided button name.
-			</description>
-		</method>
-		<method name="get_joy_button_string">
-			<return type="String">
-			</return>
-			<argument index="0" name="button_index" type="int">
-			</argument>
-			<description>
-				Receives a gamepad button from [enum JoyButtonList] and returns its equivalent name as a string.
 			</description>
 		</method>
 		<method name="get_joy_guid" qualifiers="const">
@@ -208,8 +172,8 @@
 			<return type="Vector3">
 			</return>
 			<description>
-				Returns the the magnetic field strength in micro-Tesla for all axes of the device's magnetometer, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
-				[b]Note:[/b] This method only works on Android and UWP. On other platforms, it always returns [constant Vector3.ZERO].
+				Returns the the magnetic field strength in micro-Tesla for all axes of the device's magnetometer sensor, if the device has one. Otherwise, the method returns [constant Vector3.ZERO].
+				[b]Note:[/b] This method only works on Android, iOS and UWP. On other platforms, it always returns [constant Vector3.ZERO].
 			</description>
 		</method>
 		<method name="get_mouse_button_mask" qualifiers="const">
@@ -335,12 +299,20 @@
 			<description>
 				Feeds an [InputEvent] to the game. Can be used to artificially trigger input events from code. Also generates [method Node._input] calls.
 				Example:
-				[codeblock]
-				var a = InputEventAction.new()
-				a.action = "ui_cancel"
-				a.pressed = true
-				Input.parse_input_event(a)
-				[/codeblock]
+				[codeblocks]
+				[gdscript]
+				var cancel_event = InputEventAction.new()
+				cancel_event.action = "ui_cancel"
+				cancel_event.pressed = true
+				Input.parse_input_event(cancel_event)
+				[/gdscript]
+				[csharp]
+				var cancelEvent = new InputEventAction();
+				cancelEvent.Action = "ui_cancel";
+				cancelEvent.Pressed = true;
+				Input.ParseInputEvent(cancelEvent);
+				[/csharp]
+				[/codeblocks]
 			</description>
 		</method>
 		<method name="remove_joy_mapping">
@@ -431,7 +403,7 @@
 			</argument>
 			<description>
 				Vibrate Android and iOS devices.
-				[b]Note:[/b] It needs VIBRATE permission for Android at export settings. iOS does not support duration.
+				[b]Note:[/b] It needs [code]VIBRATE[/code] permission for Android at export settings. iOS does not support duration.
 			</description>
 		</method>
 		<method name="warp_mouse_position">

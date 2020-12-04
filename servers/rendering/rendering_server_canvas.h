@@ -153,6 +153,7 @@ public:
 	RID_PtrOwner<RasterizerCanvas::Light> canvas_light_owner;
 
 	bool disable_scale;
+	bool sdf_used = false;
 	bool snapping_2d_transforms_to_pixel = false;
 
 private:
@@ -164,6 +165,8 @@ private:
 
 public:
 	void render_canvas(RID p_render_target, Canvas *p_canvas, const Transform2D &p_transform, RasterizerCanvas::Light *p_lights, RasterizerCanvas::Light *p_directional_lights, const Rect2 &p_clip_rect, RS::CanvasItemTextureFilter p_default_filter, RS::CanvasItemTextureRepeat p_default_repeat, bool p_snap_2d_transforms_to_pixel, bool p_snap_2d_vertices_to_pixel);
+
+	bool was_sdf_used();
 
 	RID canvas_create();
 	void canvas_set_item_mirroring(RID p_canvas, RID p_item, const Point2 &p_mirroring);
@@ -189,7 +192,7 @@ public:
 	void canvas_item_set_update_when_visible(RID p_item, bool p_update);
 
 	void canvas_item_add_line(RID p_item, const Point2 &p_from, const Point2 &p_to, const Color &p_color, float p_width = 1.0);
-	void canvas_item_add_polyline(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, float p_width = 1.0);
+	void canvas_item_add_polyline(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, float p_width = 1.0, bool p_antialiased = false);
 	void canvas_item_add_multiline(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, float p_width = 1.0);
 	void canvas_item_add_rect(RID p_item, const Rect2 &p_rect, const Color &p_color);
 	void canvas_item_add_circle(RID p_item, const Point2 &p_pos, float p_radius, const Color &p_color);
@@ -247,12 +250,12 @@ public:
 	void canvas_light_occluder_attach_to_canvas(RID p_occluder, RID p_canvas);
 	void canvas_light_occluder_set_enabled(RID p_occluder, bool p_enabled);
 	void canvas_light_occluder_set_polygon(RID p_occluder, RID p_polygon);
+	void canvas_light_occluder_set_as_sdf_collision(RID p_occluder, bool p_enable);
 	void canvas_light_occluder_set_transform(RID p_occluder, const Transform2D &p_xform);
 	void canvas_light_occluder_set_light_mask(RID p_occluder, int p_mask);
 
 	RID canvas_occluder_polygon_create();
 	void canvas_occluder_polygon_set_shape(RID p_occluder_polygon, const Vector<Vector2> &p_shape, bool p_closed);
-	void canvas_occluder_polygon_set_shape_as_lines(RID p_occluder_polygon, const Vector<Vector2> &p_shape);
 
 	void canvas_occluder_polygon_set_cull_mode(RID p_occluder_polygon, RS::CanvasOccluderPolygonCullMode p_mode);
 

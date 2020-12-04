@@ -31,6 +31,7 @@
 #include "connections_dialog.h"
 
 #include "core/string/print_string.h"
+#include "editor/doc_tools.h"
 #include "editor_node.h"
 #include "editor_scale.h"
 #include "editor_settings.h"
@@ -410,6 +411,7 @@ ConnectDialog::ConnectDialog() {
 
 	tree = memnew(SceneTreeEditor(false));
 	tree->set_connecting_signal(true);
+	tree->set_show_enabled_subscene(true);
 	tree->get_scene_tree()->connect("item_activated", callable_mp(this, &ConnectDialog::_item_activated));
 	tree->connect("node_selected", callable_mp(this, &ConnectDialog::_tree_node_selected));
 	tree->set_connect_to_script_mode(true);
@@ -997,7 +999,7 @@ void ConnectionsDock::update_tree() {
 				}
 
 				if (!found) {
-					DocData *dd = EditorHelp::get_doc_data();
+					DocTools *dd = EditorHelp::get_doc_data();
 					Map<String, DocData::ClassDoc>::Element *F = dd->class_list.find(base);
 					while (F && descr == String()) {
 						for (int i = 0; i < F->get().signals.size(); i++) {

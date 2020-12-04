@@ -402,7 +402,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 #ifdef OSX_ENABLED
 		if (!found) {
 			// Attempt to load PCK from macOS .app bundle resources.
-			found = _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().plus_file(exec_basename + ".pck"));
+			found = _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().plus_file(exec_basename + ".pck")) || _load_resource_pack(OS::get_singleton()->get_bundle_resource_dir().plus_file(exec_filename + ".pck"));
 		}
 #endif
 
@@ -522,10 +522,6 @@ bool ProjectSettings::has_setting(String p_var) const {
 	_THREAD_SAFE_METHOD_
 
 	return props.has(p_var);
-}
-
-void ProjectSettings::set_registering_order(bool p_enable) {
-	registering_order = p_enable;
 }
 
 Error ProjectSettings::_load_settings_binary(const String &p_path) {

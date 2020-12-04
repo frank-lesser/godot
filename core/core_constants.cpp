@@ -38,10 +38,10 @@
 struct _CoreConstant {
 #ifdef DEBUG_METHODS_ENABLED
 	StringName enum_name;
-	bool ignore_value_in_docs;
+	bool ignore_value_in_docs = false;
 #endif
 	const char *name;
-	int value;
+	int value = 0;
 
 	_CoreConstant() {}
 
@@ -128,6 +128,7 @@ void register_global_constants() {
 	BIND_CORE_ENUM_CONSTANT(HALIGN_LEFT);
 	BIND_CORE_ENUM_CONSTANT(HALIGN_CENTER);
 	BIND_CORE_ENUM_CONSTANT(HALIGN_RIGHT);
+	BIND_CORE_ENUM_CONSTANT(HALIGN_FILL);
 
 	BIND_CORE_ENUM_CONSTANT(VALIGN_TOP);
 	BIND_CORE_ENUM_CONSTANT(VALIGN_CENTER);

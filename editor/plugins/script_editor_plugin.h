@@ -402,7 +402,7 @@ class ScriptEditor : public PanelContainer {
 	bool can_drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from) const;
 	void drop_data_fw(const Point2 &p_point, const Variant &p_data, Control *p_from);
 
-	void _unhandled_input(const Ref<InputEvent> &p_event);
+	void _unhandled_key_input(const Ref<InputEvent> &p_event);
 
 	void _script_list_gui_input(const Ref<InputEvent> &ev);
 	void _make_script_list_context_menu();
@@ -482,6 +482,7 @@ public:
 	void close_builtin_scripts_from_scene(const String &p_scene);
 
 	void goto_help(const String &p_desc) { _help_class_goto(p_desc); }
+	void update_doc(const String &p_name);
 
 	bool can_take_away_focus() const;
 

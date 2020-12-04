@@ -1397,6 +1397,7 @@ void AnimationTimelineEdit::_notification(int p_what) {
 		}
 
 		Ref<Font> font = get_theme_font("font", "Label");
+		int font_size = get_theme_font_size("font_size", "Label");
 		Color color = get_theme_color("font_color", "Label");
 
 		int zoomw = key_range;
@@ -1488,10 +1489,10 @@ void AnimationTimelineEdit::_notification(int p_what) {
 		int decimals = 2;
 		bool step_found = false;
 
-		const int period_width = font->get_char_size('.').width;
-		int max_digit_width = font->get_char_size('0').width;
+		const int period_width = font->get_char_size('.', 0, font_size).width;
+		int max_digit_width = font->get_char_size('0', 0, font_size).width;
 		for (int i = 1; i <= 9; i++) {
-			const int digit_width = font->get_char_size('0' + i).width;
+			const int digit_width = font->get_char_size('0' + i, 0, font_size).width;
 			max_digit_width = MAX(digit_width, max_digit_width);
 		}
 		const int max_sc = int(Math::ceil(zoomw / scale));
@@ -1538,8 +1539,8 @@ void AnimationTimelineEdit::_notification(int p_what) {
 					if (frame != prev_frame && i >= prev_frame_ofs) {
 						draw_line(Point2(get_name_limit() + i, 0), Point2(get_name_limit() + i, h), linecolor, Math::round(EDSCALE));
 
-						draw_string(font, Point2(get_name_limit() + i + 3 * EDSCALE, (h - font->get_height()) / 2 + font->get_ascent()).floor(), itos(frame), sub ? color_time_dec : color_time_sec, zoomw - i);
-						prev_frame_ofs = i + font->get_string_size(itos(frame)).x + 5 * EDSCALE;
+						draw_string(font, Point2(get_name_limit() + i + 3 * EDSCALE, (h - font->get_height(font_size)) / 2 + font->get_ascent(font_size)).floor(), itos(frame), HALIGN_LEFT, zoomw - i, font_size, sub ? color_time_dec : color_time_sec);
+						prev_frame_ofs = i + font->get_string_size(itos(frame), font_size).x + 5 * EDSCALE;
 					}
 				}
 			}
@@ -1556,7 +1557,7 @@ void AnimationTimelineEdit::_notification(int p_what) {
 				if ((sc / step) != (prev_sc / step) || (prev_sc < 0 && sc >= 0)) {
 					int scd = sc < 0 ? prev_sc : sc;
 					draw_line(Point2(get_name_limit() + i, 0), Point2(get_name_limit() + i, h), linecolor, Math::round(EDSCALE));
-					draw_string(font, Point2(get_name_limit() + i + 3, (h - font->get_height()) / 2 + font->get_ascent()).floor(), String::num((scd - (scd % step)) / double(SC_ADJ), decimals), sub ? color_time_dec : color_time_sec, zoomw - i);
+					draw_string(font, Point2(get_name_limit() + i + 3, (h - font->get_height(font_size)) / 2 + font->get_ascent(font_size)).floor(), String::num((scd - (scd % step)) / double(SC_ADJ), decimals), HALIGN_LEFT, zoomw - i, font_size, sub ? color_time_dec : color_time_sec);
 				}
 			}
 		}
@@ -1583,7 +1584,8 @@ void AnimationTimelineEdit::set_animation(const Ref<Animation> &p_animation) {
 Size2 AnimationTimelineEdit::get_minimum_size() const {
 	Size2 ms = add_track->get_minimum_size();
 	Ref<Font> font = get_theme_font("font", "Label");
-	ms.height = MAX(ms.height, font->get_height());
+	int font_size = get_theme_font_size("font_size", "Label");
+	ms.height = MAX(ms.height, font->get_height(font_size));
 	ms.width = get_buttons_width() + add_track->get_minimum_size().width + get_theme_icon("Hsize", "EditorIcons")->get_width() + 2;
 	return ms;
 }
@@ -1798,6 +1800,8 @@ AnimationTimelineEdit::AnimationTimelineEdit() {
 	panning_timeline = false;
 	dragging_timeline = false;
 	dragging_hsize = false;
+
+	set_layout_direction(Control::LAYOUT_DIRECTION_LTR);
 }
 
 ////////////////////////////////////
@@ -1819,6 +1823,7 @@ void AnimationTrackEdit::_notification(int p_what) {
 		}
 
 		Ref<Font> font = get_theme_font("font", "Label");
+		int font_size = get_theme_font_size("font_size", "Label");
 		Color color = get_theme_color("font_color", "Label");
 		Ref<Texture2D> type_icons[6] = {
 			get_theme_icon("KeyValue", "EditorIcons"),
@@ -1890,9 +1895,9 @@ void AnimationTrackEdit::_notification(int p_what) {
 
 			path_rect = Rect2(ofs, 0, limit - ofs - hsep, get_size().height);
 
-			Vector2 string_pos = Point2(ofs, (get_size().height - font->get_height()) / 2 + font->get_ascent());
+			Vector2 string_pos = Point2(ofs, (get_size().height - font->get_height(font_size)) / 2 + font->get_ascent(font_size));
 			string_pos = string_pos.floor();
-			draw_string(font, string_pos, text, text_color, limit - ofs - hsep);
+			draw_string(font, string_pos, text, HALIGN_LEFT, limit - ofs - hsep, font_size, text_color);
 
 			draw_line(Point2(limit, 0), Point2(limit, get_size().height), linecolor, Math::round(EDSCALE));
 		}
@@ -2173,6 +2178,7 @@ void AnimationTrackEdit::draw_key(int p_index, float p_pixels_sec, int p_x, bool
 
 	if (animation->track_get_type(track) == Animation::TYPE_METHOD) {
 		Ref<Font> font = get_theme_font("font", "Label");
+		int font_size = get_theme_font_size("font_size", "Label");
 		Color color = get_theme_color("font_color", "Label");
 		color.a = 0.5;
 
@@ -2197,7 +2203,7 @@ void AnimationTrackEdit::draw_key(int p_index, float p_pixels_sec, int p_x, bool
 
 		int limit = MAX(0, p_clip_right - p_x - icon_to_draw->get_width());
 		if (limit > 0) {
-			draw_string(font, Vector2(p_x + icon_to_draw->get_width(), int(get_size().height - font->get_height()) / 2 + font->get_ascent()), text, color, limit);
+			draw_string(font, Vector2(p_x + icon_to_draw->get_width(), int(get_size().height - font->get_height(font_size)) / 2 + font->get_ascent(font_size)), text, HALIGN_LEFT, limit, font_size, color);
 		}
 	}
 
@@ -2302,9 +2308,10 @@ NodePath AnimationTrackEdit::get_path() const {
 Size2 AnimationTrackEdit::get_minimum_size() const {
 	Ref<Texture2D> texture = get_theme_icon("Object", "EditorIcons");
 	Ref<Font> font = get_theme_font("font", "Label");
+	int font_size = get_theme_font_size("font_size", "Label");
 	int separation = get_theme_constant("vseparation", "ItemList");
 
-	int max_h = MAX(texture->get_height(), font->get_height());
+	int max_h = MAX(texture->get_height(), font->get_height(font_size));
 	max_h = MAX(max_h, get_key_height());
 
 	return Vector2(1, max_h + separation);
@@ -3036,6 +3043,7 @@ AnimationTrackEdit *AnimationTrackEditPlugin::create_animation_track_edit(Object
 void AnimationTrackEditGroup::_notification(int p_what) {
 	if (p_what == NOTIFICATION_DRAW) {
 		Ref<Font> font = get_theme_font("font", "Label");
+		int font_size = get_theme_font_size("font_size", "Label");
 		int separation = get_theme_constant("hseparation", "ItemList");
 		Color color = get_theme_color("font_color", "Label");
 
@@ -3059,7 +3067,7 @@ void AnimationTrackEditGroup::_notification(int p_what) {
 		int ofs = 0;
 		draw_texture(icon, Point2(ofs, int(get_size().height - icon->get_height()) / 2));
 		ofs += separation + icon->get_width();
-		draw_string(font, Point2(ofs, int(get_size().height - font->get_height()) / 2 + font->get_ascent()), node_name, color, timeline->get_name_limit() - ofs);
+		draw_string(font, Point2(ofs, int(get_size().height - font->get_height(font_size)) / 2 + font->get_ascent(font_size)), node_name, HALIGN_LEFT, timeline->get_name_limit() - ofs, font_size, color);
 
 		int px = (-timeline->get_value() + timeline->get_play_position()) * timeline->get_zoom_scale() + timeline->get_name_limit();
 
@@ -3080,9 +3088,10 @@ void AnimationTrackEditGroup::set_type_and_name(const Ref<Texture2D> &p_type, co
 
 Size2 AnimationTrackEditGroup::get_minimum_size() const {
 	Ref<Font> font = get_theme_font("font", "Label");
+	int font_size = get_theme_font_size("font_size", "Label");
 	int separation = get_theme_constant("vseparation", "ItemList");
 
-	return Vector2(0, MAX(font->get_height(), icon->get_height()) + separation);
+	return Vector2(0, MAX(font->get_height(font_size), icon->get_height()) + separation);
 }
 
 void AnimationTrackEditGroup::set_timeline(AnimationTimelineEdit *p_timeline) {
@@ -5565,6 +5574,7 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	undo_redo = EditorNode::get_singleton()->get_undo_redo();
 
 	main_panel = memnew(PanelContainer);
+	main_panel->set_focus_mode(FOCUS_ALL); // allow panel to have focus so that shortcuts work as expected.
 	add_child(main_panel);
 	main_panel->set_v_size_flags(SIZE_EXPAND_FILL);
 	HBoxContainer *timeline_scroll = memnew(HBoxContainer);
@@ -5698,6 +5708,7 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	timeline->set_zoom(zoom);
 
 	edit = memnew(MenuButton);
+	edit->set_shortcut_context(this);
 	edit->set_text(TTR("Edit"));
 	edit->set_flat(false);
 	edit->set_disabled(true);
@@ -5710,12 +5721,8 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	edit->get_popup()->add_separator();
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/duplicate_selection", TTR("Duplicate Selection"), KEY_MASK_CMD | KEY_D), EDIT_DUPLICATE_SELECTION);
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/duplicate_selection_transposed", TTR("Duplicate Transposed"), KEY_MASK_SHIFT | KEY_MASK_CMD | KEY_D), EDIT_DUPLICATE_TRANSPOSED);
-	edit->get_popup()->set_item_shortcut_disabled(edit->get_popup()->get_item_index(EDIT_DUPLICATE_SELECTION), true);
-	edit->get_popup()->set_item_shortcut_disabled(edit->get_popup()->get_item_index(EDIT_DUPLICATE_TRANSPOSED), true);
 	edit->get_popup()->add_separator();
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/delete_selection", TTR("Delete Selection"), KEY_DELETE), EDIT_DELETE_SELECTION);
-	edit->get_popup()->set_item_shortcut_disabled(edit->get_popup()->get_item_index(EDIT_DELETE_SELECTION), true);
-	//this shortcut will be checked from the track itself. so no need to enable it here (will conflict with scenetree dock)
 
 	edit->get_popup()->add_separator();
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/goto_next_step", TTR("Go to Next Step"), KEY_MASK_CMD | KEY_RIGHT), EDIT_GOTO_NEXT_STEP);

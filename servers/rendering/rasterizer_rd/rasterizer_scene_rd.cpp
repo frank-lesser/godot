@@ -33,7 +33,7 @@
 #include "core/config/project_settings.h"
 #include "core/os/os.h"
 #include "rasterizer_rd.h"
-#include "servers/rendering/rendering_server_raster.h"
+#include "servers/rendering/rendering_server_default.h"
 
 uint64_t RasterizerSceneRD::auto_exposure_counter = 2;
 
@@ -1186,6 +1186,11 @@ void RasterizerSceneRD::sdfgi_update_probes(RID p_render_buffers, RID p_environm
 
 				LightInstance *li = light_instance_owner.getornull(p_directional_light_instances[j]);
 				ERR_CONTINUE(!li);
+
+				if (storage->light_directional_is_sky_only(li->light)) {
+					continue;
+				}
+
 				Vector3 dir = -li->transform.basis.get_axis(Vector3::AXIS_Z);
 				dir.y *= rb->sdfgi->y_mult;
 				dir.normalize();
@@ -2237,7 +2242,7 @@ void RasterizerSceneRD::_setup_sky(RID p_environment, RID p_render_buffers, cons
 		if (shader_data->uses_time && time - sky->prev_time > 0.00001) {
 			sky->prev_time = time;
 			sky->reflection.dirty = true;
-			RenderingServerRaster::redraw_request();
+			RenderingServerDefault::redraw_request();
 		}
 
 		if (material != sky->prev_material) {
@@ -4392,6 +4397,11 @@ void RasterizerSceneRD::gi_probe_update(RID p_probe, bool p_update_light_instanc
 				RID light = light_instance_get_base_light(light_instance);
 
 				l.type = storage->light_get_type(light);
+				if (l.type == RS::LIGHT_DIRECTIONAL && storage->light_directional_is_sky_only(light)) {
+					light_count--;
+					continue;
+				}
+
 				l.attenuation = storage->light_get_param(light, RS::LIGHT_PARAM_ATTENUATION);
 				l.energy = storage->light_get_param(light, RS::LIGHT_PARAM_ENERGY) * storage->light_get_param(light, RS::LIGHT_PARAM_INDIRECT_ENERGY);
 				l.radius = to_cell.basis.xform(Vector3(storage->light_get_param(light, RS::LIGHT_PARAM_RANGE), 0, 0)).length();
@@ -5247,7 +5257,7 @@ void RasterizerSceneRD::_render_buffers_post_process_and_tonemap(RID p_render_bu
 
 		//swap final reduce with prev luminance
 		SWAP(rb->luminance.current, rb->luminance.reduce.write[rb->luminance.reduce.size() - 1]);
-		RenderingServerRaster::redraw_request(); //redraw all the time if auto exposure rendering is on
+		RenderingServerDefault::redraw_request(); //redraw all the time if auto exposure rendering is on
 	}
 
 	int max_glow_level = -1;
@@ -5290,8 +5300,6 @@ void RasterizerSceneRD::_render_buffers_post_process_and_tonemap(RID p_render_bu
 		//tonemap
 		RasterizerEffectsRD::TonemapSettings tonemap;
 
-		tonemap.color_correction_texture = storage->texture_rd_get_default(RasterizerStorageRD::DEFAULT_RD_TEXTURE_3D_WHITE);
-
 		if (can_use_effects && env && env->auto_exposure && rb->luminance.current.is_valid()) {
 			tonemap.use_auto_exposure = true;
 			tonemap.exposure_texture = rb->luminance.current;
@@ -5326,6 +5334,22 @@ void RasterizerSceneRD::_render_buffers_post_process_and_tonemap(RID p_render_bu
 			tonemap.tonemap_mode = env->tone_mapper;
 			tonemap.white = env->white;
 			tonemap.exposure = env->exposure;
+		}
+
+		tonemap.use_color_correction = false;
+		tonemap.use_1d_color_correction = false;
+		tonemap.color_correction_texture = storage->texture_rd_get_default(RasterizerStorageRD::DEFAULT_RD_TEXTURE_3D_WHITE);
+
+		if (can_use_effects && env) {
+			tonemap.use_bcs = env->adjustments_enabled;
+			tonemap.brightness = env->adjustments_brightness;
+			tonemap.contrast = env->adjustments_contrast;
+			tonemap.saturation = env->adjustments_saturation;
+			if (env->adjustments_enabled && env->color_correction.is_valid()) {
+				tonemap.use_color_correction = true;
+				tonemap.use_1d_color_correction = env->use_1d_color_correction;
+				tonemap.color_correction_texture = storage->texture_get_rd_texture(env->color_correction);
+			}
 		}
 
 		storage->get_effects()->tonemapper(rb->texture, storage->render_target_get_rd_framebuffer(rb->render_target), tonemap);
@@ -5393,6 +5417,18 @@ void RasterizerSceneRD::_render_buffers_debug_draw(RID p_render_buffers, RID p_s
 		RID reflection_texture = _render_buffers_get_reflection_texture(p_render_buffers);
 		effects->copy_to_fb_rect(ambient_texture, storage->render_target_get_rd_framebuffer(rb->render_target), Rect2(Vector2(), rtsize), false, false, false, true, reflection_texture);
 	}
+}
+
+void RasterizerSceneRD::environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, bool p_use_1d_color_correction, RID p_color_correction) {
+	Environment *env = environment_owner.getornull(p_env);
+	ERR_FAIL_COND(!env);
+
+	env->adjustments_enabled = p_enable;
+	env->adjustments_brightness = p_brightness;
+	env->adjustments_contrast = p_contrast;
+	env->adjustments_saturation = p_saturation;
+	env->use_1d_color_correction = p_use_1d_color_correction;
+	env->color_correction = p_color_correction;
 }
 
 void RasterizerSceneRD::_sdfgi_debug_draw(RID p_render_buffers, const CameraMatrix &p_projection, const Transform &p_transform) {
@@ -5931,7 +5967,40 @@ void RasterizerSceneRD::_setup_lights(RID *p_light_cull_result, int p_light_cull
 		RS::LightType type = storage->light_get_type(base);
 		switch (type) {
 			case RS::LIGHT_DIRECTIONAL: {
-				if (r_directional_light_count >= cluster.max_directional_lights) {
+				//	Copy to SkyDirectionalLightData
+				if (r_directional_light_count < sky_scene_state.max_directional_lights) {
+					SkyDirectionalLightData &sky_light_data = sky_scene_state.directional_lights[r_directional_light_count];
+					Transform light_transform = light_instance_get_base_transform(li);
+					Vector3 world_direction = light_transform.basis.xform(Vector3(0, 0, 1)).normalized();
+
+					sky_light_data.direction[0] = world_direction.x;
+					sky_light_data.direction[1] = world_direction.y;
+					sky_light_data.direction[2] = -world_direction.z;
+
+					float sign = storage->light_is_negative(base) ? -1 : 1;
+					sky_light_data.energy = sign * storage->light_get_param(base, RS::LIGHT_PARAM_ENERGY);
+
+					Color linear_col = storage->light_get_color(base).to_linear();
+					sky_light_data.color[0] = linear_col.r;
+					sky_light_data.color[1] = linear_col.g;
+					sky_light_data.color[2] = linear_col.b;
+
+					sky_light_data.enabled = true;
+
+					float angular_diameter = storage->light_get_param(base, RS::LIGHT_PARAM_SIZE);
+					if (angular_diameter > 0.0) {
+						// I know tan(0) is 0, but let's not risk it with numerical precision.
+						// technically this will keep expanding until reaching the sun, but all we care
+						// is expand until we reach the radius of the near plane (there can't be more occluders than that)
+						angular_diameter = Math::tan(Math::deg2rad(angular_diameter));
+					} else {
+						angular_diameter = 0.0;
+					}
+					sky_light_data.size = angular_diameter;
+					sky_scene_state.ubo.directional_light_count++;
+				}
+
+				if (r_directional_light_count >= cluster.max_directional_lights || storage->light_directional_is_sky_only(base)) {
 					continue;
 				}
 
@@ -6072,27 +6141,6 @@ void RasterizerSceneRD::_setup_lights(RID *p_light_cull_result, int p_light_cull
 					if (angular_diameter <= 0.0) {
 						light_data.soft_shadow_scale *= directional_shadow_quality_radius_get(); // Only use quality radius for PCF
 					}
-				}
-
-				//	Copy to SkyDirectionalLightData
-				if (r_directional_light_count < sky_scene_state.max_directional_lights) {
-					SkyDirectionalLightData &sky_light_data = sky_scene_state.directional_lights[r_directional_light_count];
-
-					Vector3 world_direction = light_transform.basis.xform(Vector3(0, 0, 1)).normalized();
-
-					sky_light_data.direction[0] = world_direction.x;
-					sky_light_data.direction[1] = world_direction.y;
-					sky_light_data.direction[2] = -world_direction.z;
-
-					sky_light_data.energy = light_data.energy / Math_PI;
-
-					sky_light_data.color[0] = light_data.color[0];
-					sky_light_data.color[1] = light_data.color[1];
-					sky_light_data.color[2] = light_data.color[2];
-
-					sky_light_data.enabled = true;
-					sky_light_data.size = angular_diameter;
-					sky_scene_state.ubo.directional_light_count++;
 				}
 
 				r_directional_light_count++;

@@ -98,7 +98,8 @@ public:
 	// virtual void alloc_stack(int p_level) = 0; // Is this needed?
 	// virtual void alloc_call(int p_arg_count) = 0; // This might be automatic from other functions.
 
-	virtual void write_operator(const Address &p_target, Variant::Operator p_operator, const Address &p_left_operand, const Address &p_right_operand) = 0;
+	virtual void write_unary_operator(const Address &p_target, Variant::Operator p_operator, const Address &p_left_operand) = 0;
+	virtual void write_binary_operator(const Address &p_target, Variant::Operator p_operator, const Address &p_left_operand, const Address &p_right_operand) = 0;
 	virtual void write_type_test(const Address &p_target, const Address &p_source, const Address &p_type) = 0;
 	virtual void write_type_test_builtin(const Address &p_target, const Address &p_source, Variant::Type p_type) = 0;
 	virtual void write_and_left_operand(const Address &p_left_operand) = 0;
@@ -121,6 +122,7 @@ public:
 	virtual void write_assign(const Address &p_target, const Address &p_source) = 0;
 	virtual void write_assign_true(const Address &p_target) = 0;
 	virtual void write_assign_false(const Address &p_target) = 0;
+	virtual void write_assign_default_parameter(const Address &dst, const Address &src) = 0;
 	virtual void write_cast(const Address &p_target, const Address &p_source, const GDScriptDataType &p_type) = 0;
 	virtual void write_call(const Address &p_target, const Address &p_base, const StringName &p_function_name, const Vector<Address> &p_arguments) = 0;
 	virtual void write_super_call(const Address &p_target, const StringName &p_function_name, const Vector<Address> &p_arguments) = 0;
@@ -139,7 +141,9 @@ public:
 	// virtual void write_elseif(const Address &p_condition) = 0; This kind of makes things more difficult for no real benefit.
 	virtual void write_else() = 0;
 	virtual void write_endif() = 0;
-	virtual void write_for(const Address &p_variable, const Address &p_list) = 0;
+	virtual void start_for(const GDScriptDataType &p_iterator_type, const GDScriptDataType &p_list_type) = 0;
+	virtual void write_for_assignment(const Address &p_variable, const Address &p_list) = 0;
+	virtual void write_for() = 0;
 	virtual void write_endfor() = 0;
 	virtual void start_while_condition() = 0; // Used to allow a jump to the expression evaluation.
 	virtual void write_while(const Address &p_condition) = 0;

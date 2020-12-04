@@ -31,8 +31,8 @@
 #include "rendering_server_canvas.h"
 
 #include "core/math/geometry_2d.h"
+#include "rendering_server_default.h"
 #include "rendering_server_globals.h"
-#include "rendering_server_raster.h"
 #include "rendering_server_viewport.h"
 
 static const int z_range = RS::CANVAS_ITEM_Z_MAX - RS::CANVAS_ITEM_Z_MIN + 1;
@@ -68,7 +68,11 @@ void RenderingServerCanvas::_render_canvas_item_tree(RID p_to_render_target, Can
 
 	RENDER_TIMESTAMP("Render Canvas Items");
 
-	RSG::canvas_render->canvas_render_items(p_to_render_target, list, p_modulate, p_lights, p_directional_lights, p_transform, p_default_filter, p_default_repeat, p_snap_2d_vertices_to_pixel);
+	bool sdf_flag;
+	RSG::canvas_render->canvas_render_items(p_to_render_target, list, p_modulate, p_lights, p_directional_lights, p_transform, p_default_filter, p_default_repeat, p_snap_2d_vertices_to_pixel, sdf_flag);
+	if (sdf_flag) {
+		sdf_used = true;
+	}
 }
 
 void _collect_ysort_children(RenderingServerCanvas::Item *p_canvas_item, Transform2D p_transform, RenderingServerCanvas::Item *p_material_owner, RenderingServerCanvas::Item **r_items, int &r_index) {
@@ -259,7 +263,7 @@ void RenderingServerCanvas::_cull_canvas_item(Item *p_canvas_item, const Transfo
 	}
 
 	if (ci->update_when_visible) {
-		RenderingServerRaster::redraw_request();
+		RenderingServerDefault::redraw_request();
 	}
 
 	if ((ci->commands != nullptr && p_clip_rect.intersects(global_rect, true)) || ci->vp_render || ci->copy_back_buffer) {
@@ -301,6 +305,7 @@ void RenderingServerCanvas::_cull_canvas_item(Item *p_canvas_item, const Transfo
 void RenderingServerCanvas::render_canvas(RID p_render_target, Canvas *p_canvas, const Transform2D &p_transform, RasterizerCanvas::Light *p_lights, RasterizerCanvas::Light *p_directional_lights, const Rect2 &p_clip_rect, RenderingServer::CanvasItemTextureFilter p_default_filter, RenderingServer::CanvasItemTextureRepeat p_default_repeat, bool p_snap_2d_transforms_to_pixel, bool p_snap_2d_vertices_to_pixel) {
 	RENDER_TIMESTAMP(">Render Canvas");
 
+	sdf_used = false;
 	snapping_2d_transforms_to_pixel = p_snap_2d_transforms_to_pixel;
 
 	if (p_canvas->children_order_dirty) {
@@ -345,6 +350,10 @@ void RenderingServerCanvas::render_canvas(RID p_render_target, Canvas *p_canvas,
 	}
 
 	RENDER_TIMESTAMP("<End Render Canvas");
+}
+
+bool RenderingServerCanvas::was_sdf_used() {
+	return sdf_used;
 }
 
 RID RenderingServerCanvas::canvas_create() {
@@ -531,59 +540,64 @@ void RenderingServerCanvas::canvas_item_add_line(RID p_item, const Point2 &p_fro
 	}
 }
 
-void RenderingServerCanvas::canvas_item_add_polyline(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, float p_width) {
+void RenderingServerCanvas::canvas_item_add_polyline(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, float p_width, bool p_antialiased) {
 	ERR_FAIL_COND(p_points.size() < 2);
 	Item *canvas_item = canvas_item_owner.getornull(p_item);
 	ERR_FAIL_COND(!canvas_item);
 
+	Color color = Color(1, 1, 1, 1);
+
+	Vector<int> indices;
+	int pc = p_points.size();
+	int pc2 = pc * 2;
+
+	Vector2 prev_t;
+	int j2;
+
 	Item::CommandPolygon *pline = canvas_item->alloc_command<Item::CommandPolygon>();
 	ERR_FAIL_COND(!pline);
 
-	if (true || p_width <= 1) {
-#define TODO make thick lines possible
-		Vector<int> indices;
-		int pc = p_points.size();
-		indices.resize((pc - 1) * 2);
-		{
-			int *iptr = indices.ptrw();
-			for (int i = 0; i < (pc - 1); i++) {
-				iptr[i * 2 + 0] = i;
-				iptr[i * 2 + 1] = i + 1;
-			}
-		}
+	PackedColorArray colors;
+	PackedVector2Array points;
 
-		pline->primitive = RS::PRIMITIVE_LINES;
-		pline->polygon.create(indices, p_points, p_colors);
-	} else {
-#if 0
-		//make a trianglestrip for drawing the line...
-		Vector2 prev_t;
-		pline->triangles.resize(p_points.size() * 2);
-		if (p_antialiased) {
-			pline->lines.resize(p_points.size() * 2);
-		}
+	colors.resize(pc2);
+	points.resize(pc2);
 
-		if (p_colors.size() == 0) {
-			pline->triangle_colors.push_back(Color(1, 1, 1, 1));
-			if (p_antialiased) {
-				pline->line_colors.push_back(Color(1, 1, 1, 1));
-			}
-		} else if (p_colors.size() == 1) {
-			pline->triangle_colors = p_colors;
-			pline->line_colors = p_colors;
-		} else {
-			if (p_colors.size() != p_points.size()) {
-				pline->triangle_colors.push_back(p_colors[0]);
-				pline->line_colors.push_back(p_colors[0]);
-			} else {
-				pline->triangle_colors.resize(pline->triangles.size());
-				pline->line_colors.resize(pline->lines.size());
-			}
-		}
+	Vector2 *points_ptr = points.ptrw();
+	Color *colors_ptr = colors.ptrw();
 
-		for (int i = 0; i < p_points.size(); i++) {
+	if (p_antialiased) {
+		Color color2 = Color(1, 1, 1, 0);
+
+		PackedColorArray colors_top;
+		PackedVector2Array points_top;
+
+		colors_top.resize(pc2);
+		points_top.resize(pc2);
+
+		PackedColorArray colors_bottom;
+		PackedVector2Array points_bottom;
+
+		colors_bottom.resize(pc2);
+		points_bottom.resize(pc2);
+
+		Item::CommandPolygon *pline_top = canvas_item->alloc_command<Item::CommandPolygon>();
+		ERR_FAIL_COND(!pline_top);
+
+		Item::CommandPolygon *pline_bottom = canvas_item->alloc_command<Item::CommandPolygon>();
+		ERR_FAIL_COND(!pline_bottom);
+
+		//make three trianglestrip's for drawing the antialiased line...
+
+		Vector2 *points_top_ptr = points_top.ptrw();
+		Vector2 *points_bottom_ptr = points_bottom.ptrw();
+
+		Color *colors_top_ptr = colors_top.ptrw();
+		Color *colors_bottom_ptr = colors_bottom.ptrw();
+
+		for (int i = 0, j = 0; i < pc; i++, j += 2) {
 			Vector2 t;
-			if (i == p_points.size() - 1) {
+			if (i == pc - 1) {
 				t = prev_t;
 			} else {
 				t = (p_points[i + 1] - p_points[i]).normalized().tangent();
@@ -592,29 +606,77 @@ void RenderingServerCanvas::canvas_item_add_polyline(RID p_item, const Vector<Po
 				}
 			}
 
+			j2 = j + 1;
+
 			Vector2 tangent = ((t + prev_t).normalized()) * p_width * 0.5;
+			Vector2 pos = p_points[i];
 
-			if (p_antialiased) {
-				pline->lines.write[i] = p_points[i] + tangent;
-				pline->lines.write[p_points.size() * 2 - i - 1] = p_points[i] - tangent;
-				if (pline->line_colors.size() > 1) {
-					pline->line_colors.write[i] = p_colors[i];
-					pline->line_colors.write[p_points.size() * 2 - i - 1] = p_colors[i];
-				}
+			points_ptr[j] = pos + tangent;
+			points_ptr[j2] = pos - tangent;
+
+			points_top_ptr[j] = pos + tangent + tangent;
+			points_top_ptr[j2] = pos + tangent;
+
+			points_bottom_ptr[j] = pos - tangent;
+			points_bottom_ptr[j2] = pos - tangent - tangent;
+
+			if (i < p_colors.size()) {
+				color = p_colors[i];
+				color2 = Color(color.r, color.g, color.b, 0);
 			}
 
-			pline->triangles.write[i * 2 + 0] = p_points[i] + tangent;
-			pline->triangles.write[i * 2 + 1] = p_points[i] - tangent;
+			colors_ptr[j] = color;
+			colors_ptr[j2] = color;
 
-			if (pline->triangle_colors.size() > 1) {
-				pline->triangle_colors.write[i * 2 + 0] = p_colors[i];
-				pline->triangle_colors.write[i * 2 + 1] = p_colors[i];
-			}
+			colors_top_ptr[j] = color2;
+			colors_top_ptr[j2] = color;
+
+			colors_bottom_ptr[j] = color;
+			colors_bottom_ptr[j2] = color2;
 
 			prev_t = t;
 		}
-#endif
+
+		pline_top->primitive = RS::PRIMITIVE_TRIANGLE_STRIP;
+		pline_top->polygon.create(indices, points_top, colors_top);
+
+		pline_bottom->primitive = RS::PRIMITIVE_TRIANGLE_STRIP;
+		pline_bottom->polygon.create(indices, points_bottom, colors_bottom);
+	} else {
+		//make a trianglestrip for drawing the line...
+
+		for (int i = 0, j = 0; i < pc; i++, j += 2) {
+			Vector2 t;
+			if (i == pc - 1) {
+				t = prev_t;
+			} else {
+				t = (p_points[i + 1] - p_points[i]).normalized().tangent();
+				if (i == 0) {
+					prev_t = t;
+				}
+			}
+
+			j2 = j + 1;
+
+			Vector2 tangent = ((t + prev_t).normalized()) * p_width * 0.5;
+			Vector2 pos = p_points[i];
+
+			points_ptr[j] = pos + tangent;
+			points_ptr[j2] = pos - tangent;
+
+			if (i < p_colors.size()) {
+				color = p_colors[i];
+			}
+
+			colors_ptr[j] = color;
+			colors_ptr[j2] = color;
+
+			prev_t = t;
+		}
 	}
+
+	pline->primitive = RS::PRIMITIVE_TRIANGLE_STRIP;
+	pline->polygon.create(indices, points, colors);
 }
 
 void RenderingServerCanvas::canvas_item_add_multiline(RID p_item, const Vector<Point2> &p_points, const Vector<Color> &p_colors, float p_width) {
@@ -1266,6 +1328,11 @@ void RenderingServerCanvas::canvas_light_occluder_set_polygon(RID p_occluder, RI
 	}
 }
 
+void RenderingServerCanvas::canvas_light_occluder_set_as_sdf_collision(RID p_occluder, bool p_enable) {
+	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.getornull(p_occluder);
+	ERR_FAIL_COND(!occluder);
+}
+
 void RenderingServerCanvas::canvas_light_occluder_set_transform(RID p_occluder, const Transform2D &p_xform) {
 	RasterizerCanvas::LightOccluderInstance *occluder = canvas_light_occluder_owner.getornull(p_occluder);
 	ERR_FAIL_COND(!occluder);
@@ -1287,53 +1354,24 @@ RID RenderingServerCanvas::canvas_occluder_polygon_create() {
 }
 
 void RenderingServerCanvas::canvas_occluder_polygon_set_shape(RID p_occluder_polygon, const Vector<Vector2> &p_shape, bool p_closed) {
-	if (p_shape.size() < 3) {
-		canvas_occluder_polygon_set_shape_as_lines(p_occluder_polygon, p_shape);
-		return;
-	}
-
-	Vector<Vector2> lines;
-	int lc = p_shape.size() * 2;
-
-	lines.resize(lc - (p_closed ? 0 : 2));
-	{
-		Vector2 *w = lines.ptrw();
-		const Vector2 *r = p_shape.ptr();
-
-		int max = lc / 2;
-		if (!p_closed) {
-			max--;
-		}
-		for (int i = 0; i < max; i++) {
-			Vector2 a = r[i];
-			Vector2 b = r[(i + 1) % (lc / 2)];
-			w[i * 2 + 0] = a;
-			w[i * 2 + 1] = b;
-		}
-	}
-
-	canvas_occluder_polygon_set_shape_as_lines(p_occluder_polygon, lines);
-}
-
-void RenderingServerCanvas::canvas_occluder_polygon_set_shape_as_lines(RID p_occluder_polygon, const Vector<Vector2> &p_shape) {
 	LightOccluderPolygon *occluder_poly = canvas_light_occluder_polygon_owner.getornull(p_occluder_polygon);
 	ERR_FAIL_COND(!occluder_poly);
-	ERR_FAIL_COND(p_shape.size() & 1);
 
-	int lc = p_shape.size();
+	uint32_t pc = p_shape.size();
+	ERR_FAIL_COND(pc < 2);
+
 	occluder_poly->aabb = Rect2();
-	{
-		const Vector2 *r = p_shape.ptr();
-		for (int i = 0; i < lc; i++) {
-			if (i == 0) {
-				occluder_poly->aabb.position = r[i];
-			} else {
-				occluder_poly->aabb.expand_to(r[i]);
-			}
+	const Vector2 *r = p_shape.ptr();
+	for (uint32_t i = 0; i < pc; i++) {
+		if (i == 0) {
+			occluder_poly->aabb.position = r[i];
+		} else {
+			occluder_poly->aabb.expand_to(r[i]);
 		}
 	}
 
-	RSG::canvas_render->occluder_polygon_set_shape_as_lines(occluder_poly->occluder, p_shape);
+	RSG::canvas_render->occluder_polygon_set_shape(occluder_poly->occluder, p_shape, p_closed);
+
 	for (Set<RasterizerCanvas::LightOccluderInstance *>::Element *E = occluder_poly->owners.front(); E; E = E->next()) {
 		E->get()->aabb_cache = occluder_poly->aabb;
 	}

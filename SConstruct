@@ -67,7 +67,6 @@ if "TERM" in os.environ:
 env_base.AppendENVPath("PATH", os.getenv("PATH"))
 env_base.AppendENVPath("PKG_CONFIG_PATH", os.getenv("PKG_CONFIG_PATH"))
 env_base.disabled_modules = []
-env_base.use_ptrcall = False
 env_base.module_version_string = ""
 env_base.msvc = False
 
@@ -145,6 +144,9 @@ opts.Add(BoolVariable("builtin_certs", "Use the built-in SSL certificates bundle
 opts.Add(BoolVariable("builtin_enet", "Use the built-in ENet library", True))
 opts.Add(BoolVariable("builtin_freetype", "Use the built-in FreeType library", True))
 opts.Add(BoolVariable("builtin_glslang", "Use the built-in glslang library", True))
+opts.Add(BoolVariable("builtin_graphite", "Use the built-in Graphite library", True))
+opts.Add(BoolVariable("builtin_harfbuzz", "Use the built-in HarfBuzz library", True))
+opts.Add(BoolVariable("builtin_icu", "Use the built-in ICU library", True))
 opts.Add(BoolVariable("builtin_libogg", "Use the built-in libogg library", True))
 opts.Add(BoolVariable("builtin_libpng", "Use the built-in libpng library", True))
 opts.Add(BoolVariable("builtin_libtheora", "Use the built-in libtheora library", True))
@@ -561,8 +563,6 @@ if selected_platform in platform_list:
     env["LIBSUFFIX"] = suffix + env["LIBSUFFIX"]
     env["SHLIBSUFFIX"] = suffix + env["SHLIBSUFFIX"]
 
-    if env.use_ptrcall:
-        env.Append(CPPDEFINES=["PTRCALL_ENABLED"])
     if env["tools"]:
         env.Append(CPPDEFINES=["TOOLS_ENABLED"])
     if env["disable_3d"]:

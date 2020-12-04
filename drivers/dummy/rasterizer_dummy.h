@@ -96,7 +96,7 @@ public:
 
 	void environment_set_tonemap(RID p_env, RS::EnvironmentToneMapper p_tone_mapper, float p_exposure, float p_white, bool p_auto_exposure, float p_min_luminance, float p_max_luminance, float p_auto_exp_speed, float p_auto_exp_scale) override {}
 
-	void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, RID p_ramp) override {}
+	void environment_set_adjustment(RID p_env, bool p_enable, float p_brightness, float p_contrast, float p_saturation, bool p_use_1d_color_correction, RID p_color_correction) override {}
 
 	void environment_set_fog(RID p_env, bool p_enable, const Color &p_light_color, float p_light_energy, float p_sun_scatter, float p_density, float p_height, float p_height_density, float p_aerial_perspective) override {}
 	void environment_set_volumetric_fog(RID p_env, bool p_enable, float p_density, const Color &p_light, float p_light_energy, float p_length, float p_detail_spread, float p_gi_inject, RS::EnvVolumetricFogShadowFilter p_shadow_filter) override {}
@@ -183,21 +183,21 @@ class RasterizerStorageDummy : public RasterizerStorage {
 public:
 	/* TEXTURE API */
 	struct DummyTexture {
-		int width;
-		int height;
-		uint32_t flags;
-		Image::Format format;
+		int width = 0;
+		int height = 0;
+		uint32_t flags = 0;
+		Image::Format format = Image::Format::FORMAT_MAX;
 		Ref<Image> image;
 		String path;
 	};
 
 	struct DummySurface {
-		uint32_t format;
-		RS::PrimitiveType primitive;
+		uint32_t format = 0;
+		RS::PrimitiveType primitive = RS::PrimitiveType::PRIMITIVE_MAX;
 		Vector<uint8_t> array;
-		int vertex_count;
+		int vertex_count = 0;
 		Vector<uint8_t> index_array;
-		int index_count;
+		int index_count = 0;
 		AABB aabb;
 		Vector<Vector<uint8_t>> blend_shapes;
 		Vector<AABB> bone_aabbs;
@@ -205,8 +205,8 @@ public:
 
 	struct DummyMesh {
 		Vector<DummySurface> surfaces;
-		int blend_shape_count;
-		RS::BlendShapeMode blend_shape_mode;
+		int blend_shape_count = 0;
+		RS::BlendShapeMode blend_shape_mode = RS::BlendShapeMode::BLEND_SHAPE_MODE_NORMALIZED;
 	};
 
 	mutable RID_PtrOwner<DummyTexture> texture_owner;
@@ -599,6 +599,8 @@ public:
 	void light_directional_set_blend_splits(RID p_light, bool p_enable) override {}
 	bool light_directional_get_blend_splits(RID p_light) const override { return false; }
 	void light_directional_set_shadow_depth_range_mode(RID p_light, RS::LightDirectionalShadowDepthRangeMode p_range_mode) override {}
+	void light_directional_set_sky_only(RID p_light, bool p_sky_only) override {}
+	bool light_directional_is_sky_only(RID p_light) const override { return false; }
 	RS::LightDirectionalShadowDepthRangeMode light_directional_get_shadow_depth_range_mode(RID p_light) const override { return RS::LIGHT_DIRECTIONAL_SHADOW_DEPTH_RANGE_STABLE; }
 
 	RS::LightDirectionalShadowMode light_directional_get_shadow_mode(RID p_light) override { return RS::LIGHT_DIRECTIONAL_SHADOW_ORTHOGONAL; }
@@ -883,6 +885,9 @@ public:
 	void render_target_disable_clear_request(RID p_render_target) override {}
 	void render_target_do_clear_request(RID p_render_target) override {}
 
+	void render_target_set_sdf_size_and_scale(RID p_render_target, RS::ViewportSDFOversize p_size, RS::ViewportSDFScale p_scale) override {}
+	Rect2i render_target_get_sdf_rect(RID p_render_target) const override { return Rect2i(); }
+
 	RS::InstanceType get_base_type(RID p_rid) const override {
 		if (mesh_owner.owns(p_rid)) {
 			return RS::INSTANCE_MESH;
@@ -941,7 +946,7 @@ public:
 	PolygonID request_polygon(const Vector<int> &p_indices, const Vector<Point2> &p_points, const Vector<Color> &p_colors, const Vector<Point2> &p_uvs = Vector<Point2>(), const Vector<int> &p_bones = Vector<int>(), const Vector<float> &p_weights = Vector<float>()) override { return 0; }
 	void free_polygon(PolygonID p_polygon) override {}
 
-	void canvas_render_items(RID p_to_render_target, Item *p_item_list, const Color &p_modulate, Light *p_light_list, Light *p_directional_list, const Transform2D &p_canvas_transform, RS::CanvasItemTextureFilter p_default_filter, RS::CanvasItemTextureRepeat p_default_repeat, bool p_snap_2d_vertices_to_pixel) override {}
+	void canvas_render_items(RID p_to_render_target, Item *p_item_list, const Color &p_modulate, Light *p_light_list, Light *p_directional_list, const Transform2D &p_canvas_transform, RS::CanvasItemTextureFilter p_default_filter, RS::CanvasItemTextureRepeat p_default_repeat, bool p_snap_2d_vertices_to_pixel, bool &r_sdf_used) override {}
 	void canvas_debug_viewport_shadows(Light *p_lights_with_shadow) override {}
 
 	RID light_create() override { return RID(); }
@@ -950,8 +955,9 @@ public:
 	void light_update_shadow(RID p_rid, int p_shadow_index, const Transform2D &p_light_xform, int p_light_mask, float p_near, float p_far, LightOccluderInstance *p_occluders) override {}
 	void light_update_directional_shadow(RID p_rid, int p_shadow_index, const Transform2D &p_light_xform, int p_light_mask, float p_cull_distance, const Rect2 &p_clip_rect, LightOccluderInstance *p_occluders) override {}
 
+	void render_sdf(RID p_render_target, LightOccluderInstance *p_occluders) override {}
 	RID occluder_polygon_create() override { return RID(); }
-	void occluder_polygon_set_shape_as_lines(RID p_occluder, const Vector<Vector2> &p_lines) override {}
+	void occluder_polygon_set_shape(RID p_occluder, const Vector<Vector2> &p_points, bool p_closed) override {}
 	void occluder_polygon_set_cull_mode(RID p_occluder, RS::CanvasOccluderPolygonCullMode p_mode) override {}
 	void set_shadow_texture_size(int p_size) override {}
 

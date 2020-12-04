@@ -105,6 +105,8 @@ void AnimationPlayerEditor::_notification(int p_what) {
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 			add_theme_style_override("panel", editor->get_gui_base()->get_theme_stylebox("panel", "Panel"));
 		} break;
+		case NOTIFICATION_TRANSLATION_CHANGED:
+		case NOTIFICATION_LAYOUT_DIRECTION_CHANGED:
 		case NOTIFICATION_THEME_CHANGED: {
 			autoplay->set_icon(get_theme_icon("AutoPlay", "EditorIcons"));
 
@@ -1210,9 +1212,11 @@ void AnimationPlayerEditor::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
 				} else {
 					_play_bw_pressed();
 				}
+				accept_event();
 			} break;
 			case KEY_S: {
 				_stop_pressed();
+				accept_event();
 			} break;
 			case KEY_D: {
 				if (!k->get_shift()) {
@@ -1220,6 +1224,7 @@ void AnimationPlayerEditor::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
 				} else {
 					_play_pressed();
 				}
+				accept_event();
 			} break;
 		}
 	}
@@ -1545,6 +1550,7 @@ AnimationPlayerEditor::AnimationPlayerEditor(EditorNode *p_editor, AnimationPlay
 	delete_dialog->connect("confirmed", callable_mp(this, &AnimationPlayerEditor::_animation_remove_confirmed));
 
 	tool_anim = memnew(MenuButton);
+	tool_anim->set_shortcut_context(this);
 	tool_anim->set_flat(false);
 	tool_anim->set_tooltip(TTR("Animation Tools"));
 	tool_anim->set_text(TTR("Animation"));
