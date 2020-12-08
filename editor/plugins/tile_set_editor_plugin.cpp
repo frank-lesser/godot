@@ -2359,8 +2359,8 @@ void TileSetEditor::_set_edited_collision_shape(const Ref<Shape2D> &p_shape) {
 }
 
 void TileSetEditor::_set_snap_step(Vector2 p_val) {
-	snap_step.x = CLAMP(p_val.x, 0, 256);
-	snap_step.y = CLAMP(p_val.y, 0, 256);
+	snap_step.x = CLAMP(p_val.x, 1, 256);
+	snap_step.y = CLAMP(p_val.y, 1, 256);
 	workspace->update();
 }
 
@@ -3620,11 +3620,11 @@ void TileSetEditorPlugin::make_visible(bool p_visible) {
 	if (p_visible) {
 		tileset_editor_button->show();
 		editor->make_bottom_panel_item_visible(tileset_editor);
-		get_tree()->connect_compat("idle_frame", tileset_editor, "_on_workspace_process");
+		get_tree()->connect("idle_frame", Callable(tileset_editor, "_on_workspace_process"));
 	} else {
 		editor->hide_bottom_panel();
 		tileset_editor_button->hide();
-		get_tree()->disconnect_compat("idle_frame", tileset_editor, "_on_workspace_process");
+		get_tree()->disconnect("idle_frame", Callable(tileset_editor, "_on_workspace_process"));
 	}
 }
 
