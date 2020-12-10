@@ -107,10 +107,10 @@ public:
 		String path;
 		List<String> args;
 		String output;
-		Thread *execute_output_thread;
+		Thread *execute_output_thread = nullptr;
 		Mutex execute_output_mutex;
-		int exitcode;
-		volatile bool done;
+		int exitcode = 0;
+		volatile bool done = false;
 	};
 
 private:
@@ -161,7 +161,6 @@ private:
 		RUN_STOP,
 		RUN_PLAY_SCENE,
 		RUN_PLAY_CUSTOM_SCENE,
-		RUN_SCENE_SETTINGS,
 		RUN_SETTINGS,
 		RUN_PROJECT_DATA_FOLDER,
 		RUN_PROJECT_MANAGER,
@@ -312,7 +311,6 @@ private:
 	ConfirmationDialog *remove_android_build_template;
 
 	EditorSettingsDialog *settings_config_dialog;
-	RunSettingsDialog *run_settings_dialog;
 	ProjectSettingsEditor *project_settings;
 	PopupMenu *vcs_actions_menu;
 	EditorFileDialog *file;
@@ -409,8 +407,8 @@ private:
 
 	struct BottomPanelItem {
 		String name;
-		Control *control;
-		Button *button;
+		Control *control = nullptr;
+		Button *button = nullptr;
 	};
 
 	Vector<BottomPanelItem> bottom_panel_items;
@@ -554,8 +552,8 @@ private:
 	struct ExportDefer {
 		String preset;
 		String path;
-		bool debug;
-		bool pack_only;
+		bool debug = false;
+		bool pack_only = false;
 	} export_defer;
 
 	bool cmdline_export_mode;
@@ -579,7 +577,7 @@ private:
 	void _dock_make_float();
 	void _scene_tab_changed(int p_tab);
 	void _scene_tab_closed(int p_tab, int option = SCENE_TAB_CLOSE);
-	void _scene_tab_hover(int p_tab);
+	void _scene_tab_hovered(int p_tab);
 	void _scene_tab_exit();
 	void _scene_tab_input(const Ref<InputEvent> &p_input);
 	void _reposition_active_tab(int idx_to);
@@ -824,7 +822,6 @@ public:
 	Button *get_pause_button() { return pause_button; }
 
 	Button *add_bottom_panel_item(String p_text, Control *p_item);
-	bool are_bottom_panels_hidden() const;
 	void make_bottom_panel_item_visible(Control *p_item);
 	void raise_bottom_panel_item(Control *p_item);
 	void hide_bottom_panel();

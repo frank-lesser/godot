@@ -175,7 +175,6 @@
 #include "editor/pvrtc_compress.h"
 #include "editor/quick_open.h"
 #include "editor/register_exporters.h"
-#include "editor/run_settings_dialog.h"
 #include "editor/settings_config_dialog.h"
 #include "scene/main/window.h"
 #include "servers/display_server.h"
@@ -2557,9 +2556,6 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			run_play_current();
 
 		} break;
-		case RUN_SCENE_SETTINGS: {
-			run_settings_dialog->popup_run_settings();
-		} break;
 		case RUN_SETTINGS: {
 			project_settings->popup_project_settings();
 		} break;
@@ -4708,7 +4704,7 @@ void EditorNode::_scene_tab_closed(int p_tab, int option) {
 	_update_scene_tabs();
 }
 
-void EditorNode::_scene_tab_hover(int p_tab) {
+void EditorNode::_scene_tab_hovered(int p_tab) {
 	if (!bool(EDITOR_GET("interface/scene_tabs/show_thumbnail_on_hover"))) {
 		return;
 	}
@@ -4834,16 +4830,6 @@ Button *EditorNode::add_bottom_panel_item(String p_text, Control *p_item) {
 	bottom_panel_items.push_back(bpi);
 
 	return tb;
-}
-
-bool EditorNode::are_bottom_panels_hidden() const {
-	for (int i = 0; i < bottom_panel_items.size(); i++) {
-		if (bottom_panel_items[i].button->is_pressed()) {
-			return false;
-		}
-	}
-
-	return true;
 }
 
 void EditorNode::hide_bottom_panel() {
@@ -5996,8 +5982,8 @@ EditorNode::EditorNode() {
 	scene_tabs->set_drag_to_rearrange_enabled(true);
 	scene_tabs->connect("tab_changed", callable_mp(this, &EditorNode::_scene_tab_changed));
 	scene_tabs->connect("right_button_pressed", callable_mp(this, &EditorNode::_scene_tab_script_edited));
-	scene_tabs->connect("tab_close", callable_mp(this, &EditorNode::_scene_tab_closed), varray(SCENE_TAB_CLOSE));
-	scene_tabs->connect("tab_hover", callable_mp(this, &EditorNode::_scene_tab_hover));
+	scene_tabs->connect("tab_closed", callable_mp(this, &EditorNode::_scene_tab_closed), varray(SCENE_TAB_CLOSE));
+	scene_tabs->connect("tab_hovered", callable_mp(this, &EditorNode::_scene_tab_hovered));
 	scene_tabs->connect("mouse_exited", callable_mp(this, &EditorNode::_scene_tab_exit));
 	scene_tabs->connect("gui_input", callable_mp(this, &EditorNode::_scene_tab_input));
 	scene_tabs->connect("reposition_active_tab_request", callable_mp(this, &EditorNode::_reposition_active_tab));
@@ -6090,9 +6076,6 @@ EditorNode::EditorNode() {
 
 	project_settings = memnew(ProjectSettingsEditor(&editor_data));
 	gui_base->add_child(project_settings);
-
-	run_settings_dialog = memnew(RunSettingsDialog);
-	gui_base->add_child(run_settings_dialog);
 
 	export_template_manager = memnew(ExportTemplateManager);
 	gui_base->add_child(export_template_manager);

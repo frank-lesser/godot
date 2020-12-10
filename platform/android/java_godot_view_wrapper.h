@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  run_settings_dialog.h                                                */
+/*  java_godot_view_wrapper.h                                            */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,42 +28,29 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef RUN_SETTINGS_DIALOG_H
-#define RUN_SETTINGS_DIALOG_H
+#ifndef GODOT_JAVA_GODOT_VIEW_WRAPPER_H
+#define GODOT_JAVA_GODOT_VIEW_WRAPPER_H
 
-#include "scene/gui/check_button.h"
-#include "scene/gui/dialogs.h"
-#include "scene/gui/file_dialog.h"
-#include "scene/gui/line_edit.h"
+#include <android/log.h>
+#include <jni.h>
 
-class RunSettingsDialog : public AcceptDialog {
-	GDCLASS(RunSettingsDialog, AcceptDialog);
-
-public:
-	enum RunMode {
-		RUN_LOCAL_SCENE,
-		RUN_MAIN_SCENE,
-	};
-
+// Class that makes functions in java/src/org/godotengine/godot/GodotView.java callable from C++
+class GodotJavaViewWrapper {
 private:
-	OptionButton *run_mode;
-	LineEdit *arguments;
+	jclass _cls;
 
-	void _run_mode_changed(int idx);
+	jobject _godot_view;
 
-protected:
-	static void _bind_methods();
+	jmethodID _request_pointer_capture = 0;
+	jmethodID _release_pointer_capture = 0;
 
 public:
-	int get_run_mode() const;
-	void set_run_mode(int p_run_mode);
+	GodotJavaViewWrapper(jobject godot_view);
 
-	void set_custom_arguments(const String &p_arguments);
-	String get_custom_arguments() const;
+	void request_pointer_capture();
+	void release_pointer_capture();
 
-	void popup_run_settings();
-
-	RunSettingsDialog();
+	~GodotJavaViewWrapper();
 };
 
-#endif // RUN_SETTINGS_DIALOG_H
+#endif //GODOT_JAVA_GODOT_VIEW_WRAPPER_H

@@ -207,7 +207,6 @@ public:
 	virtual void draw_fg(int p_clip_left, int p_clip_right);
 
 	//helper
-	void draw_texture_clipped(const Ref<Texture2D> &p_texture, const Vector2 &p_pos);
 	void draw_texture_region_clipped(const Ref<Texture2D> &p_texture, const Rect2 &p_rect, const Rect2 &p_region);
 	void draw_rect_clipped(const Rect2 &p_rect, const Color &p_color, bool p_filled = true);
 
@@ -253,8 +252,8 @@ class AnimationTrackEditGroup : public Control {
 	Ref<Texture2D> icon;
 	String node_name;
 	NodePath node;
-	Node *root;
-	AnimationTimelineEdit *timeline;
+	Node *root = nullptr;
+	AnimationTimelineEdit *timeline = nullptr;
 
 	void _zoom_changed();
 
@@ -354,10 +353,10 @@ class AnimationTrackEditor : public VBoxContainer {
 	struct InsertData {
 		Animation::TrackType type;
 		NodePath path;
-		int track_idx;
+		int track_idx = 0;
 		Variant value;
 		String query;
-		bool advance;
+		bool advance = false;
 	}; /* insert_data;*/
 
 	Label *insert_confirm_text;
@@ -392,13 +391,13 @@ class AnimationTrackEditor : public VBoxContainer {
 	//selection
 
 	struct SelectedKey {
-		int track;
-		int key;
+		int track = 0;
+		int key = 0;
 		bool operator<(const SelectedKey &p_key) const { return track == p_key.track ? key < p_key.key : track < p_key.track; };
 	};
 
 	struct KeyInfo {
-		float pos;
+		float pos = 0;
 	};
 
 	Map<SelectedKey, KeyInfo> selection;
@@ -467,15 +466,15 @@ class AnimationTrackEditor : public VBoxContainer {
 	struct TrackClipboard {
 		NodePath full_path;
 		NodePath base_path;
-		Animation::TrackType track_type;
-		Animation::InterpolationType interp_type;
-		Animation::UpdateMode update_mode;
-		bool loop_wrap;
-		bool enabled;
+		Animation::TrackType track_type = Animation::TrackType::TYPE_ANIMATION;
+		Animation::InterpolationType interp_type = Animation::InterpolationType::INTERPOLATION_CUBIC;
+		Animation::UpdateMode update_mode = Animation::UpdateMode::UPDATE_CAPTURE;
+		bool loop_wrap = false;
+		bool enabled = false;
 
 		struct Key {
-			float time;
-			float transition;
+			float time = 0;
+			float transition = 0;
 			Variant value;
 		};
 		Vector<Key> keys;

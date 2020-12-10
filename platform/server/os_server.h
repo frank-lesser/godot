@@ -47,22 +47,22 @@
 #undef CursorShape
 
 class OS_Server : public OS_Unix {
-	RenderingServer *rendering_server;
+	RenderingServer *rendering_server = nullptr;
 	VideoMode current_videomode;
 	List<String> args;
-	MainLoop *main_loop;
+	MainLoop *main_loop = nullptr;
 
-	bool grab;
+	bool grab = false;
 
 	virtual void delete_main_loop();
 
-	bool force_quit;
+	bool force_quit = false;
 
-	InputDefault *input;
+	InputDefault *input = nullptr;
 
 	CrashHandler crash_handler;
 
-	int video_driver_index;
+	int video_driver_index = 0;
 
 	Ref<ResourceFormatDummyTexture> resource_loader_dummy;
 
@@ -70,8 +70,6 @@ protected:
 	virtual int get_video_driver_count() const;
 	virtual const char *get_video_driver_name(int p_driver) const;
 	virtual int get_current_video_driver() const;
-	virtual int get_audio_driver_count() const;
-	virtual const char *get_audio_driver_name(int p_driver) const;
 
 	virtual void initialize_core();
 	virtual Error initialize(const VideoMode &p_desired, int p_video_driver, int p_audio_driver);
