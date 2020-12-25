@@ -32,6 +32,7 @@
 #define RENDERINGSERVERSCENERENDER_H
 
 #include "core/math/camera_matrix.h"
+#include "core/templates/paged_array.h"
 #include "servers/rendering/renderer_storage.h"
 
 class RendererSceneRender {
@@ -55,7 +56,7 @@ public:
 	virtual int sdfgi_get_pending_region_count(RID p_render_buffers) const = 0;
 	virtual AABB sdfgi_get_pending_region_bounds(RID p_render_buffers, int p_region) const = 0;
 	virtual uint32_t sdfgi_get_pending_region_cascade(RID p_render_buffers, int p_region) const = 0;
-	virtual void sdfgi_update_probes(RID p_render_buffers, RID p_environment, const RID *p_directional_light_instances, uint32_t p_directional_light_count, const RID *p_positional_light_instances, uint32_t p_positional_light_count) = 0;
+	virtual void sdfgi_update_probes(RID p_render_buffers, RID p_environment, const PagedArray<RID> &p_directionals, const RID *p_positional_light_instances, uint32_t p_positional_light_count) = 0;
 
 	/* SKY API */
 
@@ -96,9 +97,9 @@ public:
 	virtual void environment_set_ssr(RID p_env, bool p_enable, int p_max_steps, float p_fade_int, float p_fade_out, float p_depth_tolerance) = 0;
 	virtual void environment_set_ssr_roughness_quality(RS::EnvironmentSSRRoughnessQuality p_quality) = 0;
 
-	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_bias, float p_light_affect, float p_ao_channel_affect, RS::EnvironmentSSAOBlur p_blur, float p_bilateral_sharpness) = 0;
+	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_power, float p_detail, float p_horizon, float p_sharpness, float p_light_affect, float p_ao_channel_affect) = 0;
 
-	virtual void environment_set_ssao_quality(RS::EnvironmentSSAOQuality p_quality, bool p_half_size) = 0;
+	virtual void environment_set_ssao_quality(RS::EnvironmentSSAOQuality p_quality, bool p_half_size, float p_adaptive_target, int p_blur_passes, float p_fadeout_from, float p_fadeout_to) = 0;
 
 	virtual void environment_set_sdfgi(RID p_env, bool p_enable, RS::EnvironmentSDFGICascades p_cascades, float p_min_cell_size, RS::EnvironmentSDFGIYScale p_y_scale, bool p_use_occlusion, bool p_use_multibounce, bool p_read_sky, float p_energy, float p_normal_bias, float p_probe_bias) = 0;
 
@@ -135,9 +136,11 @@ public:
 		RID skeleton;
 		RID material_override;
 
-		RID instance_data;
+		RID mesh_instance; //only used for meshes and when skeleton/blendshapes exist
 
 		Transform transform;
+
+		float lod_bias;
 
 		int depth_layer;
 		uint32_t layer_mask;
@@ -148,8 +151,6 @@ public:
 		Vector<RID> light_instances;
 		Vector<RID> reflection_probe_instances;
 		Vector<RID> gi_probe_instances;
-
-		Vector<float> blend_values;
 
 		RS::ShadowCastingSetting cast_shadows;
 
@@ -171,6 +172,7 @@ public:
 
 		AABB aabb;
 		AABB transformed_aabb;
+		AABB prev_transformed_aabb;
 
 		struct InstanceShaderParameter {
 			int32_t index = -1;
@@ -197,6 +199,7 @@ public:
 			lightmap_slice_index = 0;
 			lightmap = nullptr;
 			lightmap_cull_index = 0;
+			lod_bias = 1.0;
 		}
 
 		virtual ~InstanceBase() {
@@ -214,6 +217,7 @@ public:
 
 	virtual RID reflection_atlas_create() = 0;
 	virtual void reflection_atlas_set_size(RID p_ref_atlas, int p_reflection_size, int p_reflection_count) = 0;
+	virtual int reflection_atlas_get_size(RID p_ref_atlas) const = 0;
 
 	virtual RID reflection_probe_instance_create(RID p_probe) = 0;
 	virtual void reflection_probe_instance_set_transform(RID p_instance, const Transform &p_transform) = 0;
@@ -229,17 +233,17 @@ public:
 	virtual RID gi_probe_instance_create(RID p_gi_probe) = 0;
 	virtual void gi_probe_instance_set_transform_to_data(RID p_probe, const Transform &p_xform) = 0;
 	virtual bool gi_probe_needs_update(RID p_probe) const = 0;
-	virtual void gi_probe_update(RID p_probe, bool p_update_light_instances, const Vector<RID> &p_light_instances, int p_dynamic_object_count, InstanceBase **p_dynamic_objects) = 0;
+	virtual void gi_probe_update(RID p_probe, bool p_update_light_instances, const Vector<RID> &p_light_instances, const PagedArray<RendererSceneRender::InstanceBase *> &p_dynamic_objects) = 0;
 
 	virtual void gi_probe_set_quality(RS::GIProbeQuality) = 0;
 
-	virtual void render_scene(RID p_render_buffers, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID *p_light_cull_result, int p_light_cull_count, RID *p_reflection_probe_cull_result, int p_reflection_probe_cull_count, RID *p_gi_probe_cull_result, int p_gi_probe_cull_count, RID *p_decal_cull_result, int p_decal_cull_count, InstanceBase **p_lightmap_cull_result, int p_lightmap_cull_count, RID p_environment, RID p_camera_effects, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass) = 0;
+	virtual void render_scene(RID p_render_buffers, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, const PagedArray<InstanceBase *> &p_instances, const PagedArray<RID> &p_lights, const PagedArray<RID> &p_reflection_probes, const PagedArray<RID> &p_gi_probes, const PagedArray<RID> &p_decals, const PagedArray<InstanceBase *> &p_lightmaps, RID p_environment, RID p_camera_effects, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass, float p_screen_lod_threshold) = 0;
 
-	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, InstanceBase **p_cull_result, int p_cull_count) = 0;
-	virtual void render_material(const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, InstanceBase **p_cull_result, int p_cull_count, RID p_framebuffer, const Rect2i &p_region) = 0;
-	virtual void render_sdfgi(RID p_render_buffers, int p_region, InstanceBase **p_cull_result, int p_cull_count) = 0;
-	virtual void render_sdfgi_static_lights(RID p_render_buffers, uint32_t p_cascade_count, const uint32_t *p_cascade_indices, const RID **p_positional_light_cull_result, const uint32_t *p_positional_light_cull_count) = 0;
-	virtual void render_particle_collider_heightfield(RID p_collider, const Transform &p_transform, InstanceBase **p_cull_result, int p_cull_count) = 0;
+	virtual void render_shadow(RID p_light, RID p_shadow_atlas, int p_pass, const PagedArray<InstanceBase *> &p_instances, const Plane &p_camera_plane = Plane(), float p_lod_distance_multiplier = 0, float p_screen_lod_threshold = 0.0) = 0;
+	virtual void render_material(const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, const PagedArray<InstanceBase *> &p_instances, RID p_framebuffer, const Rect2i &p_region) = 0;
+	virtual void render_sdfgi(RID p_render_buffers, int p_region, const PagedArray<InstanceBase *> &p_instances) = 0;
+	virtual void render_sdfgi_static_lights(RID p_render_buffers, uint32_t p_cascade_count, const uint32_t *p_cascade_indices, const PagedArray<RID> *p_positional_lights) = 0;
+	virtual void render_particle_collider_heightfield(RID p_collider, const Transform &p_transform, const PagedArray<InstanceBase *> &p_instances) = 0;
 
 	virtual void set_scene_pass(uint64_t p_pass) = 0;
 	virtual void set_time(double p_time, double p_step) = 0;

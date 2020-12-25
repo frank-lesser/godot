@@ -558,7 +558,7 @@ ShaderEditor::ShaderEditor(EditorNode *p_node) {
 	shader_editor = memnew(ShaderTextEditor);
 	shader_editor->set_v_size_flags(SIZE_EXPAND_FILL);
 	shader_editor->add_theme_constant_override("separation", 0);
-	shader_editor->set_anchors_and_margins_preset(Control::PRESET_WIDE);
+	shader_editor->set_anchors_and_offsets_preset(Control::PRESET_WIDE);
 
 	shader_editor->connect("script_changed", callable_mp(this, &ShaderEditor::apply_shaders));
 	EditorSettings::get_singleton()->connect("settings_changed", callable_mp(this, &ShaderEditor::_editor_settings_changed));
@@ -661,7 +661,7 @@ ShaderEditor::ShaderEditor(EditorNode *p_node) {
 	vbc->add_child(dl);
 
 	disk_changed->connect("confirmed", callable_mp(this, &ShaderEditor::_reload_shader_from_disk));
-	disk_changed->get_ok()->set_text(TTR("Reload"));
+	disk_changed->get_ok_button()->set_text(TTR("Reload"));
 
 	disk_changed->add_button(TTR("Resave"), !DisplayServer::get_singleton()->get_swap_cancel_ok(), "resave");
 	disk_changed->connect("custom_action", callable_mp(this, &ShaderEditor::save_external_data));

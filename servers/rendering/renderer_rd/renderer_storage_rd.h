@@ -31,6 +31,8 @@
 #ifndef RENDERING_SERVER_STORAGE_RD_H
 #define RENDERING_SERVER_STORAGE_RD_H
 
+#include "core/templates/list.h"
+#include "core/templates/local_vector.h"
 #include "core/templates/rid_owner.h"
 #include "servers/rendering/renderer_compositor.h"
 #include "servers/rendering/renderer_rd/effects_rd.h"
@@ -39,9 +41,9 @@
 #include "servers/rendering/renderer_rd/shaders/giprobe_sdf.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/particles.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/particles_copy.glsl.gen.h"
+#include "servers/rendering/renderer_rd/shaders/skeleton.glsl.gen.h"
 #include "servers/rendering/renderer_scene_render.h"
 #include "servers/rendering/rendering_device.h"
-
 class RendererStorageRD : public RendererStorage {
 public:
 	static _FORCE_INLINE_ void store_transform(const Transform &p_mtx, float *p_array) {
@@ -377,6 +379,8 @@ private:
 
 	/* Mesh */
 
+	struct MeshInstance;
+
 	struct Mesh {
 		struct Surface {
 			RS::PrimitiveType primitive = RS::PRIMITIVE_POINTS;
@@ -386,6 +390,8 @@ private:
 			RID attribute_buffer;
 			RID skin_buffer;
 			uint32_t vertex_count = 0;
+			uint32_t vertex_buffer_size = 0;
+			uint32_t skin_buffer_size = 0;
 
 			// A different pipeline needs to be allocated
 			// depending on the inputs available in the
@@ -433,6 +439,8 @@ private:
 
 			uint32_t particles_render_index = 0;
 			uint64_t particles_render_pass = 0;
+
+			RID uniform_set;
 		};
 
 		uint32_t blend_shape_count = 0;
@@ -443,17 +451,90 @@ private:
 
 		Vector<AABB> bone_aabbs;
 
+		bool has_bone_weights = false;
+
 		AABB aabb;
 		AABB custom_aabb;
 
 		Vector<RID> material_cache;
+
+		List<MeshInstance *> instances;
 
 		RendererStorage::InstanceDependency instance_dependency;
 	};
 
 	mutable RID_Owner<Mesh> mesh_owner;
 
-	void _mesh_surface_generate_version_for_input_mask(Mesh::Surface *s, uint32_t p_input_mask);
+	struct MeshInstance {
+		Mesh *mesh;
+		RID skeleton;
+		struct Surface {
+			RID vertex_buffer;
+			RID uniform_set;
+
+			Mesh::Surface::Version *versions = nullptr; //allocated on demand
+			uint32_t version_count = 0;
+		};
+		LocalVector<Surface> surfaces;
+		LocalVector<float> blend_weights;
+
+		RID blend_weights_buffer;
+		List<MeshInstance *>::Element *I = nullptr; //used to erase itself
+		uint64_t skeleton_version = 0;
+		bool dirty = false;
+		bool weights_dirty = false;
+		SelfList<MeshInstance> weight_update_list;
+		SelfList<MeshInstance> array_update_list;
+		MeshInstance() :
+				weight_update_list(this), array_update_list(this) {}
+	};
+
+	void _mesh_instance_clear(MeshInstance *mi);
+	void _mesh_instance_add_surface(MeshInstance *mi, Mesh *mesh, uint32_t p_surface);
+
+	mutable RID_PtrOwner<MeshInstance> mesh_instance_owner;
+
+	SelfList<MeshInstance>::List dirty_mesh_instance_weights;
+	SelfList<MeshInstance>::List dirty_mesh_instance_arrays;
+
+	struct SkeletonShader {
+		struct PushConstant {
+			uint32_t has_normal;
+			uint32_t has_tangent;
+			uint32_t has_skeleton;
+			uint32_t has_blend_shape;
+
+			uint32_t vertex_count;
+			uint32_t vertex_stride;
+			uint32_t skin_stride;
+			uint32_t skin_weight_offset;
+
+			uint32_t blend_shape_count;
+			uint32_t normalized_blend_shapes;
+			uint32_t pad0;
+			uint32_t pad1;
+		};
+
+		enum {
+			UNIFORM_SET_INSTANCE = 0,
+			UNIFORM_SET_SURFACE = 1,
+			UNIFORM_SET_SKELETON = 2,
+		};
+		enum {
+			SHADER_MODE_2D,
+			SHADER_MODE_3D,
+			SHADER_MODE_MAX
+		};
+
+		SkeletonShaderRD shader;
+		RID version;
+		RID version_shader[SHADER_MODE_MAX];
+		RID pipeline[SHADER_MODE_MAX];
+
+		RID default_skeleton_uniform_set;
+	} skeleton_shader;
+
+	void _mesh_surface_generate_version_for_input_mask(Mesh::Surface::Version &v, Mesh::Surface *s, uint32_t p_input_mask, MeshInstance::Surface *mis = nullptr);
 
 	RID mesh_default_rd_buffers[DEFAULT_RD_BUFFER_MAX];
 
@@ -826,6 +907,9 @@ private:
 		Transform2D base_transform_2d;
 
 		RID uniform_set_3d;
+		RID uniform_set_mi;
+
+		uint64_t version = 1;
 
 		RendererStorage::InstanceDependency instance_dependency;
 	};
@@ -880,6 +964,7 @@ private:
 		bool box_projection = false;
 		bool enable_shadows = false;
 		uint32_t cull_mask = (1 << 20) - 1;
+		float lod_threshold = 0.01;
 
 		RendererStorage::InstanceDependency instance_dependency;
 	};
@@ -1280,6 +1365,8 @@ public:
 
 	virtual RID mesh_create();
 
+	virtual void mesh_set_blend_shape_count(RID p_mesh, int p_blend_shape_count);
+
 	/// Return stride
 	virtual void mesh_add_surface(RID p_mesh, const RS::SurfaceData &p_surface);
 
@@ -1304,6 +1391,16 @@ public:
 
 	virtual void mesh_clear(RID p_mesh);
 
+	virtual bool mesh_needs_instance(RID p_mesh, bool p_has_skeleton);
+
+	/* MESH INSTANCE */
+
+	virtual RID mesh_instance_create(RID p_base);
+	virtual void mesh_instance_set_skeleton(RID p_mesh_instance, RID p_skeleton);
+	virtual void mesh_instance_set_blend_shape_weight(RID p_mesh_instance, int p_shape, float p_weight);
+	virtual void mesh_instance_check_for_update(RID p_mesh_instance);
+	virtual void update_mesh_instances();
+
 	_FORCE_INLINE_ const RID *mesh_get_surface_count_and_materials(RID p_mesh, uint32_t &r_surface_count) {
 		Mesh *mesh = mesh_owner.getornull(p_mesh);
 		ERR_FAIL_COND_V(!mesh, nullptr);
@@ -1321,22 +1418,50 @@ public:
 		return mesh->material_cache.ptr();
 	}
 
-	_FORCE_INLINE_ RS::PrimitiveType mesh_surface_get_primitive(RID p_mesh, uint32_t p_surface_index) {
+	_FORCE_INLINE_ void *mesh_get_surface(RID p_mesh, uint32_t p_surface_index) {
 		Mesh *mesh = mesh_owner.getornull(p_mesh);
-		ERR_FAIL_COND_V(!mesh, RS::PRIMITIVE_MAX);
-		ERR_FAIL_UNSIGNED_INDEX_V(p_surface_index, mesh->surface_count, RS::PRIMITIVE_MAX);
+		ERR_FAIL_COND_V(!mesh, nullptr);
+		ERR_FAIL_UNSIGNED_INDEX_V(p_surface_index, mesh->surface_count, nullptr);
 
-		return mesh->surfaces[p_surface_index]->primitive;
+		return mesh->surfaces[p_surface_index];
 	}
 
-	_FORCE_INLINE_ void mesh_surface_get_arrays_and_format(RID p_mesh, uint32_t p_surface_index, uint32_t p_input_mask, RID &r_vertex_array_rd, RID &r_index_array_rd, RD::VertexFormatID &r_vertex_format) {
-		Mesh *mesh = mesh_owner.getornull(p_mesh);
-		ERR_FAIL_COND(!mesh);
-		ERR_FAIL_UNSIGNED_INDEX(p_surface_index, mesh->surface_count);
+	_FORCE_INLINE_ RS::PrimitiveType mesh_surface_get_primitive(void *p_surface) {
+		Mesh::Surface *surface = reinterpret_cast<Mesh::Surface *>(p_surface);
+		return surface->primitive;
+	}
 
-		Mesh::Surface *s = mesh->surfaces[p_surface_index];
+	_FORCE_INLINE_ bool mesh_surface_has_lod(void *p_surface) const {
+		Mesh::Surface *s = reinterpret_cast<Mesh::Surface *>(p_surface);
+		return s->lod_count > 0;
+	}
 
-		r_index_array_rd = s->index_array;
+	_FORCE_INLINE_ RID mesh_surface_get_index_array(void *p_surface) const {
+		Mesh::Surface *s = reinterpret_cast<Mesh::Surface *>(p_surface);
+
+		return s->index_array;
+	}
+
+	_FORCE_INLINE_ RID mesh_surface_get_index_array_with_lod(void *p_surface, float p_model_scale, float p_distance_threshold, float p_lod_threshold) const {
+		Mesh::Surface *s = reinterpret_cast<Mesh::Surface *>(p_surface);
+
+		int32_t current_lod = -1;
+		for (uint32_t i = 0; i < s->lod_count; i++) {
+			float screen_size = s->lods[i].edge_length * p_model_scale / p_distance_threshold;
+			if (screen_size > p_lod_threshold) {
+				break;
+			}
+			current_lod = i;
+		}
+		if (current_lod == -1) {
+			return s->index_array;
+		} else {
+			return s->lods[current_lod].index_array;
+		}
+	}
+
+	_FORCE_INLINE_ void mesh_surface_get_vertex_arrays_and_format(void *p_surface, uint32_t p_input_mask, RID &r_vertex_array_rd, RD::VertexFormatID &r_vertex_format) {
+		Mesh::Surface *s = reinterpret_cast<Mesh::Surface *>(p_surface);
 
 		s->version_lock.lock();
 
@@ -1353,12 +1478,50 @@ public:
 			return;
 		}
 
-		uint32_t version = s->version_count; //gets added at the end
+		uint32_t version = s->version_count;
+		s->version_count++;
+		s->versions = (Mesh::Surface::Version *)memrealloc(s->versions, sizeof(Mesh::Surface::Version) * s->version_count);
 
-		_mesh_surface_generate_version_for_input_mask(s, p_input_mask);
+		_mesh_surface_generate_version_for_input_mask(s->versions[version], s, p_input_mask);
 
 		r_vertex_format = s->versions[version].vertex_format;
 		r_vertex_array_rd = s->versions[version].vertex_array;
+
+		s->version_lock.unlock();
+	}
+
+	_FORCE_INLINE_ void mesh_instance_surface_get_vertex_arrays_and_format(RID p_mesh_instance, uint32_t p_surface_index, uint32_t p_input_mask, RID &r_vertex_array_rd, RD::VertexFormatID &r_vertex_format) {
+		MeshInstance *mi = mesh_instance_owner.getornull(p_mesh_instance);
+		ERR_FAIL_COND(!mi);
+		Mesh *mesh = mi->mesh;
+		ERR_FAIL_UNSIGNED_INDEX(p_surface_index, mesh->surface_count);
+
+		MeshInstance::Surface *mis = &mi->surfaces[p_surface_index];
+		Mesh::Surface *s = mesh->surfaces[p_surface_index];
+
+		s->version_lock.lock();
+
+		//there will never be more than, at much, 3 or 4 versions, so iterating is the fastest way
+
+		for (uint32_t i = 0; i < mis->version_count; i++) {
+			if (mis->versions[i].input_mask != p_input_mask) {
+				continue;
+			}
+			//we have this version, hooray
+			r_vertex_format = mis->versions[i].vertex_format;
+			r_vertex_array_rd = mis->versions[i].vertex_array;
+			s->version_lock.unlock();
+			return;
+		}
+
+		uint32_t version = mis->version_count;
+		mis->version_count++;
+		mis->versions = (Mesh::Surface::Version *)memrealloc(mis->versions, sizeof(Mesh::Surface::Version) * mis->version_count);
+
+		_mesh_surface_generate_version_for_input_mask(mis->versions[version], s, p_input_mask, mis);
+
+		r_vertex_format = mis->versions[version].vertex_format;
+		r_vertex_array_rd = mis->versions[version].vertex_array;
 
 		s->version_lock.unlock();
 	}
@@ -1644,6 +1807,7 @@ public:
 	void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable);
 	void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers);
 	void reflection_probe_set_resolution(RID p_probe, int p_resolution);
+	void reflection_probe_set_lod_threshold(RID p_probe, float p_ratio);
 
 	AABB reflection_probe_get_aabb(RID p_probe) const;
 	RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const;
@@ -1651,6 +1815,8 @@ public:
 	Vector3 reflection_probe_get_extents(RID p_probe) const;
 	Vector3 reflection_probe_get_origin_offset(RID p_probe) const;
 	float reflection_probe_get_origin_max_distance(RID p_probe) const;
+	float reflection_probe_get_lod_threshold(RID p_probe) const;
+
 	int reflection_probe_get_resolution(RID p_probe) const;
 	bool reflection_probe_renders_shadows(RID p_probe) const;
 

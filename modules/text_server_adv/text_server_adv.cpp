@@ -132,7 +132,7 @@ _FORCE_INLINE_ bool is_linebreak(char32_t p_char) {
 /*************************************************************************/
 
 String TextServerAdvanced::interface_name = "ICU / HarfBuzz / Graphite";
-uint32_t TextServerAdvanced::interface_features = FEATURE_BIDI_LAYOUT | FEATURE_VERTICAL_LAYOUT | FEATURE_SHAPING | FEATURE_KASHIDA_JUSTIFICATION | FEATURE_BREAK_ITERATORS | FEATURE_USE_SUPPORT_DATA;
+uint32_t TextServerAdvanced::interface_features = FEATURE_BIDI_LAYOUT | FEATURE_VERTICAL_LAYOUT | FEATURE_SHAPING | FEATURE_KASHIDA_JUSTIFICATION | FEATURE_BREAK_ITERATORS | FEATURE_USE_SUPPORT_DATA | FEATURE_FONT_VARIABLE;
 
 bool TextServerAdvanced::has_feature(Feature p_feature) {
 	return (interface_features & p_feature) == p_feature;
@@ -620,6 +620,27 @@ bool TextServerAdvanced::font_get_antialiased(RID p_font) const {
 	const FontDataAdvanced *fd = font_owner.getornull(p_font);
 	ERR_FAIL_COND_V(!fd, false);
 	return fd->get_antialiased();
+}
+
+Dictionary TextServerAdvanced::font_get_variation_list(RID p_font) const {
+	_THREAD_SAFE_METHOD_
+	const FontDataAdvanced *fd = font_owner.getornull(p_font);
+	ERR_FAIL_COND_V(!fd, Dictionary());
+	return fd->get_variation_list();
+}
+
+void TextServerAdvanced::font_set_variation(RID p_font, const String &p_name, double p_value) {
+	_THREAD_SAFE_METHOD_
+	FontDataAdvanced *fd = font_owner.getornull(p_font);
+	ERR_FAIL_COND(!fd);
+	fd->set_variation(p_name, p_value);
+}
+
+double TextServerAdvanced::font_get_variation(RID p_font, const String &p_name) const {
+	_THREAD_SAFE_METHOD_
+	const FontDataAdvanced *fd = font_owner.getornull(p_font);
+	ERR_FAIL_COND_V(!fd, 0);
+	return fd->get_variation(p_name);
 }
 
 void TextServerAdvanced::font_set_distance_field_hint(RID p_font, bool p_distance_field) {
@@ -1624,13 +1645,18 @@ bool TextServerAdvanced::shaped_text_update_breaks(RID p_shaped) {
 			if (c == 0x0009 || c == 0x000b) {
 				sd_glyphs[i].flags |= GRAPHEME_IS_TAB;
 			}
+			if (is_whitespace(c)) {
+				sd_glyphs[i].flags |= GRAPHEME_IS_SPACE;
+			}
+			if (u_ispunct(c)) {
+				sd_glyphs[i].flags |= GRAPHEME_IS_PUNCTUATION;
+			}
 			if (breaks.has(sd->glyphs[i].start)) {
 				if (breaks[sd->glyphs[i].start]) {
 					sd_glyphs[i].flags |= GRAPHEME_IS_BREAK_HARD;
 				} else {
 					if (is_whitespace(c)) {
 						sd_glyphs[i].flags |= GRAPHEME_IS_BREAK_SOFT;
-						sd_glyphs[i].flags |= GRAPHEME_IS_SPACE;
 					} else {
 						TextServer::Glyph gl;
 						gl.start = sd_glyphs[i].start;
@@ -1745,6 +1771,10 @@ bool TextServerAdvanced::shaped_text_update_justification_ops(RID p_shaped) {
 		shaped_text_update_breaks(p_shaped);
 	}
 
+	if (sd->justification_ops_valid) {
+		return true; // Noting to do.
+	}
+
 	const UChar *data = sd->utf16.ptr();
 	int32_t data_size = sd->utf16.length();
 
@@ -1775,9 +1805,9 @@ bool TextServerAdvanced::shaped_text_update_justification_ops(RID p_shaped) {
 			if (ubrk_getRuleStatus(bi) != UBRK_WORD_NONE) {
 				int i = _convert_pos(sd, ubrk_current(bi));
 				jstops[i + sd->start] = false;
-				int ks = _generate_kashida_justification_opportunies(sd->text, limit, i) + sd->start;
+				int ks = _generate_kashida_justification_opportunies(sd->text, limit, i);
 				if (ks != -1) {
-					jstops[ks] = true;
+					jstops[ks + sd->start] = true;
 				}
 				limit = i;
 			}

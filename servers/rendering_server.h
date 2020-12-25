@@ -282,8 +282,6 @@ public:
 		Vector<uint8_t> index_data;
 		uint32_t index_count = 0;
 
-		uint32_t blend_shape_count = 0;
-
 		AABB aabb;
 		struct LOD {
 			float edge_length;
@@ -297,8 +295,10 @@ public:
 		RID material;
 	};
 
-	virtual RID mesh_create_from_surfaces(const Vector<SurfaceData> &p_surfaces) = 0;
+	virtual RID mesh_create_from_surfaces(const Vector<SurfaceData> &p_surfaces, int p_blend_shape_count = 0) = 0;
 	virtual RID mesh_create() = 0;
+
+	virtual void mesh_set_blend_shape_count(RID p_mesh, int p_blend_shape_count) = 0;
 
 	virtual uint32_t mesh_surface_get_format_offset(uint32_t p_format, int p_vertex_len, int p_array_index) const;
 	virtual uint32_t mesh_surface_get_format_vertex_stride(uint32_t p_format, int p_vertex_len) const;
@@ -507,6 +507,7 @@ public:
 	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) = 0;
 	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
 	virtual void reflection_probe_set_resolution(RID p_probe, int p_resolution) = 0;
+	virtual void reflection_probe_set_lod_threshold(RID p_probe, float p_pixels) = 0;
 
 	/* DECAL API */
 
@@ -805,6 +806,8 @@ public:
 
 	virtual void viewport_set_use_debanding(RID p_viewport, bool p_use_debanding) = 0;
 
+	virtual void viewport_set_lod_threshold(RID p_viewport, float p_pixels) = 0;
+
 	enum ViewportRenderInfo {
 		VIEWPORT_RENDER_INFO_OBJECTS_IN_FRAME,
 		VIEWPORT_RENDER_INFO_VERTICES_IN_FRAME,
@@ -836,6 +839,7 @@ public:
 		VIEWPORT_DEBUG_DRAW_SDFGI,
 		VIEWPORT_DEBUG_DRAW_SDFGI_PROBES,
 		VIEWPORT_DEBUG_DRAW_GI_BUFFER,
+		VIEWPORT_DEBUG_DRAW_DISABLE_LOD,
 
 	};
 
@@ -936,23 +940,17 @@ public:
 
 	virtual void environment_set_ssr_roughness_quality(EnvironmentSSRRoughnessQuality p_quality) = 0;
 
-	enum EnvironmentSSAOBlur {
-		ENV_SSAO_BLUR_DISABLED,
-		ENV_SSAO_BLUR_1x1,
-		ENV_SSAO_BLUR_2x2,
-		ENV_SSAO_BLUR_3x3,
-	};
-
-	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_bias, float p_light_affect, float p_ao_channel_affect, EnvironmentSSAOBlur p_blur, float p_bilateral_sharpness) = 0;
+	virtual void environment_set_ssao(RID p_env, bool p_enable, float p_radius, float p_intensity, float p_power, float p_detail, float p_horizon, float p_sharpness, float p_light_affect, float p_ao_channel_affect) = 0;
 
 	enum EnvironmentSSAOQuality {
+		ENV_SSAO_QUALITY_VERY_LOW,
 		ENV_SSAO_QUALITY_LOW,
 		ENV_SSAO_QUALITY_MEDIUM,
 		ENV_SSAO_QUALITY_HIGH,
 		ENV_SSAO_QUALITY_ULTRA,
 	};
 
-	virtual void environment_set_ssao_quality(EnvironmentSSAOQuality p_quality, bool p_half_size) = 0;
+	virtual void environment_set_ssao_quality(EnvironmentSSAOQuality p_quality, bool p_half_size, float p_adaptive_target, int p_blur_passes, float p_fadeout_from, float p_fadeout_to) = 0;
 
 	enum EnvironmentSDFGICascades {
 		ENV_SDFGI_CASCADES_4,
@@ -1142,6 +1140,7 @@ public:
 	virtual void instance_geometry_set_draw_range(RID p_instance, float p_min, float p_max, float p_min_margin, float p_max_margin) = 0;
 	virtual void instance_geometry_set_as_instance_lod(RID p_instance, RID p_as_lod_of_instance) = 0;
 	virtual void instance_geometry_set_lightmap(RID p_instance, RID p_lightmap, const Rect2 &p_lightmap_uv_scale, int p_lightmap_slice) = 0;
+	virtual void instance_geometry_set_lod_bias(RID p_instance, float p_lod_bias) = 0;
 
 	virtual void instance_geometry_set_shader_parameter(RID p_instance, const StringName &, const Variant &p_value) = 0;
 	virtual Variant instance_geometry_get_shader_parameter(RID p_instance, const StringName &) const = 0;
@@ -1410,6 +1409,8 @@ public:
 	virtual Vector<FrameProfileArea> get_frame_profile() = 0;
 	virtual uint64_t get_frame_profile_frame() = 0;
 
+	virtual float get_frame_setup_time_cpu() const = 0;
+
 	/* TESTING */
 
 	virtual RID get_test_cube() = 0;
@@ -1483,7 +1484,6 @@ VARIANT_ENUM_CAST(RenderingServer::EnvironmentReflectionSource);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentGlowBlendMode);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentToneMapper);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentSSRRoughnessQuality);
-VARIANT_ENUM_CAST(RenderingServer::EnvironmentSSAOBlur);
 VARIANT_ENUM_CAST(RenderingServer::EnvironmentSSAOQuality);
 VARIANT_ENUM_CAST(RenderingServer::SubSurfaceScatteringQuality);
 VARIANT_ENUM_CAST(RenderingServer::DOFBlurQuality);

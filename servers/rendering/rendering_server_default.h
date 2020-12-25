@@ -72,6 +72,8 @@ class RenderingServerDefault : public RenderingServer {
 	uint64_t frame_profile_frame;
 	Vector<FrameProfileArea> frame_profile;
 
+	float frame_setup_time = 0;
+
 public:
 	//if editor is redrawing when it shouldn't, enable this and put a breakpoint in _changes_changed()
 	//#define DEBUG_CHANGES
@@ -231,13 +233,16 @@ public:
 
 	/* MESH API */
 
-	virtual RID mesh_create_from_surfaces(const Vector<SurfaceData> &p_surfaces) {
+	virtual RID mesh_create_from_surfaces(const Vector<SurfaceData> &p_surfaces, int p_blend_shape_count = 0) {
 		RID mesh = mesh_create();
+		mesh_set_blend_shape_count(mesh, p_blend_shape_count);
 		for (int i = 0; i < p_surfaces.size(); i++) {
 			mesh_add_surface(mesh, p_surfaces[i]);
 		}
 		return mesh;
 	}
+
+	BIND2(mesh_set_blend_shape_count, RID, int)
 
 	BIND0R(RID, mesh_create)
 
@@ -356,6 +361,7 @@ public:
 	BIND2(reflection_probe_set_enable_shadows, RID, bool)
 	BIND2(reflection_probe_set_cull_mask, RID, uint32_t)
 	BIND2(reflection_probe_set_resolution, RID, int)
+	BIND2(reflection_probe_set_lod_threshold, RID, float)
 
 	/* DECAL API */
 
@@ -542,6 +548,7 @@ public:
 	BIND2(viewport_set_msaa, RID, ViewportMSAA)
 	BIND2(viewport_set_screen_space_aa, RID, ViewportScreenSpaceAA)
 	BIND2(viewport_set_use_debanding, RID, bool)
+	BIND2(viewport_set_lod_threshold, RID, float)
 
 	BIND2R(int, viewport_get_render_info, RID, ViewportRenderInfo)
 	BIND2(viewport_set_debug_draw, RID, ViewportDebugDraw)
@@ -585,8 +592,8 @@ public:
 	BIND6(environment_set_ssr, RID, bool, int, float, float, float)
 	BIND1(environment_set_ssr_roughness_quality, EnvironmentSSRRoughnessQuality)
 
-	BIND9(environment_set_ssao, RID, bool, float, float, float, float, float, EnvironmentSSAOBlur, float)
-	BIND2(environment_set_ssao_quality, EnvironmentSSAOQuality, bool)
+	BIND10(environment_set_ssao, RID, bool, float, float, float, float, float, float, float, float)
+	BIND6(environment_set_ssao_quality, EnvironmentSSAOQuality, bool, float, int, float, float)
 
 	BIND11(environment_set_glow, RID, bool, Vector<float>, float, float, float, float, EnvironmentGlowBlendMode, float, float, float)
 	BIND1(environment_glow_set_use_bicubic_upscale, bool)
@@ -670,6 +677,7 @@ public:
 	BIND5(instance_geometry_set_draw_range, RID, float, float, float, float)
 	BIND2(instance_geometry_set_as_instance_lod, RID, RID)
 	BIND4(instance_geometry_set_lightmap, RID, RID, const Rect2 &, int)
+	BIND2(instance_geometry_set_lod_bias, RID, float)
 
 	BIND3(instance_geometry_set_shader_parameter, RID, const StringName &, const Variant &)
 	BIND2RC(Variant, instance_geometry_get_shader_parameter, RID, const StringName &)
@@ -838,6 +846,8 @@ public:
 	virtual RID get_test_cube();
 
 	/* TESTING */
+
+	virtual float get_frame_setup_time_cpu() const;
 
 	virtual void set_boot_image(const Ref<Image> &p_image, const Color &p_color, bool p_scale, bool p_use_filter = true);
 	virtual void set_default_clear_color(const Color &p_color);

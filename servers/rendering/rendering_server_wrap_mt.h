@@ -143,9 +143,11 @@ public:
 
 	/* MESH API */
 
-	virtual RID mesh_create_from_surfaces(const Vector<SurfaceData> &p_surfaces) {
-		return rendering_server->mesh_create_from_surfaces(p_surfaces);
+	virtual RID mesh_create_from_surfaces(const Vector<SurfaceData> &p_surfaces, int p_blend_shape_count = 0) {
+		return rendering_server->mesh_create_from_surfaces(p_surfaces, p_blend_shape_count);
 	}
+
+	FUNC2(mesh_set_blend_shape_count, RID, int)
 
 	FUNCRID(mesh)
 
@@ -264,6 +266,7 @@ public:
 	FUNC2(reflection_probe_set_enable_shadows, RID, bool)
 	FUNC2(reflection_probe_set_cull_mask, RID, uint32_t)
 	FUNC2(reflection_probe_set_resolution, RID, int)
+	FUNC2(reflection_probe_set_lod_threshold, RID, float)
 
 	/* DECAL API */
 
@@ -448,6 +451,8 @@ public:
 	FUNC2(viewport_set_screen_space_aa, RID, ViewportScreenSpaceAA)
 	FUNC2(viewport_set_use_debanding, RID, bool)
 
+	FUNC2(viewport_set_lod_threshold, RID, float)
+
 	//this passes directly to avoid stalling, but it's pretty dangerous, so don't call after freeing a viewport
 	virtual int viewport_get_render_info(RID p_viewport, ViewportRenderInfo p_info) {
 		return rendering_server->viewport_get_render_info(p_viewport, p_info);
@@ -493,9 +498,9 @@ public:
 	FUNC6(environment_set_ssr, RID, bool, int, float, float, float)
 	FUNC1(environment_set_ssr_roughness_quality, EnvironmentSSRRoughnessQuality)
 
-	FUNC9(environment_set_ssao, RID, bool, float, float, float, float, float, EnvironmentSSAOBlur, float)
+	FUNC10(environment_set_ssao, RID, bool, float, float, float, float, float, float, float, float)
 
-	FUNC2(environment_set_ssao_quality, EnvironmentSSAOQuality, bool)
+	FUNC6(environment_set_ssao_quality, EnvironmentSSAOQuality, bool, float, int, float, float)
 
 	FUNC11(environment_set_sdfgi, RID, bool, EnvironmentSDFGICascades, float, EnvironmentSDFGIYScale, bool, bool, bool, float, float, float)
 	FUNC1(environment_set_sdfgi_ray_count, EnvironmentSDFGIRayCount)
@@ -573,6 +578,7 @@ public:
 	FUNC5(instance_geometry_set_draw_range, RID, float, float, float, float)
 	FUNC2(instance_geometry_set_as_instance_lod, RID, RID)
 	FUNC4(instance_geometry_set_lightmap, RID, RID, const Rect2 &, int)
+	FUNC2(instance_geometry_set_lod_bias, RID, float)
 
 	FUNC3(instance_geometry_set_shader_parameter, RID, const StringName &, const Variant &)
 	FUNC2RC(Variant, instance_geometry_get_shader_parameter, RID, const StringName &)
@@ -768,6 +774,10 @@ public:
 
 	virtual Vector<FrameProfileArea> get_frame_profile() {
 		return rendering_server->get_frame_profile();
+	}
+
+	virtual float get_frame_setup_time_cpu() const {
+		return rendering_server->get_frame_setup_time_cpu();
 	}
 
 	virtual void sdfgi_set_debug_probe_select(const Vector3 &p_position, const Vector3 &p_dir) {

@@ -144,7 +144,7 @@ void RendererCanvasCull::_cull_canvas_item(Item *p_canvas_item, const Transform2
 
 	if (ci->clip) {
 		if (p_canvas_clip != nullptr) {
-			ci->final_clip_rect = p_canvas_clip->final_clip_rect.clip(global_rect);
+			ci->final_clip_rect = p_canvas_clip->final_clip_rect.intersection(global_rect);
 		} else {
 			ci->final_clip_rect = global_rect;
 		}
@@ -195,7 +195,7 @@ void RendererCanvasCull::_cull_canvas_item(Item *p_canvas_item, const Transform2
 	}
 
 	if (ci->copy_back_buffer) {
-		ci->copy_back_buffer->screen_rect = xform.xform(ci->copy_back_buffer->rect).clip(p_clip_rect);
+		ci->copy_back_buffer->screen_rect = xform.xform(ci->copy_back_buffer->rect).intersection(p_clip_rect);
 	}
 
 	if (use_canvas_group) {
@@ -825,10 +825,10 @@ void RendererCanvasCull::canvas_item_add_nine_patch(RID p_item, const Rect2 &p_r
 	style->source = p_source;
 	style->draw_center = p_draw_center;
 	style->color = p_modulate;
-	style->margin[MARGIN_LEFT] = p_topleft.x;
-	style->margin[MARGIN_TOP] = p_topleft.y;
-	style->margin[MARGIN_RIGHT] = p_bottomright.x;
-	style->margin[MARGIN_BOTTOM] = p_bottomright.y;
+	style->margin[SIDE_LEFT] = p_topleft.x;
+	style->margin[SIDE_TOP] = p_topleft.y;
+	style->margin[SIDE_RIGHT] = p_bottomright.x;
+	style->margin[SIDE_BOTTOM] = p_bottomright.y;
 	style->axis_x = p_x_axis_mode;
 	style->axis_y = p_y_axis_mode;
 }

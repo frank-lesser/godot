@@ -187,6 +187,8 @@ public:
 
 	virtual RID mesh_create() = 0;
 
+	virtual void mesh_set_blend_shape_count(RID p_mesh, int p_blend_shape_count) = 0;
+
 	/// Returns stride
 	virtual void mesh_add_surface(RID p_mesh, const RS::SurfaceData &p_surface) = 0;
 
@@ -210,6 +212,16 @@ public:
 	virtual AABB mesh_get_aabb(RID p_mesh, RID p_skeleton = RID()) = 0;
 
 	virtual void mesh_clear(RID p_mesh) = 0;
+
+	virtual bool mesh_needs_instance(RID p_mesh, bool p_has_skeleton) = 0;
+
+	/* MESH INSTANCE */
+
+	virtual RID mesh_instance_create(RID p_base) = 0;
+	virtual void mesh_instance_set_skeleton(RID p_mesh_instance, RID p_skeleton) = 0;
+	virtual void mesh_instance_set_blend_shape_weight(RID p_mesh_instance, int p_shape, float p_weight) = 0;
+	virtual void mesh_instance_check_for_update(RID p_mesh_instance) = 0;
+	virtual void update_mesh_instances() = 0;
 
 	/* MULTIMESH API */
 
@@ -326,6 +338,7 @@ public:
 	virtual void reflection_probe_set_enable_box_projection(RID p_probe, bool p_enable) = 0;
 	virtual void reflection_probe_set_enable_shadows(RID p_probe, bool p_enable) = 0;
 	virtual void reflection_probe_set_cull_mask(RID p_probe, uint32_t p_layers) = 0;
+	virtual void reflection_probe_set_lod_threshold(RID p_probe, float p_ratio) = 0;
 
 	virtual AABB reflection_probe_get_aabb(RID p_probe) const = 0;
 	virtual RS::ReflectionProbeUpdateMode reflection_probe_get_update_mode(RID p_probe) const = 0;
@@ -334,6 +347,7 @@ public:
 	virtual Vector3 reflection_probe_get_origin_offset(RID p_probe) const = 0;
 	virtual float reflection_probe_get_origin_max_distance(RID p_probe) const = 0;
 	virtual bool reflection_probe_renders_shadows(RID p_probe) const = 0;
+	virtual float reflection_probe_get_lod_threshold(RID p_probe) const = 0;
 
 	virtual void base_update_dependency(RID p_base, InstanceBaseDependency *p_instance) = 0;
 	virtual void skeleton_update_dependency(RID p_base, InstanceBaseDependency *p_instance) = 0;

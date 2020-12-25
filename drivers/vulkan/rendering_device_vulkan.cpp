@@ -1362,6 +1362,7 @@ Error RenderingDeviceVulkan::_buffer_allocate(Buffer *p_buffer, uint32_t p_size,
 	p_buffer->buffer_info.buffer = p_buffer->buffer;
 	p_buffer->buffer_info.offset = 0;
 	p_buffer->buffer_info.range = p_size;
+	p_buffer->usage = p_usage;
 
 	return OK;
 }
@@ -2094,15 +2095,26 @@ RID RenderingDeviceVulkan::texture_create_shared_from_slice(const TextureView &p
 	ERR_FAIL_COND_V_MSG(p_slice_type == TEXTURE_SLICE_3D && src_texture->type != TEXTURE_TYPE_3D, RID(),
 			"Can only create a 3D slice from a 3D texture");
 
+	ERR_FAIL_COND_V_MSG(p_slice_type == TEXTURE_SLICE_2D_ARRAY && (src_texture->type != TEXTURE_TYPE_2D_ARRAY), RID(),
+			"Can only create an array slice from a 2D array mipmap");
+
 	//create view
 
 	ERR_FAIL_UNSIGNED_INDEX_V(p_mipmap, src_texture->mipmaps, RID());
 	ERR_FAIL_UNSIGNED_INDEX_V(p_layer, src_texture->layers, RID());
 
+	int slice_layers = 1;
+	if (p_slice_type == TEXTURE_SLICE_2D_ARRAY) {
+		ERR_FAIL_COND_V_MSG(p_layer != 0, RID(), "layer must be 0 when obtaining a 2D array mipmap slice");
+		slice_layers = src_texture->layers;
+	} else if (p_slice_type == TEXTURE_SLICE_CUBEMAP) {
+		slice_layers = 6;
+	}
+
 	Texture texture = *src_texture;
 	get_image_format_required_size(texture.format, texture.width, texture.height, texture.depth, p_mipmap + 1, &texture.width, &texture.height);
 	texture.mipmaps = 1;
-	texture.layers = p_slice_type == TEXTURE_SLICE_CUBEMAP ? 6 : 1;
+	texture.layers = slice_layers;
 	texture.base_mipmap = p_mipmap;
 	texture.base_layer = p_layer;
 
@@ -2156,7 +2168,7 @@ RID RenderingDeviceVulkan::texture_create_shared_from_slice(const TextureView &p
 	}
 	image_view_create_info.subresourceRange.baseMipLevel = p_mipmap;
 	image_view_create_info.subresourceRange.levelCount = 1;
-	image_view_create_info.subresourceRange.layerCount = p_slice_type == TEXTURE_SLICE_CUBEMAP ? 6 : 1;
+	image_view_create_info.subresourceRange.layerCount = slice_layers;
 	image_view_create_info.subresourceRange.baseArrayLayer = p_layer;
 
 	if (texture.usage_flags & TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT) {
@@ -3485,7 +3497,7 @@ RID RenderingDeviceVulkan::sampler_create(const SamplerState &p_state) {
 /**** VERTEX ARRAY ****/
 /**********************/
 
-RID RenderingDeviceVulkan::vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data) {
+RID RenderingDeviceVulkan::vertex_buffer_create(uint32_t p_size_bytes, const Vector<uint8_t> &p_data, bool p_use_as_storage) {
 	_THREAD_SAFE_METHOD_
 
 	ERR_FAIL_COND_V(p_data.size() && (uint32_t)p_data.size() != p_size_bytes, RID());
@@ -3494,8 +3506,12 @@ RID RenderingDeviceVulkan::vertex_buffer_create(uint32_t p_size_bytes, const Vec
 	ERR_FAIL_COND_V_MSG(compute_list != nullptr && p_data.size(), RID(),
 			"Creating buffers with data is forbidden during creation of a draw list");
 
+	uint32_t usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	if (p_use_as_storage) {
+		usage |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+	}
 	Buffer buffer;
-	_buffer_allocate(&buffer, p_size_bytes, VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VMA_MEMORY_USAGE_GPU_ONLY);
+	_buffer_allocate(&buffer, p_size_bytes, usage, VMA_MEMORY_USAGE_GPU_ONLY);
 	if (p_data.size()) {
 		uint64_t data_size = p_data.size();
 		const uint8_t *r = p_data.ptr();
@@ -4595,7 +4611,7 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 	List<Vector<VkBufferView>> buffer_views;
 	List<Vector<VkDescriptorImageInfo>> image_infos;
 	//used for verification to make sure a uniform set does not use a framebuffer bound texture
-	Vector<RID> attachable_textures;
+	LocalVector<UniformSet::AttachableTexture> attachable_textures;
 	Vector<Texture *> mutable_sampled_textures;
 	Vector<Texture *> mutable_storage_textures;
 
@@ -4688,7 +4704,10 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 					img_info.imageView = texture->view;
 
 					if (texture->usage_flags & (TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | TEXTURE_USAGE_RESOLVE_ATTACHMENT_BIT)) {
-						attachable_textures.push_back(texture->owner.is_valid() ? texture->owner : uniform.ids[j + 1]);
+						UniformSet::AttachableTexture attachable_texture;
+						attachable_texture.bind = set_uniform.binding;
+						attachable_texture.texture = texture->owner.is_valid() ? texture->owner : uniform.ids[j + 1];
+						attachable_textures.push_back(attachable_texture);
 					}
 
 					if (texture->usage_flags & TEXTURE_USAGE_STORAGE_BIT) {
@@ -4738,7 +4757,10 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 					img_info.imageView = texture->view;
 
 					if (texture->usage_flags & (TEXTURE_USAGE_COLOR_ATTACHMENT_BIT | TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | TEXTURE_USAGE_RESOLVE_ATTACHMENT_BIT)) {
-						attachable_textures.push_back(texture->owner.is_valid() ? texture->owner : uniform.ids[j]);
+						UniformSet::AttachableTexture attachable_texture;
+						attachable_texture.bind = set_uniform.binding;
+						attachable_texture.texture = texture->owner.is_valid() ? texture->owner : uniform.ids[j];
+						attachable_textures.push_back(attachable_texture);
 					}
 
 					if (texture->usage_flags & TEXTURE_USAGE_STORAGE_BIT) {
@@ -4911,7 +4933,15 @@ RID RenderingDeviceVulkan::uniform_set_create(const Vector<Uniform> &p_uniforms,
 				ERR_FAIL_COND_V_MSG(uniform.ids.size() != 1, RID(),
 						"Storage buffer supplied (binding: " + itos(uniform.binding) + ") must provide one ID (" + itos(uniform.ids.size()) + " provided).");
 
-				Buffer *buffer = storage_buffer_owner.getornull(uniform.ids[0]);
+				Buffer *buffer = nullptr;
+
+				if (storage_buffer_owner.owns(uniform.ids[0])) {
+					buffer = storage_buffer_owner.getornull(uniform.ids[0]);
+				} else if (vertex_buffer_owner.owns(uniform.ids[0])) {
+					buffer = vertex_buffer_owner.getornull(uniform.ids[0]);
+
+					ERR_FAIL_COND_V_MSG(!(buffer->usage & VK_BUFFER_USAGE_STORAGE_BUFFER_BIT), RID(), "Vertex buffer supplied (binding: " + itos(uniform.binding) + ") was not created with storage flag.");
+				}
 				ERR_FAIL_COND_V_MSG(!buffer, RID(), "Storage buffer supplied (binding: " + itos(uniform.binding) + ") is invalid.");
 
 				//if 0, then its sized on link time
@@ -6155,13 +6185,13 @@ void RenderingDeviceVulkan::draw_list_bind_uniform_set(DrawListID p_list, RID p_
 #ifdef DEBUG_ENABLED
 	{ //validate that textures bound are not attached as framebuffer bindings
 		uint32_t attachable_count = uniform_set->attachable_textures.size();
-		const RID *attachable_ptr = uniform_set->attachable_textures.ptr();
+		const UniformSet::AttachableTexture *attachable_ptr = uniform_set->attachable_textures.ptr();
 		uint32_t bound_count = draw_list_bound_textures.size();
 		const RID *bound_ptr = draw_list_bound_textures.ptr();
 		for (uint32_t i = 0; i < attachable_count; i++) {
 			for (uint32_t j = 0; j < bound_count; j++) {
-				ERR_FAIL_COND_MSG(attachable_ptr[i] == bound_ptr[j],
-						"Attempted to use the same texture in framebuffer attachment and a uniform set, this is not allowed.");
+				ERR_FAIL_COND_MSG(attachable_ptr[i].texture == bound_ptr[j],
+						"Attempted to use the same texture in framebuffer attachment and a uniform (set: " + itos(p_index) + ", binding: " + itos(attachable_ptr[i].bind) + "), this is not allowed.");
 			}
 		}
 	}
@@ -6365,7 +6395,7 @@ void RenderingDeviceVulkan::draw_list_enable_scissor(DrawListID p_list, const Re
 	Rect2i rect = p_rect;
 	rect.position += dl->viewport.position;
 
-	rect = dl->viewport.clip(rect);
+	rect = dl->viewport.intersection(rect);
 
 	if (rect.get_area() == 0) {
 		return;

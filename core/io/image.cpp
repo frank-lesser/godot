@@ -993,7 +993,7 @@ bool Image::is_size_po2() const {
 	return uint32_t(width) == next_power_of_2(width) && uint32_t(height) == next_power_of_2(height);
 }
 
-void Image::resize_to_po2(bool p_square) {
+void Image::resize_to_po2(bool p_square, Interpolation p_interpolation) {
 	ERR_FAIL_COND_MSG(!_can_modify(format), "Cannot resize in compressed or custom image formats.");
 
 	int w = next_power_of_2(width);
@@ -1008,7 +1008,7 @@ void Image::resize_to_po2(bool p_square) {
 		}
 	}
 
-	resize(w, h);
+	resize(w, h, p_interpolation);
 }
 
 void Image::resize(int p_width, int p_height, Interpolation p_interpolation) {
@@ -2480,7 +2480,7 @@ void Image::blit_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const Po
 	ERR_FAIL_COND(format != p_src->format);
 	ERR_FAIL_COND_MSG(!_can_modify(format), "Cannot blit_rect in compressed or custom image formats.");
 
-	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).clip(p_src_rect);
+	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).intersection(p_src_rect);
 
 	if (p_dest.x < 0) {
 		clipped_src_rect.position.x = ABS(p_dest.x);
@@ -2494,7 +2494,7 @@ void Image::blit_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const Po
 	}
 
 	Point2 src_underscan = Point2(MIN(0, p_src_rect.position.x), MIN(0, p_src_rect.position.y));
-	Rect2i dest_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
+	Rect2i dest_rect = Rect2i(0, 0, width, height).intersection(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
 
 	uint8_t *wp = data.ptrw();
 	uint8_t *dst_data_ptr = wp;
@@ -2535,7 +2535,7 @@ void Image::blit_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, co
 	ERR_FAIL_COND_MSG(p_src->height != p_mask->height, "Source image height is different from mask height.");
 	ERR_FAIL_COND(format != p_src->format);
 
-	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).clip(p_src_rect);
+	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).intersection(p_src_rect);
 
 	if (p_dest.x < 0) {
 		clipped_src_rect.position.x = ABS(p_dest.x);
@@ -2549,7 +2549,7 @@ void Image::blit_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, co
 	}
 
 	Point2 src_underscan = Point2(MIN(0, p_src_rect.position.x), MIN(0, p_src_rect.position.y));
-	Rect2i dest_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
+	Rect2i dest_rect = Rect2i(0, 0, width, height).intersection(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
 
 	uint8_t *wp = data.ptrw();
 	uint8_t *dst_data_ptr = wp;
@@ -2589,7 +2589,7 @@ void Image::blend_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const P
 	ERR_FAIL_COND(srcdsize == 0);
 	ERR_FAIL_COND(format != p_src->format);
 
-	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).clip(p_src_rect);
+	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).intersection(p_src_rect);
 
 	if (p_dest.x < 0) {
 		clipped_src_rect.position.x = ABS(p_dest.x);
@@ -2603,7 +2603,7 @@ void Image::blend_rect(const Ref<Image> &p_src, const Rect2 &p_src_rect, const P
 	}
 
 	Point2 src_underscan = Point2(MIN(0, p_src_rect.position.x), MIN(0, p_src_rect.position.y));
-	Rect2i dest_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
+	Rect2i dest_rect = Rect2i(0, 0, width, height).intersection(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
 
 	Ref<Image> img = p_src;
 
@@ -2638,7 +2638,7 @@ void Image::blend_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, c
 	ERR_FAIL_COND_MSG(p_src->height != p_mask->height, "Source image height is different from mask height.");
 	ERR_FAIL_COND(format != p_src->format);
 
-	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).clip(p_src_rect);
+	Rect2i clipped_src_rect = Rect2i(0, 0, p_src->width, p_src->height).intersection(p_src_rect);
 
 	if (p_dest.x < 0) {
 		clipped_src_rect.position.x = ABS(p_dest.x);
@@ -2652,7 +2652,7 @@ void Image::blend_rect_mask(const Ref<Image> &p_src, const Ref<Image> &p_mask, c
 	}
 
 	Point2 src_underscan = Point2(MIN(0, p_src_rect.position.x), MIN(0, p_src_rect.position.y));
-	Rect2i dest_rect = Rect2i(0, 0, width, height).clip(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
+	Rect2i dest_rect = Rect2i(0, 0, width, height).intersection(Rect2i(p_dest - src_underscan, clipped_src_rect.size));
 
 	Ref<Image> img = p_src;
 	Ref<Image> msk = p_mask;
@@ -3077,7 +3077,7 @@ void Image::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_mipmap_offset", "mipmap"), &Image::get_mipmap_offset);
 
-	ClassDB::bind_method(D_METHOD("resize_to_po2", "square"), &Image::resize_to_po2, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("resize_to_po2", "square", "interpolation"), &Image::resize_to_po2, DEFVAL(false), DEFVAL(INTERPOLATE_BILINEAR));
 	ClassDB::bind_method(D_METHOD("resize", "width", "height", "interpolation"), &Image::resize, DEFVAL(INTERPOLATE_BILINEAR));
 	ClassDB::bind_method(D_METHOD("shrink_x2"), &Image::shrink_x2);
 

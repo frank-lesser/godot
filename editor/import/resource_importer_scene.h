@@ -32,9 +32,11 @@
 #define RESOURCEIMPORTERSCENE_H
 
 #include "core/io/resource_importer.h"
+#include "scene/3d/node_3d.h"
 #include "scene/resources/animation.h"
 #include "scene/resources/mesh.h"
 #include "scene/resources/shape_3d.h"
+#include "scene/resources/skin.h"
 
 class Material;
 
@@ -119,6 +121,7 @@ class ResourceImporterScene : public ResourceImporter {
 	};
 
 	void _replace_owner(Node *p_node, Node *p_scene, Node *p_new_owner);
+	void _generate_meshes(Node *p_node, bool p_generate_lods);
 
 public:
 	static ResourceImporterScene *get_singleton() { return singleton; }

@@ -336,6 +336,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("interface/editor/code_font_contextual_ligatures", 0);
 	hints["interface/editor/code_font_contextual_ligatures"] = PropertyInfo(Variant::INT, "interface/editor/code_font_contextual_ligatures", PROPERTY_HINT_ENUM, "Default,Disable contextual alternates (coding ligatures),Use custom OpenType feature set", PROPERTY_USAGE_DEFAULT);
 	_initial_set("interface/editor/code_font_custom_opentype_features", "");
+	_initial_set("interface/editor/code_font_custom_variations", "");
 	_initial_set("interface/editor/font_antialiased", true);
 	_initial_set("interface/editor/font_hinting", 0);
 	hints["interface/editor/font_hinting"] = PropertyInfo(Variant::INT, "interface/editor/font_hinting", PROPERTY_HINT_ENUM, "Auto,None,Light,Normal", PROPERTY_USAGE_DEFAULT);
@@ -548,9 +549,15 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	_initial_set("editors/3d/grid_xy_plane", false);
 	_initial_set("editors/3d/grid_yz_plane", false);
 
+	// Use a lower default FOV for the 3D camera compared to the
+	// Camera3D node as the 3D viewport doesn't span the whole screen.
+	// This means it's technically viewed from a further distance, which warrants a narrower FOV.
 	_initial_set("editors/3d/default_fov", 70.0);
+	hints["editors/3d/default_fov"] = PropertyInfo(Variant::FLOAT, "editors/3d/default_fov", PROPERTY_HINT_RANGE, "1,179,0.1");
 	_initial_set("editors/3d/default_z_near", 0.05);
-	_initial_set("editors/3d/default_z_far", 500.0);
+	hints["editors/3d/default_z_near"] = PropertyInfo(Variant::FLOAT, "editors/3d/default_z_near", PROPERTY_HINT_RANGE, "0.01,10,0.01,or_greater");
+	_initial_set("editors/3d/default_z_far", 4000.0);
+	hints["editors/3d/default_z_far"] = PropertyInfo(Variant::FLOAT, "editors/3d/default_z_far", PROPERTY_HINT_RANGE, "0.1,4000,0.1,or_greater");
 
 	// 3D: Navigation
 	_initial_set("editors/3d/navigation/navigation_scheme", 0);
@@ -621,6 +628,8 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	// Animation
 	_initial_set("editors/animation/autorename_animation_tracks", true);
 	_initial_set("editors/animation/confirm_insert_track", true);
+	_initial_set("editors/animation/default_create_bezier_tracks", false);
+	_initial_set("editors/animation/default_create_reset_tracks", true);
 	_initial_set("editors/animation/onion_layers_past_color", Color(1, 0, 0));
 	_initial_set("editors/animation/onion_layers_future_color", Color(0, 1, 0));
 

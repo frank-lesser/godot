@@ -6,24 +6,6 @@ readability.
 Subcategories (`###` level) where needed are separated by a single empty line.
 
 
-## assimp
-
-- Upstream: http://github.com/assimp/assimp
-- Version: git (308db73d0b3c2d1870cd3e465eaa283692a4cf23, 2019)
-- License: BSD-3-Clause
-
-Files extracted from upstream source:
-
-- Run `cmake .` in root folder to generate files
-- `code/{CApi,Common,FBX,Material,PostProcessing}/`
-- `contrib/utf8cpp/source/`
-- `include/`
-- `revision.h`
-- `CREDITS` and `LICENSE` files
-- `rm -f code/Common/ZipArchiveIOSystem.cpp include/assimp/ZipArchiveIOSystem.h
-   include/assimp/irrXMLWrapper.h`
-
-
 ## basis_universal
 
 - Upstream: https://github.com/BinomialLLC/basis_universal
@@ -40,10 +22,8 @@ Files extracted from upstream source:
 ## bullet
 
 - Upstream: https://github.com/bulletphysics/bullet3
-- Version: git pre-2.90 (cd8cf7521cbb8b7808126a6adebd47bb83ea166a, 2020)
+- Version: 3.07 (e32fc59c88a3908876949c6f2665e8d091d987fa, 2020)
 - License: zlib
-
-Important: Synced with a pre-release version of bullet 2.90 from the master branch.
 
 Files extracted from upstream source:
 
@@ -166,7 +146,7 @@ Files extracted from upstream source:
 ## glslang
 
 - Upstream: https://github.com/KhronosGroup/glslang
-- Version: git (bacaef3237c515e40d1a24722be48c0a0b30f75f, 2020)
+- Version: git (dd69df7f3dac26362e10b0f38efb9e47990f7537, 2020)
 - License: glslang
 
 Version should be kept in sync with the one of the used Vulkan SDK (see `vulkan`
@@ -181,8 +161,6 @@ Files extracted from upstream source:
   to `glslang/build_info.h`
 - `LICENSE.txt`
 - Unnecessary files like `CMakeLists.txt` and `updateGrammar` removed.
-
-Patches in the `patches` directory should be re-applied after updates.
 
 ## Graphite engine
 
@@ -208,7 +186,7 @@ Files extracted from upstream source:
 ## International Components for Unicode
 
 - Upstream: https://github.com/unicode-org/icu
-- Version: 68.1
+- Version: 68.2
 - License: Unicode
 
 Files extracted from upstream source:
@@ -341,7 +319,7 @@ changes are marked with `// -- GODOT --` comments.
 ## mbedtls
 
 - Upstream: https://tls.mbed.org/
-- Version: 2.16.8 (2020)
+- Version: 2.16.9 (2020)
 - License: Apache 2.0
 
 File extracted from upstream release tarball:
@@ -356,6 +334,21 @@ File extracted from upstream release tarball:
   a pre-defined symbol.
 - Added 2 files `godot_core_mbedtls_platform.{c,h}` providing configuration
   for light bundling with core.
+
+
+## meshoptimizer
+
+- Upstream: https://github.com/zeux/meshoptimizer
+- Version: 0.15 (2020)
+- License: MIT
+
+File extracted from upstream release tarball:
+
+- All files in `src/`.
+
+Important: Some files have Godot-made changes.
+They can be applied with the patch in the `patches` folder, but are meant to be superseded
+by upstream API changes.
 
 
 ## miniupnpc
@@ -629,7 +622,7 @@ folder.
 ## vulkan
 
 - Upstream: https://github.com/KhronosGroup/Vulkan-Loader
-- Version: sdk-1.2.154.0 (2020)
+- Version: sdk-1.2.162.0 (2020)
 - License: Apache 2.0
 
 Unless there is a specific reason to package a more recent version, please stick
