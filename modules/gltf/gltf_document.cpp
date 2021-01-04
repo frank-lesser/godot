@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -29,6 +29,9 @@
 /*************************************************************************/
 
 #include "gltf_document.h"
+#include "core/error/error_list.h"
+#include "core/error/error_macros.h"
+#include "core/variant/variant.h"
 #include "gltf_accessor.h"
 #include "gltf_animation.h"
 #include "gltf_camera.h"
@@ -178,7 +181,7 @@ Error GLTFDocument::serialize(Ref<GLTFState> state, Node *p_root, const String &
 	}
 	uint64_t elapsed = OS::get_singleton()->get_ticks_usec() - begin_time;
 	float elapsed_sec = double(elapsed) / 1000000.0;
-	elapsed_sec = Math::stepify(elapsed_sec, 0.01f);
+	elapsed_sec = Math::snapped(elapsed_sec, 0.01f);
 	print_line("glTF: Export time elapsed seconds " + rtos(elapsed_sec).pad_decimals(2));
 
 	return OK;
@@ -204,7 +207,7 @@ Error GLTFDocument::_serialize_scenes(Ref<GLTFState> state) {
 
 	if (state->nodes.size()) {
 		Dictionary s;
-		if (!state->scene_name.empty()) {
+		if (!state->scene_name.is_empty()) {
 			s["name"] = state->scene_name;
 		}
 
@@ -395,7 +398,7 @@ Error GLTFDocument::_serialize_nodes(Ref<GLTFState> state) {
 		Ref<GLTFNode> n = state->nodes[i];
 		Dictionary extensions;
 		node["extensions"] = extensions;
-		if (!n->get_name().empty()) {
+		if (!n->get_name().is_empty()) {
 			node["name"] = n->get_name();
 		}
 		if (n->camera != -1) {
@@ -493,7 +496,7 @@ String GLTFDocument::_sanitize_bone_name(const String &name) {
 
 String GLTFDocument::_gen_unique_bone_name(Ref<GLTFState> state, const GLTFSkeletonIndex skel_i, const String &p_name) {
 	String s_name = _sanitize_bone_name(p_name);
-	if (s_name.empty()) {
+	if (s_name.is_empty()) {
 		s_name = "bone";
 	}
 	String name;
@@ -846,6 +849,7 @@ Error GLTFDocument::_encode_accessors(Ref<GLTFState> state) {
 		d["count"] = accessor->count;
 		d["type"] = _get_accessor_type_name(accessor->type);
 		d["byteOffset"] = accessor->byte_offset;
+		d["normalized"] = accessor->normalized;
 		d["max"] = accessor->max;
 		d["min"] = accessor->min;
 		d["bufferView"] = accessor->buffer_view; //optional because it may be sparse...
@@ -959,6 +963,10 @@ Error GLTFDocument::_parse_accessors(Ref<GLTFState> state) {
 
 		if (d.has("byteOffset")) {
 			accessor->byte_offset = d["byteOffset"];
+		}
+
+		if (d.has("normalized")) {
+			accessor->normalized = d["normalized"];
 		}
 
 		if (d.has("max")) {
@@ -1455,7 +1463,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_ints(Ref<GLTFState> state, c
 	Vector<double> type_min;
 	type_min.resize(element_count);
 	for (int i = 0; i < p_attribs.size(); i++) {
-		attribs.write[i] = Math::stepify(p_attribs[i], 1.0);
+		attribs.write[i] = Math::snapped(p_attribs[i], 1.0);
 		if (i == 0) {
 			for (int32_t type_i = 0; type_i < element_count; type_i++) {
 				type_max.write[type_i] = attribs[(i * element_count) + type_i];
@@ -1547,8 +1555,8 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_vec2(Ref<GLTFState> state, c
 
 	for (int i = 0; i < p_attribs.size(); i++) {
 		Vector2 attrib = p_attribs[i];
-		attribs.write[(i * element_count) + 0] = Math::stepify(attrib.x, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 1] = Math::stepify(attrib.y, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 0] = Math::snapped(attrib.x, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 1] = Math::snapped(attrib.y, CMP_NORMALIZE_TOLERANCE);
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
 	}
 
@@ -1593,10 +1601,10 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_color(Ref<GLTFState> state, 
 	type_min.resize(element_count);
 	for (int i = 0; i < p_attribs.size(); i++) {
 		Color attrib = p_attribs[i];
-		attribs.write[(i * element_count) + 0] = Math::stepify(attrib.r, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 1] = Math::stepify(attrib.g, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 2] = Math::stepify(attrib.b, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 3] = Math::stepify(attrib.a, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 0] = Math::snapped(attrib.r, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 1] = Math::snapped(attrib.g, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 2] = Math::snapped(attrib.b, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 3] = Math::snapped(attrib.a, CMP_NORMALIZE_TOLERANCE);
 
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
 	}
@@ -1658,10 +1666,10 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_weights(Ref<GLTFState> state
 	type_min.resize(element_count);
 	for (int i = 0; i < p_attribs.size(); i++) {
 		Color attrib = p_attribs[i];
-		attribs.write[(i * element_count) + 0] = Math::stepify(attrib.r, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 1] = Math::stepify(attrib.g, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 2] = Math::stepify(attrib.b, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 3] = Math::stepify(attrib.a, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 0] = Math::snapped(attrib.r, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 1] = Math::snapped(attrib.g, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 2] = Math::snapped(attrib.b, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 3] = Math::snapped(attrib.a, CMP_NORMALIZE_TOLERANCE);
 
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
 	}
@@ -1707,10 +1715,10 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_joints(Ref<GLTFState> state,
 	type_min.resize(element_count);
 	for (int i = 0; i < p_attribs.size(); i++) {
 		Color attrib = p_attribs[i];
-		attribs.write[(i * element_count) + 0] = Math::stepify(attrib.r, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 1] = Math::stepify(attrib.g, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 2] = Math::stepify(attrib.b, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 3] = Math::stepify(attrib.a, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 0] = Math::snapped(attrib.r, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 1] = Math::snapped(attrib.g, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 2] = Math::snapped(attrib.b, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 3] = Math::snapped(attrib.a, CMP_NORMALIZE_TOLERANCE);
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
 	}
 	ERR_FAIL_COND_V(attribs.size() % element_count != 0, -1);
@@ -1754,10 +1762,10 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_quats(Ref<GLTFState> state, 
 	type_min.resize(element_count);
 	for (int i = 0; i < p_attribs.size(); i++) {
 		Quat quat = p_attribs[i];
-		attribs.write[(i * element_count) + 0] = Math::stepify(quat.x, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 1] = Math::stepify(quat.y, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 2] = Math::stepify(quat.z, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 3] = Math::stepify(quat.w, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 0] = Math::snapped(quat.x, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 1] = Math::snapped(quat.y, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 2] = Math::snapped(quat.z, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 3] = Math::snapped(quat.w, CMP_NORMALIZE_TOLERANCE);
 
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
 	}
@@ -1821,7 +1829,7 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_floats(Ref<GLTFState> state,
 	type_min.resize(element_count);
 
 	for (int i = 0; i < p_attribs.size(); i++) {
-		attribs.write[i] = Math::stepify(p_attribs[i], CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i] = Math::snapped(p_attribs[i], CMP_NORMALIZE_TOLERANCE);
 
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
 	}
@@ -1866,9 +1874,9 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_vec3(Ref<GLTFState> state, c
 	type_min.resize(element_count);
 	for (int i = 0; i < p_attribs.size(); i++) {
 		Vector3 attrib = p_attribs[i];
-		attribs.write[(i * element_count) + 0] = Math::stepify(attrib.x, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 1] = Math::stepify(attrib.y, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[(i * element_count) + 2] = Math::stepify(attrib.z, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 0] = Math::snapped(attrib.x, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 1] = Math::snapped(attrib.y, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[(i * element_count) + 2] = Math::snapped(attrib.z, CMP_NORMALIZE_TOLERANCE);
 
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
 	}
@@ -1915,27 +1923,27 @@ GLTFAccessorIndex GLTFDocument::_encode_accessor_as_xform(Ref<GLTFState> state, 
 		Basis basis = attrib.get_basis();
 		Vector3 axis_0 = basis.get_axis(Vector3::AXIS_X);
 
-		attribs.write[i * element_count + 0] = Math::stepify(axis_0.x, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 1] = Math::stepify(axis_0.y, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 2] = Math::stepify(axis_0.z, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 0] = Math::snapped(axis_0.x, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 1] = Math::snapped(axis_0.y, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 2] = Math::snapped(axis_0.z, CMP_NORMALIZE_TOLERANCE);
 		attribs.write[i * element_count + 3] = 0.0;
 
 		Vector3 axis_1 = basis.get_axis(Vector3::AXIS_Y);
-		attribs.write[i * element_count + 4] = Math::stepify(axis_1.x, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 5] = Math::stepify(axis_1.y, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 6] = Math::stepify(axis_1.z, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 4] = Math::snapped(axis_1.x, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 5] = Math::snapped(axis_1.y, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 6] = Math::snapped(axis_1.z, CMP_NORMALIZE_TOLERANCE);
 		attribs.write[i * element_count + 7] = 0.0;
 
 		Vector3 axis_2 = basis.get_axis(Vector3::AXIS_Z);
-		attribs.write[i * element_count + 8] = Math::stepify(axis_2.x, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 9] = Math::stepify(axis_2.y, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 10] = Math::stepify(axis_2.z, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 8] = Math::snapped(axis_2.x, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 9] = Math::snapped(axis_2.y, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 10] = Math::snapped(axis_2.z, CMP_NORMALIZE_TOLERANCE);
 		attribs.write[i * element_count + 11] = 0.0;
 
 		Vector3 origin = attrib.get_origin();
-		attribs.write[i * element_count + 12] = Math::stepify(origin.x, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 13] = Math::stepify(origin.y, CMP_NORMALIZE_TOLERANCE);
-		attribs.write[i * element_count + 14] = Math::stepify(origin.z, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 12] = Math::snapped(origin.x, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 13] = Math::snapped(origin.y, CMP_NORMALIZE_TOLERANCE);
+		attribs.write[i * element_count + 14] = Math::snapped(origin.z, CMP_NORMALIZE_TOLERANCE);
 		attribs.write[i * element_count + 15] = 1.0;
 
 		_calc_accessor_min_max(i, element_count, type_max, attribs, type_min);
@@ -2194,33 +2202,81 @@ Error GLTFDocument::_serialize_meshes(Ref<GLTFState> state) {
 				}
 			}
 			{
-				Array a = array[Mesh::ARRAY_BONES];
-				if (a.size()) {
-					const int ret_size = a.size() / 4;
+				const Array &a = array[Mesh::ARRAY_BONES];
+				const Vector<Vector3> &vertex_array = array[Mesh::ARRAY_VERTEX];
+				if ((a.size() / JOINT_GROUP_SIZE) == vertex_array.size()) {
+					const int ret_size = a.size() / JOINT_GROUP_SIZE;
 					Vector<Color> attribs;
 					attribs.resize(ret_size);
 					{
 						for (int array_i = 0; array_i < attribs.size(); array_i++) {
-							int32_t joint_0 = a[(array_i * 4) + 0];
-							int32_t joint_1 = a[(array_i * 4) + 1];
-							int32_t joint_2 = a[(array_i * 4) + 2];
-							int32_t joint_3 = a[(array_i * 4) + 3];
+							int32_t joint_0 = a[(array_i * JOINT_GROUP_SIZE) + 0];
+							int32_t joint_1 = a[(array_i * JOINT_GROUP_SIZE) + 1];
+							int32_t joint_2 = a[(array_i * JOINT_GROUP_SIZE) + 2];
+							int32_t joint_3 = a[(array_i * JOINT_GROUP_SIZE) + 3];
 							attribs.write[array_i] = Color(joint_0, joint_1, joint_2, joint_3);
 						}
 					}
 					attributes["JOINTS_0"] = _encode_accessor_as_joints(state, attribs, true);
+				} else if ((a.size() / (JOINT_GROUP_SIZE * 2)) >= vertex_array.size()) {
+					int32_t vertex_count = vertex_array.size();
+					Vector<Color> joints_0;
+					joints_0.resize(vertex_count);
+					Vector<Color> joints_1;
+					joints_1.resize(vertex_count);
+					int32_t weights_8_count = JOINT_GROUP_SIZE * 2;
+					for (int32_t vertex_i = 0; vertex_i < vertex_count; vertex_i++) {
+						Color joint_0;
+						joint_0.r = a[vertex_i * weights_8_count + 0];
+						joint_0.g = a[vertex_i * weights_8_count + 1];
+						joint_0.b = a[vertex_i * weights_8_count + 2];
+						joint_0.a = a[vertex_i * weights_8_count + 3];
+						joints_0.write[vertex_i] = joint_0;
+						Color joint_1;
+						joint_1.r = a[vertex_i * weights_8_count + 4];
+						joint_1.g = a[vertex_i * weights_8_count + 5];
+						joint_1.b = a[vertex_i * weights_8_count + 6];
+						joint_1.a = a[vertex_i * weights_8_count + 7];
+						joints_1.write[vertex_i] = joint_1;
+					}
+					attributes["JOINTS_0"] = _encode_accessor_as_joints(state, joints_0, true);
+					attributes["JOINTS_1"] = _encode_accessor_as_joints(state, joints_1, true);
 				}
 			}
 			{
-				Array a = array[Mesh::ARRAY_WEIGHTS];
-				if (a.size()) {
-					const int ret_size = a.size() / 4;
+				const Array &a = array[Mesh::ARRAY_WEIGHTS];
+				const Vector<Vector3> &vertex_array = array[Mesh::ARRAY_VERTEX];
+				if ((a.size() / JOINT_GROUP_SIZE) == vertex_array.size()) {
+					const int ret_size = a.size() / JOINT_GROUP_SIZE;
 					Vector<Color> attribs;
 					attribs.resize(ret_size);
 					for (int i = 0; i < ret_size; i++) {
-						attribs.write[i] = Color(a[(i * 4) + 0], a[(i * 4) + 1], a[(i * 4) + 2], a[(i * 4) + 3]);
+						attribs.write[i] = Color(a[(i * JOINT_GROUP_SIZE) + 0], a[(i * JOINT_GROUP_SIZE) + 1], a[(i * JOINT_GROUP_SIZE) + 2], a[(i * JOINT_GROUP_SIZE) + 3]);
 					}
 					attributes["WEIGHTS_0"] = _encode_accessor_as_weights(state, attribs, true);
+				} else if ((a.size() / (JOINT_GROUP_SIZE * 2)) >= vertex_array.size()) {
+					int32_t vertex_count = vertex_array.size();
+					Vector<Color> weights_0;
+					weights_0.resize(vertex_count);
+					Vector<Color> weights_1;
+					weights_1.resize(vertex_count);
+					int32_t weights_8_count = JOINT_GROUP_SIZE * 2;
+					for (int32_t vertex_i = 0; vertex_i < vertex_count; vertex_i++) {
+						Color weight_0;
+						weight_0.r = a[vertex_i * weights_8_count + 0];
+						weight_0.g = a[vertex_i * weights_8_count + 1];
+						weight_0.b = a[vertex_i * weights_8_count + 2];
+						weight_0.a = a[vertex_i * weights_8_count + 3];
+						weights_0.write[vertex_i] = weight_0;
+						Color weight_1;
+						weight_1.r = a[vertex_i * weights_8_count + 4];
+						weight_1.g = a[vertex_i * weights_8_count + 5];
+						weight_1.b = a[vertex_i * weights_8_count + 6];
+						weight_1.a = a[vertex_i * weights_8_count + 7];
+						weights_1.write[vertex_i] = weight_1;
+					}
+					attributes["WEIGHTS_0"] = _encode_accessor_as_weights(state, weights_0, true);
+					attributes["WEIGHTS_1"] = _encode_accessor_as_weights(state, weights_1, true);
 				}
 			}
 			{
@@ -2423,10 +2479,29 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> state) {
 				array[Mesh::ARRAY_COLOR] = _decode_accessor_as_color(state, a["COLOR_0"], true);
 				has_vertex_color = true;
 			}
-			if (a.has("JOINTS_0")) {
+			if (a.has("JOINTS_0") && !a.has("JOINTS_1")) {
 				array[Mesh::ARRAY_BONES] = _decode_accessor_as_ints(state, a["JOINTS_0"], true);
+			} else if (a.has("JOINTS_0") && a.has("JOINTS_1")) {
+				PackedInt32Array joints_0 = _decode_accessor_as_ints(state, a["JOINTS_0"], true);
+				PackedInt32Array joints_1 = _decode_accessor_as_ints(state, a["JOINTS_1"], true);
+				ERR_FAIL_COND_V(joints_0.size() != joints_0.size(), ERR_INVALID_DATA);
+				int32_t weight_8_count = JOINT_GROUP_SIZE * 2;
+				int32_t vertex_count = joints_0.size() / JOINT_GROUP_SIZE;
+				Vector<int> joints;
+				joints.resize(vertex_count * weight_8_count);
+				for (int32_t vertex_i = 0; vertex_i < vertex_count; vertex_i++) {
+					joints.write[vertex_i * weight_8_count + 0] = joints_0[vertex_i * JOINT_GROUP_SIZE + 0];
+					joints.write[vertex_i * weight_8_count + 1] = joints_0[vertex_i * JOINT_GROUP_SIZE + 1];
+					joints.write[vertex_i * weight_8_count + 2] = joints_0[vertex_i * JOINT_GROUP_SIZE + 2];
+					joints.write[vertex_i * weight_8_count + 3] = joints_0[vertex_i * JOINT_GROUP_SIZE + 3];
+					joints.write[vertex_i * weight_8_count + 4] = joints_1[vertex_i * JOINT_GROUP_SIZE + 0];
+					joints.write[vertex_i * weight_8_count + 5] = joints_1[vertex_i * JOINT_GROUP_SIZE + 1];
+					joints.write[vertex_i * weight_8_count + 6] = joints_1[vertex_i * JOINT_GROUP_SIZE + 2];
+					joints.write[vertex_i * weight_8_count + 7] = joints_1[vertex_i * JOINT_GROUP_SIZE + 3];
+				}
+				array[Mesh::ARRAY_BONES] = joints;
 			}
-			if (a.has("WEIGHTS_0")) {
+			if (a.has("WEIGHTS_0") && !a.has("WEIGHTS_1")) {
 				Vector<float> weights = _decode_accessor_as_floats(state, a["WEIGHTS_0"], true);
 				{ //gltf does not seem to normalize the weights for some reason..
 					int wc = weights.size();
@@ -2443,6 +2518,51 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> state) {
 							w[k + 1] /= total;
 							w[k + 2] /= total;
 							w[k + 3] /= total;
+						}
+					}
+				}
+				array[Mesh::ARRAY_WEIGHTS] = weights;
+			} else if (a.has("WEIGHTS_0") && a.has("WEIGHTS_1")) {
+				Vector<float> weights_0 = _decode_accessor_as_floats(state, a["WEIGHTS_0"], true);
+				Vector<float> weights_1 = _decode_accessor_as_floats(state, a["WEIGHTS_1"], true);
+				Vector<float> weights;
+				ERR_FAIL_COND_V(weights_0.size() != weights_1.size(), ERR_INVALID_DATA);
+				int32_t weight_8_count = JOINT_GROUP_SIZE * 2;
+				int32_t vertex_count = weights_0.size() / JOINT_GROUP_SIZE;
+				weights.resize(vertex_count * weight_8_count);
+				for (int32_t vertex_i = 0; vertex_i < vertex_count; vertex_i++) {
+					weights.write[vertex_i * weight_8_count + 0] = weights_0[vertex_i * JOINT_GROUP_SIZE + 0];
+					weights.write[vertex_i * weight_8_count + 1] = weights_0[vertex_i * JOINT_GROUP_SIZE + 1];
+					weights.write[vertex_i * weight_8_count + 2] = weights_0[vertex_i * JOINT_GROUP_SIZE + 2];
+					weights.write[vertex_i * weight_8_count + 3] = weights_0[vertex_i * JOINT_GROUP_SIZE + 3];
+					weights.write[vertex_i * weight_8_count + 4] = weights_1[vertex_i * JOINT_GROUP_SIZE + 0];
+					weights.write[vertex_i * weight_8_count + 5] = weights_1[vertex_i * JOINT_GROUP_SIZE + 1];
+					weights.write[vertex_i * weight_8_count + 6] = weights_1[vertex_i * JOINT_GROUP_SIZE + 2];
+					weights.write[vertex_i * weight_8_count + 7] = weights_1[vertex_i * JOINT_GROUP_SIZE + 3];
+				}
+				{ //gltf does not seem to normalize the weights for some reason..
+					int wc = weights.size();
+					float *w = weights.ptrw();
+
+					for (int k = 0; k < wc; k += weight_8_count) {
+						float total = 0.0;
+						total += w[k + 0];
+						total += w[k + 1];
+						total += w[k + 2];
+						total += w[k + 3];
+						total += w[k + 4];
+						total += w[k + 5];
+						total += w[k + 6];
+						total += w[k + 7];
+						if (total > 0.0) {
+							w[k + 0] /= total;
+							w[k + 1] /= total;
+							w[k + 2] /= total;
+							w[k + 3] /= total;
+							w[k + 4] /= total;
+							w[k + 5] /= total;
+							w[k + 6] /= total;
+							w[k + 7] /= total;
 						}
 					}
 				}
@@ -2487,6 +2607,9 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> state) {
 				//must generate mikktspace tangents.. ergh..
 				Ref<SurfaceTool> st;
 				st.instance();
+				if (a.has("JOINTS_0") && a.has("JOINTS_1")) {
+					st->set_skin_weight_count(SurfaceTool::SKIN_8_WEIGHTS);
+				}
 				st->create_from_triangle_arrays(array);
 				st->generate_tangents();
 				array = st->commit_to_arrays();
@@ -2603,6 +2726,9 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> state) {
 					if (generate_tangents) {
 						Ref<SurfaceTool> st;
 						st.instance();
+						if (a.has("JOINTS_0") && a.has("JOINTS_1")) {
+							st->set_skin_weight_count(SurfaceTool::SKIN_8_WEIGHTS);
+						}
 						st->create_from_triangle_arrays(array_copy);
 						st->deindex();
 						st->generate_tangents();
@@ -2644,6 +2770,9 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> state) {
 		if (d.has("weights")) {
 			const Array &weights = d["weights"];
 			for (int j = 0; j < weights.size(); j++) {
+				if (j >= blend_weights.size()) {
+					break;
+				}
 				blend_weights.write[j] = weights[j];
 			}
 			mesh->set_blend_weights(blend_weights);
@@ -2698,7 +2827,7 @@ Error GLTFDocument::_serialize_images(Ref<GLTFState> state, const String &p_path
 			d["mimeType"] = "image/png";
 		} else {
 			String name = state->images[i]->get_name();
-			if (name.empty()) {
+			if (name.is_empty()) {
 				name = itos(i);
 			}
 			name = _gen_unique_name(state, name);
@@ -2780,7 +2909,7 @@ Error GLTFDocument::_parse_images(Ref<GLTFState> state, const String &p_base_pat
 				data_ptr = data.ptr();
 				data_size = data.size();
 				// mimeType is optional, but if we have it defined in the URI, let's use it.
-				if (mimetype.empty()) {
+				if (mimetype.is_empty()) {
 					if (uri.begins_with("data:image/png;base64")) {
 						mimetype = "image/png";
 					} else if (uri.begins_with("data:image/jpeg;base64")) {
@@ -2809,7 +2938,7 @@ Error GLTFDocument::_parse_images(Ref<GLTFState> state, const String &p_base_pat
 			}
 		} else if (d.has("bufferView")) {
 			// Handles the third bullet point from the spec (bufferView).
-			ERR_FAIL_COND_V_MSG(mimetype.empty(), ERR_FILE_CORRUPT,
+			ERR_FAIL_COND_V_MSG(mimetype.is_empty(), ERR_FILE_CORRUPT,
 					vformat("glTF: Image index '%d' specifies 'bufferView' but no 'mimeType', which is invalid.", i));
 
 			const GLTFBufferViewIndex bvi = d["bufferView"];
@@ -2931,7 +3060,7 @@ Error GLTFDocument::_serialize_materials(Ref<GLTFState> state) {
 			materials.push_back(d);
 			continue;
 		}
-		if (!material->get_name().empty()) {
+		if (!material->get_name().is_empty()) {
 			d["name"] = _gen_unique_name(state, material->get_name());
 		}
 		{
@@ -4066,7 +4195,7 @@ Error GLTFDocument::_create_skeletons(Ref<GLTFState> state) {
 		// a sorted order, and DEPTH FIRST
 		bones.sort();
 
-		while (!bones.empty()) {
+		while (!bones.is_empty()) {
 			const GLTFNodeIndex node_i = bones.front()->get();
 			bones.pop_front();
 
@@ -4091,7 +4220,7 @@ Error GLTFDocument::_create_skeletons(Ref<GLTFState> state) {
 
 			const int bone_index = skeleton->get_bone_count();
 
-			if (node->get_name().empty()) {
+			if (node->get_name().is_empty()) {
 				node->set_name("bone");
 			}
 
@@ -4148,7 +4277,7 @@ Error GLTFDocument::_create_skins(Ref<GLTFState> state) {
 		skin.instance();
 
 		// Some skins don't have IBM's! What absolute monsters!
-		const bool has_ibms = !gltf_skin->inverse_binds.empty();
+		const bool has_ibms = !gltf_skin->inverse_binds.is_empty();
 
 		for (int joint_i = 0; joint_i < gltf_skin->joints_original.size(); ++joint_i) {
 			GLTFNodeIndex node = gltf_skin->joints_original[joint_i];
@@ -4176,7 +4305,7 @@ Error GLTFDocument::_create_skins(Ref<GLTFState> state) {
 	// Create unique names now, after removing duplicates
 	for (GLTFSkinIndex skin_i = 0; skin_i < state->skins.size(); ++skin_i) {
 		Ref<Skin> skin = state->skins.write[skin_i]->godot_skin;
-		if (skin->get_name().empty()) {
+		if (skin->get_name().is_empty()) {
 			// Make a unique name, no gltf node represents this skin
 			skin->set_name(_gen_unique_name(state, "Skin"));
 		}
@@ -4442,7 +4571,7 @@ Error GLTFDocument::_serialize_animations(Ref<GLTFState> state) {
 			continue;
 		}
 
-		if (!gltf_animation->get_name().empty()) {
+		if (!gltf_animation->get_name().is_empty()) {
 			d["name"] = gltf_animation->get_name();
 		}
 		Array channels;
@@ -4702,7 +4831,7 @@ void GLTFDocument::_assign_scene_names(Ref<GLTFState> state) {
 		if (n->skeleton >= 0)
 			continue;
 
-		if (n->get_name().empty()) {
+		if (n->get_name().is_empty()) {
 			if (n->mesh >= 0) {
 				n->set_name(_gen_unique_name(state, "Mesh"));
 			} else if (n->camera >= 0) {
@@ -4883,12 +5012,12 @@ GLTFCameraIndex GLTFDocument::_convert_camera(Ref<GLTFState> state, Camera3D *p_
 	if (p_camera->get_projection() == Camera3D::Projection::PROJECTION_PERSPECTIVE) {
 		c->set_perspective(true);
 		c->set_fov_size(p_camera->get_fov());
-		c->set_zfar(p_camera->get_zfar());
-		c->set_znear(p_camera->get_znear());
+		c->set_zfar(p_camera->get_far());
+		c->set_znear(p_camera->get_near());
 	} else {
 		c->set_fov_size(p_camera->get_fov());
-		c->set_zfar(p_camera->get_zfar());
-		c->set_znear(p_camera->get_znear());
+		c->set_zfar(p_camera->get_far());
+		c->set_znear(p_camera->get_near());
 	}
 	GLTFCameraIndex camera_index = state->cameras.size();
 	state->cameras.push_back(c);
@@ -5402,7 +5531,7 @@ void GLTFDocument::_import_animation(Ref<GLTFState> state, AnimationPlayer *ap, 
 	Ref<GLTFAnimation> anim = state->animations[index];
 
 	String name = anim->get_name();
-	if (name.empty()) {
+	if (name.is_empty()) {
 		// No node represent these, and they are not in the hierarchy, so just make a unique name
 		name = _gen_unique_name(state, "Animation");
 	}
@@ -5647,7 +5776,7 @@ void GLTFDocument::_convert_mesh_instances(Ref<GLTFState> state) {
 		Ref<GLTFSkeleton> gltf_skeleton = state->skeletons.write[skeleton_gltf_i];
 		for (int32_t bind_i = 0; bind_i < skin->get_bind_count(); bind_i++) {
 			String godot_bone_name = skin->get_bind_name(bind_i);
-			if (godot_bone_name.empty()) {
+			if (godot_bone_name.is_empty()) {
 				int32_t bone = skin->get_bind_bone(bind_i);
 				godot_bone_name = skeleton->get_bone_name(bone);
 			}

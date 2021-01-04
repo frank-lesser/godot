@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -82,7 +82,7 @@ void SceneExporterGLTFPlugin::convert_scene_to_gltf2() {
 		return;
 	}
 	String filename = String(root->get_filename().get_file().get_basename());
-	if (filename.empty()) {
+	if (filename.is_empty()) {
 		filename = root->get_name();
 	}
 	file_export_lib->set_current_file(filename + String(".gltf"));

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -3431,7 +3431,7 @@ void AnimationTrackEditor::_insert_delay(bool p_create_reset, bool p_create_bezi
 		if (insert_data.front()->get().advance) {
 			advance = true;
 		}
-		next_tracks = _confirm_insert(insert_data.front()->get(), next_tracks, p_create_reset, p_create_beziers);
+		next_tracks = _confirm_insert(insert_data.front()->get(), next_tracks, p_create_reset, reset_anim, p_create_beziers);
 		insert_data.pop_front();
 	}
 
@@ -3445,7 +3445,7 @@ void AnimationTrackEditor::_insert_delay(bool p_create_reset, bool p_create_bezi
 
 		float pos = timeline->get_play_position();
 
-		pos = Math::stepify(pos + step, step);
+		pos = Math::snapped(pos + step, step);
 		if (pos > animation->get_length()) {
 			pos = animation->get_length();
 		}
@@ -3749,7 +3749,7 @@ void AnimationTrackEditor::_confirm_insert_list() {
 
 	TrackIndices next_tracks(animation.ptr(), reset_anim.ptr());
 	while (insert_data.size()) {
-		next_tracks = _confirm_insert(insert_data.front()->get(), next_tracks, create_reset, insert_confirm_bezier->is_pressed());
+		next_tracks = _confirm_insert(insert_data.front()->get(), next_tracks, create_reset, reset_anim, insert_confirm_bezier->is_pressed());
 		insert_data.pop_front();
 	}
 
@@ -3779,7 +3779,7 @@ PropertyInfo AnimationTrackEditor::_find_hint_for_track(int p_idx, NodePath &r_b
 		r_base_path = node->get_path();
 	}
 
-	if (leftover_path.empty()) {
+	if (leftover_path.is_empty()) {
 		if (r_current_val) {
 			if (res.is_valid()) {
 				*r_current_val = res;
@@ -3869,7 +3869,7 @@ static Vector<String> _get_bezier_subindices_for_type(Variant::Type p_type, bool
 	return subindices;
 }
 
-AnimationTrackEditor::TrackIndices AnimationTrackEditor::_confirm_insert(InsertData p_id, TrackIndices p_next_tracks, bool p_create_reset, bool p_create_beziers) {
+AnimationTrackEditor::TrackIndices AnimationTrackEditor::_confirm_insert(InsertData p_id, TrackIndices p_next_tracks, bool p_create_reset, Ref<Animation> p_reset_anim, bool p_create_beziers) {
 	bool created = false;
 	if (p_id.track_idx < 0) {
 		if (p_create_beziers) {
@@ -3881,7 +3881,7 @@ AnimationTrackEditor::TrackIndices AnimationTrackEditor::_confirm_insert(InsertD
 					id.type = Animation::TYPE_BEZIER;
 					id.value = p_id.value.get(subindices[i].substr(1, subindices[i].length()));
 					id.path = String(p_id.path) + subindices[i];
-					p_next_tracks = _confirm_insert(id, p_next_tracks, p_create_reset, false);
+					p_next_tracks = _confirm_insert(id, p_next_tracks, p_create_reset, p_reset_anim, false);
 				}
 
 				return p_next_tracks;
@@ -3986,7 +3986,7 @@ AnimationTrackEditor::TrackIndices AnimationTrackEditor::_confirm_insert(InsertD
 
 	if (p_create_reset && track_type_is_resettable(p_id.type)) {
 		bool create_reset_track = true;
-		Animation *reset_anim = AnimationPlayerEditor::singleton->get_player()->get_animation("RESET").ptr();
+		Animation *reset_anim = p_reset_anim.ptr();
 		for (int i = 0; i < reset_anim->get_track_count(); i++) {
 			if (reset_anim->track_get_path(i) == p_id.path) {
 				create_reset_track = false;
@@ -4080,8 +4080,8 @@ void AnimationTrackEditor::_update_tracks() {
 					object = res.ptr();
 				}
 
-				if (object && !leftover_path.empty()) {
-					if (pinfo.name.empty()) {
+				if (object && !leftover_path.is_empty()) {
+					if (pinfo.name.is_empty()) {
 						pinfo.name = leftover_path[leftover_path.size() - 1];
 					}
 
@@ -5285,7 +5285,7 @@ void AnimationTrackEditor::_edit_menu_pressed(int p_option) {
 			scale_dialog->popup_centered(Size2(200, 100) * EDSCALE);
 		} break;
 		case EDIT_SCALE_CONFIRM: {
-			if (selection.empty()) {
+			if (selection.is_empty()) {
 				return;
 			}
 
@@ -5433,7 +5433,7 @@ void AnimationTrackEditor::_edit_menu_pressed(int p_option) {
 
 			float pos = timeline->get_play_position();
 
-			pos = Math::stepify(pos + step, step);
+			pos = Math::snapped(pos + step, step);
 			if (pos > animation->get_length()) {
 				pos = animation->get_length();
 			}
@@ -5452,7 +5452,7 @@ void AnimationTrackEditor::_edit_menu_pressed(int p_option) {
 			}
 
 			float pos = timeline->get_play_position();
-			pos = Math::stepify(pos - step, step);
+			pos = Math::snapped(pos - step, step);
 			if (pos < 0) {
 				pos = 0;
 			}
@@ -5581,9 +5581,9 @@ float AnimationTrackEditor::snap_time(float p_value, bool p_relative) {
 
 		if (p_relative) {
 			double rel = Math::fmod(timeline->get_value(), snap_increment);
-			p_value = Math::stepify(p_value + rel, snap_increment) - rel;
+			p_value = Math::snapped(p_value + rel, snap_increment) - rel;
 		} else {
-			p_value = Math::stepify(p_value, snap_increment);
+			p_value = Math::snapped(p_value, snap_increment);
 		}
 	}
 

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -218,7 +218,7 @@ godot_glyph GDAPI godot_packed_glyph_array_get(const godot_packed_glyph_array *p
 
 godot_int GDAPI godot_packed_glyph_array_size(const godot_packed_glyph_array *p_self);
 
-godot_bool GDAPI godot_packed_glyph_array_empty(const godot_packed_glyph_array *p_self);
+godot_bool GDAPI godot_packed_glyph_array_is_empty(const godot_packed_glyph_array *p_self);
 
 void GDAPI godot_packed_glyph_array_destroy(godot_packed_glyph_array *p_self);
 

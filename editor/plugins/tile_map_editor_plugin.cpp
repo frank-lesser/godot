@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -262,7 +262,7 @@ Vector<int> TileMapEditor::get_selected_tiles() const {
 }
 
 void TileMapEditor::set_selected_tiles(Vector<int> p_tiles) {
-	palette->unselect_all();
+	palette->deselect_all();
 
 	for (int i = p_tiles.size() - 1; i >= 0; i--) {
 		int idx = palette->find_metadata(p_tiles[i]);
@@ -449,7 +449,7 @@ void TileMapEditor::_update_palette() {
 
 	List<int> tiles;
 	tileset->get_tile_list(&tiles);
-	if (tiles.empty()) {
+	if (tiles.is_empty()) {
 		return;
 	}
 
@@ -1779,7 +1779,7 @@ void TileMapEditor::forward_canvas_draw_over_viewport(Control *p_overlay) {
 				return;
 			}
 
-			if (paint_undo.empty()) {
+			if (paint_undo.is_empty()) {
 				return;
 			}
 
@@ -1810,7 +1810,7 @@ void TileMapEditor::forward_canvas_draw_over_viewport(Control *p_overlay) {
 				}
 			}
 		} else if (tool == TOOL_PASTING) {
-			if (copydata.empty()) {
+			if (copydata.is_empty()) {
 				return;
 			}
 

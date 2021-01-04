@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -377,9 +377,9 @@ void EditorNode::_version_control_menu_option(int p_idx) {
 
 void EditorNode::_update_title() {
 	String appname = ProjectSettings::get_singleton()->get("application/config/name");
-	String title = appname.empty() ? String(VERSION_FULL_NAME) : String(VERSION_NAME + String(" - ") + appname);
+	String title = appname.is_empty() ? String(VERSION_FULL_NAME) : String(VERSION_NAME + String(" - ") + appname);
 	String edited = editor_data.get_edited_scene_root() ? editor_data.get_edited_scene_root()->get_filename() : String();
-	if (!edited.empty()) {
+	if (!edited.is_empty()) {
 		title += " - " + String(edited.get_file());
 	}
 	if (unsaved_cache) {
@@ -782,8 +782,8 @@ void EditorNode::_fs_changed() {
 					preset_name);
 		} else {
 			Ref<EditorExportPlatform> platform = preset->get_platform();
-			const String export_path = export_defer.path.empty() ? preset->get_export_path() : export_defer.path;
-			if (export_path.empty()) {
+			const String export_path = export_defer.path.is_empty() ? preset->get_export_path() : export_defer.path;
+			if (export_path.is_empty()) {
 				export_error = vformat("Export preset '%s' doesn't have a default export path, and none was specified.", preset_name);
 			} else if (platform.is_null()) {
 				export_error = vformat("Export preset '%s' doesn't have a matching platform.", preset_name);
@@ -821,7 +821,7 @@ void EditorNode::_fs_changed() {
 			}
 		}
 
-		if (!export_error.empty()) {
+		if (!export_error.is_empty()) {
 			ERR_PRINT(export_error);
 			OS::get_singleton()->set_exit_code(EXIT_FAILURE);
 		}
@@ -1711,7 +1711,7 @@ void EditorNode::_dialog_action(String p_file) {
 			current_obj->_change_notify();
 		} break;
 		case SETTINGS_LAYOUT_SAVE: {
-			if (p_file.empty()) {
+			if (p_file.is_empty()) {
 				return;
 			}
 
@@ -1739,7 +1739,7 @@ void EditorNode::_dialog_action(String p_file) {
 
 		} break;
 		case SETTINGS_LAYOUT_DELETE: {
-			if (p_file.empty()) {
+			if (p_file.is_empty()) {
 				return;
 			}
 
@@ -1822,7 +1822,7 @@ void EditorNode::edit_item(Object *p_object) {
 		sub_plugins = editor_data.get_subeditors(p_object);
 	}
 
-	if (!sub_plugins.empty()) {
+	if (!sub_plugins.is_empty()) {
 		bool same = true;
 		if (sub_plugins.size() == editor_plugins_over->get_plugins_list().size()) {
 			for (int i = 0; i < sub_plugins.size(); i++) {
@@ -1998,7 +1998,7 @@ void EditorNode::_edit_current() {
 							multi_nodes.push_back(node);
 						}
 					}
-					if (!multi_nodes.empty()) {
+					if (!multi_nodes.is_empty()) {
 						// Pick the top-most node
 						multi_nodes.sort_custom<Node::Comparator>();
 						selected_node = multi_nodes.front()->get();
@@ -2080,13 +2080,13 @@ void EditorNode::_edit_current() {
 			sub_plugins = editor_data.get_subeditors(current_obj);
 		}
 
-		if (!sub_plugins.empty()) {
+		if (!sub_plugins.is_empty()) {
 			_display_top_editors(false);
 
 			_set_top_editors(sub_plugins);
 			_set_editing_top_editors(current_obj);
 			_display_top_editors(true);
-		} else if (!editor_plugins_over->get_plugins_list().empty()) {
+		} else if (!editor_plugins_over->get_plugins_list().is_empty()) {
 			hide_top_editors();
 		}
 	}
@@ -2256,7 +2256,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 		} break;
 		case FILE_OPEN_PREV: {
-			if (previous_scenes.empty()) {
+			if (previous_scenes.is_empty()) {
 				break;
 			}
 			opening_prev = true;
@@ -2313,7 +2313,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			int scene_idx = (p_option == FILE_SAVE_SCENE) ? -1 : tab_closing;
 
 			Node *scene = editor_data.get_edited_scene_root(scene_idx);
-			if (scene && scene->get_filename() != "") {
+			if (scene && scene->get_filename() != "" && FileAccess::exists(scene->get_filename())) {
 				if (scene_idx != editor_data.get_edited_scene()) {
 					_save_scene_with_preview(scene->get_filename(), scene_idx);
 				} else {
@@ -2358,11 +2358,12 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			}
 
 			if (scene->get_filename() != "") {
-				file->set_current_path(scene->get_filename());
+				String path = scene->get_filename();
+				file->set_current_path(path);
 				if (extensions.size()) {
-					String ext = scene->get_filename().get_extension().to_lower();
+					String ext = path.get_extension().to_lower();
 					if (extensions.find(ext) == nullptr) {
-						file->set_current_path(scene->get_filename().replacen("." + ext, "." + extensions.front()->get()));
+						file->set_current_path(path.replacen("." + ext, "." + extensions.front()->get()));
 					}
 				}
 			} else {
@@ -2527,7 +2528,7 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 
 		} break;
 		case RUN_PLAY_CUSTOM_SCENE: {
-			if (run_custom_filename.empty() || editor_run.get_status() == EditorRun::STATUS_STOP) {
+			if (run_custom_filename.is_empty() || editor_run.get_status() == EditorRun::STATUS_STOP) {
 				_menu_option_confirm(RUN_STOP, true);
 				quick_run->popup_dialog("PackedScene", true);
 				quick_run->set_title(TTR("Quick Run Scene..."));
@@ -2745,14 +2746,14 @@ void EditorNode::_screenshot(bool p_use_utc) {
 }
 
 void EditorNode::_save_screenshot(NodePath p_path) {
-	Control *editor_viewport = EditorInterface::get_singleton()->get_editor_viewport();
-	ERR_FAIL_COND_MSG(!editor_viewport, "Cannot get editor viewport.");
-	Viewport *viewport = editor_viewport->get_viewport();
-	ERR_FAIL_COND_MSG(!viewport, "Cannot get editor viewport.");
+	Control *editor_main_control = EditorInterface::get_singleton()->get_editor_main_control();
+	ERR_FAIL_COND_MSG(!editor_main_control, "Cannot get editor main control.");
+	Viewport *viewport = editor_main_control->get_viewport();
+	ERR_FAIL_COND_MSG(!viewport, "Cannot get editor main control viewport.");
 	Ref<ViewportTexture> texture = viewport->get_texture();
-	ERR_FAIL_COND_MSG(texture.is_null(), "Cannot get editor viewport texture.");
+	ERR_FAIL_COND_MSG(texture.is_null(), "Cannot get editor main control viewport texture.");
 	Ref<Image> img = texture->get_data();
-	ERR_FAIL_COND_MSG(img.is_null(), "Cannot get editor viewport texture image.");
+	ERR_FAIL_COND_MSG(img.is_null(), "Cannot get editor main control viewport texture image.");
 	Error error = img->save_png(p_path);
 	ERR_FAIL_COND_MSG(error != OK, "Cannot save screenshot to file '" + p_path + "'.");
 }
@@ -2876,7 +2877,7 @@ void EditorNode::_update_file_menu_opened() {
 	Ref<Shortcut> reopen_closed_scene_sc = ED_GET_SHORTCUT("editor/reopen_closed_scene");
 	reopen_closed_scene_sc->set_name(TTR("Reopen Closed Scene"));
 	PopupMenu *pop = file_menu->get_popup();
-	pop->set_item_disabled(pop->get_item_index(FILE_OPEN_PREV), previous_scenes.empty());
+	pop->set_item_disabled(pop->get_item_index(FILE_OPEN_PREV), previous_scenes.is_empty());
 }
 
 void EditorNode::_update_file_menu_closed() {
@@ -2884,8 +2885,8 @@ void EditorNode::_update_file_menu_closed() {
 	pop->set_item_disabled(pop->get_item_index(FILE_OPEN_PREV), false);
 }
 
-Control *EditorNode::get_viewport() {
-	return viewport;
+Control *EditorNode::get_main_control() {
+	return main_control;
 }
 
 void EditorNode::_editor_select(int p_which) {
@@ -3823,7 +3824,7 @@ Ref<Texture2D> EditorNode::get_object_icon(const Object *p_object, const String 
 }
 
 Ref<Texture2D> EditorNode::get_class_icon(const String &p_class, const String &p_fallback) const {
-	ERR_FAIL_COND_V_MSG(p_class.empty(), nullptr, "Class name cannot be empty.");
+	ERR_FAIL_COND_V_MSG(p_class.is_empty(), nullptr, "Class name cannot be empty.");
 
 	if (ScriptServer::is_global_class(p_class)) {
 		Ref<ImageTexture> icon;
@@ -4555,7 +4556,7 @@ bool EditorNode::has_scenes_in_session() {
 		return false;
 	}
 	Array scenes = config->get_value("EditorNode", "open_scenes");
-	return !scenes.empty();
+	return !scenes.is_empty();
 }
 
 bool EditorNode::ensure_main_scene(bool p_from_native) {
@@ -4781,7 +4782,7 @@ void EditorNode::_scene_tab_input(const Ref<InputEvent> &p_input) {
 				Ref<Shortcut> undo_close_tab_sc = ED_GET_SHORTCUT("editor/reopen_closed_scene");
 				undo_close_tab_sc->set_name(TTR("Undo Close Tab"));
 				scene_tabs_context_menu->add_shortcut(undo_close_tab_sc, FILE_OPEN_PREV);
-				if (previous_scenes.empty()) {
+				if (previous_scenes.is_empty()) {
 					scene_tabs_context_menu->set_item_disabled(scene_tabs_context_menu->get_item_index(FILE_OPEN_PREV), true);
 				}
 				scene_tabs_context_menu->add_item(TTR("Close Other Tabs"), FILE_CLOSE_OTHERS);
@@ -5185,7 +5186,7 @@ void EditorNode::_add_dropped_files_recursive(const Vector<String> &p_files, Str
 				next_file = sub_dir->get_next();
 			}
 
-			if (!sub_files.empty()) {
+			if (!sub_files.is_empty()) {
 				dir->make_dir(to);
 				_add_dropped_files_recursive(sub_files, to);
 			}
@@ -6041,10 +6042,10 @@ EditorNode::EditorNode() {
 	scene_root->set_disable_input(true);
 	scene_root->set_as_audio_listener_2d(true);
 
-	viewport = memnew(VBoxContainer);
-	viewport->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-	viewport->add_theme_constant_override("separation", 0);
-	scene_root_parent->add_child(viewport);
+	main_control = memnew(VBoxContainer);
+	main_control->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	main_control->add_theme_constant_override("separation", 0);
+	scene_root_parent->add_child(main_control);
 
 	HBoxContainer *left_menu_hb = memnew(HBoxContainer);
 	menu_hb->add_child(left_menu_hb);
@@ -6950,8 +6951,8 @@ void EditorPluginList::remove_plugin(EditorPlugin *p_plugin) {
 	plugins_list.erase(p_plugin);
 }
 
-bool EditorPluginList::empty() {
-	return plugins_list.empty();
+bool EditorPluginList::is_empty() {
+	return plugins_list.is_empty();
 }
 
 void EditorPluginList::clear() {

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -68,7 +68,7 @@ RID RenderingDevice::_texture_create(const Ref<RDTextureFormat> &p_format, const
 	Vector<Vector<uint8_t>> data;
 	for (int i = 0; i < p_data.size(); i++) {
 		Vector<uint8_t> byte_slice = p_data[i];
-		ERR_FAIL_COND_V(byte_slice.empty(), RID());
+		ERR_FAIL_COND_V(byte_slice.is_empty(), RID());
 		data.push_back(byte_slice);
 	}
 	return texture_create(p_format->base, p_view->base, data);
@@ -154,7 +154,7 @@ RID RenderingDevice::shader_create_from_bytecode(const Ref<RDShaderBytecode> &p_
 		String error = p_bytecode->get_stage_compile_error(stage);
 		ERR_FAIL_COND_V_MSG(error != String(), RID(), "Can't create a shader from an errored bytecode. Check errors in source bytecode.");
 		sd.spir_v = p_bytecode->get_stage_bytecode(stage);
-		if (sd.spir_v.empty()) {
+		if (sd.spir_v.is_empty()) {
 			continue;
 		}
 		stage_data.push_back(sd);

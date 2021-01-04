@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -614,7 +614,7 @@ void OS_Windows::run() {
 	if (!main_loop)
 		return;
 
-	main_loop->init();
+	main_loop->initialize();
 
 	while (!force_quit) {
 		DisplayServer::get_singleton()->process_events(); // get rid of pending events
@@ -622,7 +622,7 @@ void OS_Windows::run() {
 			break;
 	};
 
-	main_loop->finish();
+	main_loop->finalize();
 }
 
 MainLoop *OS_Windows::get_main_loop() const {

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -417,7 +417,7 @@ private:
 	void _drag_event(WindowID p_window, float p_x, float p_y, int idx);
 	void _touch_event(WindowID p_window, bool p_pressed, float p_x, float p_y, int idx);
 
-	void _update_window_style(WindowID p_window, bool p_repaint = true, bool p_maximized = false);
+	void _update_window_style(WindowID p_window, bool p_repaint = true);
 	void _update_window_mouse_passthrough(WindowID p_window);
 
 	void _update_real_mouse_position(WindowID p_window);

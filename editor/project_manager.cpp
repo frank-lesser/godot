@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -1545,7 +1545,7 @@ bool ProjectList::is_any_project_missing() const {
 }
 
 void ProjectList::erase_missing_projects() {
-	if (_projects.empty()) {
+	if (_projects.is_empty()) {
 		return;
 	}
 
@@ -1875,7 +1875,7 @@ void ProjectManager::_dim_window() {
 
 void ProjectManager::_update_project_buttons() {
 	Vector<ProjectList::Item> selected_projects = _project_list->get_selected_projects();
-	bool empty_selection = selected_projects.empty();
+	bool empty_selection = selected_projects.is_empty();
 
 	bool is_missing_project_selected = false;
 	for (int i = 0; i < selected_projects.size(); ++i) {
@@ -2433,9 +2433,9 @@ ProjectManager::ProjectManager() {
 	// TRANSLATORS: This refers to the application where users manage their Godot projects.
 	if (TS->is_locale_right_to_left(TranslationServer::get_singleton()->get_tool_locale())) {
 		// For RTL languages, embed translated part of the title (using control characters) to ensure correct order.
-		DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + String::chr(0x202B) + TTR("Project Manager") + String::chr(0x202C) + String::chr(0x200E) + " - " + String::chr(0xA9) + " 2007-2020 Juan Linietsky, Ariel Manzur & Godot Contributors");
+		DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + String::chr(0x202B) + TTR("Project Manager") + String::chr(0x202C) + String::chr(0x200E) + " - " + String::chr(0xA9) + " 2007-2021 Juan Linietsky, Ariel Manzur & Godot Contributors");
 	} else {
-		DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + TTR("Project Manager") + " - " + String::chr(0xA9) + " 2007-2020 Juan Linietsky, Ariel Manzur & Godot Contributors");
+		DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + TTR("Project Manager") + " - " + String::chr(0xA9) + " 2007-2021 Juan Linietsky, Ariel Manzur & Godot Contributors");
 	}
 
 	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("filesystem/file_dialog/show_hidden_files"));

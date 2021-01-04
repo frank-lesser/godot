@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -377,7 +377,7 @@ uint64_t ClassDB::get_api_hash(APIType p_api) {
 			while ((k = t->method_map.next(k))) {
 				String name = k->operator String();
 
-				ERR_CONTINUE(name.empty());
+				ERR_CONTINUE(name.is_empty());
 
 				if (name[0] == '_') {
 					continue; // Ignore non-virtual methods that start with an underscore

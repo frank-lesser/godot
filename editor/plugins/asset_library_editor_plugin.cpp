@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -702,7 +702,7 @@ void EditorAssetLibrary::_image_update(bool use_cache, bool final, const PackedB
 			}
 		}
 
-		if (!image->empty()) {
+		if (!image->is_empty()) {
 			switch (image_queue[p_queue_id].image_type) {
 				case IMAGE_QUEUE_ICON:
 
@@ -1151,7 +1151,7 @@ void EditorAssetLibrary::_http_request_completed(int p_status, int p_code, const
 			asset_bottom_page = _make_pages(page, pages, page_len, total_items, result.size());
 			library_vb->add_child(asset_bottom_page);
 
-			if (result.empty()) {
+			if (result.is_empty()) {
 				if (filter->get_text() != String()) {
 					library_error->set_text(
 							vformat(TTR("No results for \"%s\"."), filter->get_text()));
@@ -1188,7 +1188,7 @@ void EditorAssetLibrary::_http_request_completed(int p_status, int p_code, const
 				}
 			}
 
-			if (!result.empty()) {
+			if (!result.is_empty()) {
 				library_scroll->set_v_scroll(0);
 			}
 		} break;
@@ -1492,7 +1492,7 @@ AssetLibraryEditorPlugin::AssetLibraryEditorPlugin(EditorNode *p_node) {
 	editor = p_node;
 	addon_library = memnew(EditorAssetLibrary);
 	addon_library->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-	editor->get_viewport()->add_child(addon_library);
+	editor->get_main_control()->add_child(addon_library);
 	addon_library->set_anchors_and_offsets_preset(Control::PRESET_WIDE);
 	addon_library->hide();
 }

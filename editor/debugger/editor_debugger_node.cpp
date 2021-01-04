@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -115,7 +115,7 @@ ScriptEditorDebugger *EditorDebuggerNode::_add_debugger() {
 		tabs->add_theme_style_override("panel", EditorNode::get_singleton()->get_gui_base()->get_theme_stylebox("DebuggerPanel", "EditorStyles"));
 	}
 
-	if (!debugger_plugins.empty()) {
+	if (!debugger_plugins.is_empty()) {
 		for (Set<Ref<Script>>::Element *i = debugger_plugins.front(); i; i = i->next()) {
 			node->add_debugger_plugin(i->get());
 		}
@@ -140,7 +140,7 @@ void EditorDebuggerNode::_error_selected(const String &p_file, int p_line, int p
 
 void EditorDebuggerNode::_text_editor_stack_goto(const ScriptEditorDebugger *p_debugger) {
 	const String file = p_debugger->get_stack_script_file();
-	if (file.empty()) {
+	if (file.is_empty()) {
 		return;
 	}
 	stack_script = ResourceLoader::load(file);

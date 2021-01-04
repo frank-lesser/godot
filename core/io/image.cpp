@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -375,7 +375,7 @@ Image::Image3DValidateError Image::validate_3d_image(Image::Format p_format, int
 			if (idx >= p_images.size()) {
 				return VALIDATE_3D_ERR_MISSING_IMAGES;
 			}
-			if (p_images[idx].is_null() || p_images[idx]->empty()) {
+			if (p_images[idx].is_null() || p_images[idx]->is_empty()) {
 				return VALIDATE_3D_ERR_IMAGE_EMPTY;
 			}
 			if (p_images[idx]->get_format() != p_format) {
@@ -1753,10 +1753,10 @@ Error Image::generate_mipmaps(bool p_renormalize) {
 
 Error Image::generate_mipmap_roughness(RoughnessChannel p_roughness_channel, const Ref<Image> &p_normal_map) {
 	Vector<double> normal_sat_vec; //summed area table
-	double *normal_sat = nullptr; //summed area table for normalmap
+	double *normal_sat = nullptr; //summed area table for normal map
 	int normal_w = 0, normal_h = 0;
 
-	ERR_FAIL_COND_V_MSG(p_normal_map.is_null() || p_normal_map->empty(), ERR_INVALID_PARAMETER, "Must provide a valid normalmap for roughness mipmaps");
+	ERR_FAIL_COND_V_MSG(p_normal_map.is_null() || p_normal_map->is_empty(), ERR_INVALID_PARAMETER, "Must provide a valid normal map for roughness mipmaps");
 
 	Ref<Image> nm = p_normal_map->duplicate();
 	if (nm->is_compressed()) {
@@ -1950,7 +1950,7 @@ void Image::clear_mipmaps() {
 		return;
 	}
 
-	if (empty()) {
+	if (is_empty()) {
 		return;
 	}
 
@@ -1961,7 +1961,7 @@ void Image::clear_mipmaps() {
 	mipmaps = false;
 }
 
-bool Image::empty() const {
+bool Image::is_empty() const {
 	return (data.size() == 0);
 }
 
@@ -3090,7 +3090,7 @@ void Image::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("create", "width", "height", "use_mipmaps", "format"), &Image::_create_empty);
 	ClassDB::bind_method(D_METHOD("create_from_data", "width", "height", "use_mipmaps", "format", "data"), &Image::_create_from_data);
 
-	ClassDB::bind_method(D_METHOD("is_empty"), &Image::empty);
+	ClassDB::bind_method(D_METHOD("is_empty"), &Image::is_empty);
 
 	ClassDB::bind_method(D_METHOD("load", "path"), &Image::load);
 	ClassDB::bind_method(D_METHOD("save_png", "path"), &Image::save_png);
@@ -3109,9 +3109,9 @@ void Image::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("fix_alpha_edges"), &Image::fix_alpha_edges);
 	ClassDB::bind_method(D_METHOD("premultiply_alpha"), &Image::premultiply_alpha);
 	ClassDB::bind_method(D_METHOD("srgb_to_linear"), &Image::srgb_to_linear);
-	ClassDB::bind_method(D_METHOD("normalmap_to_xy"), &Image::normalmap_to_xy);
+	ClassDB::bind_method(D_METHOD("normal_map_to_xy"), &Image::normal_map_to_xy);
 	ClassDB::bind_method(D_METHOD("rgbe_to_srgb"), &Image::rgbe_to_srgb);
-	ClassDB::bind_method(D_METHOD("bumpmap_to_normalmap", "bump_scale"), &Image::bumpmap_to_normalmap, DEFVAL(1.0));
+	ClassDB::bind_method(D_METHOD("bump_map_to_normal_map", "bump_scale"), &Image::bump_map_to_normal_map, DEFVAL(1.0));
 
 	ClassDB::bind_method(D_METHOD("blit_rect", "src", "src_rect", "dst"), &Image::blit_rect);
 	ClassDB::bind_method(D_METHOD("blit_rect_mask", "src", "mask", "src_rect", "dst"), &Image::blit_rect_mask);
@@ -3220,7 +3220,7 @@ void Image::set_compress_bptc_func(void (*p_compress_func)(Image *, float, UsedC
 	_image_compress_bptc_func = p_compress_func;
 }
 
-void Image::normalmap_to_xy() {
+void Image::normal_map_to_xy() {
 	convert(Image::FORMAT_RGBA8);
 
 	{
@@ -3285,7 +3285,7 @@ Ref<Image> Image::get_image_from_mipmap(int p_mipamp) const {
 	return image;
 }
 
-void Image::bumpmap_to_normalmap(float bump_scale) {
+void Image::bump_map_to_normal_map(float bump_scale) {
 	ERR_FAIL_COND(!_can_modify(format));
 	convert(Image::FORMAT_RF);
 
@@ -3585,7 +3585,7 @@ Image::Image(const uint8_t *p_mem_png_jpg, int p_len) {
 		copy_internals_from(_png_mem_loader_func(p_mem_png_jpg, p_len));
 	}
 
-	if (empty() && _jpg_mem_loader_func) {
+	if (is_empty() && _jpg_mem_loader_func) {
 		copy_internals_from(_jpg_mem_loader_func(p_mem_png_jpg, p_len));
 	}
 }

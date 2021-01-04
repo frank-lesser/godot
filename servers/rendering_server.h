@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -130,11 +130,11 @@ public:
 	virtual void texture_set_detect_normal_callback(RID p_texture, TextureDetectCallback p_callback, void *p_userdata) = 0;
 
 	enum TextureDetectRoughnessChannel {
-		TEXTURE_DETECT_ROUGNHESS_R,
-		TEXTURE_DETECT_ROUGNHESS_G,
-		TEXTURE_DETECT_ROUGNHESS_B,
-		TEXTURE_DETECT_ROUGNHESS_A,
-		TEXTURE_DETECT_ROUGNHESS_GRAY,
+		TEXTURE_DETECT_ROUGHNESS_R,
+		TEXTURE_DETECT_ROUGHNESS_G,
+		TEXTURE_DETECT_ROUGHNESS_B,
+		TEXTURE_DETECT_ROUGHNESS_A,
+		TEXTURE_DETECT_ROUGHNESS_GRAY,
 	};
 
 	typedef void (*TextureDetectRoughnessCallback)(void *, const String &, TextureDetectRoughnessChannel);

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -537,7 +537,7 @@ Ref<Image> RendererStorageRD::_validate_texture_format(const Ref<Image> &p_image
 
 RID RendererStorageRD::texture_2d_create(const Ref<Image> &p_image) {
 	ERR_FAIL_COND_V(p_image.is_null(), RID());
-	ERR_FAIL_COND_V(p_image->empty(), RID());
+	ERR_FAIL_COND_V(p_image->is_empty(), RID());
 
 	TextureToRDFormat ret_format;
 	Ref<Image> image = _validate_texture_format(p_image, ret_format);
@@ -620,7 +620,7 @@ RID RendererStorageRD::texture_2d_layered_create(const Vector<Ref<Image>> &p_lay
 		Image::Format valid_format = Image::FORMAT_MAX;
 
 		for (int i = 0; i < p_layers.size(); i++) {
-			ERR_FAIL_COND_V(p_layers[i]->empty(), RID());
+			ERR_FAIL_COND_V(p_layers[i]->is_empty(), RID());
 
 			if (i == 0) {
 				valid_width = p_layers[i]->get_width();
@@ -855,7 +855,7 @@ RID RendererStorageRD::texture_proxy_create(RID p_base) {
 }
 
 void RendererStorageRD::_texture_2d_update(RID p_texture, const Ref<Image> &p_image, int p_layer, bool p_immediate) {
-	ERR_FAIL_COND(p_image.is_null() || p_image->empty());
+	ERR_FAIL_COND(p_image.is_null() || p_image->is_empty());
 
 	Texture *tex = texture_owner.getornull(p_texture);
 	ERR_FAIL_COND(!tex);
@@ -1039,7 +1039,7 @@ Ref<Image> RendererStorageRD::texture_2d_get(RID p_texture) const {
 	Ref<Image> image;
 	image.instance();
 	image->create(tex->width, tex->height, tex->mipmaps > 1, tex->validated_format, data);
-	ERR_FAIL_COND_V(image->empty(), Ref<Image>());
+	ERR_FAIL_COND_V(image->is_empty(), Ref<Image>());
 	if (tex->format != tex->validated_format) {
 		image->convert(tex->format);
 	}
@@ -1062,7 +1062,7 @@ Ref<Image> RendererStorageRD::texture_2d_layer_get(RID p_texture, int p_layer) c
 	Ref<Image> image;
 	image.instance();
 	image->create(tex->width, tex->height, tex->mipmaps > 1, tex->validated_format, data);
-	ERR_FAIL_COND_V(image->empty(), Ref<Image>());
+	ERR_FAIL_COND_V(image->is_empty(), Ref<Image>());
 	if (tex->format != tex->validated_format) {
 		image->convert(tex->format);
 	}
@@ -1090,7 +1090,7 @@ Vector<Ref<Image>> RendererStorageRD::texture_3d_get(RID p_texture) const {
 		Ref<Image> img;
 		img.instance();
 		img->create(bs.size.width, bs.size.height, false, tex->validated_format, sub_region);
-		ERR_FAIL_COND_V(img->empty(), Vector<Ref<Image>>());
+		ERR_FAIL_COND_V(img->is_empty(), Vector<Ref<Image>>());
 		if (tex->format != tex->validated_format) {
 			img->convert(tex->format);
 		}
@@ -1234,7 +1234,7 @@ void RendererStorageRD::canvas_texture_set_channel(RID p_canvas_texture, RS::Can
 			ct->diffuse = p_texture;
 		} break;
 		case RS::CANVAS_TEXTURE_CHANNEL_NORMAL: {
-			ct->normalmap = p_texture;
+			ct->normal_map = p_texture;
 		} break;
 		case RS::CANVAS_TEXTURE_CHANNEL_SPECULAR: {
 			ct->specular = p_texture;
@@ -1316,7 +1316,7 @@ bool RendererStorageRD::canvas_texture_get_uniform_set(RID p_texture, RS::Canvas
 			u.uniform_type = RD::UNIFORM_TYPE_TEXTURE;
 			u.binding = 1;
 
-			t = texture_owner.getornull(ct->normalmap);
+			t = texture_owner.getornull(ct->normal_map);
 			if (!t) {
 				u.ids.push_back(texture_rd_get_default(DEFAULT_RD_TEXTURE_NORMAL));
 				ct->use_normal_cache = false;
@@ -2216,7 +2216,7 @@ void RendererStorageRD::MaterialData::update_textures(const Map<StringName, Vari
 	RendererStorageRD *singleton = (RendererStorageRD *)RendererStorage::base_singleton;
 #ifdef TOOLS_ENABLED
 	Texture *roughness_detect_texture = nullptr;
-	RS::TextureDetectRoughnessChannel roughness_channel = RS::TEXTURE_DETECT_ROUGNHESS_R;
+	RS::TextureDetectRoughnessChannel roughness_channel = RS::TEXTURE_DETECT_ROUGHNESS_R;
 	Texture *normal_detect_texture = nullptr;
 #endif
 

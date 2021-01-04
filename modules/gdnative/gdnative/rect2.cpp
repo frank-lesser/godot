@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -127,10 +127,10 @@ godot_rect2 GDAPI godot_rect2_grow_individual(const godot_rect2 *p_self, const g
 	return dest;
 }
 
-godot_rect2 GDAPI godot_rect2_grow_margin(const godot_rect2 *p_self, const godot_int p_side, const godot_real p_by) {
+godot_rect2 GDAPI godot_rect2_grow_side(const godot_rect2 *p_self, const godot_int p_side, const godot_real p_by) {
 	godot_rect2 dest;
 	const Rect2 *self = (const Rect2 *)p_self;
-	*((Rect2 *)&dest) = self->grow_margin((Side)p_side, p_by);
+	*((Rect2 *)&dest) = self->grow_side((Side)p_side, p_by);
 	return dest;
 }
 
@@ -270,10 +270,10 @@ godot_rect2i GDAPI godot_rect2i_grow_individual(const godot_rect2i *p_self, cons
 	return dest;
 }
 
-godot_rect2i GDAPI godot_rect2i_grow_margin(const godot_rect2i *p_self, const godot_int p_side, const godot_int p_by) {
+godot_rect2i GDAPI godot_rect2i_grow_side(const godot_rect2i *p_self, const godot_int p_side, const godot_int p_by) {
 	godot_rect2i dest;
 	const Rect2i *self = (const Rect2i *)p_self;
-	*((Rect2i *)&dest) = self->grow_margin((Side)p_side, p_by);
+	*((Rect2i *)&dest) = self->grow_side((Side)p_side, p_by);
 	return dest;
 }
 

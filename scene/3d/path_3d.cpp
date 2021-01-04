@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -249,14 +249,14 @@ String PathFollow3D::get_configuration_warning() const {
 	String warning = Node3D::get_configuration_warning();
 
 	if (!Object::cast_to<Path3D>(get_parent())) {
-		if (!warning.empty()) {
+		if (!warning.is_empty()) {
 			warning += "\n\n";
 		}
 		warning += TTR("PathFollow3D only works when set as a child of a Path3D node.");
 	} else {
 		Path3D *path = Object::cast_to<Path3D>(get_parent());
 		if (path->get_curve().is_valid() && !path->get_curve()->is_up_vector_enabled() && rotation_mode == ROTATION_ORIENTED) {
-			if (!warning.empty()) {
+			if (!warning.is_empty()) {
 				warning += "\n\n";
 			}
 			warning += TTR("PathFollow3D's ROTATION_ORIENTED requires \"Up Vector\" to be enabled in its parent Path3D's Curve resource.");

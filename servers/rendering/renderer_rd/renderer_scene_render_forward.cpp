@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -112,7 +112,7 @@ void RendererSceneRenderForward::ShaderData::set_code(const String &p_code) {
 	actions.usage_flag_pointers["TIME"] = &uses_time;
 	actions.usage_flag_pointers["ROUGHNESS"] = &uses_roughness;
 	actions.usage_flag_pointers["NORMAL"] = &uses_normal;
-	actions.usage_flag_pointers["NORMALMAP"] = &uses_normal;
+	actions.usage_flag_pointers["NORMAL_MAP"] = &uses_normal;
 
 	actions.usage_flag_pointers["POINT_SIZE"] = &uses_point_size;
 	actions.usage_flag_pointers["POINT_COORD"] = &uses_point_size;
@@ -894,7 +894,7 @@ void RendererSceneRenderForward::_fill_instances(RenderList::Element **p_element
 			} else {
 				id.gi_offset = 0xFFFFFFFF;
 			}
-		} else if (!e->instance->lightmap_sh.empty()) {
+		} else if (!e->instance->lightmap_sh.is_empty()) {
 			if (lightmap_captures_used < scene_state.max_lightmap_captures) {
 				const Color *src_capture = e->instance->lightmap_sh.ptr();
 				LightmapCaptureData &lcd = scene_state.lightmap_captures[lightmap_captures_used];
@@ -914,7 +914,7 @@ void RendererSceneRenderForward::_fill_instances(RenderList::Element **p_element
 				id.flags |= INSTANCE_DATA_FLAG_USE_GI_BUFFERS;
 			}
 
-			if (!low_end && !e->instance->gi_probe_instances.empty()) {
+			if (!low_end && !e->instance->gi_probe_instances.is_empty()) {
 				uint32_t written = 0;
 				for (int j = 0; j < e->instance->gi_probe_instances.size(); j++) {
 					RID probe = e->instance->gi_probe_instances[j];
@@ -1521,7 +1521,7 @@ void RendererSceneRenderForward::_add_geometry_with_material(InstanceBase *p_ins
 	e->geometry_index = p_geometry_index;
 	e->material_index = e->material->index;
 	e->uses_instancing = e->instance->base_type == RS::INSTANCE_MULTIMESH;
-	e->uses_lightmap = e->instance->lightmap != nullptr || !e->instance->lightmap_sh.empty();
+	e->uses_lightmap = e->instance->lightmap != nullptr || !e->instance->lightmap_sh.is_empty();
 	e->uses_forward_gi = has_alpha && (e->instance->gi_probe_instances.size() || p_using_sdfgi);
 	e->shader_index = e->shader_index;
 	e->depth_layer = e->instance->depth_layer;
@@ -1532,7 +1532,7 @@ void RendererSceneRenderForward::_add_geometry_with_material(InstanceBase *p_ins
 	}
 }
 
-void RendererSceneRenderForward::_fill_render_list(const PagedArray<InstanceBase *> &p_instances, PassMode p_pass_mode, bool p_using_sdfgi) {
+void RendererSceneRenderForward::_fill_render_list(const PagedArray<InstanceBase *> &p_instances, PassMode p_pass_mode, const CameraMatrix &p_cam_projection, const Transform &p_cam_transform, bool p_using_sdfgi) {
 	scene_state.current_shader_index = 0;
 	scene_state.current_material_index = 0;
 	scene_state.used_sss = false;
@@ -1540,12 +1540,19 @@ void RendererSceneRenderForward::_fill_render_list(const PagedArray<InstanceBase
 	scene_state.used_normal_texture = false;
 	scene_state.used_depth_texture = false;
 
+	Plane near_plane(p_cam_transform.origin, -p_cam_transform.basis.get_axis(Vector3::AXIS_Z));
+	near_plane.d += p_cam_projection.get_z_near();
+	float z_max = p_cam_projection.get_z_far() - p_cam_projection.get_z_near();
+
 	uint32_t geometry_index = 0;
 
 	//fill list
 
 	for (int i = 0; i < (int)p_instances.size(); i++) {
 		InstanceBase *inst = p_instances[i];
+
+		inst->depth = near_plane.distance_to(inst->transform.origin);
+		inst->depth_layer = CLAMP(int(inst->depth * 16 / z_max), 0, 15);
 
 		//add geometry for drawing
 		switch (inst->base_type) {
@@ -1782,7 +1789,7 @@ void RendererSceneRenderForward::_render_scene(RID p_render_buffer, const Transf
 	_update_render_base_uniform_set(); //may have changed due to the above (light buffer enlarged, as an example)
 
 	render_list.clear();
-	_fill_render_list(p_instances, PASS_MODE_COLOR, using_sdfgi);
+	_fill_render_list(p_instances, PASS_MODE_COLOR, p_cam_projection, p_cam_transform, using_sdfgi);
 
 	bool using_sss = !low_end && render_buffer && scene_state.used_sss && sub_surface_scattering_get_quality() != RS::SUB_SURFACE_SCATTERING_QUALITY_DISABLED;
 
@@ -1864,8 +1871,6 @@ void RendererSceneRenderForward::_render_scene(RID p_render_buffer, const Transf
 		clear_color = p_default_bg_color;
 	}
 
-	RID rp_uniform_set = _setup_render_pass_uniform_set(p_render_buffer, radiance_texture, p_shadow_atlas, p_reflection_atlas, p_gi_probes);
-
 	render_list.sort_by_key(false);
 
 	_fill_instances(render_list.elements, render_list.element_count, false, false, using_sdfgi || using_giprobe);
@@ -1879,6 +1884,8 @@ void RendererSceneRenderForward::_render_scene(RID p_render_buffer, const Transf
 	bool continue_depth = false;
 	if (depth_pre_pass) { //depth pre pass
 		RENDER_TIMESTAMP("Render Depth Pre-Pass");
+
+		RID rp_uniform_set = _setup_render_pass_uniform_set(RID(), RID(), RID(), RID(), PagedArray<RID>());
 
 		bool finish_depth = using_ssao || using_sdfgi || using_giprobe;
 		RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(depth_framebuffer, RD::INITIAL_ACTION_CLEAR, RD::FINAL_ACTION_READ, RD::INITIAL_ACTION_CLEAR, finish_depth ? RD::FINAL_ACTION_READ : RD::FINAL_ACTION_CONTINUE, depth_pass_clear);
@@ -1909,6 +1916,8 @@ void RendererSceneRenderForward::_render_scene(RID p_render_buffer, const Transf
 	_setup_environment(p_environment, p_render_buffer, p_cam_projection, p_cam_transform, p_reflection_probe, p_reflection_probe.is_valid(), screen_pixel_size, p_shadow_atlas, !p_reflection_probe.is_valid(), p_default_bg_color, p_cam_projection.get_z_near(), p_cam_projection.get_z_far(), p_render_buffer.is_valid());
 
 	RENDER_TIMESTAMP("Render Opaque Pass");
+
+	RID rp_uniform_set = _setup_render_pass_uniform_set(p_render_buffer, radiance_texture, p_shadow_atlas, p_reflection_atlas, p_gi_probes);
 
 	bool can_continue_color = !scene_state.used_screen_texture && !using_ssr && !using_sss;
 	bool can_continue_depth = !scene_state.used_depth_texture && !using_ssr && !using_sss;
@@ -2046,7 +2055,7 @@ void RendererSceneRenderForward::_render_shadow(RID p_framebuffer, const PagedAr
 
 	PassMode pass_mode = p_use_dp ? PASS_MODE_SHADOW_DP : PASS_MODE_SHADOW;
 
-	_fill_render_list(p_instances, pass_mode);
+	_fill_render_list(p_instances, pass_mode, p_projection, p_transform);
 
 	RID rp_uniform_set = _setup_render_pass_uniform_set(RID(), RID(), RID(), RID(), PagedArray<RID>());
 
@@ -2079,7 +2088,7 @@ void RendererSceneRenderForward::_render_particle_collider_heightfield(RID p_fb,
 
 	PassMode pass_mode = PASS_MODE_SHADOW;
 
-	_fill_render_list(p_instances, pass_mode);
+	_fill_render_list(p_instances, pass_mode, p_cam_projection, p_cam_transform);
 
 	RID rp_uniform_set = _setup_render_pass_uniform_set(RID(), RID(), RID(), RID(), PagedArray<RID>());
 
@@ -2112,7 +2121,7 @@ void RendererSceneRenderForward::_render_material(const Transform &p_cam_transfo
 	render_list.clear();
 
 	PassMode pass_mode = PASS_MODE_DEPTH_MATERIAL;
-	_fill_render_list(p_instances, pass_mode);
+	_fill_render_list(p_instances, pass_mode, p_cam_projection, p_cam_transform);
 
 	RID rp_uniform_set = _setup_render_pass_uniform_set(RID(), RID(), RID(), RID(), PagedArray<RID>());
 
@@ -2151,7 +2160,7 @@ void RendererSceneRenderForward::_render_uv2(const PagedArray<InstanceBase *> &p
 	render_list.clear();
 
 	PassMode pass_mode = PASS_MODE_DEPTH_MATERIAL;
-	_fill_render_list(p_instances, pass_mode);
+	_fill_render_list(p_instances, pass_mode, CameraMatrix(), Transform());
 
 	RID rp_uniform_set = _setup_render_pass_uniform_set(RID(), RID(), RID(), RID(), PagedArray<RID>());
 
@@ -2209,7 +2218,7 @@ void RendererSceneRenderForward::_render_sdfgi(RID p_render_buffers, const Vecto
 	render_list.clear();
 
 	PassMode pass_mode = PASS_MODE_SDF;
-	_fill_render_list(p_instances, pass_mode);
+	_fill_render_list(p_instances, pass_mode, CameraMatrix(), Transform());
 	render_list.sort_by_key(false);
 	_fill_instances(render_list.elements, render_list.element_count, true);
 
@@ -2860,8 +2869,8 @@ RendererSceneRenderForward::RendererSceneRenderForward(RendererStorageRD *p_stor
 
 		actions.renames["FRAGCOORD"] = "gl_FragCoord";
 		actions.renames["FRONT_FACING"] = "gl_FrontFacing";
-		actions.renames["NORMALMAP"] = "normalmap";
-		actions.renames["NORMALMAP_DEPTH"] = "normaldepth";
+		actions.renames["NORMAL_MAP"] = "normal_map";
+		actions.renames["NORMAL_MAP_DEPTH"] = "normal_map_depth";
 		actions.renames["ALBEDO"] = "albedo";
 		actions.renames["ALPHA"] = "alpha";
 		actions.renames["METALLIC"] = "metallic";
@@ -2928,8 +2937,8 @@ RendererSceneRenderForward::RendererSceneRenderForward(RendererStorageRD *p_stor
 		actions.usage_defines["CUSTOM1"] = "#define CUSTOM1\n";
 		actions.usage_defines["CUSTOM2"] = "#define CUSTOM2\n";
 		actions.usage_defines["CUSTOM3"] = "#define CUSTOM3\n";
-		actions.usage_defines["NORMALMAP"] = "#define NORMALMAP_USED\n";
-		actions.usage_defines["NORMALMAP_DEPTH"] = "@NORMALMAP";
+		actions.usage_defines["NORMAL_MAP"] = "#define NORMAL_MAP_USED\n";
+		actions.usage_defines["NORMAL_MAP_DEPTH"] = "@NORMAL_MAP";
 		actions.usage_defines["COLOR"] = "#define COLOR_USED\n";
 		actions.usage_defines["INSTANCE_CUSTOM"] = "#define ENABLE_INSTANCE_CUSTOM\n";
 		actions.usage_defines["POSITION"] = "#define OVERRIDE_POSITION\n";

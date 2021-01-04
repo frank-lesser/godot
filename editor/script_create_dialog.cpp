@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -50,7 +50,7 @@ void ScriptCreateDialog::_theme_changed() {
 	}
 
 	String last_lang = EditorSettings::get_singleton()->get_project_metadata("script_setup", "last_selected_language", "");
-	if (!last_lang.empty()) {
+	if (!last_lang.is_empty()) {
 		for (int i = 0; i < language_menu->get_item_count(); i++) {
 			if (language_menu->get_item_text(i) == last_lang) {
 				language_menu->select(i);
@@ -568,6 +568,8 @@ void ScriptCreateDialog::_create() {
 void ScriptCreateDialog::_browse_class_in_tree() {
 	select_class->set_base_type(base_type);
 	select_class->popup_create(true);
+	select_class->set_title(vformat(TTR("Inherit %s"), base_type));
+	select_class->get_ok_button()->set_text(TTR("Inherit"));
 }
 
 void ScriptCreateDialog::_path_changed(const String &p_path) {

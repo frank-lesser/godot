@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -43,7 +43,7 @@ void BitMap::create(const Size2 &p_size) {
 }
 
 void BitMap::create_from_image_alpha(const Ref<Image> &p_image, float p_threshold) {
-	ERR_FAIL_COND(p_image.is_null() || p_image->empty());
+	ERR_FAIL_COND(p_image.is_null() || p_image->is_empty());
 	Ref<Image> img = p_image->duplicate();
 	img->convert(Image::FORMAT_LA8);
 	ERR_FAIL_COND(img->get_format() != Image::FORMAT_LA8);

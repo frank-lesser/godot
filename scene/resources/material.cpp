@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -969,11 +969,11 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_NORMAL_MAPPING]) {
 		if (flags[FLAG_UV1_USE_TRIPLANAR]) {
-			code += "\tNORMALMAP = triplanar_texture(texture_normal,uv1_power_normal,uv1_triplanar_pos).rgb;\n";
+			code += "\tNORMAL_MAP = triplanar_texture(texture_normal,uv1_power_normal,uv1_triplanar_pos).rgb;\n";
 		} else {
-			code += "\tNORMALMAP = texture(texture_normal,base_uv).rgb;\n";
+			code += "\tNORMAL_MAP = texture(texture_normal,base_uv).rgb;\n";
 		}
-		code += "\tNORMALMAP_DEPTH = normal_scale;\n";
+		code += "\tNORMAL_MAP_DEPTH = normal_scale;\n";
 	}
 
 	if (features[FEATURE_EMISSION]) {
@@ -1000,7 +1000,7 @@ void BaseMaterial3D::_update_shader() {
 
 	if (features[FEATURE_REFRACTION]) {
 		if (features[FEATURE_NORMAL_MAPPING]) {
-			code += "\tvec3 ref_normal = normalize( mix(NORMAL,TANGENT * NORMALMAP.x + BINORMAL * NORMALMAP.y + NORMAL * NORMALMAP.z,NORMALMAP_DEPTH) );\n";
+			code += "\tvec3 ref_normal = normalize( mix(NORMAL,TANGENT * NORMAL_MAP.x + BINORMAL * NORMAL_MAP.y + NORMAL * NORMAL_MAP.z,NORMAL_MAP_DEPTH) );\n";
 		} else {
 			code += "\tvec3 ref_normal = NORMAL;\n";
 		}
@@ -1198,8 +1198,8 @@ void BaseMaterial3D::_update_shader() {
 				break; // Internal value, skip.
 		}
 
-		code += "\tvec3 detail_norm = mix(NORMALMAP,detail_norm_tex.rgb,detail_tex.a);\n";
-		code += "\tNORMALMAP = mix(NORMALMAP,detail_norm,detail_mask_tex.r);\n";
+		code += "\tvec3 detail_norm = mix(NORMAL_MAP,detail_norm_tex.rgb,detail_tex.a);\n";
+		code += "\tNORMAL_MAP = mix(NORMAL_MAP,detail_norm,detail_mask_tex.r);\n";
 		code += "\tALBEDO.rgb = mix(ALBEDO.rgb,detail,detail_mask_tex.r);\n";
 	}
 

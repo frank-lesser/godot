@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -725,12 +725,12 @@ void EditorPropertyLayers::setup(LayerType p_layer_type) {
 	for (int i = 0; i < 20; i++) {
 		String name;
 
-		if (ProjectSettings::get_singleton()->has_setting(basename + "/layer_" + itos(i + 1))) {
-			name = ProjectSettings::get_singleton()->get(basename + "/layer_" + itos(i + 1));
+		if (ProjectSettings::get_singleton()->has_setting(basename + vformat("/layer_%d", i))) {
+			name = ProjectSettings::get_singleton()->get(basename + vformat("/layer_%d", i));
 		}
 
 		if (name == "") {
-			name = TTR("Layer") + " " + itos(i + 1);
+			name = vformat(TTR("Layer %d"), i);
 		}
 
 		names.push_back(name);
@@ -2356,7 +2356,7 @@ void EditorPropertyResource::_file_selected(const String &p_path) {
 			property_types = E->get().hint_string;
 		}
 	}
-	if (!property_types.empty()) {
+	if (!property_types.is_empty()) {
 		bool any_type_matches = false;
 		const Vector<String> split_property_types = property_types.split(",");
 		for (int i = 0; i < split_property_types.size(); ++i) {
@@ -2514,7 +2514,7 @@ void EditorPropertyResource::_menu_option(int p_which) {
 				update_property();
 				break;
 			}
-			ERR_FAIL_COND(inheritors_array.empty());
+			ERR_FAIL_COND(inheritors_array.is_empty());
 
 			String intype = inheritors_array[p_which - TYPE_BASE_ID];
 
@@ -2546,10 +2546,12 @@ void EditorPropertyResource::_menu_option(int p_which) {
 			}
 
 			Object *obj = nullptr;
+			RES res_temp;
 
 			if (ScriptServer::is_global_class(intype)) {
 				obj = ClassDB::instance(ScriptServer::get_global_class_native_base(intype));
 				if (obj) {
+					res_temp = obj;
 					Ref<Script> script = ResourceLoader::load(ScriptServer::get_global_class_path(intype));
 					if (script.is_valid()) {
 						obj->set_script(Variant(script));
@@ -2557,21 +2559,21 @@ void EditorPropertyResource::_menu_option(int p_which) {
 				}
 			} else {
 				obj = ClassDB::instance(intype);
+				res_temp = obj;
 			}
 
 			if (!obj) {
 				obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
+				res_temp = obj;
 			}
 
-			ERR_BREAK(!obj);
-			Resource *resp = Object::cast_to<Resource>(obj);
-			ERR_BREAK(!resp);
+			ERR_BREAK(!res_temp.is_valid());
 			if (get_edited_object() && base_type != String() && base_type == "Script") {
 				//make visual script the right type
-				resp->call("set_instance_base_type", get_edited_object()->get_class());
+				res_temp->call("set_instance_base_type", get_edited_object()->get_class());
 			}
 
-			res = Ref<Resource>(resp);
+			res = res_temp;
 			emit_changed(get_edited_property(), res);
 			update_property();
 
@@ -2658,7 +2660,7 @@ void EditorPropertyResource::_update_menu_items() {
 
 				bool is_custom_resource = false;
 				Ref<Texture2D> icon;
-				if (!custom_resources.empty()) {
+				if (!custom_resources.is_empty()) {
 					for (int j = 0; j < custom_resources.size(); j++) {
 						if (custom_resources[j].name == t) {
 							is_custom_resource = true;

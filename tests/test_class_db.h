@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -397,7 +397,7 @@ void validate_method(const Context &p_context, const ExposedClass &p_class, cons
 			String type_error_msg;
 			bool arg_defval_assignable_to_type = arg_default_value_is_assignable_to_type(p_context, arg.defval, arg.type, &type_error_msg);
 			String err_msg = vformat("Invalid default value for parameter '%s' of method '%s.%s'.", arg.name, p_class.name, p_method.name);
-			if (!type_error_msg.empty()) {
+			if (!type_error_msg.is_empty()) {
 				err_msg += " " + type_error_msg;
 			}
 			TEST_COND(!arg_defval_assignable_to_type, err_msg.utf8().get_data());
@@ -538,7 +538,7 @@ void add_exposed_classes(Context &r_context) {
 
 			int argc = method_info.arguments.size();
 
-			if (method_info.name.empty()) {
+			if (method_info.name.is_empty()) {
 				continue;
 			}
 

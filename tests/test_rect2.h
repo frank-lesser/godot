@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -197,11 +197,11 @@ TEST_CASE("[Rect2] Growing") {
 			"grow_individual() with positive and negative values should return the expected Rect2.");
 
 	CHECK_MESSAGE(
-			Rect2(0, 100, 1280, 720).grow_margin(SIDE_TOP, 500).is_equal_approx(Rect2(0, -400, 1280, 1220)),
-			"grow_margin() with positive value should return the expected Rect2.");
+			Rect2(0, 100, 1280, 720).grow_side(SIDE_TOP, 500).is_equal_approx(Rect2(0, -400, 1280, 1220)),
+			"grow_side() with positive value should return the expected Rect2.");
 	CHECK_MESSAGE(
-			Rect2(0, 100, 1280, 720).grow_margin(SIDE_TOP, -500).is_equal_approx(Rect2(0, 600, 1280, 220)),
-			"grow_margin() with negative value should return the expected Rect2.");
+			Rect2(0, 100, 1280, 720).grow_side(SIDE_TOP, -500).is_equal_approx(Rect2(0, 600, 1280, 220)),
+			"grow_side() with negative value should return the expected Rect2.");
 }
 
 TEST_CASE("[Rect2] Has point") {
@@ -409,11 +409,11 @@ TEST_CASE("[Rect2i] Growing") {
 			"grow_individual() with positive and negative values should return the expected Rect2i.");
 
 	CHECK_MESSAGE(
-			Rect2i(0, 100, 1280, 720).grow_margin(SIDE_TOP, 500) == Rect2i(0, -400, 1280, 1220),
-			"grow_margin() with positive value should return the expected Rect2i.");
+			Rect2i(0, 100, 1280, 720).grow_side(SIDE_TOP, 500) == Rect2i(0, -400, 1280, 1220),
+			"grow_side() with positive value should return the expected Rect2i.");
 	CHECK_MESSAGE(
-			Rect2i(0, 100, 1280, 720).grow_margin(SIDE_TOP, -500) == Rect2i(0, 600, 1280, 220),
-			"grow_margin() with negative value should return the expected Rect2i.");
+			Rect2i(0, 100, 1280, 720).grow_side(SIDE_TOP, -500) == Rect2i(0, 600, 1280, 220),
+			"grow_side() with negative value should return the expected Rect2i.");
 }
 
 TEST_CASE("[Rect2i] Has point") {

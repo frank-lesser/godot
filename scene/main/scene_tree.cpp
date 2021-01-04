@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -136,7 +136,7 @@ void SceneTree::remove_from_group(const StringName &p_group, Node *p_node) {
 	ERR_FAIL_COND(!E);
 
 	E->get().nodes.erase(p_node);
-	if (E->get().nodes.empty()) {
+	if (E->get().nodes.is_empty()) {
 		group_map.erase(E);
 	}
 }
@@ -183,7 +183,7 @@ void SceneTree::_update_group_order(Group &g, bool p_use_priority) {
 	if (!g.changed) {
 		return;
 	}
-	if (g.nodes.empty()) {
+	if (g.nodes.is_empty()) {
 		return;
 	}
 
@@ -206,7 +206,7 @@ void SceneTree::call_group_flags(uint32_t p_call_flags, const StringName &p_grou
 		return;
 	}
 	Group &g = E->get();
-	if (g.nodes.empty()) {
+	if (g.nodes.is_empty()) {
 		return;
 	}
 
@@ -282,7 +282,7 @@ void SceneTree::notify_group_flags(uint32_t p_call_flags, const StringName &p_gr
 		return;
 	}
 	Group &g = E->get();
-	if (g.nodes.empty()) {
+	if (g.nodes.is_empty()) {
 		return;
 	}
 
@@ -333,7 +333,7 @@ void SceneTree::set_group_flags(uint32_t p_call_flags, const StringName &p_group
 		return;
 	}
 	Group &g = E->get();
-	if (g.nodes.empty()) {
+	if (g.nodes.is_empty()) {
 		return;
 	}
 
@@ -390,20 +390,20 @@ void SceneTree::set_group(const StringName &p_group, const String &p_name, const
 	set_group_flags(0, p_group, p_name, p_value);
 }
 
-void SceneTree::init() {
+void SceneTree::initialize() {
 	initialized = true;
 	root->_set_tree(this);
-	MainLoop::init();
+	MainLoop::initialize();
 }
 
-bool SceneTree::iteration(float p_time) {
+bool SceneTree::physics_process(float p_time) {
 	root_lock++;
 
 	current_frame++;
 
 	flush_transform_notifications();
 
-	MainLoop::iteration(p_time);
+	MainLoop::physics_process(p_time);
 	physics_process_time = p_time;
 
 	emit_signal("physics_frame");
@@ -422,29 +422,25 @@ bool SceneTree::iteration(float p_time) {
 	return _quit;
 }
 
-bool SceneTree::idle(float p_time) {
-	//print_line("ram: "+itos(OS::get_singleton()->get_static_memory_usage())+" sram: "+itos(OS::get_singleton()->get_dynamic_memory_usage()));
-	//print_line("node count: "+itos(get_node_count()));
-	//print_line("TEXTURE RAM: "+itos(RS::get_singleton()->get_render_info(RS::INFO_TEXTURE_MEM_USED)));
-
+bool SceneTree::process(float p_time) {
 	root_lock++;
 
-	MainLoop::idle(p_time);
+	MainLoop::process(p_time);
 
-	idle_process_time = p_time;
+	process_time = p_time;
 
 	if (multiplayer_poll) {
 		multiplayer->poll();
 	}
 
-	emit_signal("idle_frame");
+	emit_signal("process_frame");
 
 	MessageQueue::get_singleton()->flush(); //small little hack
 
 	flush_transform_notifications();
 
-	_notify_group_pause("idle_process_internal", Node::NOTIFICATION_INTERNAL_PROCESS);
-	_notify_group_pause("idle_process", Node::NOTIFICATION_PROCESS);
+	_notify_group_pause("process_internal", Node::NOTIFICATION_INTERNAL_PROCESS);
+	_notify_group_pause("process", Node::NOTIFICATION_PROCESS);
 
 	_flush_ugc();
 	MessageQueue::get_singleton()->flush(); //small little hack
@@ -516,14 +512,14 @@ bool SceneTree::idle(float p_time) {
 	return _quit;
 }
 
-void SceneTree::finish() {
+void SceneTree::finalize() {
 	_flush_delete_queue();
 
 	_flush_ugc();
 
 	initialized = false;
 
-	MainLoop::finish();
+	MainLoop::finalize();
 
 	if (root) {
 		root->_set_tree(nullptr);
@@ -787,7 +783,7 @@ void SceneTree::_notify_group_pause(const StringName &p_group, int p_notificatio
 		return;
 	}
 	Group &g = E->get();
-	if (g.nodes.empty()) {
+	if (g.nodes.is_empty()) {
 		return;
 	}
 
@@ -840,7 +836,7 @@ void SceneTree::_call_input_pause(const StringName &p_group, const StringName &p
 		return;
 	}
 	Group &g = E->get();
-	if (g.nodes.empty()) {
+	if (g.nodes.is_empty()) {
 		return;
 	}
 
@@ -1265,7 +1261,7 @@ void SceneTree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("node_renamed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 	ADD_SIGNAL(MethodInfo("node_configuration_warning_changed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 
-	ADD_SIGNAL(MethodInfo("idle_frame"));
+	ADD_SIGNAL(MethodInfo("process_frame"));
 	ADD_SIGNAL(MethodInfo("physics_frame"));
 
 	ADD_SIGNAL(MethodInfo("files_dropped", PropertyInfo(Variant::PACKED_STRING_ARRAY, "files"), PropertyInfo(Variant::INT, "screen")));
@@ -1303,7 +1299,7 @@ void SceneTree::get_argument_options(const StringName &p_function, int p_idx, Li
 		List<String> directories;
 		directories.push_back(dir_access->get_current_dir());
 
-		while (!directories.empty()) {
+		while (!directories.is_empty()) {
 			dir_access->change_dir(directories.back()->get());
 			directories.pop_back();
 

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -1689,7 +1689,7 @@ void RendererCanvasRenderRD::light_update_directional_shadow(RID p_rid, int p_sh
 
 	to_light_xform[2] = from_pos;
 	to_light_xform[1] = light_dir;
-	to_light_xform[0] = -light_dir.tangent();
+	to_light_xform[0] = -light_dir.orthogonal();
 
 	to_light_xform.invert();
 
@@ -2488,8 +2488,8 @@ RendererCanvasRenderRD::RendererCanvasRenderRD(RendererStorageRD *p_storage) {
 
 		actions.renames["COLOR"] = "color";
 		actions.renames["NORMAL"] = "normal";
-		actions.renames["NORMALMAP"] = "normal_map";
-		actions.renames["NORMALMAP_DEPTH"] = "normal_depth";
+		actions.renames["NORMAL_MAP"] = "normal_map";
+		actions.renames["NORMAL_MAP_DEPTH"] = "normal_depth";
 		actions.renames["TEXTURE"] = "color_texture";
 		actions.renames["TEXTURE_PIXEL_SIZE"] = "draw_data.color_texture_pixel_size";
 		actions.renames["NORMAL_TEXTURE"] = "normal_texture";
@@ -2517,7 +2517,7 @@ RendererCanvasRenderRD::RendererCanvasRenderRD(RendererStorageRD *p_storage) {
 		actions.usage_defines["SCREEN_UV"] = "#define SCREEN_UV_USED\n";
 		actions.usage_defines["SCREEN_PIXEL_SIZE"] = "@SCREEN_UV";
 		actions.usage_defines["NORMAL"] = "#define NORMAL_USED\n";
-		actions.usage_defines["NORMALMAP"] = "#define NORMALMAP_USED\n";
+		actions.usage_defines["NORMAL_MAP"] = "#define NORMAL_MAP_USED\n";
 		actions.usage_defines["LIGHT"] = "#define LIGHT_SHADER_CODE_USED\n";
 
 		actions.render_mode_defines["skip_vertex_transform"] = "#define SKIP_TRANSFORM_USED\n";

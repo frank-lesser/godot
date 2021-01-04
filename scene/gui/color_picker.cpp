@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -591,7 +591,7 @@ void ColorPicker::_screen_input(const Ref<InputEvent> &p_event) {
 		}
 
 		Ref<Image> img = r->get_texture()->get_data();
-		if (img.is_valid() && !img->empty()) {
+		if (img.is_valid() && !img->is_empty()) {
 			Vector2 ofs = mev->get_global_position() - r->get_visible_rect().get_position();
 			Color c = img->get_pixel(ofs.x, r->get_visible_rect().size.height - ofs.y);
 

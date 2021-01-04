@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -435,6 +435,11 @@ void Variant::get_member_list(Variant::Type p_type, List<StringName> *r_members)
 	for (uint32_t i = 0; i < variant_setters_getters_names[p_type].size(); i++) {
 		r_members->push_back(variant_setters_getters_names[p_type][i]);
 	}
+}
+
+int Variant::get_member_count(Type p_type) {
+	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, -1);
+	return variant_setters_getters_names[p_type].size();
 }
 
 Variant::ValidatedSetter Variant::get_member_validated_setter(Variant::Type p_type, const StringName &p_member) {
@@ -1472,7 +1477,7 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 
 		case STRING: {
 			const String *str = reinterpret_cast<const String *>(_data._mem);
-			if (str->empty()) {
+			if (str->is_empty()) {
 				return false;
 			}
 			r_iter = 0;
@@ -1480,7 +1485,7 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 		} break;
 		case DICTIONARY: {
 			const Dictionary *dic = reinterpret_cast<const Dictionary *>(_data._mem);
-			if (dic->empty()) {
+			if (dic->is_empty()) {
 				return false;
 			}
 
@@ -1491,7 +1496,7 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 		} break;
 		case ARRAY: {
 			const Array *arr = reinterpret_cast<const Array *>(_data._mem);
-			if (arr->empty()) {
+			if (arr->is_empty()) {
 				return false;
 			}
 			r_iter = 0;

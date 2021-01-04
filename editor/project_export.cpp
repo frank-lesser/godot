@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -196,7 +196,7 @@ void ProjectExportDialog::_edit_preset(int p_index) {
 		export_path->hide();
 		runnable->set_disabled(true);
 		parameters->edit(nullptr);
-		presets->unselect_all();
+		presets->deselect_all();
 		duplicate_preset->set_disabled(true);
 		delete_preset->set_disabled(true);
 		sections->hide();
@@ -516,7 +516,7 @@ void ProjectExportDialog::_script_encryption_key_changed(const String &p_key) {
 bool ProjectExportDialog::_validate_script_encryption_key(const String &p_key) {
 	bool is_valid = false;
 
-	if (!p_key.empty() && p_key.is_valid_hex_number(false) && p_key.length() == 64) {
+	if (!p_key.is_empty() && p_key.is_valid_hex_number(false) && p_key.length() == 64) {
 		is_valid = true;
 	}
 	return is_valid;

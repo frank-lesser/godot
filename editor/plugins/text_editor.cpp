@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -119,7 +119,7 @@ String TextEditor::get_name() {
 	if (text_file->get_path().find("local://") == -1 && text_file->get_path().find("::") == -1) {
 		name = text_file->get_path().get_file();
 		if (is_unsaved()) {
-			if (text_file->get_path().empty()) {
+			if (text_file->get_path().is_empty()) {
 				name = TTR("[unsaved]");
 			}
 			name += "(*)";
@@ -242,7 +242,7 @@ void TextEditor::apply_code() {
 bool TextEditor::is_unsaved() {
 	const bool unsaved =
 			code_editor->get_text_editor()->get_version() != code_editor->get_text_editor()->get_saved_version() ||
-			text_file->get_path().empty(); // In memory.
+			text_file->get_path().is_empty(); // In memory.
 	return unsaved;
 }
 

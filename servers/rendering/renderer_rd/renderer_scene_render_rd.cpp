@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -1153,7 +1153,7 @@ void RendererSceneRenderRD::_sdfgi_update_cascades(RID p_render_buffers) {
 	RD::get_singleton()->buffer_update(rb->sdfgi->cascades_ubo, 0, sizeof(SDFGI::Cascade::UBO) * SDFGI::MAX_CASCADES, cascade_data, true);
 }
 
-void RendererSceneRenderRD::sdfgi_update_probes(RID p_render_buffers, RID p_environment, const PagedArray<RID> &p_directional_light_instances, const RID *p_positional_light_instances, uint32_t p_positional_light_count) {
+void RendererSceneRenderRD::sdfgi_update_probes(RID p_render_buffers, RID p_environment, const Vector<RID> &p_directional_lights, const RID *p_positional_light_instances, uint32_t p_positional_light_count) {
 	RenderBuffers *rb = render_buffers_owner.getornull(p_render_buffers);
 	ERR_FAIL_COND(rb == nullptr);
 	if (rb->sdfgi == nullptr) {
@@ -1179,12 +1179,12 @@ void RendererSceneRenderRD::sdfgi_update_probes(RID p_render_buffers, RID p_envi
 
 			SDGIShader::Light lights[SDFGI::MAX_DYNAMIC_LIGHTS];
 			uint32_t idx = 0;
-			for (uint32_t j = 0; j < (uint32_t)p_directional_light_instances.size(); j++) {
+			for (uint32_t j = 0; j < (uint32_t)p_directional_lights.size(); j++) {
 				if (idx == SDFGI::MAX_DYNAMIC_LIGHTS) {
 					break;
 				}
 
-				LightInstance *li = light_instance_owner.getornull(p_directional_light_instances[j]);
+				LightInstance *li = light_instance_owner.getornull(p_directional_lights[j]);
 				ERR_CONTINUE(!li);
 
 				if (storage->light_directional_is_sky_only(li->light)) {
@@ -5208,7 +5208,6 @@ void RendererSceneRenderRD::_process_ssao(RID p_render_buffers, RID p_environmen
 
 	RENDER_TIMESTAMP("Process SSAO");
 
-	//TODO clear when settings chenge to or from ultra
 	if (rb->ssao.ao_final.is_valid() && ssao_using_half_size != ssao_half_size) {
 		RD::get_singleton()->free(rb->ssao.depth);
 		RD::get_singleton()->free(rb->ssao.ao_deinterleaved);
@@ -6682,7 +6681,7 @@ void RendererSceneRenderRD::_update_volumetric_fog(RID p_render_buffers, RID p_e
 	//update directional shadow
 
 	if (p_use_directional_shadows) {
-		if (directional_shadow.shrink_stages.empty()) {
+		if (directional_shadow.shrink_stages.is_empty()) {
 			if (rb->volumetric_fog->uniform_set.is_valid() && RD::get_singleton()->uniform_set_is_valid(rb->volumetric_fog->uniform_set)) {
 				//invalidate uniform set, we will need a new one
 				RD::get_singleton()->free(rb->volumetric_fog->uniform_set);
@@ -6717,7 +6716,7 @@ void RendererSceneRenderRD::_update_volumetric_fog(RID p_render_buffers, RID p_e
 
 		bool force_shrink_shadows = false;
 
-		if (shadow_atlas->shrink_stages.empty()) {
+		if (shadow_atlas->shrink_stages.is_empty()) {
 			if (rb->volumetric_fog->uniform_set.is_valid() && RD::get_singleton()->uniform_set_is_valid(rb->volumetric_fog->uniform_set)) {
 				//invalidate uniform set, we will need a new one
 				RD::get_singleton()->free(rb->volumetric_fog->uniform_set);
@@ -8485,7 +8484,7 @@ RendererSceneRenderRD::RendererSceneRenderRD(RendererStorageRD *p_storage) {
 		cluster.lights_instances = memnew_arr(RID, cluster.max_lights);
 		cluster.lights_shadow_rect_cache = memnew_arr(Rect2i, cluster.max_lights);
 
-		cluster.max_directional_lights = 8;
+		cluster.max_directional_lights = MAX_DIRECTIONAL_LIGHTS;
 		uint32_t directional_light_buffer_size = cluster.max_directional_lights * sizeof(Cluster::DirectionalLightData);
 		cluster.directional_lights = memnew_arr(Cluster::DirectionalLightData, cluster.max_directional_lights);
 		cluster.directional_light_buffer = RD::get_singleton()->uniform_buffer_create(directional_light_buffer_size);

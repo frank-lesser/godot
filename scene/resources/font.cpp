@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -724,7 +724,7 @@ void Font::set_spacing(int p_type, int p_value) {
 // Drawing string and string sizes, cached.
 
 Size2 Font::get_string_size(const String &p_text, int p_size) const {
-	ERR_FAIL_COND_V(data.empty(), Size2());
+	ERR_FAIL_COND_V(data.is_empty(), Size2());
 
 	uint64_t hash = p_text.hash64();
 	hash = hash_djb2_one_64(p_size, hash);
@@ -746,7 +746,7 @@ Size2 Font::get_string_size(const String &p_text, int p_size) const {
 }
 
 Size2 Font::get_multiline_string_size(const String &p_text, float p_width, int p_size, uint8_t p_flags) const {
-	ERR_FAIL_COND_V(data.empty(), Size2());
+	ERR_FAIL_COND_V(data.is_empty(), Size2());
 
 	uint64_t hash = p_text.hash64();
 	hash = hash_djb2_one_64(p_size, hash);

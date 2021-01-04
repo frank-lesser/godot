@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -444,8 +444,8 @@ Point2 CanvasItemEditor::snap_point(Point2 p_target, unsigned int p_modes, unsig
 			}
 		}
 		Point2 grid_output;
-		grid_output.x = Math::stepify(p_target.x - offset.x, grid_step.x * Math::pow(2.0, grid_step_multiplier)) + offset.x;
-		grid_output.y = Math::stepify(p_target.y - offset.y, grid_step.y * Math::pow(2.0, grid_step_multiplier)) + offset.y;
+		grid_output.x = Math::snapped(p_target.x - offset.x, grid_step.x * Math::pow(2.0, grid_step_multiplier)) + offset.x;
+		grid_output.y = Math::snapped(p_target.y - offset.y, grid_step.y * Math::pow(2.0, grid_step_multiplier)) + offset.y;
 		_snap_if_closer_point(p_target, output, snap_target, grid_output, SNAP_TARGET_GRID, 0.0, -1.0);
 	}
 
@@ -462,9 +462,9 @@ Point2 CanvasItemEditor::snap_point(Point2 p_target, unsigned int p_modes, unsig
 float CanvasItemEditor::snap_angle(float p_target, float p_start) const {
 	if (((smart_snap_active || snap_rotation) ^ Input::get_singleton()->is_key_pressed(KEY_CONTROL)) && snap_rotation_step != 0) {
 		if (snap_relative) {
-			return Math::stepify(p_target - snap_rotation_offset, snap_rotation_step) + snap_rotation_offset + (p_start - (int)(p_start / snap_rotation_step) * snap_rotation_step);
+			return Math::snapped(p_target - snap_rotation_offset, snap_rotation_step) + snap_rotation_offset + (p_start - (int)(p_start / snap_rotation_step) * snap_rotation_step);
 		} else {
-			return Math::stepify(p_target - snap_rotation_offset, snap_rotation_step) + snap_rotation_offset;
+			return Math::snapped(p_target - snap_rotation_offset, snap_rotation_step) + snap_rotation_offset;
 		}
 	} else {
 		return p_target;
@@ -518,7 +518,7 @@ void CanvasItemEditor::_keying_changed() {
 }
 
 Rect2 CanvasItemEditor::_get_encompassing_rect_from_list(List<CanvasItem *> p_list) {
-	ERR_FAIL_COND_V(p_list.empty(), Rect2());
+	ERR_FAIL_COND_V(p_list.is_empty(), Rect2());
 
 	// Handles the first element
 	CanvasItem *canvas_item = p_list.front()->get();
@@ -727,7 +727,7 @@ bool CanvasItemEditor::_get_bone_shape(Vector<Vector2> *shape, Vector<Vector2> *
 	}
 
 	Vector2 rel = to - from;
-	Vector2 relt = rel.tangent().normalized() * bone_width;
+	Vector2 relt = rel.orthogonal().normalized() * bone_width;
 	Vector2 reln = rel.normalized();
 	Vector2 reltn = relt.normalized();
 
@@ -1147,7 +1147,7 @@ bool CanvasItemEditor::_gui_input_rulers_and_guides(const Ref<InputEvent> &p_eve
 						if (dragged_guide_index >= 0) {
 							vguides.remove(dragged_guide_index);
 							undo_redo->create_action(TTR("Remove Vertical Guide"));
-							if (vguides.empty()) {
+							if (vguides.is_empty()) {
 								undo_redo->add_do_method(EditorNode::get_singleton()->get_edited_scene(), "remove_meta", "_edit_vertical_guides_");
 							} else {
 								undo_redo->add_do_method(EditorNode::get_singleton()->get_edited_scene(), "set_meta", "_edit_vertical_guides_", vguides);
@@ -1180,7 +1180,7 @@ bool CanvasItemEditor::_gui_input_rulers_and_guides(const Ref<InputEvent> &p_eve
 						if (dragged_guide_index >= 0) {
 							hguides.remove(dragged_guide_index);
 							undo_redo->create_action(TTR("Remove Horizontal Guide"));
-							if (hguides.empty()) {
+							if (hguides.is_empty()) {
 								undo_redo->add_do_method(EditorNode::get_singleton()->get_edited_scene(), "remove_meta", "_edit_horizontal_guides_");
 							} else {
 								undo_redo->add_do_method(EditorNode::get_singleton()->get_edited_scene(), "set_meta", "_edit_horizontal_guides_", hguides);
@@ -1808,7 +1808,7 @@ bool CanvasItemEditor::_gui_input_resize(const Ref<InputEvent> &p_event) {
 						}
 
 						ofs = (endpoints[i] + endpoints[next]) / 2;
-						ofs += (endpoints[next] - endpoints[i]).tangent().normalized() * (select_handle->get_size().width / 2);
+						ofs += (endpoints[next] - endpoints[i]).orthogonal().normalized() * (select_handle->get_size().width / 2);
 						if (ofs.distance_to(b->get_position()) < radius) {
 							resize_drag = dragger[i * 2 + 1];
 						}
@@ -1931,8 +1931,8 @@ bool CanvasItemEditor::_gui_input_resize(const Ref<InputEvent> &p_event) {
 						vformat(
 								TTR("Scale Node2D \"%s\" to (%s, %s)"),
 								drag_selection[0]->get_name(),
-								Math::stepify(drag_selection[0]->_edit_get_scale().x, 0.01),
-								Math::stepify(drag_selection[0]->_edit_get_scale().y, 0.01)),
+								Math::snapped(drag_selection[0]->_edit_get_scale().x, 0.01),
+								Math::snapped(drag_selection[0]->_edit_get_scale().y, 0.01)),
 						true);
 			} else {
 				// Extends from Control.
@@ -2083,8 +2083,8 @@ bool CanvasItemEditor::_gui_input_scale(const Ref<InputEvent> &p_event) {
 						drag_selection,
 						vformat(TTR("Scale CanvasItem \"%s\" to (%s, %s)"),
 								drag_selection[0]->get_name(),
-								Math::stepify(drag_selection[0]->_edit_get_scale().x, 0.01),
-								Math::stepify(drag_selection[0]->_edit_get_scale().y, 0.01)),
+								Math::snapped(drag_selection[0]->_edit_get_scale().x, 0.01),
+								Math::snapped(drag_selection[0]->_edit_get_scale().y, 0.01)),
 						true);
 			}
 			if (key_auto_insert_button->is_pressed()) {
@@ -2400,7 +2400,7 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 				_select_click_on_item(item, click, b->get_shift());
 
 				return true;
-			} else if (!selection_results.empty()) {
+			} else if (!selection_results.is_empty()) {
 				// Sorts items according the their z-index
 				selection_results.sort();
 
@@ -2463,13 +2463,13 @@ bool CanvasItemEditor::_gui_input_select(const Ref<InputEvent> &p_event) {
 			// Retrieve the bones
 			Vector<_SelectResult> selection = Vector<_SelectResult>();
 			_get_bones_at_pos(click, selection);
-			if (!selection.empty()) {
+			if (!selection.is_empty()) {
 				canvas_item = selection[0].item;
 			} else {
 				// Retrieve the canvas items
 				selection = Vector<_SelectResult>();
 				_get_canvas_items_at_pos(click, selection);
-				if (!selection.empty()) {
+				if (!selection.is_empty()) {
 					canvas_item = selection[0].item;
 				}
 			}
@@ -3498,7 +3498,7 @@ void CanvasItemEditor::_draw_selection() {
 					select_handle->draw(ci, (endpoints[i] + ofs - (select_handle->get_size() / 2)).floor());
 
 					ofs = (endpoints[i] + endpoints[next]) / 2;
-					ofs += (endpoints[next] - endpoints[i]).tangent().normalized() * (select_handle->get_size().width / 2);
+					ofs += (endpoints[next] - endpoints[i]).orthogonal().normalized() * (select_handle->get_size().width / 2);
 
 					select_handle->draw(ci, (ofs - (select_handle->get_size() / 2)).floor());
 				}
@@ -3916,7 +3916,7 @@ void CanvasItemEditor::_draw_viewport() {
 	bool all_locked = true;
 	bool all_group = true;
 	List<Node *> selection = editor_selection->get_selected_node_list();
-	if (selection.empty()) {
+	if (selection.is_empty()) {
 		all_locked = false;
 		all_group = false;
 	} else {
@@ -3935,10 +3935,10 @@ void CanvasItemEditor::_draw_viewport() {
 	}
 
 	lock_button->set_visible(!all_locked);
-	lock_button->set_disabled(selection.empty());
+	lock_button->set_disabled(selection.is_empty());
 	unlock_button->set_visible(all_locked);
 	group_button->set_visible(!all_group);
-	group_button->set_disabled(selection.empty());
+	group_button->set_disabled(selection.is_empty());
 	ungroup_button->set_visible(all_group);
 
 	info_overlay->set_offset(SIDE_LEFT, (show_rulers ? RULER_WIDTH : 0) + 10);
@@ -3956,11 +3956,11 @@ void CanvasItemEditor::_draw_viewport() {
 	RenderingServer::get_singleton()->canvas_item_add_set_transform(ci, Transform2D());
 
 	EditorPluginList *over_plugin_list = editor->get_editor_plugins_over();
-	if (!over_plugin_list->empty()) {
+	if (!over_plugin_list->is_empty()) {
 		over_plugin_list->forward_canvas_draw_over_viewport(viewport);
 	}
 	EditorPluginList *force_over_plugin_list = editor->get_editor_plugins_force_over();
-	if (!force_over_plugin_list->empty()) {
+	if (!force_over_plugin_list->is_empty()) {
 		force_over_plugin_list->forward_canvas_force_draw_over_viewport(viewport);
 	}
 
@@ -4446,7 +4446,7 @@ void CanvasItemEditor::_set_anchors_and_offsets_preset(Control::LayoutPreset p_p
 				case PRESET_CENTER_RIGHT:
 				case PRESET_CENTER_BOTTOM:
 				case PRESET_CENTER:
-					undo_redo->add_do_method(control, "set_margins_preset", p_preset, Control::PRESET_MODE_KEEP_SIZE);
+					undo_redo->add_do_method(control, "set_offsets_preset", p_preset, Control::PRESET_MODE_KEEP_SIZE);
 					break;
 				case PRESET_LEFT_WIDE:
 				case PRESET_TOP_WIDE:
@@ -4455,7 +4455,7 @@ void CanvasItemEditor::_set_anchors_and_offsets_preset(Control::LayoutPreset p_p
 				case PRESET_VCENTER_WIDE:
 				case PRESET_HCENTER_WIDE:
 				case PRESET_WIDE:
-					undo_redo->add_do_method(control, "set_margins_preset", p_preset, Control::PRESET_MODE_MINSIZE);
+					undo_redo->add_do_method(control, "set_offsets_preset", p_preset, Control::PRESET_MODE_MINSIZE);
 					break;
 			}
 			undo_redo->add_undo_method(control, "_edit_set_state", control->_edit_get_state());
@@ -4576,7 +4576,7 @@ void CanvasItemEditor::_update_zoom_label() {
 		// Don't show a decimal when the zoom level is higher than 1000 %.
 		zoom_text = TS->format_number(rtos(Math::round((zoom / MAX(1, EDSCALE)) * 100))) + " " + TS->percent_sign();
 	} else {
-		zoom_text = TS->format_number(rtos(Math::stepify((zoom / MAX(1, EDSCALE)) * 100, 0.1))) + " " + TS->percent_sign();
+		zoom_text = TS->format_number(rtos(Math::snapped((zoom / MAX(1, EDSCALE)) * 100, 0.1))) + " " + TS->percent_sign();
 	}
 
 	zoom_reset->set_text(zoom_text);
@@ -6139,7 +6139,7 @@ CanvasItemEditorPlugin::CanvasItemEditorPlugin(EditorNode *p_node) {
 	editor = p_node;
 	canvas_item_editor = memnew(CanvasItemEditor(editor));
 	canvas_item_editor->set_v_size_flags(Control::SIZE_EXPAND_FILL);
-	editor->get_viewport()->add_child(canvas_item_editor);
+	editor->get_main_control()->add_child(canvas_item_editor);
 	canvas_item_editor->set_anchors_and_offsets_preset(Control::PRESET_WIDE);
 	canvas_item_editor->hide();
 }

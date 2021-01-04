@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -297,7 +297,7 @@ MeshLibraryEditorPlugin::MeshLibraryEditorPlugin(EditorNode *p_node) {
 	EDITOR_DEF("editors/grid_map/preview_size", 64);
 	mesh_library_editor = memnew(MeshLibraryEditor(p_node));
 
-	p_node->get_viewport()->add_child(mesh_library_editor);
+	p_node->get_main_control()->add_child(mesh_library_editor);
 	mesh_library_editor->set_anchors_and_offsets_preset(Control::PRESET_TOP_WIDE);
 	mesh_library_editor->set_end(Point2(0, 22));
 	mesh_library_editor->hide();

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -107,7 +107,7 @@ GDScriptDataType GDScriptCompiler::_gdtype_from_datatype(const GDScriptParser::D
 			// Locate class by constructing the path to it and following that path
 			GDScriptParser::ClassNode *class_type = p_datatype.class_type;
 			if (class_type) {
-				if (class_type->fqcn.begins_with(main_script->path) || (!main_script->name.empty() && class_type->fqcn.begins_with(main_script->name))) {
+				if (class_type->fqcn.begins_with(main_script->path) || (!main_script->name.is_empty() && class_type->fqcn.begins_with(main_script->name))) {
 					// Local class.
 					List<StringName> names;
 					while (class_type->outer) {
@@ -2231,7 +2231,7 @@ Error GDScriptCompiler::_parse_class_level(GDScript *p_script, const GDScriptPar
 				}
 				p_script->_signals[name] = parameters_names;
 #ifdef TOOLS_ENABLED
-				if (!signal->doc_description.empty()) {
+				if (!signal->doc_description.is_empty()) {
 					p_script->doc_signals[name] = signal->doc_description;
 				}
 #endif

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -126,7 +126,7 @@ void PluginConfigDialog::_on_cancelled() {
 void PluginConfigDialog::_on_required_text_changed(const String &) {
 	int lang_idx = script_option_edit->get_selected();
 	String ext = ScriptServer::get_language(lang_idx)->get_extension();
-	get_ok_button()->set_disabled(script_edit->get_text().get_basename().empty() || script_edit->get_text().get_extension() != ext || name_edit->get_text().empty());
+	get_ok_button()->set_disabled(script_edit->get_text().get_basename().is_empty() || script_edit->get_text().get_extension() != ext || name_edit->get_text().is_empty());
 }
 
 void PluginConfigDialog::_notification(int p_what) {

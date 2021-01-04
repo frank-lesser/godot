@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -60,7 +60,7 @@ static const char *underscore_classes[] = {
 	nullptr,
 };
 static StringName get_real_class_name(const StringName &p_source) {
-	if (underscore_map.empty()) {
+	if (underscore_map.is_empty()) {
 		const char **class_name = underscore_classes;
 		while (*class_name != nullptr) {
 			underscore_map[*class_name] = String("_") + *class_name;
@@ -209,7 +209,7 @@ Error GDScriptAnalyzer::resolve_inheritance(GDScriptParser::ClassNode *p_class, 
 
 		int extends_index = 0;
 
-		if (!p_class->extends_path.empty()) {
+		if (!p_class->extends_path.is_empty()) {
 			Ref<GDScriptParserRef> parser = get_parser_for(p_class->extends_path);
 			if (parser.is_null()) {
 				push_error(vformat(R"(Could not resolve super class path "%s".)", p_class->extends_path), p_class);
@@ -224,7 +224,7 @@ Error GDScriptAnalyzer::resolve_inheritance(GDScriptParser::ClassNode *p_class, 
 
 			base = parser->get_parser()->head->get_datatype();
 		} else {
-			if (p_class->extends.empty()) {
+			if (p_class->extends.is_empty()) {
 				return ERR_PARSE_ERROR;
 			}
 			const StringName &name = p_class->extends[extends_index++];
@@ -376,7 +376,7 @@ GDScriptParser::DataType GDScriptAnalyzer::resolve_datatype(GDScriptParser::Type
 	result.type_source = result.ANNOTATED_EXPLICIT;
 	result.builtin_type = Variant::OBJECT;
 
-	if (p_type->type_chain.empty()) {
+	if (p_type->type_chain.is_empty()) {
 		// void.
 		result.kind = GDScriptParser::DataType::BUILTIN;
 		result.builtin_type = Variant::NIL;
@@ -3402,12 +3402,12 @@ Error GDScriptAnalyzer::resolve_inheritance() {
 
 Error GDScriptAnalyzer::resolve_interface() {
 	resolve_class_interface(parser->head);
-	return parser->errors.empty() ? OK : ERR_PARSE_ERROR;
+	return parser->errors.is_empty() ? OK : ERR_PARSE_ERROR;
 }
 
 Error GDScriptAnalyzer::resolve_body() {
 	resolve_class_body(parser->head);
-	return parser->errors.empty() ? OK : ERR_PARSE_ERROR;
+	return parser->errors.is_empty() ? OK : ERR_PARSE_ERROR;
 }
 
 Error GDScriptAnalyzer::resolve_program() {
@@ -3422,7 +3422,7 @@ Error GDScriptAnalyzer::resolve_program() {
 		}
 		depended_parsers[E->get()]->raise_status(GDScriptParserRef::FULLY_SOLVED);
 	}
-	return parser->errors.empty() ? OK : ERR_PARSE_ERROR;
+	return parser->errors.is_empty() ? OK : ERR_PARSE_ERROR;
 }
 
 Error GDScriptAnalyzer::analyze() {

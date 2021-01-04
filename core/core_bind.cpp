@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -2278,8 +2278,8 @@ uint64_t _Engine::get_physics_frames() const {
 	return Engine::get_singleton()->get_physics_frames();
 }
 
-uint64_t _Engine::get_idle_frames() const {
-	return Engine::get_singleton()->get_idle_frames();
+uint64_t _Engine::get_process_frames() const {
+	return Engine::get_singleton()->get_process_frames();
 }
 
 void _Engine::set_time_scale(float p_scale) {
@@ -2358,7 +2358,7 @@ void _Engine::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_frames_drawn"), &_Engine::get_frames_drawn);
 	ClassDB::bind_method(D_METHOD("get_frames_per_second"), &_Engine::get_frames_per_second);
 	ClassDB::bind_method(D_METHOD("get_physics_frames"), &_Engine::get_physics_frames);
-	ClassDB::bind_method(D_METHOD("get_idle_frames"), &_Engine::get_idle_frames);
+	ClassDB::bind_method(D_METHOD("get_process_frames"), &_Engine::get_process_frames);
 
 	ClassDB::bind_method(D_METHOD("get_main_loop"), &_Engine::get_main_loop);
 

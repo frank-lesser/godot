@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -156,7 +156,7 @@ void ProjectSettingsEditor::_update_advanced_bar() {
 	bool disable_add = true;
 	bool disable_del = true;
 
-	if (!property_box->get_text().empty()) {
+	if (!property_box->get_text().is_empty()) {
 		const String setting = _get_setting_name();
 		bool setting_exists = ps->has_setting(setting);
 		if (setting_exists) {
@@ -197,7 +197,7 @@ void ProjectSettingsEditor::_update_advanced_bar() {
 
 String ProjectSettingsEditor::_get_setting_name() const {
 	const String cat = category_box->get_text();
-	const String name = (cat.empty() ? "global" : cat.strip_edges()).plus_file(property_box->get_text().strip_edges());
+	const String name = (cat.is_empty() ? "global" : cat.strip_edges()).plus_file(property_box->get_text().strip_edges());
 	const String feature = feature_override->get_item_text(feature_override->get_selected());
 
 	return (feature == "") ? name : (name + "." + feature);

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -63,8 +63,7 @@ void EditorSceneImporterFBX::get_extensions(List<String> *r_extensions) const {
 	const String fbx_str = "fbx";
 	Vector<String> exts;
 	exts.push_back(fbx_str);
-	_register_project_setting_import(fbx_str, import_setting_string, exts, r_extensions,
-			true);
+	_register_project_setting_import(fbx_str, import_setting_string, exts, r_extensions, true);
 }
 
 void EditorSceneImporterFBX::_register_project_setting_import(const String generic,
@@ -181,7 +180,7 @@ Node3D *EditorSceneImporterFBX::import_scene(const String &p_path, uint32_t p_fl
 			}
 
 			if (is_blender_fbx) {
-				WARN_PRINT("Blender FBX files will not work properly with keyframes or skeletons until we make fixes stand by.");
+				WARN_PRINT("Blender FBX files will not work properly with keyframes or skeletons until we make fixes. Please stand by.");
 			}
 
 			Node3D *spatial = _generate_scene(p_path, &doc, p_flags, p_bake_fps, 8);
@@ -196,7 +195,7 @@ Node3D *EditorSceneImporterFBX::import_scene(const String &p_path, uint32_t p_fl
 			return spatial;
 
 		} else {
-			print_error("Cannot import file: " + p_path + " version of file is unsupported, please re-export in your modelling package file version is: " + itos(doc.FBXVersion()));
+			ERR_PRINT(vformat("Cannot import FBX file: %s. It uses file format %d which is unsupported by Godot. Please re-export it or convert it to a newer format.", p_path, doc.FBXVersion()));
 		}
 	}
 
@@ -550,8 +549,8 @@ Node3D *EditorSceneImporterFBX::_generate_scene(
 
 			print_verbose("populating skeleton with bone: " + bone->bone_name);
 
-			//			// populate bone skeleton - since fbx has no DOM for the skeleton just a node.
-			//			bone->bone_skeleton = fbx_skeleton_inst;
+			//// populate bone skeleton - since fbx has no DOM for the skeleton just a node.
+			//bone->bone_skeleton = fbx_skeleton_inst;
 
 			// now populate bone on the armature node list
 			fbx_skeleton_inst->skeleton_bones.push_back(bone);
@@ -688,8 +687,8 @@ Node3D *EditorSceneImporterFBX::_generate_scene(
 		//
 		// Get Mesh Node Xform only
 		//
-		//		ERR_CONTINUE_MSG(!state.fbx_target_map.has(mesh_id), "invalid xform for the skin pose: " + itos(mesh_id));
-		//		Ref<FBXNode> mesh_node_xform_data = state.fbx_target_map[mesh_id];
+		//ERR_CONTINUE_MSG(!state.fbx_target_map.has(mesh_id), "invalid xform for the skin pose: " + itos(mesh_id));
+		//Ref<FBXNode> mesh_node_xform_data = state.fbx_target_map[mesh_id];
 
 		if (!mesh_skin) {
 			continue; // not a deformer.

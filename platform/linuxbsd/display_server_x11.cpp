@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -622,7 +622,7 @@ String DisplayServerX11::_clipboard_get(Atom p_source, Window x11_window) const 
 	if (utf8_atom != None) {
 		ret = _clipboard_get_impl(p_source, x11_window, utf8_atom);
 	}
-	if (ret.empty()) {
+	if (ret.is_empty()) {
 		ret = _clipboard_get_impl(p_source, x11_window, XA_STRING);
 	}
 	return ret;
@@ -634,7 +634,7 @@ String DisplayServerX11::clipboard_get() const {
 	String ret;
 	ret = _clipboard_get(XInternAtom(x11_display, "CLIPBOARD", 0), windows[MAIN_WINDOW_ID].x11_window);
 
-	if (ret.empty()) {
+	if (ret.is_empty()) {
 		ret = _clipboard_get(XA_PRIMARY, windows[MAIN_WINDOW_ID].x11_window);
 	}
 

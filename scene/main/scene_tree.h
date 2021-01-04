@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -88,7 +88,7 @@ private:
 
 	uint64_t tree_version = 1;
 	float physics_process_time = 1.0;
-	float idle_process_time = 1.0;
+	float process_time = 1.0;
 	bool accept_quit = true;
 	bool quit_on_go_back = true;
 
@@ -236,12 +236,12 @@ public:
 
 	void flush_transform_notifications();
 
-	virtual void init() override;
+	virtual void initialize() override;
 
-	virtual bool iteration(float p_time) override;
-	virtual bool idle(float p_time) override;
+	virtual bool physics_process(float p_time) override;
+	virtual bool process(float p_time) override;
 
-	virtual void finish() override;
+	virtual void finalize() override;
 
 	void set_auto_accept_quit(bool p_enable);
 	void set_quit_on_go_back(bool p_enable);
@@ -249,7 +249,7 @@ public:
 	void quit(int p_exit_code = -1);
 
 	_FORCE_INLINE_ float get_physics_process_time() const { return physics_process_time; }
-	_FORCE_INLINE_ float get_idle_process_time() const { return idle_process_time; }
+	_FORCE_INLINE_ float get_process_time() const { return process_time; }
 
 #ifdef TOOLS_ENABLED
 	bool is_node_being_edited(const Node *p_node) const;

@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -215,9 +215,9 @@ godot_int GDAPI godot_array_count(const godot_array *p_self, const godot_variant
 	return self->count(*val);
 }
 
-godot_bool GDAPI godot_array_empty(const godot_array *p_self) {
+godot_bool GDAPI godot_array_is_empty(const godot_array *p_self) {
 	const Array *self = (const Array *)p_self;
-	return self->empty();
+	return self->is_empty();
 }
 
 void GDAPI godot_array_erase(godot_array *p_self, const godot_variant *p_value) {

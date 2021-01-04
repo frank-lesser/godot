@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -724,7 +724,7 @@ bool GridMapEditor::forward_spatial_input_event(Camera3D *p_camera, const Ref<In
 					return true;
 				} else {
 					selected_palette = -1;
-					mesh_library_palette->unselect_all();
+					mesh_library_palette->deselect_all();
 					update_palette();
 					_update_cursor_instance();
 					return true;

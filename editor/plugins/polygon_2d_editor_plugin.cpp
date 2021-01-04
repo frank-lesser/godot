@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -1052,8 +1052,6 @@ void Polygon2DEditor::_uv_draw() {
 		if (i < uv_draw_max /*&& polygons.size() == 0 &&  polygon_create.size() == 0*/) { //if using or creating polygons, do not show outline (will show polygons instead)
 			uv_edit_draw->draw_line(mtx.xform(uvs[i]), mtx.xform(next_point), poly_line_color, Math::round(EDSCALE));
 		}
-
-		rect.expand_to(mtx.basis_xform(uvs[i]));
 	}
 
 	for (int i = 0; i < polygons.size(); i++) {
@@ -1160,8 +1158,8 @@ void Polygon2DEditor::_uv_draw() {
 		uv_edit_draw->draw_circle(bone_paint_pos, bone_paint_radius->get_value() * EDSCALE, Color(1, 1, 1, 0.1));
 	}
 
-	rect.position -= uv_edit_draw->get_size();
-	rect.size += uv_edit_draw->get_size() * 2.0;
+	rect.position = -uv_edit_draw->get_size();
+	rect.size = uv_edit_draw->get_size() * 2.0 + base_tex->get_size() * uv_draw_zoom;
 
 	updating_uv_scroll = true;
 

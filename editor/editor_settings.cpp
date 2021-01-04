@@ -5,8 +5,8 @@
 /*                           GODOT ENGINE                                */
 /*                      https://godotengine.org                          */
 /*************************************************************************/
-/* Copyright (c) 2007-2020 Juan Linietsky, Ariel Manzur.                 */
-/* Copyright (c) 2014-2020 Godot Engine contributors (cf. AUTHORS.md).   */
+/* Copyright (c) 2007-2021 Juan Linietsky, Ariel Manzur.                 */
+/* Copyright (c) 2014-2021 Godot Engine contributors (cf. AUTHORS.md).   */
 /*                                                                       */
 /* Permission is hereby granted, free of charge, to any person obtaining */
 /* a copy of this software and associated documentation files (the       */
@@ -281,7 +281,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 			locales_to_skip.push_back("te"); // Telugu
 		}
 
-		if (!locales_to_skip.empty()) {
+		if (!locales_to_skip.is_empty()) {
 			WARN_PRINT("Some locales are not properly supported by selected Text Server and are disabled.");
 		}
 
@@ -520,6 +520,10 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	_initial_set("editors/3d/secondary_grid_color", Color(0.38, 0.38, 0.38, 0.5));
 	hints["editors/3d/secondary_grid_color"] = PropertyInfo(Variant::COLOR, "editors/3d/secondary_grid_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT);
+
+	// Use a similar color to the 2D editor selection.
+	_initial_set("editors/3d/selection_box_color", Color(1.0, 0.5, 0));
+	hints["editors/3d/selection_box_color"] = PropertyInfo(Variant::COLOR, "editors/3d/selection_box_color", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_RESTART_IF_CHANGED);
 
 	// If a line is a multiple of this, it uses the primary grid color.
 	// Use a power of 2 value by default as it's more common to use powers of 2 in level design.
@@ -1476,7 +1480,7 @@ bool EditorSettings::is_default_text_editor_theme() {
 Vector<String> EditorSettings::get_script_templates(const String &p_extension, const String &p_custom_path) {
 	Vector<String> templates;
 	String template_dir = get_script_templates_dir();
-	if (!p_custom_path.empty()) {
+	if (!p_custom_path.is_empty()) {
 		template_dir = p_custom_path;
 	}
 	DirAccess *d = DirAccess::open(template_dir);
