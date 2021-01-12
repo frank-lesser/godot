@@ -68,16 +68,18 @@ void EditorPropertyText::_text_changed(const String &p_string) {
 	}
 
 	if (string_name) {
-		emit_changed(get_edited_property(), StringName(p_string), "", false);
+		emit_changed(get_edited_property(), StringName(p_string), "", true);
 	} else {
-		emit_changed(get_edited_property(), p_string, "", false);
+		emit_changed(get_edited_property(), p_string, "", true);
 	}
 }
 
 void EditorPropertyText::update_property() {
 	String s = get_edited_object()->get(get_edited_property());
 	updating = true;
-	text->set_text(s);
+	if (text->get_text() != s) {
+		text->set_text(s);
+	}
 	text->set_editable(!is_read_only());
 	updating = false;
 }
@@ -133,9 +135,11 @@ void EditorPropertyMultilineText::_open_big_text() {
 
 void EditorPropertyMultilineText::update_property() {
 	String t = get_edited_object()->get(get_edited_property());
-	text->set_text(t);
-	if (big_text && big_text->is_visible_in_tree()) {
-		big_text->set_text(t);
+	if (text->get_text() != t) {
+		text->set_text(t);
+		if (big_text && big_text->is_visible_in_tree()) {
+			big_text->set_text(t);
+		}
 	}
 }
 
@@ -2145,7 +2149,9 @@ void EditorPropertyColor::_color_changed(const Color &p_color) {
 }
 
 void EditorPropertyColor::_popup_closed() {
-	emit_changed(get_edited_property(), picker->get_pick_color(), "", false);
+	if (picker->get_pick_color() != last_color) {
+		emit_changed(get_edited_property(), picker->get_pick_color(), "", false);
+	}
 }
 
 void EditorPropertyColor::_picker_created() {
@@ -2156,6 +2162,10 @@ void EditorPropertyColor::_picker_created() {
 	} else if (default_color_mode == 2) {
 		picker->get_picker()->set_raw_mode(true);
 	}
+}
+
+void EditorPropertyColor::_picker_opening() {
+	last_color = picker->get_pick_color();
 }
 
 void EditorPropertyColor::_bind_methods() {
@@ -2193,6 +2203,7 @@ EditorPropertyColor::EditorPropertyColor() {
 	picker->connect("color_changed", callable_mp(this, &EditorPropertyColor::_color_changed));
 	picker->connect("popup_closed", callable_mp(this, &EditorPropertyColor::_popup_closed));
 	picker->connect("picker_created", callable_mp(this, &EditorPropertyColor::_picker_created));
+	picker->get_popup()->connect("about_to_popup", callable_mp(this, &EditorPropertyColor::_picker_opening));
 }
 
 ////////////// NODE PATH //////////////////////
@@ -2545,35 +2556,32 @@ void EditorPropertyResource::_menu_option(int p_which) {
 				return;
 			}
 
-			Object *obj = nullptr;
-			RES res_temp;
+			Variant obj;
 
 			if (ScriptServer::is_global_class(intype)) {
 				obj = ClassDB::instance(ScriptServer::get_global_class_native_base(intype));
 				if (obj) {
-					res_temp = obj;
 					Ref<Script> script = ResourceLoader::load(ScriptServer::get_global_class_path(intype));
 					if (script.is_valid()) {
-						obj->set_script(Variant(script));
+						((Object *)obj)->set_script(script);
 					}
 				}
 			} else {
 				obj = ClassDB::instance(intype);
-				res_temp = obj;
 			}
 
 			if (!obj) {
 				obj = EditorNode::get_editor_data().instance_custom_type(intype, "Resource");
-				res_temp = obj;
 			}
 
-			ERR_BREAK(!res_temp.is_valid());
+			Resource *resp = Object::cast_to<Resource>(obj);
+			ERR_BREAK(!resp);
 			if (get_edited_object() && base_type != String() && base_type == "Script") {
 				//make visual script the right type
-				res_temp->call("set_instance_base_type", get_edited_object()->get_class());
+				resp->call("set_instance_base_type", get_edited_object()->get_class());
 			}
 
-			res = res_temp;
+			res = RES(resp);
 			emit_changed(get_edited_property(), res);
 			update_property();
 
