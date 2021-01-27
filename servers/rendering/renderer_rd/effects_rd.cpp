@@ -702,27 +702,24 @@ void EffectsRD::make_mipmap(RID p_source_rd_texture, RID p_dest_texture, const S
 	RD::get_singleton()->compute_list_end();
 }
 
-void EffectsRD::copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dest_texture, const Rect2i &p_rect, float p_z_near, float p_z_far, float p_bias, bool p_dp_flip) {
+void EffectsRD::copy_cubemap_to_dp(RID p_source_rd_texture, RID p_dst_framebuffer, const Rect2 &p_rect, float p_z_near, float p_z_far, bool p_dp_flip) {
 	CopyToDPPushConstant push_constant;
-	push_constant.screen_size[0] = p_rect.size.x;
-	push_constant.screen_size[1] = p_rect.size.y;
-	push_constant.dest_offset[0] = p_rect.position.x;
-	push_constant.dest_offset[1] = p_rect.position.y;
-	push_constant.bias = p_bias;
+	push_constant.screen_rect[0] = p_rect.position.x;
+	push_constant.screen_rect[1] = p_rect.position.y;
+	push_constant.screen_rect[2] = p_rect.size.width;
+	push_constant.screen_rect[3] = p_rect.size.height;
 	push_constant.z_far = p_z_far;
 	push_constant.z_near = p_z_near;
 	push_constant.z_flip = p_dp_flip;
 
-	int32_t x_groups = (p_rect.size.width - 1) / 8 + 1;
-	int32_t y_groups = (p_rect.size.height - 1) / 8 + 1;
+	RD::DrawListID draw_list = RD::get_singleton()->draw_list_begin(p_dst_framebuffer, RD::INITIAL_ACTION_DROP, RD::FINAL_ACTION_DISCARD, RD::INITIAL_ACTION_KEEP, RD::FINAL_ACTION_READ);
+	RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, cube_to_dp.pipeline.get_render_pipeline(RD::INVALID_ID, RD::get_singleton()->framebuffer_get_format(p_dst_framebuffer)));
+	RD::get_singleton()->draw_list_bind_uniform_set(draw_list, _get_uniform_set_from_texture(p_source_rd_texture), 0);
+	RD::get_singleton()->draw_list_bind_index_array(draw_list, index_array);
 
-	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
-	RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, cube_to_dp.pipeline);
-	RD::get_singleton()->compute_list_bind_uniform_set(compute_list, _get_compute_uniform_set_from_texture(p_source_rd_texture), 0);
-	RD::get_singleton()->compute_list_bind_uniform_set(compute_list, _get_uniform_set_from_image(p_dest_texture), 1);
-	RD::get_singleton()->compute_list_set_push_constant(compute_list, &push_constant, sizeof(CopyToDPPushConstant));
-	RD::get_singleton()->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
-	RD::get_singleton()->compute_list_end();
+	RD::get_singleton()->draw_list_set_push_constant(draw_list, &push_constant, sizeof(CopyToDPPushConstant));
+	RD::get_singleton()->draw_list_draw(draw_list, true);
+	RD::get_singleton()->draw_list_end();
 }
 
 void EffectsRD::tonemapper(RID p_source_color, RID p_dst_framebuffer, const TonemapSettings &p_settings) {
@@ -1008,10 +1005,11 @@ void EffectsRD::gather_ssao(RD::ComputeListID p_compute_list, const Vector<RID> 
 
 void EffectsRD::generate_ssao(RID p_depth_buffer, RID p_normal_buffer, RID p_depth_mipmaps_texture, const Vector<RID> &p_depth_mipmaps, RID p_ao, const Vector<RID> p_ao_slices, RID p_ao_pong, const Vector<RID> p_ao_pong_slices, RID p_upscale_buffer, RID p_importance_map, RID p_importance_map_pong, const CameraMatrix &p_projection, const SSAOSettings &p_settings, bool p_invalidate_uniform_sets) {
 	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
-
+	RD::get_singleton()->draw_command_begin_label("SSAO");
 	/* FIRST PASS */
 	// Downsample and deinterleave the depth buffer.
 	{
+		RD::get_singleton()->draw_command_begin_label("Downsample Depth");
 		if (p_invalidate_uniform_sets) {
 			Vector<RD::Uniform> uniforms;
 			{
@@ -1079,11 +1077,13 @@ void EffectsRD::generate_ssao(RID p_depth_buffer, RID p_normal_buffer, RID p_dep
 
 		RD::get_singleton()->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
 		RD::get_singleton()->compute_list_add_barrier(compute_list);
+		RD::get_singleton()->draw_command_end_label(); // Downsample SSAO
 	}
 
 	/* SECOND PASS */
 	// Sample SSAO
 	{
+		RD::get_singleton()->draw_command_begin_label("Gather Samples");
 		ssao.gather_push_constant.screen_size[0] = p_settings.full_screen_size.x;
 		ssao.gather_push_constant.screen_size[1] = p_settings.full_screen_size.y;
 
@@ -1184,6 +1184,7 @@ void EffectsRD::generate_ssao(RID p_depth_buffer, RID p_normal_buffer, RID p_dep
 		}
 
 		if (p_settings.quality == RS::ENV_SSAO_QUALITY_ULTRA) {
+			RD::get_singleton()->draw_command_begin_label("Generate Importance Map");
 			ssao.importance_map_push_constant.half_screen_pixel_size[0] = 1.0 / p_settings.half_screen_size.x;
 			ssao.importance_map_push_constant.half_screen_pixel_size[1] = 1.0 / p_settings.half_screen_size.y;
 			ssao.importance_map_push_constant.intensity = p_settings.intensity;
@@ -1218,17 +1219,20 @@ void EffectsRD::generate_ssao(RID p_depth_buffer, RID p_normal_buffer, RID p_dep
 			RD::get_singleton()->compute_list_add_barrier(compute_list);
 
 			RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, ssao.pipelines[SSAO_GATHER_ADAPTIVE]);
+			RD::get_singleton()->draw_command_end_label(); // Importance Map
 		} else {
 			RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, ssao.pipelines[SSAO_GATHER]);
 		}
 
 		gather_ssao(compute_list, p_ao_slices, p_settings, false);
+		RD::get_singleton()->draw_command_end_label(); // Gather SSAO
 	}
 
 	//	/* THIRD PASS */
 	//	// Blur
 	//
 	{
+		RD::get_singleton()->draw_command_begin_label("Edge Aware Blur");
 		ssao.blur_push_constant.edge_sharpness = 1.0 - p_settings.sharpness;
 		ssao.blur_push_constant.half_screen_pixel_size[0] = 1.0 / p_settings.half_screen_size.x;
 		ssao.blur_push_constant.half_screen_pixel_size[1] = 1.0 / p_settings.half_screen_size.y;
@@ -1278,12 +1282,14 @@ void EffectsRD::generate_ssao(RID p_depth_buffer, RID p_normal_buffer, RID p_dep
 				RD::get_singleton()->compute_list_add_barrier(compute_list);
 			}
 		}
+		RD::get_singleton()->draw_command_end_label(); // Blur
 	}
 
 	/* FOURTH PASS */
 	// Interleave buffers
 	// back to full size
 	{
+		RD::get_singleton()->draw_command_begin_label("Interleave Buffers");
 		ssao.interleave_push_constant.inv_sharpness = 1.0 - p_settings.sharpness;
 		ssao.interleave_push_constant.pixel_size[0] = 1.0 / p_settings.full_screen_size.x;
 		ssao.interleave_push_constant.pixel_size[1] = 1.0 / p_settings.full_screen_size.y;
@@ -1312,12 +1318,13 @@ void EffectsRD::generate_ssao(RID p_depth_buffer, RID p_normal_buffer, RID p_dep
 
 		RD::get_singleton()->compute_list_dispatch(compute_list, x_groups, y_groups, 1);
 		RD::get_singleton()->compute_list_add_barrier(compute_list);
+		RD::get_singleton()->draw_command_end_label(); // Interleave
 	}
-
+	RD::get_singleton()->draw_command_end_label(); //SSAO
 	RD::get_singleton()->compute_list_end();
 
 	int zero[1] = { 0 };
-	RD::get_singleton()->buffer_update(ssao.importance_map_load_counter, 0, sizeof(uint32_t), &zero, false);
+	RD::get_singleton()->buffer_update(ssao.importance_map_load_counter, 0, sizeof(uint32_t), &zero);
 }
 
 void EffectsRD::roughness_limit(RID p_source_normal, RID p_roughness, const Size2i &p_size, float p_curve) {
@@ -1678,8 +1685,12 @@ EffectsRD::EffectsRD() {
 		cube_to_dp.shader.initialize(copy_modes);
 
 		cube_to_dp.shader_version = cube_to_dp.shader.version_create();
-
-		cube_to_dp.pipeline = RD::get_singleton()->compute_pipeline_create(cube_to_dp.shader.version_get_shader(cube_to_dp.shader_version, 0));
+		RID shader = cube_to_dp.shader.version_get_shader(cube_to_dp.shader_version, 0);
+		RD::PipelineDepthStencilState dss;
+		dss.enable_depth_test = true;
+		dss.depth_compare_operator = RD::COMPARE_OP_ALWAYS;
+		dss.enable_depth_write = true;
+		cube_to_dp.pipeline.setup(shader, RD::RENDER_PRIMITIVE_TRIANGLES, RD::PipelineRasterizationState(), RD::PipelineMultisampleState(), dss, RD::PipelineColorBlendState(), 0);
 	}
 
 	{
@@ -1776,7 +1787,7 @@ EffectsRD::EffectsRD() {
 				}
 			}
 
-			RD::get_singleton()->buffer_update(ssao.gather_constants_buffer, 0, sizeof(SSAOGatherConstants), &gather_constants, false);
+			RD::get_singleton()->buffer_update(ssao.gather_constants_buffer, 0, sizeof(SSAOGatherConstants), &gather_constants);
 		}
 		{
 			Vector<String> ssao_modes;
@@ -1795,7 +1806,8 @@ EffectsRD::EffectsRD() {
 			}
 			ssao.importance_map_load_counter = RD::get_singleton()->storage_buffer_create(sizeof(uint32_t));
 			int zero[1] = { 0 };
-			RD::get_singleton()->buffer_update(ssao.importance_map_load_counter, 0, sizeof(uint32_t), &zero, false);
+			RD::get_singleton()->buffer_update(ssao.importance_map_load_counter, 0, sizeof(uint32_t), &zero);
+			RD::get_singleton()->set_resource_name(ssao.importance_map_load_counter, "Importance Map Load Counter");
 
 			Vector<RD::Uniform> uniforms;
 			{
@@ -1806,6 +1818,7 @@ EffectsRD::EffectsRD() {
 				uniforms.push_back(u);
 			}
 			ssao.counter_uniform_set = RD::get_singleton()->uniform_set_create(uniforms, ssao.importance_map_shader.version_get_shader(ssao.importance_map_shader_version, 2), 2);
+			RD::get_singleton()->set_resource_name(ssao.counter_uniform_set, "Load Counter Uniform Set");
 		}
 		{
 			Vector<String> ssao_modes;
@@ -1834,7 +1847,7 @@ EffectsRD::EffectsRD() {
 			ssao.interleave_shader_version = ssao.interleave_shader.version_create();
 			for (int i = SSAO_INTERLEAVE; i <= SSAO_INTERLEAVE_HALF; i++) {
 				ssao.pipelines[pipeline] = RD::get_singleton()->compute_pipeline_create(ssao.interleave_shader.version_get_shader(ssao.interleave_shader_version, i - SSAO_INTERLEAVE));
-
+				RD::get_singleton()->set_resource_name(ssao.pipelines[pipeline], "Interleave Pipeline " + itos(i));
 				pipeline++;
 			}
 		}
@@ -1883,10 +1896,10 @@ EffectsRD::EffectsRD() {
 
 		if (filter.use_high_quality) {
 			filter.coefficient_buffer = RD::get_singleton()->storage_buffer_create(sizeof(high_quality_coeffs));
-			RD::get_singleton()->buffer_update(filter.coefficient_buffer, 0, sizeof(high_quality_coeffs), &high_quality_coeffs[0], false);
+			RD::get_singleton()->buffer_update(filter.coefficient_buffer, 0, sizeof(high_quality_coeffs), &high_quality_coeffs[0]);
 		} else {
 			filter.coefficient_buffer = RD::get_singleton()->storage_buffer_create(sizeof(low_quality_coeffs));
-			RD::get_singleton()->buffer_update(filter.coefficient_buffer, 0, sizeof(low_quality_coeffs), &low_quality_coeffs[0], false);
+			RD::get_singleton()->buffer_update(filter.coefficient_buffer, 0, sizeof(low_quality_coeffs), &low_quality_coeffs[0]);
 		}
 
 		Vector<RD::Uniform> uniforms;
@@ -2039,12 +2052,14 @@ EffectsRD::EffectsRD() {
 	sampler.max_lod = 0;
 
 	default_sampler = RD::get_singleton()->sampler_create(sampler);
+	RD::get_singleton()->set_resource_name(default_sampler, "Default Linear Sampler");
 
 	sampler.min_filter = RD::SAMPLER_FILTER_LINEAR;
 	sampler.mip_filter = RD::SAMPLER_FILTER_LINEAR;
 	sampler.max_lod = 1e20;
 
 	default_mipmap_sampler = RD::get_singleton()->sampler_create(sampler);
+	RD::get_singleton()->set_resource_name(default_mipmap_sampler, "Default MipMap Sampler");
 
 	{ //create index array for copy shaders
 		Vector<uint8_t> pv;

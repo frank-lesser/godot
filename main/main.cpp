@@ -171,6 +171,8 @@ static bool disable_render_loop = false;
 static int fixed_fps = -1;
 static bool print_fps = false;
 
+bool profile_gpu = false;
+
 /* Helper methods */
 
 // Used by Mono module, should likely be registered in Engine singleton instead
@@ -357,6 +359,7 @@ void Main::print_help(const char *p_binary) {
 	OS::get_singleton()->print("  --disable-crash-handler          Disable crash handler when supported by the platform code.\n");
 	OS::get_singleton()->print("  --fixed-fps <fps>                Force a fixed number of frames per second. This setting disables real-time synchronization.\n");
 	OS::get_singleton()->print("  --print-fps                      Print the frames per second to the stdout.\n");
+	OS::get_singleton()->print("  --profile-gpu                    Show a simple profile of the tasks that took more time during frame rendering.\n");
 	OS::get_singleton()->print("\n");
 
 	OS::get_singleton()->print("Standalone tools:\n");
@@ -387,8 +390,6 @@ Error Main::test_setup() {
 	OS::get_singleton()->initialize();
 
 	engine = memnew(Engine);
-
-	ClassDB::init();
 
 	register_core_types();
 	register_core_driver_types();
@@ -506,8 +507,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	OS::get_singleton()->initialize();
 
 	engine = memnew(Engine);
-
-	ClassDB::init();
 
 	MAIN_PRINT("Main: Initialize CORE");
 
@@ -1010,6 +1009,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 		} else if (I->get() == "--print-fps") {
 			print_fps = true;
+		} else if (I->get() == "--profile-gpu") {
+			profile_gpu = true;
 		} else if (I->get() == "--disable-crash-handler") {
 			OS::get_singleton()->disable_crash_handler();
 		} else if (I->get() == "--skip-breakpoints") {
@@ -1577,6 +1578,10 @@ Error Main::setup2(Thread::ID p_main_tid_override) {
 
 	rendering_server->init();
 	rendering_server->set_render_loop_enabled(!disable_render_loop);
+
+	if (profile_gpu) {
+		rendering_server->set_print_gpu_profile(true);
+	}
 
 	OS::get_singleton()->initialize_joypads();
 
@@ -2146,11 +2151,6 @@ bool Main::start() {
 		}
 #endif
 
-		{
-			int directional_atlas_size = GLOBAL_GET("rendering/quality/directional_shadow/size");
-			RenderingServer::get_singleton()->directional_shadow_atlas_set_size(directional_atlas_size);
-		}
-
 		if (!editor && !project_manager) {
 			//standard helpers that can be changed from main config
 
@@ -2193,22 +2193,6 @@ bool Main::start() {
 #else
 			DisplayServer::get_singleton()->window_set_title(appname);
 #endif
-
-			int shadow_atlas_size = GLOBAL_GET("rendering/quality/shadow_atlas/size");
-			int shadow_atlas_q0_subdiv = GLOBAL_GET("rendering/quality/shadow_atlas/quadrant_0_subdiv");
-			int shadow_atlas_q1_subdiv = GLOBAL_GET("rendering/quality/shadow_atlas/quadrant_1_subdiv");
-			int shadow_atlas_q2_subdiv = GLOBAL_GET("rendering/quality/shadow_atlas/quadrant_2_subdiv");
-			int shadow_atlas_q3_subdiv = GLOBAL_GET("rendering/quality/shadow_atlas/quadrant_3_subdiv");
-
-			sml->get_root()->set_shadow_atlas_size(shadow_atlas_size);
-			sml->get_root()->set_shadow_atlas_quadrant_subdiv(0, Viewport::ShadowAtlasQuadrantSubdiv(
-																		 shadow_atlas_q0_subdiv));
-			sml->get_root()->set_shadow_atlas_quadrant_subdiv(1, Viewport::ShadowAtlasQuadrantSubdiv(
-																		 shadow_atlas_q1_subdiv));
-			sml->get_root()->set_shadow_atlas_quadrant_subdiv(2, Viewport::ShadowAtlasQuadrantSubdiv(
-																		 shadow_atlas_q2_subdiv));
-			sml->get_root()->set_shadow_atlas_quadrant_subdiv(3, Viewport::ShadowAtlasQuadrantSubdiv(
-																		 shadow_atlas_q3_subdiv));
 
 			bool snap_controls = GLOBAL_DEF("gui/common/snap_controls_to_pixels", true);
 			sml->get_root()->set_snap_controls_to_pixels(snap_controls);

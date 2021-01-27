@@ -436,7 +436,7 @@ void RendererSceneCull::instance_set_base(RID p_instance, RID p_base) {
 			case RS::INSTANCE_LIGHT: {
 				InstanceLightData *light = static_cast<InstanceLightData *>(instance->base_data);
 
-				if (scenario && RSG::storage->light_get_type(instance->base) != RS::LIGHT_DIRECTIONAL && light->bake_mode == RS::LIGHT_BAKE_DYNAMIC) {
+				if (scenario && instance->visible && RSG::storage->light_get_type(instance->base) != RS::LIGHT_DIRECTIONAL && light->bake_mode == RS::LIGHT_BAKE_DYNAMIC) {
 					scenario->dynamic_lights.erase(light->instance);
 				}
 
@@ -781,6 +781,17 @@ void RendererSceneCull::instance_set_visible(RID p_instance, bool p_visible) {
 		}
 	} else if (instance->indexer_id.is_valid()) {
 		_unpair_instance(instance);
+	}
+
+	if (instance->base_type == RS::INSTANCE_LIGHT) {
+		InstanceLightData *light = static_cast<InstanceLightData *>(instance->base_data);
+		if (instance->scenario && RSG::storage->light_get_type(instance->base) != RS::LIGHT_DIRECTIONAL && light->bake_mode == RS::LIGHT_BAKE_DYNAMIC) {
+			if (p_visible) {
+				instance->scenario->dynamic_lights.push_back(light->instance);
+			} else {
+				instance->scenario->dynamic_lights.erase(light->instance);
+			}
+		}
 	}
 
 	if (instance->base_type == RS::INSTANCE_PARTICLES_COLLISION) {
@@ -1150,13 +1161,13 @@ void RendererSceneCull::_update_instance(Instance *p_instance) {
 
 		RS::LightBakeMode bake_mode = RSG::storage->light_get_bake_mode(p_instance->base);
 		if (RSG::storage->light_get_type(p_instance->base) != RS::LIGHT_DIRECTIONAL && bake_mode != light->bake_mode) {
-			if (p_instance->scenario && light->bake_mode == RS::LIGHT_BAKE_DYNAMIC) {
+			if (p_instance->visible && p_instance->scenario && light->bake_mode == RS::LIGHT_BAKE_DYNAMIC) {
 				p_instance->scenario->dynamic_lights.erase(light->instance);
 			}
 
 			light->bake_mode = bake_mode;
 
-			if (p_instance->scenario && light->bake_mode == RS::LIGHT_BAKE_DYNAMIC) {
+			if (p_instance->visible && p_instance->scenario && light->bake_mode == RS::LIGHT_BAKE_DYNAMIC) {
 				p_instance->scenario->dynamic_lights.push_back(light->instance);
 			}
 		}
@@ -1242,7 +1253,8 @@ void RendererSceneCull::_update_instance(Instance *p_instance) {
 		scene_render->geometry_instance_set_transform(geom->geometry_instance, p_instance->transform, p_instance->aabb, p_instance->transformed_aabb);
 	}
 
-	if (p_instance->scenario == nullptr || !p_instance->visible || Math::is_zero_approx(p_instance->transform.basis.determinant())) {
+	// note: we had to remove is equal approx check here, it meant that det == 0.000004 won't work, which is the case for some of our scenes.
+	if (p_instance->scenario == nullptr || !p_instance->visible || p_instance->transform.basis.determinant() == 0) {
 		p_instance->prev_transformed_aabb = p_instance->transformed_aabb;
 		return;
 	}

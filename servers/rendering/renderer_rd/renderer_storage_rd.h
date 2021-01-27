@@ -95,6 +95,21 @@ public:
 		p_array[11] = 0;
 	}
 
+	static _FORCE_INLINE_ void store_transform_transposed_3x4(const Transform &p_mtx, float *p_array) {
+		p_array[0] = p_mtx.basis.elements[0][0];
+		p_array[1] = p_mtx.basis.elements[0][1];
+		p_array[2] = p_mtx.basis.elements[0][2];
+		p_array[3] = p_mtx.origin.x;
+		p_array[4] = p_mtx.basis.elements[1][0];
+		p_array[5] = p_mtx.basis.elements[1][1];
+		p_array[6] = p_mtx.basis.elements[1][2];
+		p_array[7] = p_mtx.origin.y;
+		p_array[8] = p_mtx.basis.elements[2][0];
+		p_array[9] = p_mtx.basis.elements[2][1];
+		p_array[10] = p_mtx.basis.elements[2][2];
+		p_array[11] = p_mtx.origin.z;
+	}
+
 	static _FORCE_INLINE_ void store_camera(const CameraMatrix &p_mtx, float *p_array) {
 		for (int i = 0; i < 4; i++) {
 			for (int j = 0; j < 4; j++) {
@@ -462,6 +477,9 @@ private:
 		Vector<RID> material_cache;
 
 		List<MeshInstance *> instances;
+
+		RID shadow_mesh;
+		Set<Mesh *> shadow_owners;
 
 		Dependency dependency;
 	};
@@ -1408,6 +1426,7 @@ public:
 	virtual AABB mesh_get_custom_aabb(RID p_mesh) const;
 
 	virtual AABB mesh_get_aabb(RID p_mesh, RID p_skeleton = RID());
+	virtual void mesh_set_shadow_mesh(RID p_mesh, RID p_shadow_mesh);
 
 	virtual void mesh_clear(RID p_mesh);
 
@@ -1444,6 +1463,13 @@ public:
 		ERR_FAIL_UNSIGNED_INDEX_V(p_surface_index, mesh->surface_count, nullptr);
 
 		return mesh->surfaces[p_surface_index];
+	}
+
+	_FORCE_INLINE_ RID mesh_get_shadow_mesh(RID p_mesh) {
+		Mesh *mesh = mesh_owner.getornull(p_mesh);
+		ERR_FAIL_COND_V(!mesh, RID());
+
+		return mesh->shadow_mesh;
 	}
 
 	_FORCE_INLINE_ RS::PrimitiveType mesh_surface_get_primitive(void *p_surface) {

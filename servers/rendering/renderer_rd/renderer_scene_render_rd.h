@@ -34,7 +34,7 @@
 #include "core/templates/local_vector.h"
 #include "core/templates/rid_owner.h"
 #include "servers/rendering/renderer_compositor.h"
-#include "servers/rendering/renderer_rd/light_cluster_builder.h"
+#include "servers/rendering/renderer_rd/cluster_builder_rd.h"
 #include "servers/rendering/renderer_rd/renderer_storage_rd.h"
 #include "servers/rendering/renderer_rd/shaders/gi.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/giprobe.glsl.gen.h"
@@ -104,13 +104,13 @@ protected:
 	};
 	virtual RenderBufferData *_create_render_buffer_data() = 0;
 
-	void _setup_lights(const PagedArray<RID> &p_lights, const Transform &p_camera_inverse_transform, RID p_shadow_atlas, bool p_using_shadows, uint32_t &r_directional_light_count, uint32_t &r_positional_light_count);
+	void _setup_lights(const PagedArray<RID> &p_lights, const Transform &p_camera_transform, RID p_shadow_atlas, bool p_using_shadows, uint32_t &r_directional_light_count, uint32_t &r_positional_light_count);
 	void _setup_decals(const PagedArray<RID> &p_decals, const Transform &p_camera_inverse_xform);
 	void _setup_reflections(const PagedArray<RID> &p_reflections, const Transform &p_camera_inverse_transform, RID p_environment);
 	void _setup_giprobes(RID p_render_buffers, const Transform &p_transform, const PagedArray<RID> &p_gi_probes, uint32_t &r_gi_probes_used);
 
-	virtual void _render_scene(RID p_render_buffer, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, const PagedArray<GeometryInstance *> &p_instances, int p_directional_light_count, const PagedArray<RID> &p_gi_probes, const PagedArray<RID> &p_lightmaps, RID p_environment, RID p_camera_effects, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass, const Color &p_default_color, float p_screen_lod_threshold) = 0;
-	virtual void _render_shadow(RID p_framebuffer, const PagedArray<GeometryInstance *> &p_instances, const CameraMatrix &p_projection, const Transform &p_transform, float p_zfar, float p_bias, float p_normal_bias, bool p_use_dp, bool use_dp_flip, bool p_use_pancake, const Plane &p_camera_plane = Plane(), float p_lod_distance_multiplier = 0.0, float p_screen_lod_threshold = 0.0) = 0;
+	virtual void _render_scene(RID p_render_buffer, const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, const PagedArray<GeometryInstance *> &p_instances, int p_directional_light_count, const PagedArray<RID> &p_gi_probes, const PagedArray<RID> &p_lightmaps, RID p_environment, RID p_cluster_buffer, uint32_t p_cluster_size, uint32_t p_cluster_max_elements, RID p_camera_effects, RID p_shadow_atlas, RID p_reflection_atlas, RID p_reflection_probe, int p_reflection_probe_pass, const Color &p_default_color, float p_screen_lod_threshold) = 0;
+	virtual void _render_shadow(RID p_framebuffer, const PagedArray<GeometryInstance *> &p_instances, const CameraMatrix &p_projection, const Transform &p_transform, float p_zfar, float p_bias, float p_normal_bias, bool p_use_dp, bool use_dp_flip, bool p_use_pancake, const Plane &p_camera_plane = Plane(), float p_lod_distance_multiplier = 0.0, float p_screen_lod_threshold = 0.0, const Rect2i &p_rect = Rect2i(), bool p_flip_y = false, bool p_clear_region = true, bool p_begin = true, bool p_end = true) = 0;
 	virtual void _render_material(const Transform &p_cam_transform, const CameraMatrix &p_cam_projection, bool p_cam_ortogonal, const PagedArray<GeometryInstance *> &p_instances, RID p_framebuffer, const Rect2i &p_region) = 0;
 	virtual void _render_uv2(const PagedArray<GeometryInstance *> &p_instances, RID p_framebuffer, const Rect2i &p_region) = 0;
 	virtual void _render_sdfgi(RID p_render_buffers, const Vector3i &p_from, const Vector3i &p_size, const AABB &p_bounds, const PagedArray<GeometryInstance *> &p_instances, const RID &p_albedo_texture, const RID &p_emission_texture, const RID &p_emission_aniso_texture, const RID &p_geom_facing_texture) = 0;
@@ -124,8 +124,6 @@ protected:
 	virtual void _base_uniforms_changed() = 0;
 	virtual void _render_buffers_uniform_set_changed(RID p_render_buffers) = 0;
 	virtual RID _render_buffers_get_normal_texture(RID p_render_buffers) = 0;
-	virtual RID _render_buffers_get_ambient_texture(RID p_render_buffers) = 0;
-	virtual RID _render_buffers_get_reflection_texture(RID p_render_buffers) = 0;
 
 	void _process_ssao(RID p_render_buffers, RID p_environment, RID p_normal_buffer, const CameraMatrix &p_projection);
 	void _process_ssr(RID p_render_buffers, RID p_dest_framebuffer, RID p_normal_buffer, RID p_specular_buffer, RID p_metallic, const Color &p_metallic_mask, RID p_environment, const CameraMatrix &p_projection, bool p_use_additive);
@@ -134,7 +132,7 @@ protected:
 	void _setup_sky(RID p_environment, RID p_render_buffers, const CameraMatrix &p_projection, const Transform &p_transform, const Size2i p_screen_size);
 	void _update_sky(RID p_environment, const CameraMatrix &p_projection, const Transform &p_transform);
 	void _draw_sky(bool p_can_continue_color, bool p_can_continue_depth, RID p_fb, RID p_environment, const CameraMatrix &p_projection, const Transform &p_transform);
-	void _process_gi(RID p_render_buffers, RID p_normal_roughness_buffer, RID p_ambient_buffer, RID p_reflection_buffer, RID p_gi_probe_buffer, RID p_environment, const CameraMatrix &p_projection, const Transform &p_transform, const PagedArray<RID> &p_gi_probes);
+	void _process_gi(RID p_render_buffers, RID p_normal_roughness_buffer, RID p_gi_probe_buffer, RID p_environment, const CameraMatrix &p_projection, const Transform &p_transform, const PagedArray<RID> &p_gi_probes);
 
 	// needed for a single argument calls (material and uv2)
 	PagedArrayPool<GeometryInstance *> cull_argument_pool;
@@ -341,6 +339,8 @@ private:
 		};
 
 		Vector<Reflection> reflections;
+
+		ClusterBuilderRD *cluster_builder = nullptr;
 	};
 
 	mutable RID_Owner<ReflectionAtlas> reflection_atlas_owner;
@@ -572,6 +572,7 @@ private:
 		uint32_t smallest_subdiv = 0;
 
 		int size = 0;
+		bool use_16_bits = false;
 
 		RID depth;
 		RID fb; //for copying
@@ -582,6 +583,8 @@ private:
 	};
 
 	RID_Owner<ShadowAtlas> shadow_atlas_owner;
+
+	void _update_shadow_atlas(ShadowAtlas *shadow_atlas);
 
 	bool _shadow_atlas_find_shadow(ShadowAtlas *shadow_atlas, int *p_in_quadrants, int p_quadrant_count, int p_current_subdiv, uint64_t p_tick, int &r_quadrant, int &r_shadow);
 
@@ -603,9 +606,11 @@ private:
 
 	struct DirectionalShadow {
 		RID depth;
+		RID fb; //when renderign direct
 
 		int light_count = 0;
 		int size = 0;
+		bool use_16_bits = false;
 		int current_light = 0;
 
 		Vector<ShadowShrinkStage> shrink_stages;
@@ -614,6 +619,8 @@ private:
 
 	void _allocate_shadow_shrink_stages(RID p_base, int p_base_size, Vector<ShadowShrinkStage> &shrink_stages, uint32_t p_target_size);
 	void _clear_shadow_shrink_stages(Vector<ShadowShrinkStage> &shrink_stages);
+
+	void _update_directional_shadow_atlas();
 
 	/* SHADOW CUBEMAPS */
 
@@ -624,14 +631,6 @@ private:
 
 	Map<int, ShadowCubemap> shadow_cubemaps;
 	ShadowCubemap *_get_shadow_cubemap(int p_size);
-
-	struct ShadowMap {
-		RID depth;
-		RID fb;
-	};
-
-	Map<Vector2i, ShadowMap> shadow_maps;
-	ShadowMap *_get_shadow_map(const Size2i &p_size);
 
 	void _create_shadow_cubemaps();
 
@@ -833,6 +832,9 @@ private:
 
 	/* RENDER BUFFERS */
 
+	ClusterBuilderSharedDataRD cluster_builder_shared;
+	ClusterBuilderRD *current_cluster_builder = nullptr;
+
 	struct SDFGI;
 	struct VolumetricFog;
 
@@ -857,6 +859,8 @@ private:
 		RID gi_uniform_set;
 		SDFGI *sdfgi = nullptr;
 		VolumetricFog *volumetric_fog = nullptr;
+
+		ClusterBuilderRD *cluster_builder = nullptr;
 
 		//built-in textures used for ping pong image processing and blurring
 		struct Blur {
@@ -897,6 +901,16 @@ private:
 
 		RID giprobe_textures[MAX_GIPROBES];
 		RID giprobe_buffer;
+
+		RID ambient_buffer;
+		RID reflection_buffer;
+		bool using_half_size_gi = false;
+
+		struct GI {
+			RID full_buffer;
+			RID full_dispatch;
+			RID full_mask;
+		} gi;
 	};
 
 	RID default_giprobe_buffer;
@@ -958,6 +972,8 @@ private:
 			RID scroll_occlusion_uniform_set;
 			RID integrate_uniform_set;
 			RID lights_buffer;
+
+			bool all_dynamic_lights_dirty = true;
 		};
 
 		//used for rendering (voxelization)
@@ -1019,6 +1035,8 @@ private:
 
 	RS::EnvironmentSDFGIRayCount sdfgi_ray_count = RS::ENV_SDFGI_RAY_COUNT_16;
 	RS::EnvironmentSDFGIFramesToConverge sdfgi_frames_to_converge = RS::ENV_SDFGI_CONVERGE_IN_10_FRAMES;
+	RS::EnvironmentSDFGIFramesToUpdateLight sdfgi_frames_to_update_light = RS::ENV_SDFGI_UPDATE_LIGHT_IN_4_FRAMES;
+
 	float sdfgi_solid_cell_ratio = 0.25;
 	Vector3 sdfgi_debug_probe_pos;
 	Vector3 sdfgi_debug_probe_dir;
@@ -1256,23 +1274,28 @@ private:
 			float z_far;
 
 			float proj_info[4];
-
-			uint32_t max_giprobes;
-			uint32_t high_quality_vct;
-			uint32_t use_sdfgi;
-			uint32_t orthogonal;
-
 			float ao_color[3];
-			uint32_t pad;
+			uint32_t max_giprobes;
+
+			uint32_t high_quality_vct;
+			uint32_t orthogonal;
+			uint32_t pad[2];
 
 			float cam_rotation[12];
 		};
 
 		RID sdfgi_ubo;
-		enum {
-			MODE_MAX = 1
+		enum Mode {
+			MODE_GIPROBE,
+			MODE_SDFGI,
+			MODE_COMBINED,
+			MODE_HALF_RES_GIPROBE,
+			MODE_HALF_RES_SDFGI,
+			MODE_HALF_RES_COMBINED,
+			MODE_MAX
 		};
 
+		bool half_resolution = false;
 		GiShaderRD shader;
 		RID shader_version;
 		RID pipelines[MODE_MAX];
@@ -1297,14 +1320,23 @@ private:
 	struct Cluster {
 		/* Scene State UBO */
 
-		struct ReflectionData { //should always be 128 bytes
+		enum {
+			REFLECTION_AMBIENT_DISABLED = 0,
+			REFLECTION_AMBIENT_ENVIRONMENT = 1,
+			REFLECTION_AMBIENT_COLOR = 2,
+		};
+
+		struct ReflectionData {
 			float box_extents[3];
 			float index;
 			float box_offset[3];
 			uint32_t mask;
-			float params[4]; // intensity, 0, interior , boxproject
 			float ambient[3]; // ambient color,
+			float intensity;
+			bool exterior;
+			bool box_project;
 			uint32_t ambient_mode;
+			uint32_t pad;
 			float local_matrix[16]; // up to here for spot and omni, rest is for directional
 		};
 
@@ -1313,10 +1345,15 @@ private:
 			float inv_radius;
 			float direction[3];
 			float size;
-			uint16_t attenuation_energy[2]; //16 bits attenuation, then energy
-			uint8_t color_specular[4]; //rgb color, a specular (8 bit unorm)
-			uint16_t cone_attenuation_angle[2]; // attenuation and angle, (16bit float)
-			uint8_t shadow_color_enabled[4]; //shadow rgb color, a>0.5 enabled (8bit unorm)
+
+			float color[3];
+			float attenuation;
+
+			float cone_attenuation;
+			float cone_angle;
+			float specular_amount;
+			uint32_t shadow_enabled;
+
 			float atlas_rect[4]; // in omni, used for atlas uv, in spot, used for projector uv
 			float shadow_matrix[16];
 			float shadow_bias;
@@ -1380,18 +1417,39 @@ private:
 			float normal_fade;
 		};
 
+		template <class T>
+		struct InstanceSort {
+			float depth;
+			T *instance;
+			bool operator<(const InstanceSort &p_sort) const {
+				return depth < p_sort.depth;
+			}
+		};
+
 		ReflectionData *reflections;
+		InstanceSort<ReflectionProbeInstance> *reflection_sort;
 		uint32_t max_reflections;
 		RID reflection_buffer;
 		uint32_t max_reflection_probes_per_instance;
+		uint32_t reflection_count = 0;
 
 		DecalData *decals;
+		InstanceSort<DecalInstance> *decal_sort;
 		uint32_t max_decals;
 		RID decal_buffer;
+		uint32_t decal_count;
 
-		LightData *lights;
+		LightData *omni_lights;
+		LightData *spot_lights;
+
+		InstanceSort<LightInstance> *omni_light_sort;
+		InstanceSort<LightInstance> *spot_light_sort;
 		uint32_t max_lights;
-		RID light_buffer;
+		RID omni_light_buffer;
+		RID spot_light_buffer;
+		uint32_t omni_light_count = 0;
+		uint32_t spot_light_count = 0;
+
 		RID *lights_instances;
 		Rect2i *lights_shadow_rect_cache;
 		uint32_t lights_shadow_rect_cache_count = 0;
@@ -1399,8 +1457,6 @@ private:
 		DirectionalLightData *directional_lights;
 		uint32_t max_directional_lights;
 		RID directional_light_buffer;
-
-		LightClusterBuilder builder;
 
 	} cluster;
 
@@ -1431,7 +1487,7 @@ private:
 	};
 
 	struct VolumetricFogShader {
-		struct PushConstant {
+		struct ParamsUBO {
 			float fog_frustum_size_begin[2];
 			float fog_frustum_size_end[2];
 
@@ -1449,13 +1505,21 @@ private:
 			float detail_spread;
 			float gi_inject;
 			uint32_t max_gi_probes;
-			uint32_t pad;
+			uint32_t cluster_type_size;
+
+			float screen_size[2];
+			uint32_t cluster_shift;
+			uint32_t cluster_width;
+
+			uint32_t cluster_pad[3];
+			uint32_t max_cluster_element_count_div_32;
 
 			float cam_rotation[12];
 		};
 
 		VolumetricFogShaderRD shader;
 
+		RID params_ubo;
 		RID shader_version;
 		RID pipelines[VOLUMETRIC_FOG_SHADER_MAX];
 
@@ -1480,6 +1544,7 @@ private:
 		float weight;
 	};
 
+	uint32_t max_cluster_elements = 512;
 	bool low_end = false;
 
 public:
@@ -1489,7 +1554,7 @@ public:
 	/* SHADOW ATLAS API */
 
 	RID shadow_atlas_create();
-	void shadow_atlas_set_size(RID p_atlas, int p_size);
+	void shadow_atlas_set_size(RID p_atlas, int p_size, bool p_16_bits = false);
 	void shadow_atlas_set_quadrant_subdivision(RID p_atlas, int p_quadrant, int p_subdivision);
 	bool shadow_atlas_update_light(RID p_atlas, RID p_light_intance, float p_coverage, uint64_t p_light_version);
 	_FORCE_INLINE_ bool shadow_atlas_owns_light_instance(RID p_atlas, RID p_light_intance) {
@@ -1510,7 +1575,7 @@ public:
 		return Size2(atlas->size, atlas->size);
 	}
 
-	void directional_shadow_atlas_set_size(int p_size);
+	void directional_shadow_atlas_set_size(int p_size, bool p_16_bits = false);
 	int get_directional_light_shadow_size(RID p_light_intance);
 	void set_directional_shadow_count(int p_count);
 
@@ -1605,6 +1670,7 @@ public:
 	virtual void environment_set_sdfgi(RID p_env, bool p_enable, RS::EnvironmentSDFGICascades p_cascades, float p_min_cell_size, RS::EnvironmentSDFGIYScale p_y_scale, bool p_use_occlusion, bool p_use_multibounce, bool p_read_sky, float p_energy, float p_normal_bias, float p_probe_bias);
 	virtual void environment_set_sdfgi_ray_count(RS::EnvironmentSDFGIRayCount p_ray_count);
 	virtual void environment_set_sdfgi_frames_to_converge(RS::EnvironmentSDFGIFramesToConverge p_frames);
+	virtual void environment_set_sdfgi_frames_to_update_light(RS::EnvironmentSDFGIFramesToUpdateLight p_update);
 
 	void environment_set_ssr_roughness_quality(RS::EnvironmentSSRRoughnessQuality p_quality);
 	RS::EnvironmentSSRRoughnessQuality environment_get_ssr_roughness_quality() const;
@@ -1903,11 +1969,14 @@ public:
 */
 	RID render_buffers_create();
 	void render_buffers_configure(RID p_render_buffers, RID p_render_target, int p_width, int p_height, RS::ViewportMSAA p_msaa, RS::ViewportScreenSpaceAA p_screen_space_aa, bool p_use_debanding);
+	void gi_set_use_half_resolution(bool p_enable);
 
 	RID render_buffers_get_ao_texture(RID p_render_buffers);
 	RID render_buffers_get_back_buffer_texture(RID p_render_buffers);
 	RID render_buffers_get_gi_probe_buffer(RID p_render_buffers);
 	RID render_buffers_get_default_gi_probe_buffer();
+	RID render_buffers_get_gi_ambient_texture(RID p_render_buffers);
+	RID render_buffers_get_gi_reflection_texture(RID p_render_buffers);
 
 	uint32_t render_buffers_get_sdfgi_cascade_count(RID p_render_buffers) const;
 	bool render_buffers_is_sdfgi_enabled(RID p_render_buffers) const;
@@ -1988,10 +2057,9 @@ public:
 
 	virtual void set_time(double p_time, double p_step);
 
-	RID get_cluster_builder_texture();
-	RID get_cluster_builder_indices_buffer();
 	RID get_reflection_probe_buffer();
-	RID get_positional_light_buffer();
+	RID get_omni_light_buffer();
+	RID get_spot_light_buffer();
 	RID get_directional_light_buffer();
 	RID get_decal_buffer();
 	int get_max_directional_lights() const;
