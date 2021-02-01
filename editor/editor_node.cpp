@@ -1858,6 +1858,7 @@ void EditorNode::push_item(Object *p_object, const String &p_property, bool p_in
 		node_dock->set_node(nullptr);
 		scene_tree_dock->set_selected(nullptr);
 		inspector_dock->update(nullptr);
+		_display_top_editors(false);
 		return;
 	}
 
@@ -5493,9 +5494,7 @@ int EditorNode::execute_and_show_output(const String &p_title, const String &p_p
 
 	int prev_len = 0;
 
-	eta.execute_output_thread = Thread::create(_execute_thread, &eta);
-
-	ERR_FAIL_COND_V(!eta.execute_output_thread, 0);
+	eta.execute_output_thread.start(_execute_thread, &eta);
 
 	while (!eta.done) {
 		{
@@ -5510,8 +5509,7 @@ int EditorNode::execute_and_show_output(const String &p_title, const String &p_p
 		OS::get_singleton()->delay_usec(1000);
 	}
 
-	Thread::wait_to_finish(eta.execute_output_thread);
-	memdelete(eta.execute_output_thread);
+	eta.execute_output_thread.wait_to_finish();
 	execute_outputs->add_text("\nExit Code: " + itos(eta.exitcode));
 
 	if (p_close_on_errors && eta.exitcode != 0) {
