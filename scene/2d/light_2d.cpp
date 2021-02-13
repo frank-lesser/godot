@@ -300,22 +300,6 @@ void Light2D::_bind_methods() {
 
 Light2D::Light2D() {
 	canvas_light = RenderingServer::get_singleton()->canvas_light_create();
-	enabled = true;
-	editor_only = false;
-	shadow = false;
-	color = Color(1, 1, 1);
-	height = 0;
-	z_min = -1024;
-	z_max = 1024;
-	layer_min = 0;
-	layer_max = 0;
-	item_mask = 1;
-	item_shadow_mask = 1;
-	energy = 1.0;
-	shadow_color = Color(0, 0, 0, 0);
-	shadow_filter = SHADOW_FILTER_NONE;
-	shadow_smooth = 0;
-	blend_mode = BLEND_MODE_ADD;
 	set_notify_transform(true);
 }
 
@@ -393,7 +377,6 @@ void PointLight2D::set_texture_offset(const Vector2 &p_offset) {
 	texture_offset = p_offset;
 	RS::get_singleton()->canvas_light_set_texture_offset(_get_light(), texture_offset);
 	item_rect_changed();
-	_change_notify("offset");
 }
 
 Vector2 PointLight2D::get_texture_offset() const {

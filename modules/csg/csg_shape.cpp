@@ -45,7 +45,8 @@ void CSGShape3D::set_use_collision(bool p_enable) {
 
 	if (use_collision) {
 		root_collision_shape.instance();
-		root_collision_instance = PhysicsServer3D::get_singleton()->body_create(PhysicsServer3D::BODY_MODE_STATIC);
+		root_collision_instance = PhysicsServer3D::get_singleton()->body_create();
+		PhysicsServer3D::get_singleton()->body_set_mode(root_collision_instance, PhysicsServer3D::BODY_MODE_STATIC);
 		PhysicsServer3D::get_singleton()->body_set_state(root_collision_instance, PhysicsServer3D::BODY_STATE_TRANSFORM, get_global_transform());
 		PhysicsServer3D::get_singleton()->body_add_shape(root_collision_instance, root_collision_shape->get_rid());
 		PhysicsServer3D::get_singleton()->body_set_space(root_collision_instance, get_world_3d()->get_space());
@@ -58,7 +59,7 @@ void CSGShape3D::set_use_collision(bool p_enable) {
 		root_collision_instance = RID();
 		root_collision_shape.unref();
 	}
-	_change_notify();
+	notify_property_list_changed();
 }
 
 bool CSGShape3D::is_using_collision() const {
@@ -494,7 +495,8 @@ void CSGShape3D::_notification(int p_what) {
 
 		if (use_collision && is_root_shape()) {
 			root_collision_shape.instance();
-			root_collision_instance = PhysicsServer3D::get_singleton()->body_create(PhysicsServer3D::BODY_MODE_STATIC);
+			root_collision_instance = PhysicsServer3D::get_singleton()->body_create();
+			PhysicsServer3D::get_singleton()->body_set_mode(root_collision_instance, PhysicsServer3D::BODY_MODE_STATIC);
 			PhysicsServer3D::get_singleton()->body_set_state(root_collision_instance, PhysicsServer3D::BODY_STATE_TRANSFORM, get_global_transform());
 			PhysicsServer3D::get_singleton()->body_add_shape(root_collision_instance, root_collision_shape->get_rid());
 			PhysicsServer3D::get_singleton()->body_set_space(root_collision_instance, get_world_3d()->get_space());
@@ -625,15 +627,6 @@ void CSGShape3D::_bind_methods() {
 }
 
 CSGShape3D::CSGShape3D() {
-	operation = OPERATION_UNION;
-	parent = nullptr;
-	brush = nullptr;
-	dirty = false;
-	snap = 0.001;
-	use_collision = false;
-	collision_layer = 1;
-	collision_mask = 1;
-	calculate_tangents = true;
 	set_notify_local_transform(true);
 }
 
@@ -927,25 +920,27 @@ CSGBrush *CSGSphere3D::_build_brush() {
 		bool *invertw = invert.ptrw();
 
 		int face = 0;
+		const double lat_step = Math_TAU / rings;
+		const double lon_step = Math_TAU / radial_segments;
 
 		for (int i = 1; i <= rings; i++) {
-			double lat0 = Math_PI * (-0.5 + (double)(i - 1) / rings);
+			double lat0 = lat_step * (i - 1) - Math_TAU / 4;
 			double z0 = Math::sin(lat0);
 			double zr0 = Math::cos(lat0);
 			double u0 = double(i - 1) / rings;
 
-			double lat1 = Math_PI * (-0.5 + (double)i / rings);
+			double lat1 = lat_step * i - Math_TAU / 4;
 			double z1 = Math::sin(lat1);
 			double zr1 = Math::cos(lat1);
 			double u1 = double(i) / rings;
 
 			for (int j = radial_segments; j >= 1; j--) {
-				double lng0 = 2 * Math_PI * (double)(j - 1) / radial_segments;
+				double lng0 = lon_step * (j - 1);
 				double x0 = Math::cos(lng0);
 				double y0 = Math::sin(lng0);
 				double v0 = double(i - 1) / radial_segments;
 
-				double lng1 = 2 * Math_PI * (double)(j) / radial_segments;
+				double lng1 = lon_step * j;
 				double x1 = Math::cos(lng1);
 				double y1 = Math::sin(lng1);
 				double v1 = double(i) / radial_segments;
@@ -1038,7 +1033,6 @@ void CSGSphere3D::set_radius(const float p_radius) {
 	radius = p_radius;
 	_make_dirty();
 	update_gizmo();
-	_change_notify("radius");
 }
 
 float CSGSphere3D::get_radius() const {
@@ -1208,7 +1202,6 @@ void CSGBox3D::set_size(const Vector3 &p_size) {
 	size = p_size;
 	_make_dirty();
 	update_gizmo();
-	_change_notify("size");
 }
 
 Vector3 CSGBox3D::get_size() const {
@@ -1266,8 +1259,8 @@ CSGBrush *CSGCylinder3D::_build_brush() {
 				float inc = float(i) / sides;
 				float inc_n = float((i + 1)) / sides;
 
-				float ang = inc * Math_PI * 2.0;
-				float ang_n = inc_n * Math_PI * 2.0;
+				float ang = inc * Math_TAU;
+				float ang_n = inc_n * Math_TAU;
 
 				Vector3 base(Math::cos(ang), 0, Math::sin(ang));
 				Vector3 base_n(Math::cos(ang_n), 0, Math::sin(ang_n));
@@ -1390,7 +1383,6 @@ void CSGCylinder3D::set_radius(const float p_radius) {
 	radius = p_radius;
 	_make_dirty();
 	update_gizmo();
-	_change_notify("radius");
 }
 
 float CSGCylinder3D::get_radius() const {
@@ -1401,7 +1393,6 @@ void CSGCylinder3D::set_height(const float p_height) {
 	height = p_height;
 	_make_dirty();
 	update_gizmo();
-	_change_notify("height");
 }
 
 float CSGCylinder3D::get_height() const {
@@ -1508,8 +1499,8 @@ CSGBrush *CSGTorus3D::_build_brush() {
 				float inci = float(i) / sides;
 				float inci_n = float((i + 1)) / sides;
 
-				float angi = inci * Math_PI * 2.0;
-				float angi_n = inci_n * Math_PI * 2.0;
+				float angi = inci * Math_TAU;
+				float angi_n = inci_n * Math_TAU;
 
 				Vector3 normali = Vector3(Math::cos(angi), 0, Math::sin(angi));
 				Vector3 normali_n = Vector3(Math::cos(angi_n), 0, Math::sin(angi_n));
@@ -1518,8 +1509,8 @@ CSGBrush *CSGTorus3D::_build_brush() {
 					float incj = float(j) / ring_sides;
 					float incj_n = float((j + 1)) / ring_sides;
 
-					float angj = incj * Math_PI * 2.0;
-					float angj_n = incj_n * Math_PI * 2.0;
+					float angj = incj * Math_TAU;
+					float angj_n = incj_n * Math_TAU;
 
 					Vector2 normalj = Vector2(Math::cos(angj), Math::sin(angj)) * radius + Vector2(min_radius + radius, 0);
 					Vector2 normalj_n = Vector2(Math::cos(angj_n), Math::sin(angj_n)) * radius + Vector2(min_radius + radius, 0);
@@ -1611,7 +1602,6 @@ void CSGTorus3D::set_inner_radius(const float p_inner_radius) {
 	inner_radius = p_inner_radius;
 	_make_dirty();
 	update_gizmo();
-	_change_notify("inner_radius");
 }
 
 float CSGTorus3D::get_inner_radius() const {
@@ -1622,7 +1612,6 @@ void CSGTorus3D::set_outer_radius(const float p_outer_radius) {
 	outer_radius = p_outer_radius;
 	_make_dirty();
 	update_gizmo();
-	_change_notify("outer_radius");
 }
 
 float CSGTorus3D::get_outer_radius() const {
@@ -1891,8 +1880,8 @@ CSGBrush *CSGPolygon3D::_build_brush() {
 					float inci = float(i) / spin_sides;
 					float inci_n = float((i + 1)) / spin_sides;
 
-					float angi = -(inci * spin_degrees / 360.0) * Math_PI * 2.0;
-					float angi_n = -(inci_n * spin_degrees / 360.0) * Math_PI * 2.0;
+					float angi = -Math::deg2rad(inci * spin_degrees);
+					float angi_n = -Math::deg2rad(inci_n * spin_degrees);
 
 					Vector3 normali = Vector3(Math::cos(angi), 0, Math::sin(angi));
 					Vector3 normali_n = Vector3(Math::cos(angi_n), 0, Math::sin(angi_n));
@@ -2269,7 +2258,7 @@ void CSGPolygon3D::set_mode(Mode p_mode) {
 	mode = p_mode;
 	_make_dirty();
 	update_gizmo();
-	_change_notify();
+	notify_property_list_changed();
 }
 
 CSGPolygon3D::Mode CSGPolygon3D::get_mode() const {

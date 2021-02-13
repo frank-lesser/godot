@@ -158,7 +158,7 @@ float AnimationNode::blend_input(int p_input, float p_time, bool p_seek, float p
 	Ref<AnimationNode> node = blend_tree->get_node(node_name);
 
 	//inputs.write[p_input].last_pass = state->last_pass;
-	float activity = 0;
+	float activity = 0.0;
 	float ret = _blend_node(node_name, blend_tree->get_node_connection_array(node_name), nullptr, node, p_time, p_seek, p_blend, p_filter, p_optimize, &activity);
 
 	Vector<AnimationTree::Activity> *activity_ptr = state->tree->input_activity_map.getptr(base_path);
@@ -441,9 +441,6 @@ void AnimationNode::_bind_methods() {
 }
 
 AnimationNode::AnimationNode() {
-	state = nullptr;
-	parent = nullptr;
-	filter_enabled = false;
 }
 
 ////////////////////
@@ -820,6 +817,7 @@ void AnimationTree::_process_graph(float p_delta) {
 			Ref<Animation> a = as.animation;
 			float time = as.time;
 			float delta = as.delta;
+			float weight = as.blend;
 			bool seeked = as.seeked;
 
 			for (int i = 0; i < a->get_track_count(); i++) {
@@ -839,7 +837,7 @@ void AnimationTree::_process_graph(float p_delta) {
 
 				ERR_CONTINUE(blend_idx < 0 || blend_idx >= state.track_count);
 
-				float blend = (*as.track_blends)[blend_idx];
+				float blend = (*as.track_blends)[blend_idx] * weight;
 
 				if (blend < CMP_EPSILON) {
 					continue; //nothing to blend
@@ -1396,7 +1394,7 @@ void AnimationTree::_update_properties() {
 
 	properties_dirty = false;
 
-	_change_notify();
+	notify_property_list_changed();
 }
 
 bool AnimationTree::_set(const StringName &p_name, const Variant &p_value) {
@@ -1406,9 +1404,6 @@ bool AnimationTree::_set(const StringName &p_name, const Variant &p_value) {
 
 	if (property_map.has(p_name)) {
 		property_map[p_name] = p_value;
-#ifdef TOOLS_ENABLED
-		_change_notify(p_name.operator String().utf8().get_data());
-#endif
 		return true;
 	}
 
@@ -1506,13 +1501,6 @@ void AnimationTree::_bind_methods() {
 }
 
 AnimationTree::AnimationTree() {
-	process_mode = ANIMATION_PROCESS_IDLE;
-	active = false;
-	cache_valid = false;
-	setup_pass = 1;
-	process_pass = 1;
-	started = true;
-	properties_dirty = true;
 }
 
 AnimationTree::~AnimationTree() {

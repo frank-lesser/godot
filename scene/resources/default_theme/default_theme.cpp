@@ -43,7 +43,7 @@
 typedef Map<const void *, Ref<ImageTexture>> TexCacheMap;
 
 static TexCacheMap *tex_cache;
-static float scale = 1;
+static float scale = 1.0;
 
 template <class T>
 static Ref<StyleBoxTexture> make_stylebox(T p_src, float p_left, float p_top, float p_right, float p_bottom, float p_margin_left = -1, float p_margin_top = -1, float p_margin_right = -1, float p_margin_bottom = -1, bool p_draw_center = true) {
@@ -394,7 +394,7 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_color("clear_button_color", "LineEdit", control_font_color);
 	theme->set_color("clear_button_color_pressed", "LineEdit", control_font_pressed_color);
 
-	theme->set_constant("minimum_spaces", "LineEdit", 12 * scale);
+	theme->set_constant("minimum_character_width", "LineEdit", 4);
 
 	theme->set_icon("clear", "LineEdit", make_icon(line_edit_clear_png));
 

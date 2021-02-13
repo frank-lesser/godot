@@ -219,7 +219,7 @@ StringName GDScript::get_instance_base_type() const {
 }
 
 struct _GDScriptMemberSort {
-	int index;
+	int index = 0;
 	StringName name;
 	_FORCE_INLINE_ bool operator<(const _GDScriptMemberSort &p_member) const { return index < p_member.index; }
 };
@@ -1162,17 +1162,6 @@ String GDScript::_get_gdscript_reference_class_name(const GDScript *p_gdscript) 
 
 GDScript::GDScript() :
 		script_list(this) {
-	valid = false;
-	subclass_count = 0;
-	initializer = nullptr;
-	_base = nullptr;
-	_owner = nullptr;
-	tool = false;
-#ifdef TOOLS_ENABLED
-	source_changed_cache = false;
-	placeholder_fallback_enabled = false;
-#endif
-
 #ifdef DEBUG_ENABLED
 	{
 		MutexLock lock(GDScriptLanguage::get_singleton()->lock);
@@ -2327,7 +2316,7 @@ Ref<GDScript> GDScriptLanguage::get_orphan_subclass(const String &p_qualified_na
 
 /*************** RESOURCE ***************/
 
-RES ResourceFormatLoaderGDScript::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, bool p_no_cache) {
+RES ResourceFormatLoaderGDScript::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	if (r_error) {
 		*r_error = ERR_FILE_CANT_OPEN;
 	}

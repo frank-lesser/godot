@@ -46,7 +46,7 @@ enum PVRFLags {
 	PVR_VFLIP = 0x00010000
 };
 
-RES ResourceFormatPVR::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, bool p_no_cache) {
+RES ResourceFormatPVR::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	if (r_error) {
 		*r_error = ERR_CANT_OPEN;
 	}
@@ -207,7 +207,7 @@ ResourceFormatPVR::ResourceFormatPVR() {
 
 struct PVRTCBlock {
 	//blocks are 64 bits
-	uint32_t data[2];
+	uint32_t data[2] = {};
 };
 
 _FORCE_INLINE_ bool is_po2(uint32_t p_input) {

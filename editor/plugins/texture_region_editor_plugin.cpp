@@ -480,20 +480,41 @@ void TextureRegionEditor::_region_input(const Ref<InputEvent> &p_input) {
 			Vector2 dragged(mm->get_relative().x / draw_zoom, mm->get_relative().y / draw_zoom);
 			hscroll->set_value(hscroll->get_value() - dragged.x);
 			vscroll->set_value(vscroll->get_value() - dragged.y);
-
 		} else if (drag) {
 			if (edited_margin >= 0) {
 				float new_margin = 0;
-				if (edited_margin == 0) {
-					new_margin = prev_margin + (mm->get_position().y - drag_from.y) / draw_zoom;
-				} else if (edited_margin == 1) {
-					new_margin = prev_margin - (mm->get_position().y - drag_from.y) / draw_zoom;
-				} else if (edited_margin == 2) {
-					new_margin = prev_margin + (mm->get_position().x - drag_from.x) / draw_zoom;
-				} else if (edited_margin == 3) {
-					new_margin = prev_margin - (mm->get_position().x - drag_from.x) / draw_zoom;
+
+				if (snap_mode != SNAP_GRID) {
+					if (edited_margin == 0) {
+						new_margin = prev_margin + (mm->get_position().y - drag_from.y) / draw_zoom;
+					} else if (edited_margin == 1) {
+						new_margin = prev_margin - (mm->get_position().y - drag_from.y) / draw_zoom;
+					} else if (edited_margin == 2) {
+						new_margin = prev_margin + (mm->get_position().x - drag_from.x) / draw_zoom;
+					} else if (edited_margin == 3) {
+						new_margin = prev_margin - (mm->get_position().x - drag_from.x) / draw_zoom;
+					} else {
+						ERR_PRINT("Unexpected edited_margin");
+					}
+
+					if (snap_mode == SNAP_PIXEL) {
+						new_margin = Math::round(new_margin);
+					}
 				} else {
-					ERR_PRINT("Unexpected edited_margin");
+					Vector2 pos_snapped = snap_point(mtx.affine_inverse().xform(mm->get_position()));
+					Rect2 rect_rounded = Rect2(rect.position.round(), rect.size.round());
+
+					if (edited_margin == 0) {
+						new_margin = pos_snapped.y - rect_rounded.position.y;
+					} else if (edited_margin == 1) {
+						new_margin = rect_rounded.size.y + rect_rounded.position.y - pos_snapped.y;
+					} else if (edited_margin == 2) {
+						new_margin = pos_snapped.x - rect_rounded.position.x;
+					} else if (edited_margin == 3) {
+						new_margin = rect_rounded.size.x + rect_rounded.position.x - pos_snapped.x;
+					} else {
+						ERR_PRINT("Unexpected edited_margin");
+					}
 				}
 
 				if (new_margin < 0) {
@@ -842,19 +863,19 @@ Sprite2D *TextureRegionEditor::get_sprite() {
 
 void TextureRegionEditor::edit(Object *p_obj) {
 	if (node_sprite) {
-		node_sprite->remove_change_receptor(this);
+		node_sprite->disconnect("changed", callable_mp(this, &TextureRegionEditor::_texture_changed));
 	}
 	if (node_sprite_3d) {
-		node_sprite_3d->remove_change_receptor(this);
+		node_sprite_3d->disconnect("changed", callable_mp(this, &TextureRegionEditor::_texture_changed));
 	}
 	if (node_ninepatch) {
-		node_ninepatch->remove_change_receptor(this);
+		node_ninepatch->disconnect("changed", callable_mp(this, &TextureRegionEditor::_texture_changed));
 	}
 	if (obj_styleBox.is_valid()) {
-		obj_styleBox->remove_change_receptor(this);
+		obj_styleBox->disconnect("changed", callable_mp(this, &TextureRegionEditor::_texture_changed));
 	}
 	if (atlas_tex.is_valid()) {
-		atlas_tex->remove_change_receptor(this);
+		atlas_tex->disconnect("changed", callable_mp(this, &TextureRegionEditor::_texture_changed));
 	}
 	if (p_obj) {
 		node_sprite = Object::cast_to<Sprite2D>(p_obj);
@@ -866,7 +887,7 @@ void TextureRegionEditor::edit(Object *p_obj) {
 		if (Object::cast_to<AtlasTexture>(p_obj)) {
 			atlas_tex = Ref<AtlasTexture>(Object::cast_to<AtlasTexture>(p_obj));
 		}
-		p_obj->add_change_receptor(this);
+		p_obj->connect("changed", callable_mp(this, &TextureRegionEditor::_texture_changed));
 		_edit_region();
 	} else {
 		node_sprite = nullptr;
@@ -884,14 +905,11 @@ void TextureRegionEditor::edit(Object *p_obj) {
 	}
 }
 
-void TextureRegionEditor::_changed_callback(Object *p_changed, const char *p_prop) {
+void TextureRegionEditor::_texture_changed() {
 	if (!is_visible()) {
 		return;
 	}
-	String prop = p_prop;
-	if (prop == "atlas" || prop == "texture" || prop == "region") {
-		_edit_region();
-	}
+	_edit_region();
 }
 
 void TextureRegionEditor::_edit_region() {

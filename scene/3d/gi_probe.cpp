@@ -91,7 +91,7 @@ Dictionary GIProbeData::_get_data() const {
 }
 
 void GIProbeData::allocate(const Transform &p_to_cell_xform, const AABB &p_aabb, const Vector3 &p_octree_size, const Vector<uint8_t> &p_octree_cells, const Vector<uint8_t> &p_data_cells, const Vector<uint8_t> &p_distance_field, const Vector<int> &p_level_counts) {
-	RS::get_singleton()->gi_probe_allocate(probe, p_to_cell_xform, p_aabb, p_octree_size, p_octree_cells, p_data_cells, p_distance_field, p_level_counts);
+	RS::get_singleton()->gi_probe_allocate_data(probe, p_to_cell_xform, p_aabb, p_octree_size, p_octree_cells, p_data_cells, p_distance_field, p_level_counts);
 	bounds = p_aabb;
 	to_cell_xform = p_to_cell_xform;
 	octree_size = p_octree_size;
@@ -286,17 +286,6 @@ void GIProbeData::_bind_methods() {
 }
 
 GIProbeData::GIProbeData() {
-	ao = 0.0;
-	ao_size = 0.5;
-	dynamic_range = 4;
-	energy = 1.0;
-	bias = 1.5;
-	normal_bias = 0.0;
-	propagation = 0.7;
-	anisotropy_strength = 0.5;
-	interior = false;
-	use_two_bounces = false;
-
 	probe = RS::get_singleton()->gi_probe_create();
 }
 
@@ -334,7 +323,6 @@ GIProbe::Subdiv GIProbe::get_subdiv() const {
 void GIProbe::set_extents(const Vector3 &p_extents) {
 	extents = p_extents;
 	update_gizmo();
-	_change_notify("extents");
 }
 
 Vector3 GIProbe::get_extents() const {
@@ -497,7 +485,7 @@ void GIProbe::bake(Node *p_from_node, bool p_create_visual_debug) {
 		bake_end_function();
 	}
 
-	_change_notify(); //bake property may have changed
+	notify_property_list_changed(); //bake property may have changed
 }
 
 void GIProbe::_debug_bake() {
@@ -553,9 +541,6 @@ void GIProbe::_bind_methods() {
 }
 
 GIProbe::GIProbe() {
-	subdiv = SUBDIV_128;
-	extents = Vector3(10, 10, 10);
-
 	gi_probe = RS::get_singleton()->gi_probe_create();
 	set_disable_scale(true);
 }

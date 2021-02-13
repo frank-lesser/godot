@@ -95,7 +95,7 @@ void MeshInstance3D::_get_property_list(List<PropertyInfo> *p_list) const {
 	ls.sort();
 
 	for (List<String>::Element *E = ls.front(); E; E = E->next()) {
-		p_list->push_back(PropertyInfo(Variant::FLOAT, E->get(), PROPERTY_HINT_RANGE, "0,1,0.00001"));
+		p_list->push_back(PropertyInfo(Variant::FLOAT, E->get(), PROPERTY_HINT_RANGE, "-1,1,0.00001"));
 	}
 
 	if (mesh.is_valid()) {
@@ -135,7 +135,7 @@ void MeshInstance3D::set_mesh(const Ref<Mesh> &p_mesh) {
 
 	update_gizmo();
 
-	_change_notify();
+	notify_property_list_changed();
 }
 
 Ref<Mesh> MeshInstance3D::get_mesh() const {
@@ -152,7 +152,7 @@ void MeshInstance3D::_resolve_skeleton_path() {
 			if (skin_internal.is_null()) {
 				//a skin was created for us
 				skin_internal = new_skin_reference->get_skin();
-				_change_notify();
+				notify_property_list_changed();
 			}
 		}
 	}
@@ -428,7 +428,6 @@ void MeshInstance3D::_bind_methods() {
 }
 
 MeshInstance3D::MeshInstance3D() {
-	skeleton_path = NodePath("..");
 }
 
 MeshInstance3D::~MeshInstance3D() {

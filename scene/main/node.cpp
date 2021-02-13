@@ -367,8 +367,6 @@ void Node::set_physics_process(bool p_process) {
 	} else {
 		remove_from_group("physics_process");
 	}
-
-	_change_notify("physics_process");
 }
 
 bool Node::is_physics_processing() const {
@@ -387,8 +385,6 @@ void Node::set_physics_process_internal(bool p_process_internal) {
 	} else {
 		remove_from_group("physics_process_internal");
 	}
-
-	_change_notify("physics_process_internal");
 }
 
 bool Node::is_physics_processing_internal() const {
@@ -466,7 +462,7 @@ uint16_t Node::rpc_config(const StringName &p_method, MultiplayerAPI::RPCMode p_
 		nd.name = p_method;
 		nd.mode = p_mode;
 		data.rpc_methods.push_back(nd);
-		return ((uint16_t)data.rpc_properties.size() - 1) | (1 << 15);
+		return ((uint16_t)data.rpc_methods.size() - 1) | (1 << 15);
 	} else {
 		int c_mid = (~(1 << 15)) & mid;
 		data.rpc_methods.write[c_mid].mode = p_mode;
@@ -555,7 +551,7 @@ Variant Node::_rpc_bind(const Variant **p_args, int p_argcount, Callable::CallEr
 		return Variant();
 	}
 
-	if (p_args[0]->get_type() != Variant::STRING) {
+	if (p_args[0]->get_type() != Variant::STRING_NAME) {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
 		r_error.expected = Variant::STRING;
@@ -584,7 +580,7 @@ Variant Node::_rpc_id_bind(const Variant **p_args, int p_argcount, Callable::Cal
 		return Variant();
 	}
 
-	if (p_args[1]->get_type() != Variant::STRING) {
+	if (p_args[1]->get_type() != Variant::STRING_NAME) {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 1;
 		r_error.expected = Variant::STRING;
@@ -607,7 +603,7 @@ Variant Node::_rpc_unreliable_bind(const Variant **p_args, int p_argcount, Calla
 		return Variant();
 	}
 
-	if (p_args[0]->get_type() != Variant::STRING) {
+	if (p_args[0]->get_type() != Variant::STRING_NAME) {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 0;
 		r_error.expected = Variant::STRING;
@@ -636,7 +632,7 @@ Variant Node::_rpc_unreliable_id_bind(const Variant **p_args, int p_argcount, Ca
 		return Variant();
 	}
 
-	if (p_args[1]->get_type() != Variant::STRING) {
+	if (p_args[1]->get_type() != Variant::STRING_NAME) {
 		r_error.error = Callable::CallError::CALL_ERROR_INVALID_ARGUMENT;
 		r_error.argument = 1;
 		r_error.expected = Variant::STRING;
@@ -863,8 +859,6 @@ void Node::set_process(bool p_process) {
 	} else {
 		remove_from_group("process");
 	}
-
-	_change_notify("process");
 }
 
 bool Node::is_processing() const {
@@ -883,8 +877,6 @@ void Node::set_process_internal(bool p_process_internal) {
 	} else {
 		remove_from_group("process_internal");
 	}
-
-	_change_notify("process_internal");
 }
 
 bool Node::is_processing_internal() const {
@@ -2146,7 +2138,16 @@ Node *Node::duplicate(int p_flags) const {
 
 #ifdef TOOLS_ENABLED
 Node *Node::duplicate_from_editor(Map<const Node *, Node *> &r_duplimap) const {
+	return duplicate_from_editor(r_duplimap, Map<RES, RES>());
+}
+
+Node *Node::duplicate_from_editor(Map<const Node *, Node *> &r_duplimap, const Map<RES, RES> &p_resource_remap) const {
 	Node *dupe = _duplicate(DUPLICATE_SIGNALS | DUPLICATE_GROUPS | DUPLICATE_SCRIPTS | DUPLICATE_USE_INSTANCING | DUPLICATE_FROM_EDITOR, &r_duplimap);
+
+	// This is used by SceneTreeDock's paste functionality. When pasting to foreign scene, resources are duplicated.
+	if (!p_resource_remap.is_empty()) {
+		remap_node_resources(dupe, p_resource_remap);
+	}
 
 	// Duplication of signals must happen after all the node descendants have been copied,
 	// because re-targeting of connections from some descendant to another is not possible
@@ -2154,6 +2155,54 @@ Node *Node::duplicate_from_editor(Map<const Node *, Node *> &r_duplimap) const {
 	_duplicate_signals(this, dupe);
 
 	return dupe;
+}
+
+void Node::remap_node_resources(Node *p_node, const Map<RES, RES> &p_resource_remap) const {
+	List<PropertyInfo> props;
+	p_node->get_property_list(&props);
+
+	for (List<PropertyInfo>::Element *E = props.front(); E; E = E->next()) {
+		if (!(E->get().usage & PROPERTY_USAGE_STORAGE)) {
+			continue;
+		}
+
+		Variant v = p_node->get(E->get().name);
+		if (v.is_ref()) {
+			RES res = v;
+			if (res.is_valid()) {
+				if (p_resource_remap.has(res)) {
+					p_node->set(E->get().name, p_resource_remap[res]);
+					remap_nested_resources(res, p_resource_remap);
+				}
+			}
+		}
+	}
+
+	for (int i = 0; i < p_node->get_child_count(); i++) {
+		remap_node_resources(p_node->get_child(i), p_resource_remap);
+	}
+}
+
+void Node::remap_nested_resources(RES p_resource, const Map<RES, RES> &p_resource_remap) const {
+	List<PropertyInfo> props;
+	p_resource->get_property_list(&props);
+
+	for (List<PropertyInfo>::Element *E = props.front(); E; E = E->next()) {
+		if (!(E->get().usage & PROPERTY_USAGE_STORAGE)) {
+			continue;
+		}
+
+		Variant v = p_resource->get(E->get().name);
+		if (v.is_ref()) {
+			RES res = v;
+			if (res.is_valid()) {
+				if (p_resource_remap.has(res)) {
+					p_resource->set(E->get().name, p_resource_remap[res]);
+					remap_nested_resources(res, p_resource_remap);
+				}
+			}
+		}
+	}
 }
 #endif
 
@@ -2332,12 +2381,7 @@ static void find_owned_by(Node *p_by, Node *p_node, List<Node *> *p_owned) {
 	}
 }
 
-struct _NodeReplaceByPair {
-	String name;
-	Variant value;
-};
-
-void Node::replace_by(Node *p_node, bool p_keep_data) {
+void Node::replace_by(Node *p_node, bool p_keep_groups) {
 	ERR_FAIL_NULL(p_node);
 	ERR_FAIL_COND(p_node->data.parent);
 
@@ -2345,21 +2389,7 @@ void Node::replace_by(Node *p_node, bool p_keep_data) {
 	List<Node *> owned_by_owner;
 	Node *owner = (data.owner == this) ? p_node : data.owner;
 
-	List<_NodeReplaceByPair> replace_data;
-
-	if (p_keep_data) {
-		List<PropertyInfo> plist;
-		get_property_list(&plist);
-
-		for (List<PropertyInfo>::Element *E = plist.front(); E; E = E->next()) {
-			_NodeReplaceByPair rd;
-			if (!(E->get().usage & PROPERTY_USAGE_STORAGE)) {
-				continue;
-			}
-			rd.name = E->get().name;
-			rd.value = get(rd.name);
-		}
-
+	if (p_keep_groups) {
 		List<GroupInfo> groups;
 		get_groups(&groups);
 
@@ -2404,10 +2434,6 @@ void Node::replace_by(Node *p_node, bool p_keep_data) {
 	}
 
 	p_node->set_filename(get_filename());
-
-	for (List<_NodeReplaceByPair>::Element *E = replace_data.front(); E; E = E->next()) {
-		p_node->set(E->get().name, E->get().value);
-	}
 }
 
 void Node::_replace_connections_target(Node *p_new_target) {
@@ -2774,7 +2800,7 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_tree"), &Node::get_tree);
 
 	ClassDB::bind_method(D_METHOD("duplicate", "flags"), &Node::duplicate, DEFVAL(DUPLICATE_USE_INSTANCING | DUPLICATE_SIGNALS | DUPLICATE_GROUPS | DUPLICATE_SCRIPTS));
-	ClassDB::bind_method(D_METHOD("replace_by", "node", "keep_data"), &Node::replace_by, DEFVAL(false));
+	ClassDB::bind_method(D_METHOD("replace_by", "node", "keep_groups"), &Node::replace_by, DEFVAL(false));
 
 	ClassDB::bind_method(D_METHOD("set_scene_instance_load_placeholder", "load_placeholder"), &Node::set_scene_instance_load_placeholder);
 	ClassDB::bind_method(D_METHOD("get_scene_instance_load_placeholder"), &Node::get_scene_instance_load_placeholder);

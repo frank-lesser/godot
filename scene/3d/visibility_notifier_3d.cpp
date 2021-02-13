@@ -69,7 +69,6 @@ void VisibilityNotifier3D::set_aabb(const AABB &p_aabb) {
 		get_world_3d()->_update_notifier(this, get_global_transform().xform(aabb));
 	}
 
-	_change_notify("aabb");
 	update_gizmo();
 }
 
@@ -112,7 +111,6 @@ void VisibilityNotifier3D::_bind_methods() {
 }
 
 VisibilityNotifier3D::VisibilityNotifier3D() {
-	aabb = AABB(Vector3(-1, -1, -1), Vector3(2, 2, 2));
 	set_notify_transform(true);
 }
 
@@ -252,6 +250,4 @@ VisibilityEnabler3D::VisibilityEnabler3D() {
 	for (int i = 0; i < ENABLER_MAX; i++) {
 		enabler[i] = true;
 	}
-
-	visible = false;
 }

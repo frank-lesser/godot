@@ -93,7 +93,7 @@ EM_BOOL DisplayServerJavaScript::fullscreen_change_callback(int p_event_type, co
 	DisplayServerJavaScript *display = get_singleton();
 	// Empty ID is canvas.
 	String target_id = String::utf8(p_event->id);
-	if (target_id.is_empty() || target_id == String::utf8(display->canvas_id)) {
+	if (target_id.is_empty() || target_id == String::utf8(&(display->canvas_id[1]))) {
 		// This event property is the only reliable data on
 		// browser fullscreen state.
 		if (p_event->isFullscreen) {
@@ -455,7 +455,7 @@ DisplayServer::MouseMode DisplayServerJavaScript::mouse_get_mode() const {
 
 	EmscriptenPointerlockChangeEvent ev;
 	emscripten_get_pointerlock_status(&ev);
-	return (ev.isActive && String::utf8(ev.id) == String::utf8(canvas_id)) ? MOUSE_MODE_CAPTURED : MOUSE_MODE_VISIBLE;
+	return (ev.isActive && String::utf8(ev.id) == String::utf8(&canvas_id[1])) ? MOUSE_MODE_CAPTURED : MOUSE_MODE_VISIBLE;
 }
 
 // Wheel
@@ -703,6 +703,9 @@ DisplayServerJavaScript::DisplayServerJavaScript(const String &p_rendering_drive
 	// Ensure the canvas ID.
 	godot_js_config_canvas_id_get(canvas_id, 256);
 
+	// Handle contextmenu, webglcontextlost
+	godot_js_display_setup_canvas();
+
 	// Check if it's windows.
 	swap_cancel_ok = godot_js_display_is_swap_ok_cancel() == 1;
 
@@ -842,7 +845,8 @@ Size2i DisplayServerJavaScript::screen_get_size(int p_screen) const {
 	EmscriptenFullscreenChangeEvent ev;
 	EMSCRIPTEN_RESULT result = emscripten_get_fullscreen_status(&ev);
 	ERR_FAIL_COND_V(result != EMSCRIPTEN_RESULT_SUCCESS, Size2i());
-	return Size2i(ev.screenWidth, ev.screenHeight);
+	double scale = godot_js_display_pixel_ratio_get();
+	return Size2i(ev.screenWidth * scale, ev.screenHeight * scale);
 }
 
 Rect2i DisplayServerJavaScript::screen_get_usable_rect(int p_screen) const {
@@ -852,7 +856,11 @@ Rect2i DisplayServerJavaScript::screen_get_usable_rect(int p_screen) const {
 }
 
 int DisplayServerJavaScript::screen_get_dpi(int p_screen) const {
-	return 96; // TODO maybe check pixel ratio via window.devicePixelRatio * 96? Inexact.
+	return godot_js_display_screen_dpi_get();
+}
+
+float DisplayServerJavaScript::screen_get_scale(int p_screen) const {
+	return godot_js_display_pixel_ratio_get();
 }
 
 Vector<DisplayServer::WindowID> DisplayServerJavaScript::get_window_list() const {

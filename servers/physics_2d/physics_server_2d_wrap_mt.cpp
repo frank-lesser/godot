@@ -113,19 +113,6 @@ void PhysicsServer2DWrapMT::finish() {
 	} else {
 		physics_2d_server->finish();
 	}
-
-	line_shape_free_cached_ids();
-	ray_shape_free_cached_ids();
-	segment_shape_free_cached_ids();
-	circle_shape_free_cached_ids();
-	rectangle_shape_free_cached_ids();
-	capsule_shape_free_cached_ids();
-	convex_polygon_shape_free_cached_ids();
-	concave_polygon_shape_free_cached_ids();
-
-	space_free_cached_ids();
-	area_free_cached_ids();
-	body_free_cached_ids();
 }
 
 PhysicsServer2DWrapMT::PhysicsServer2DWrapMT(PhysicsServer2D *p_contained, bool p_create_thread) :

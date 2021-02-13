@@ -130,11 +130,6 @@ void AnimationNodeStateMachineTransition::_bind_methods() {
 }
 
 AnimationNodeStateMachineTransition::AnimationNodeStateMachineTransition() {
-	switch_mode = SWITCH_MODE_IMMEDIATE;
-	auto_advance = false;
-	xfade = 0;
-	disabled = false;
-	priority = 1;
 }
 
 ////////////////////////////////////////////////////////
@@ -398,7 +393,7 @@ float AnimationNodeStateMachinePlayback::process(AnimationNodeStateMachine *p_st
 
 	//find next
 	StringName next;
-	float next_xfade = 0;
+	float next_xfade = 0.0;
 	AnimationNodeStateMachineTransition::SwitchMode switch_mode = AnimationNodeStateMachineTransition::SWITCH_MODE_IMMEDIATE;
 
 	if (path.size()) {
@@ -502,16 +497,6 @@ void AnimationNodeStateMachinePlayback::_bind_methods() {
 
 AnimationNodeStateMachinePlayback::AnimationNodeStateMachinePlayback() {
 	set_local_to_scene(true); //only one per instanced scene
-
-	playing = false;
-	len_current = 0;
-	fading_time = 0;
-	stop_request = false;
-	len_total = 0.0;
-	pos_current = 0.0;
-	loops_current = 0;
-	fading_pos = 0.0;
-	start_request_travel = false;
 }
 
 ///////////////////////////////////////////////////////
@@ -929,6 +914,18 @@ void AnimationNodeStateMachine::_get_property_list(List<PropertyInfo> *p_list) c
 	p_list->push_back(PropertyInfo(Variant::VECTOR2, "graph_offset", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NOEDITOR));
 }
 
+void AnimationNodeStateMachine::reset_state() {
+	states.clear();
+	transitions.clear();
+	playback = "playback";
+	start_node = StringName();
+	end_node = StringName();
+	graph_offset = Vector2();
+
+	emit_changed();
+	emit_signal("tree_changed");
+}
+
 void AnimationNodeStateMachine::set_node_position(const StringName &p_name, const Vector2 &p_position) {
 	ERR_FAIL_COND(!states.has(p_name));
 	states[p_name].position = p_position;
@@ -975,5 +972,4 @@ void AnimationNodeStateMachine::_bind_methods() {
 }
 
 AnimationNodeStateMachine::AnimationNodeStateMachine() {
-	playback = "playback";
 }

@@ -51,7 +51,7 @@ Vector3 PhysicsBody3D::get_angular_velocity() const {
 	return Vector3();
 }
 
-float PhysicsBody3D::get_inverse_mass() const {
+real_t PhysicsBody3D::get_inverse_mass() const {
 	return 0;
 }
 
@@ -148,7 +148,8 @@ void PhysicsBody3D::_bind_methods() {
 }
 
 PhysicsBody3D::PhysicsBody3D(PhysicsServer3D::BodyMode p_mode) :
-		CollisionObject3D(PhysicsServer3D::get_singleton()->body_create(p_mode), false) {
+		CollisionObject3D(PhysicsServer3D::get_singleton()->body_create(), false) {
+	PhysicsServer3D::get_singleton()->body_set_mode(get_rid(), p_mode);
 	collision_layer = 1;
 	collision_mask = 1;
 }
@@ -330,8 +331,8 @@ void RigidBody3D::_body_inout(int p_status, ObjectID p_instance, int p_body_shap
 
 struct _RigidBodyInOut {
 	ObjectID id;
-	int shape;
-	int local_shape;
+	int shape = 0;
+	int local_shape = 0;
 };
 
 void RigidBody3D::_direct_state_changed(Object *p_state) {
@@ -825,24 +826,6 @@ void RigidBody3D::_bind_methods() {
 
 RigidBody3D::RigidBody3D() :
 		PhysicsBody3D(PhysicsServer3D::BODY_MODE_RIGID) {
-	mode = MODE_RIGID;
-
-	mass = 1;
-	max_contacts_reported = 0;
-	state = nullptr;
-
-	gravity_scale = 1;
-	linear_damp = -1;
-	angular_damp = -1;
-
-	//angular_velocity=0;
-	sleeping = false;
-	ccd = false;
-
-	custom_integrator = false;
-	contact_monitor = nullptr;
-	can_sleep = true;
-
 	PhysicsServer3D::get_singleton()->body_set_force_integration_callback(get_rid(), this, "_direct_state_changed");
 }
 
@@ -924,7 +907,7 @@ bool KinematicBody3D::move_and_collide(const Vector3 &p_motion, bool p_infinite_
 //so, if you pass 45 as limit, avoid numerical precision errors when angle is 45.
 #define FLOOR_ANGLE_THRESHOLD 0.01
 
-Vector3 KinematicBody3D::move_and_slide(const Vector3 &p_linear_velocity, const Vector3 &p_up_direction, bool p_stop_on_slope, int p_max_slides, float p_floor_max_angle, bool p_infinite_inertia) {
+Vector3 KinematicBody3D::move_and_slide(const Vector3 &p_linear_velocity, const Vector3 &p_up_direction, bool p_stop_on_slope, int p_max_slides, real_t p_floor_max_angle, bool p_infinite_inertia) {
 	Vector3 body_velocity = p_linear_velocity;
 	Vector3 body_velocity_normal = body_velocity.normalized();
 	Vector3 up_direction = p_up_direction.normalized();
@@ -1018,7 +1001,7 @@ Vector3 KinematicBody3D::move_and_slide(const Vector3 &p_linear_velocity, const 
 	return body_velocity;
 }
 
-Vector3 KinematicBody3D::move_and_slide_with_snap(const Vector3 &p_linear_velocity, const Vector3 &p_snap, const Vector3 &p_up_direction, bool p_stop_on_slope, int p_max_slides, float p_floor_max_angle, bool p_infinite_inertia) {
+Vector3 KinematicBody3D::move_and_slide_with_snap(const Vector3 &p_linear_velocity, const Vector3 &p_snap, const Vector3 &p_up_direction, bool p_stop_on_slope, int p_max_slides, real_t p_floor_max_angle, bool p_infinite_inertia) {
 	Vector3 up_direction = p_up_direction.normalized();
 	bool was_on_floor = on_floor;
 
@@ -1090,7 +1073,7 @@ bool KinematicBody3D::separate_raycast_shapes(bool p_infinite_inertia, Collision
 	Vector3 recover;
 	int hits = PhysicsServer3D::get_singleton()->body_test_ray_separation(get_rid(), gt, p_infinite_inertia, recover, sep_res, 8, margin);
 	int deepest = -1;
-	float deepest_depth;
+	real_t deepest_depth;
 	for (int i = 0; i < hits; i++) {
 		if (deepest == -1 || sep_res[i].collision_depth > deepest_depth) {
 			deepest = i;
@@ -1131,12 +1114,12 @@ bool KinematicBody3D::get_axis_lock(PhysicsServer3D::BodyAxis p_axis) const {
 	return PhysicsServer3D::get_singleton()->body_is_axis_locked(get_rid(), p_axis);
 }
 
-void KinematicBody3D::set_safe_margin(float p_margin) {
+void KinematicBody3D::set_safe_margin(real_t p_margin) {
 	margin = p_margin;
 	PhysicsServer3D::get_singleton()->body_set_kinematic_safe_margin(get_rid(), margin);
 }
 
-float KinematicBody3D::get_safe_margin() const {
+real_t KinematicBody3D::get_safe_margin() const {
 	return margin;
 }
 
@@ -1180,8 +1163,8 @@ void KinematicBody3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("_direct_state_changed"), &KinematicBody3D::_direct_state_changed);
 
 	ClassDB::bind_method(D_METHOD("move_and_collide", "rel_vec", "infinite_inertia", "exclude_raycast_shapes", "test_only"), &KinematicBody3D::_move, DEFVAL(true), DEFVAL(true), DEFVAL(false));
-	ClassDB::bind_method(D_METHOD("move_and_slide", "linear_velocity", "up_direction", "stop_on_slope", "max_slides", "floor_max_angle", "infinite_inertia"), &KinematicBody3D::move_and_slide, DEFVAL(Vector3(0, 0, 0)), DEFVAL(false), DEFVAL(4), DEFVAL(Math::deg2rad((float)45)), DEFVAL(true));
-	ClassDB::bind_method(D_METHOD("move_and_slide_with_snap", "linear_velocity", "snap", "up_direction", "stop_on_slope", "max_slides", "floor_max_angle", "infinite_inertia"), &KinematicBody3D::move_and_slide_with_snap, DEFVAL(Vector3(0, 0, 0)), DEFVAL(false), DEFVAL(4), DEFVAL(Math::deg2rad((float)45)), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("move_and_slide", "linear_velocity", "up_direction", "stop_on_slope", "max_slides", "floor_max_angle", "infinite_inertia"), &KinematicBody3D::move_and_slide, DEFVAL(Vector3(0, 0, 0)), DEFVAL(false), DEFVAL(4), DEFVAL(Math::deg2rad((real_t)45.0)), DEFVAL(true));
+	ClassDB::bind_method(D_METHOD("move_and_slide_with_snap", "linear_velocity", "snap", "up_direction", "stop_on_slope", "max_slides", "floor_max_angle", "infinite_inertia"), &KinematicBody3D::move_and_slide_with_snap, DEFVAL(Vector3(0, 0, 0)), DEFVAL(false), DEFVAL(4), DEFVAL(Math::deg2rad((real_t)45.0)), DEFVAL(true));
 
 	ClassDB::bind_method(D_METHOD("test_move", "from", "rel_vec", "infinite_inertia"), &KinematicBody3D::test_move, DEFVAL(true));
 
@@ -1221,11 +1204,6 @@ void KinematicBody3D::_direct_state_changed(Object *p_state) {
 
 KinematicBody3D::KinematicBody3D() :
 		PhysicsBody3D(PhysicsServer3D::BODY_MODE_KINEMATIC) {
-	locked_axis = 0;
-	on_floor = false;
-	on_ceiling = false;
-	on_wall = false;
-
 	set_safe_margin(0.001);
 	PhysicsServer3D::get_singleton()->body_set_force_integration_callback(get_rid(), this, "_direct_state_changed");
 }
@@ -2034,7 +2012,7 @@ void PhysicalBone3D::_notification(int p_what) {
 			update_bone_id();
 			reset_to_rest_position();
 			reset_physics_simulation_state();
-			if (!joint.is_valid() && joint_data) {
+			if (joint_data) {
 				_reload_joint();
 			}
 			break;
@@ -2045,10 +2023,7 @@ void PhysicalBone3D::_notification(int p_what) {
 				}
 			}
 			parent_skeleton = nullptr;
-			if (joint.is_valid()) {
-				PhysicsServer3D::get_singleton()->free(joint);
-				joint = RID();
-			}
+			PhysicsServer3D::get_singleton()->joint_clear(joint);
 			break;
 		case NOTIFICATION_TRANSFORM_CHANGED:
 			if (Engine::get_singleton()->is_editor_hint()) {
@@ -2198,17 +2173,14 @@ void PhysicalBone3D::_fix_joint_offset() {
 }
 
 void PhysicalBone3D::_reload_joint() {
-	if (joint.is_valid()) {
-		PhysicsServer3D::get_singleton()->free(joint);
-		joint = RID();
-	}
-
 	if (!parent_skeleton) {
+		PhysicsServer3D::get_singleton()->joint_clear(joint);
 		return;
 	}
 
 	PhysicalBone3D *body_a = parent_skeleton->get_physical_bone_parent(bone_id);
 	if (!body_a) {
+		PhysicsServer3D::get_singleton()->joint_clear(joint);
 		return;
 	}
 
@@ -2218,7 +2190,7 @@ void PhysicalBone3D::_reload_joint() {
 
 	switch (get_joint_type()) {
 		case JOINT_TYPE_PIN: {
-			joint = PhysicsServer3D::get_singleton()->joint_create_pin(body_a->get_rid(), local_a.origin, get_rid(), joint_offset.origin);
+			PhysicsServer3D::get_singleton()->joint_make_pin(joint, body_a->get_rid(), local_a.origin, get_rid(), joint_offset.origin);
 			const PinJointData *pjd(static_cast<const PinJointData *>(joint_data));
 			PhysicsServer3D::get_singleton()->pin_joint_set_param(joint, PhysicsServer3D::PIN_JOINT_BIAS, pjd->bias);
 			PhysicsServer3D::get_singleton()->pin_joint_set_param(joint, PhysicsServer3D::PIN_JOINT_DAMPING, pjd->damping);
@@ -2226,7 +2198,7 @@ void PhysicalBone3D::_reload_joint() {
 
 		} break;
 		case JOINT_TYPE_CONE: {
-			joint = PhysicsServer3D::get_singleton()->joint_create_cone_twist(body_a->get_rid(), local_a, get_rid(), joint_offset);
+			PhysicsServer3D::get_singleton()->joint_make_cone_twist(joint, body_a->get_rid(), local_a, get_rid(), joint_offset);
 			const ConeJointData *cjd(static_cast<const ConeJointData *>(joint_data));
 			PhysicsServer3D::get_singleton()->cone_twist_joint_set_param(joint, PhysicsServer3D::CONE_TWIST_JOINT_SWING_SPAN, cjd->swing_span);
 			PhysicsServer3D::get_singleton()->cone_twist_joint_set_param(joint, PhysicsServer3D::CONE_TWIST_JOINT_TWIST_SPAN, cjd->twist_span);
@@ -2236,7 +2208,7 @@ void PhysicalBone3D::_reload_joint() {
 
 		} break;
 		case JOINT_TYPE_HINGE: {
-			joint = PhysicsServer3D::get_singleton()->joint_create_hinge(body_a->get_rid(), local_a, get_rid(), joint_offset);
+			PhysicsServer3D::get_singleton()->joint_make_hinge(joint, body_a->get_rid(), local_a, get_rid(), joint_offset);
 			const HingeJointData *hjd(static_cast<const HingeJointData *>(joint_data));
 			PhysicsServer3D::get_singleton()->hinge_joint_set_flag(joint, PhysicsServer3D::HINGE_JOINT_FLAG_USE_LIMIT, hjd->angular_limit_enabled);
 			PhysicsServer3D::get_singleton()->hinge_joint_set_param(joint, PhysicsServer3D::HINGE_JOINT_LIMIT_UPPER, hjd->angular_limit_upper);
@@ -2247,7 +2219,7 @@ void PhysicalBone3D::_reload_joint() {
 
 		} break;
 		case JOINT_TYPE_SLIDER: {
-			joint = PhysicsServer3D::get_singleton()->joint_create_slider(body_a->get_rid(), local_a, get_rid(), joint_offset);
+			PhysicsServer3D::get_singleton()->joint_make_slider(joint, body_a->get_rid(), local_a, get_rid(), joint_offset);
 			const SliderJointData *sjd(static_cast<const SliderJointData *>(joint_data));
 			PhysicsServer3D::get_singleton()->slider_joint_set_param(joint, PhysicsServer3D::SLIDER_JOINT_LINEAR_LIMIT_UPPER, sjd->linear_limit_upper);
 			PhysicsServer3D::get_singleton()->slider_joint_set_param(joint, PhysicsServer3D::SLIDER_JOINT_LINEAR_LIMIT_LOWER, sjd->linear_limit_lower);
@@ -2262,7 +2234,7 @@ void PhysicalBone3D::_reload_joint() {
 
 		} break;
 		case JOINT_TYPE_6DOF: {
-			joint = PhysicsServer3D::get_singleton()->joint_create_generic_6dof(body_a->get_rid(), local_a, get_rid(), joint_offset);
+			PhysicsServer3D::get_singleton()->joint_make_generic_6dof(joint, body_a->get_rid(), local_a, get_rid(), joint_offset);
 			const SixDOFJointData *g6dofjd(static_cast<const SixDOFJointData *>(joint_data));
 			for (int axis = 0; axis < 3; ++axis) {
 				PhysicsServer3D::get_singleton()->generic_6dof_joint_set_flag(joint, static_cast<Vector3::Axis>(axis), PhysicsServer3D::G6DOF_JOINT_FLAG_ENABLE_LINEAR_LIMIT, g6dofjd->axis_data[axis].linear_limit_enabled);
@@ -2355,7 +2327,7 @@ void PhysicalBone3D::set_joint_type(JointType p_joint_type) {
 	_reload_joint();
 
 #ifdef TOOLS_ENABLED
-	_change_notify();
+	notify_property_list_changed();
 	if (get_gizmo().is_valid()) {
 		get_gizmo()->redraw();
 	}
@@ -2370,7 +2342,6 @@ void PhysicalBone3D::set_joint_offset(const Transform &p_offset) {
 	joint_offset = p_offset;
 
 	_update_joint_offset();
-	_change_notify("joint_rotation_degrees");
 }
 
 const Transform &PhysicalBone3D::get_joint_offset() const {
@@ -2381,7 +2352,6 @@ void PhysicalBone3D::set_joint_rotation(const Vector3 &p_euler_rad) {
 	joint_offset.basis.set_euler_scale(p_euler_rad, joint_offset.basis.get_scale());
 
 	_update_joint_offset();
-	_change_notify("joint_offset");
 }
 
 Vector3 PhysicalBone3D::get_joint_rotation() const {
@@ -2389,11 +2359,11 @@ Vector3 PhysicalBone3D::get_joint_rotation() const {
 }
 
 void PhysicalBone3D::set_joint_rotation_degrees(const Vector3 &p_euler_deg) {
-	set_joint_rotation(p_euler_deg * Math_PI / 180.0);
+	set_joint_rotation(p_euler_deg * (Math_PI / 180.0));
 }
 
 Vector3 PhysicalBone3D::get_joint_rotation_degrees() const {
-	return get_joint_rotation() * 180.0 / Math_PI;
+	return get_joint_rotation() * (180.0 / Math_PI);
 }
 
 const Transform &PhysicalBone3D::get_body_offset() const {
@@ -2516,6 +2486,7 @@ bool PhysicalBone3D::get_axis_lock(PhysicsServer3D::BodyAxis p_axis) const {
 
 PhysicalBone3D::PhysicalBone3D() :
 		PhysicsBody3D(PhysicsServer3D::BODY_MODE_STATIC) {
+	joint = PhysicsServer3D::get_singleton()->joint_create();
 	reset_physics_simulation_state();
 }
 
@@ -2523,6 +2494,7 @@ PhysicalBone3D::~PhysicalBone3D() {
 	if (joint_data) {
 		memdelete(joint_data);
 	}
+	PhysicsServer3D::get_singleton()->free(joint);
 }
 
 void PhysicalBone3D::update_bone_id() {

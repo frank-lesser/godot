@@ -240,7 +240,7 @@ bool PathFollow2D::get_cubic_interpolation() const {
 
 void PathFollow2D::_validate_property(PropertyInfo &property) const {
 	if (property.name == "offset") {
-		float max = 10000;
+		float max = 10000.0;
 		if (path && path->get_curve().is_valid()) {
 			max = path->get_curve()->get_baked_length();
 		}
@@ -319,8 +319,6 @@ void PathFollow2D::set_offset(float p_offset) {
 
 		_update_transform();
 	}
-	_change_notify("offset");
-	_change_notify("unit_offset");
 }
 
 void PathFollow2D::set_h_offset(float p_h_offset) {

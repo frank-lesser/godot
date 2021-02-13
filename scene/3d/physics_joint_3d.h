@@ -44,9 +44,10 @@ class Joint3D : public Node3D {
 	NodePath a;
 	NodePath b;
 
-	int solver_priority;
-	bool exclude_from_collision;
+	int solver_priority = 1;
+	bool exclude_from_collision = true;
 	String warning;
+	bool configured = false;
 
 protected:
 	void _disconnect_signals();
@@ -55,9 +56,11 @@ protected:
 
 	void _notification(int p_what);
 
-	virtual RID _configure_joint(PhysicsBody3D *body_a, PhysicsBody3D *body_b) = 0;
+	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) = 0;
 
 	static void _bind_methods();
+
+	_FORCE_INLINE_ bool is_configured() const { return configured; }
 
 public:
 	virtual String get_configuration_warning() const override;
@@ -76,6 +79,7 @@ public:
 
 	RID get_joint() const { return joint; }
 	Joint3D();
+	~Joint3D();
 };
 
 ///////////////////////////////////////////
@@ -91,13 +95,13 @@ public:
 	};
 
 protected:
-	float params[3];
-	virtual RID _configure_joint(PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
+	real_t params[3];
+	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
 	static void _bind_methods();
 
 public:
-	void set_param(Param p_param, float p_value);
-	float get_param(Param p_param) const;
+	void set_param(Param p_param, real_t p_value);
+	real_t get_param(Param p_param) const;
 
 	PinJoint3D();
 };
@@ -127,20 +131,20 @@ public:
 	};
 
 protected:
-	float params[PARAM_MAX];
+	real_t params[PARAM_MAX];
 	bool flags[FLAG_MAX];
-	virtual RID _configure_joint(PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
+	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
 	static void _bind_methods();
 
-	void _set_upper_limit(float p_limit);
-	float _get_upper_limit() const;
+	void _set_upper_limit(real_t p_limit);
+	real_t _get_upper_limit() const;
 
-	void _set_lower_limit(float p_limit);
-	float _get_lower_limit() const;
+	void _set_lower_limit(real_t p_limit);
+	real_t _get_lower_limit() const;
 
 public:
-	void set_param(Param p_param, float p_value);
-	float get_param(Param p_param) const;
+	void set_param(Param p_param, real_t p_value);
+	real_t get_param(Param p_param) const;
 
 	void set_flag(Flag p_flag, bool p_value);
 	bool get_flag(Flag p_flag) const;
@@ -184,19 +188,19 @@ public:
 	};
 
 protected:
-	void _set_upper_limit_angular(float p_limit_angular);
-	float _get_upper_limit_angular() const;
+	void _set_upper_limit_angular(real_t p_limit_angular);
+	real_t _get_upper_limit_angular() const;
 
-	void _set_lower_limit_angular(float p_limit_angular);
-	float _get_lower_limit_angular() const;
+	void _set_lower_limit_angular(real_t p_limit_angular);
+	real_t _get_lower_limit_angular() const;
 
-	float params[PARAM_MAX];
-	virtual RID _configure_joint(PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
+	real_t params[PARAM_MAX];
+	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
 	static void _bind_methods();
 
 public:
-	void set_param(Param p_param, float p_value);
-	float get_param(Param p_param) const;
+	void set_param(Param p_param, real_t p_value);
+	real_t get_param(Param p_param) const;
 
 	SliderJoint3D();
 };
@@ -217,19 +221,19 @@ public:
 	};
 
 protected:
-	void _set_swing_span(float p_limit_angular);
-	float _get_swing_span() const;
+	void _set_swing_span(real_t p_limit_angular);
+	real_t _get_swing_span() const;
 
-	void _set_twist_span(float p_limit_angular);
-	float _get_twist_span() const;
+	void _set_twist_span(real_t p_limit_angular);
+	real_t _get_twist_span() const;
 
-	float params[PARAM_MAX];
-	virtual RID _configure_joint(PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
+	real_t params[PARAM_MAX];
+	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
 	static void _bind_methods();
 
 public:
-	void set_param(Param p_param, float p_value);
-	float get_param(Param p_param) const;
+	void set_param(Param p_param, real_t p_value);
+	real_t get_param(Param p_param) const;
 
 	ConeTwistJoint3D();
 };
@@ -277,43 +281,43 @@ public:
 	};
 
 protected:
-	void _set_angular_hi_limit_x(float p_limit_angular);
-	float _get_angular_hi_limit_x() const;
+	void _set_angular_hi_limit_x(real_t p_limit_angular);
+	real_t _get_angular_hi_limit_x() const;
 
-	void _set_angular_hi_limit_y(float p_limit_angular);
-	float _get_angular_hi_limit_y() const;
+	void _set_angular_hi_limit_y(real_t p_limit_angular);
+	real_t _get_angular_hi_limit_y() const;
 
-	void _set_angular_hi_limit_z(float p_limit_angular);
-	float _get_angular_hi_limit_z() const;
+	void _set_angular_hi_limit_z(real_t p_limit_angular);
+	real_t _get_angular_hi_limit_z() const;
 
-	void _set_angular_lo_limit_x(float p_limit_angular);
-	float _get_angular_lo_limit_x() const;
+	void _set_angular_lo_limit_x(real_t p_limit_angular);
+	real_t _get_angular_lo_limit_x() const;
 
-	void _set_angular_lo_limit_y(float p_limit_angular);
-	float _get_angular_lo_limit_y() const;
+	void _set_angular_lo_limit_y(real_t p_limit_angular);
+	real_t _get_angular_lo_limit_y() const;
 
-	void _set_angular_lo_limit_z(float p_limit_angular);
-	float _get_angular_lo_limit_z() const;
+	void _set_angular_lo_limit_z(real_t p_limit_angular);
+	real_t _get_angular_lo_limit_z() const;
 
-	float params_x[PARAM_MAX];
+	real_t params_x[PARAM_MAX];
 	bool flags_x[FLAG_MAX];
-	float params_y[PARAM_MAX];
+	real_t params_y[PARAM_MAX];
 	bool flags_y[FLAG_MAX];
-	float params_z[PARAM_MAX];
+	real_t params_z[PARAM_MAX];
 	bool flags_z[FLAG_MAX];
 
-	virtual RID _configure_joint(PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
+	virtual void _configure_joint(RID p_joint, PhysicsBody3D *body_a, PhysicsBody3D *body_b) override;
 	static void _bind_methods();
 
 public:
-	void set_param_x(Param p_param, float p_value);
-	float get_param_x(Param p_param) const;
+	void set_param_x(Param p_param, real_t p_value);
+	real_t get_param_x(Param p_param) const;
 
-	void set_param_y(Param p_param, float p_value);
-	float get_param_y(Param p_param) const;
+	void set_param_y(Param p_param, real_t p_value);
+	real_t get_param_y(Param p_param) const;
 
-	void set_param_z(Param p_param, float p_value);
-	float get_param_z(Param p_param) const;
+	void set_param_z(Param p_param, real_t p_value);
+	real_t get_param_z(Param p_param) const;
 
 	void set_flag_x(Flag p_flag, bool p_enabled);
 	bool get_flag_x(Flag p_flag) const;

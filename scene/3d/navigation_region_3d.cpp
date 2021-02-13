@@ -124,13 +124,13 @@ void NavigationRegion3D::set_navigation_mesh(const Ref<NavigationMesh> &p_navmes
 	}
 
 	if (navmesh.is_valid()) {
-		navmesh->remove_change_receptor(this);
+		navmesh->disconnect("changed", callable_mp(this, &NavigationRegion3D::_navigation_changed));
 	}
 
 	navmesh = p_navmesh;
 
 	if (navmesh.is_valid()) {
-		navmesh->add_change_receptor(this);
+		navmesh->connect("changed", callable_mp(this, &NavigationRegion3D::_navigation_changed));
 	}
 
 	NavigationServer3D::get_singleton()->region_set_navmesh(region, p_navmesh);
@@ -150,7 +150,7 @@ Ref<NavigationMesh> NavigationRegion3D::get_navigation_mesh() const {
 }
 
 struct BakeThreadsArgs {
-	NavigationRegion3D *nav_region;
+	NavigationRegion3D *nav_region = nullptr;
 };
 
 void _bake_navigation_mesh(void *p_user_data) {
@@ -230,7 +230,7 @@ void NavigationRegion3D::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("bake_finished"));
 }
 
-void NavigationRegion3D::_changed_callback(Object *p_changed, const char *p_prop) {
+void NavigationRegion3D::_navigation_changed() {
 	update_gizmo();
 	update_configuration_warning();
 }
@@ -242,7 +242,7 @@ NavigationRegion3D::NavigationRegion3D() {
 
 NavigationRegion3D::~NavigationRegion3D() {
 	if (navmesh.is_valid()) {
-		navmesh->remove_change_receptor(this);
+		navmesh->disconnect("changed", callable_mp(this, &NavigationRegion3D::_navigation_changed));
 	}
 	NavigationServer3D::get_singleton()->free(region);
 }

@@ -42,8 +42,8 @@ class Spcap {
 private:
 	struct Speaker {
 		Vector3 direction;
-		real_t effective_number_of_speakers; // precalculated
-		mutable real_t squared_gain; // temporary
+		real_t effective_number_of_speakers = 0; // precalculated
+		mutable real_t squared_gain = 0; // temporary
 	};
 
 	Vector<Speaker> speakers;
@@ -605,15 +605,11 @@ void AudioStreamPlayer3D::_notification(int p_what) {
 			setseek = setplay;
 			active = true;
 			setplay = -1;
-			//do not update, this makes it easier to animate (will shut off otherwise)
-			///_change_notify("playing"); //update property in editor
 		}
 
 		//stop playing if no longer active
 		if (!active) {
 			set_physics_process_internal(false);
-			//do not update, this makes it easier to animate (will shut off otherwise)
-			//_change_notify("playing"); //update property in editor
 			emit_signal("finished");
 		}
 	}
@@ -776,7 +772,7 @@ void AudioStreamPlayer3D::_validate_property(PropertyInfo &property) const {
 }
 
 void AudioStreamPlayer3D::_bus_layout_changed() {
-	_change_notify();
+	notify_property_list_changed();
 }
 
 void AudioStreamPlayer3D::set_max_distance(float p_metres) {
@@ -809,7 +805,6 @@ void AudioStreamPlayer3D::set_emission_angle(float p_angle) {
 	ERR_FAIL_COND(p_angle < 0 || p_angle > 90);
 	emission_angle = p_angle;
 	update_gizmo();
-	_change_notify("emission_angle");
 }
 
 float AudioStreamPlayer3D::get_emission_angle() const {
@@ -1002,31 +997,6 @@ void AudioStreamPlayer3D::_bind_methods() {
 }
 
 AudioStreamPlayer3D::AudioStreamPlayer3D() {
-	unit_db = 0;
-	unit_size = 1;
-	attenuation_model = ATTENUATION_INVERSE_DISTANCE;
-	max_db = 3;
-	pitch_scale = 1.0;
-	autoplay = false;
-	setseek = -1;
-	active = false;
-	output_count = 0;
-	prev_output_count = 0;
-	max_distance = 0;
-	setplay = -1;
-	output_ready = false;
-	area_mask = 1;
-	emission_angle = 45;
-	emission_angle_enabled = false;
-	emission_angle_filter_attenuation_db = -12;
-	attenuation_filter_cutoff_hz = 5000;
-	attenuation_filter_db = -24;
-	out_of_range_mode = OUT_OF_RANGE_MIX;
-	doppler_tracking = DOPPLER_TRACKING_DISABLED;
-	stream_paused = false;
-	stream_paused_fade_in = false;
-	stream_paused_fade_out = false;
-
 	velocity_tracker.instance();
 	AudioServer::get_singleton()->connect("bus_layout_changed", callable_mp(this, &AudioStreamPlayer3D::_bus_layout_changed));
 	set_disable_scale(true);

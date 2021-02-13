@@ -98,6 +98,8 @@ private:
 
 	mutable String tooltip_text;
 
+	Map<StringName, Variant> cache;
+
 protected:
 	void _notification(int p_what);
 	static void _bind_methods();
@@ -152,6 +154,8 @@ public:
 	virtual void collapse_all_folding();
 
 	virtual Variant get_drag_data(const Point2 &p_point) override;
+	virtual void update_cache();
+	virtual bool is_cache_valid() const;
 
 	void set_selectable(bool p_selectable);
 	bool is_selectable() const;
@@ -326,7 +330,7 @@ class EditorInspector : public ScrollContainer {
 
 	void _node_removed(Node *p_node);
 
-	void _changed_callback(Object *p_changed, const char *p_prop) override;
+	void _changed_callback();
 	void _edit_request_change(Object *p_object, const String &p_prop);
 
 	void _filter_changed(const String &p_text);
@@ -338,6 +342,8 @@ class EditorInspector : public ScrollContainer {
 	void _update_script_class_properties(const Object &p_object, List<PropertyInfo> &r_list) const;
 
 	bool _is_property_disabled_by_feature_profile(const StringName &p_property);
+
+	void _update_inspector_bg();
 
 protected:
 	static void _bind_methods();
@@ -356,9 +362,6 @@ public:
 
 	void update_tree();
 	void update_property(const String &p_prop);
-
-	void refresh();
-
 	void edit(Object *p_object);
 	Object *get_edited_object();
 
@@ -393,6 +396,7 @@ public:
 
 	void set_use_wide_editors(bool p_enable);
 	void set_sub_inspector(bool p_enable);
+	bool is_sub_inspector() const { return sub_inspector; }
 
 	void set_use_deletable_properties(bool p_enabled);
 

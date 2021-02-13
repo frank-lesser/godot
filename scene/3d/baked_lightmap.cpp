@@ -1302,7 +1302,7 @@ bool BakedLightmap::is_interior() const {
 
 void BakedLightmap::set_environment_mode(EnvironmentMode p_mode) {
 	environment_mode = p_mode;
-	_change_notify();
+	notify_property_list_changed();
 }
 
 BakedLightmap::EnvironmentMode BakedLightmap::get_environment_mode() const {
@@ -1466,17 +1466,4 @@ void BakedLightmap::_bind_methods() {
 }
 
 BakedLightmap::BakedLightmap() {
-	environment_mode = ENVIRONMENT_MODE_DISABLED;
-	environment_custom_color = Color(0.2, 0.7, 1.0);
-	environment_custom_energy = 1.0;
-
-	bake_quality = BAKE_QUALITY_MEDIUM;
-	interior = false;
-	directional = false;
-
-	gen_probes = GENERATE_PROBES_DISABLED;
-	use_denoiser = true;
-	bounces = 1;
-	bias = 0.0005;
-	max_texture_size = 16384;
 }

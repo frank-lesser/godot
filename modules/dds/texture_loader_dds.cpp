@@ -69,11 +69,11 @@ enum DDSFormat {
 
 struct DDSFormatInfo {
 	const char *name;
-	bool compressed;
-	bool palette;
-	uint32_t divisor;
-	uint32_t block_size;
-	Image::Format format;
+	bool compressed = false;
+	bool palette = false;
+	uint32_t divisor = 0;
+	uint32_t block_size = 0;
+	Image::Format format = Image::Format::FORMAT_BPTC_RGBA;
 };
 
 static const DDSFormatInfo dds_format_info[DDS_MAX] = {
@@ -94,7 +94,7 @@ static const DDSFormatInfo dds_format_info[DDS_MAX] = {
 	{ "GRAYSCALE_ALPHA", false, false, 1, 2, Image::FORMAT_LA8 }
 };
 
-RES ResourceFormatDDS::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, bool p_no_cache) {
+RES ResourceFormatDDS::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	if (r_error) {
 		*r_error = ERR_CANT_OPEN;
 	}

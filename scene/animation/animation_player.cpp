@@ -229,13 +229,13 @@ void AnimationPlayer::_notification(int p_what) {
 	}
 }
 
-void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim) {
+void AnimationPlayer::_ensure_node_caches(AnimationData *p_anim, Node *p_root_override) {
 	// Already cached?
 	if (p_anim->node_cache.size() == p_anim->animation->get_track_count()) {
 		return;
 	}
 
-	Node *parent = get_node(root);
+	Node *parent = p_root_override ? p_root_override : get_node(root);
 
 	ERR_FAIL_COND(!parent);
 
@@ -969,7 +969,7 @@ Error AnimationPlayer::add_animation(const StringName &p_name, const Ref<Animati
 	}
 
 	_ref_anim(p_animation);
-	_change_notify();
+	notify_property_list_changed();
 	return OK;
 }
 
@@ -981,7 +981,7 @@ void AnimationPlayer::remove_animation(const StringName &p_name) {
 	animation_set.erase(p_name);
 
 	clear_caches();
-	_change_notify();
+	notify_property_list_changed();
 }
 
 void AnimationPlayer::_ref_anim(const Ref<Animation> &p_anim) {
@@ -1039,7 +1039,7 @@ void AnimationPlayer::rename_animation(const StringName &p_name, const StringNam
 	}
 
 	clear_caches();
-	_change_notify();
+	notify_property_list_changed();
 }
 
 bool AnimationPlayer::has_animation(const StringName &p_name) const {
@@ -1132,7 +1132,7 @@ void AnimationPlayer::play(const StringName &p_name, float p_custom_blend, float
 	Playback &c = playback;
 
 	if (c.current.from) {
-		float blend_time = 0;
+		float blend_time = 0.0;
 		// find if it can blend
 		BlendKey bk;
 		bk.from = c.current.from->name;
@@ -1497,13 +1497,13 @@ void AnimationPlayer::get_argument_options(const StringName &p_function, int p_i
 }
 
 #ifdef TOOLS_ENABLED
-Ref<AnimatedValuesBackup> AnimationPlayer::backup_animated_values() {
+Ref<AnimatedValuesBackup> AnimationPlayer::backup_animated_values(Node *p_root_override) {
 	Ref<AnimatedValuesBackup> backup;
 	if (!playback.current.from) {
 		return backup;
 	}
 
-	_ensure_node_caches(playback.current.from);
+	_ensure_node_caches(playback.current.from, p_root_override);
 
 	backup.instance();
 	for (int i = 0; i < playback.current.from->node_cache.size(); i++) {
@@ -1560,10 +1560,11 @@ Ref<AnimatedValuesBackup> AnimationPlayer::apply_reset(bool p_user_initiated) {
 
 	AnimationPlayer *aux_player = memnew(AnimationPlayer);
 	EditorNode::get_singleton()->add_child(aux_player);
-	aux_player->set_root(aux_player->get_path_to(root_node));
 	aux_player->add_animation("RESET", reset_anim);
 	aux_player->set_assigned_animation("RESET");
-	Ref<AnimatedValuesBackup> old_values = aux_player->backup_animated_values();
+	// Forcing the use of the original root because the scene where original player belongs may be not the active one
+	Node *root = get_node(get_root());
+	Ref<AnimatedValuesBackup> old_values = aux_player->backup_animated_values(root);
 	aux_player->seek(0.0f, true);
 	aux_player->queue_delete();
 
@@ -1677,23 +1678,7 @@ void AnimationPlayer::_bind_methods() {
 }
 
 AnimationPlayer::AnimationPlayer() {
-	accum_pass = 1;
-	cache_update_size = 0;
-	cache_update_prop_size = 0;
-	cache_update_bezier_size = 0;
-	speed_scale = 1;
-	end_reached = false;
-	end_notify = false;
-	reset_on_save = true;
-	animation_process_mode = ANIMATION_PROCESS_IDLE;
-	method_call_mode = ANIMATION_METHOD_CALL_DEFERRED;
-	processing = false;
-	default_blend_time = 0;
 	root = SceneStringNames::get_singleton()->path_pp;
-	playing = false;
-	active = true;
-	playback.seeked = false;
-	playback.started = false;
 }
 
 AnimationPlayer::~AnimationPlayer() {

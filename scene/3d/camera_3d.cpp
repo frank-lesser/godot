@@ -209,7 +209,7 @@ void Camera3D::set_projection(Camera3D::Projection p_mode) {
 	if (p_mode == PROJECTION_PERSPECTIVE || p_mode == PROJECTION_ORTHOGONAL || p_mode == PROJECTION_FRUSTUM) {
 		mode = p_mode;
 		_update_camera_mode();
-		_change_notify();
+		notify_property_list_changed();
 	}
 }
 
@@ -432,7 +432,7 @@ void Camera3D::set_keep_aspect_mode(KeepAspect p_aspect) {
 	keep_aspect = p_aspect;
 	RenderingServer::get_singleton()->camera_set_use_vertical_aspect(camera, p_aspect == KEEP_WIDTH);
 	_update_camera_mode();
-	_change_notify();
+	notify_property_list_changed();
 }
 
 Camera3D::KeepAspect Camera3D::get_keep_aspect_mode() const {
@@ -562,14 +562,12 @@ void Camera3D::set_fov(float p_fov) {
 	ERR_FAIL_COND(p_fov < 1 || p_fov > 179);
 	fov = p_fov;
 	_update_camera_mode();
-	_change_notify("fov");
 }
 
 void Camera3D::set_size(float p_size) {
 	ERR_FAIL_COND(p_size < 0.1 || p_size > 16384);
 	size = p_size;
 	_update_camera_mode();
-	_change_notify("size");
 }
 
 void Camera3D::set_near(float p_near) {
@@ -653,24 +651,10 @@ Vector3 Camera3D::get_doppler_tracked_velocity() const {
 
 Camera3D::Camera3D() {
 	camera = RenderingServer::get_singleton()->camera_create();
-	size = 1;
-	fov = 0;
-	frustum_offset = Vector2();
-	near = 0;
-	far = 0;
-	current = false;
-	viewport = nullptr;
-	force_change = false;
-	mode = PROJECTION_PERSPECTIVE;
 	set_perspective(75.0, 0.05, 4000.0);
-	keep_aspect = KEEP_HEIGHT;
-	layers = 0xfffff;
-	v_offset = 0;
-	h_offset = 0;
 	RenderingServer::get_singleton()->camera_set_cull_mask(camera, layers);
 	//active=false;
 	velocity_tracker.instance();
-	doppler_tracking = DOPPLER_TRACKING_DISABLED;
 	set_notify_transform(true);
 	set_disable_scale(true);
 }
@@ -882,16 +866,10 @@ void ClippedCamera3D::_bind_methods() {
 }
 
 ClippedCamera3D::ClippedCamera3D() {
-	margin = 0;
-	clip_offset = 0;
-	process_mode = CLIP_PROCESS_PHYSICS;
 	set_physics_process_internal(true);
-	collision_mask = 1;
 	set_notify_local_transform(Engine::get_singleton()->is_editor_hint());
 	points.resize(5);
 	pyramid_shape = PhysicsServer3D::get_singleton()->shape_create(PhysicsServer3D::SHAPE_CONVEX_POLYGON);
-	clip_to_areas = false;
-	clip_to_bodies = true;
 }
 
 ClippedCamera3D::~ClippedCamera3D() {

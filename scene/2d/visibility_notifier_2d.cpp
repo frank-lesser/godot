@@ -89,8 +89,6 @@ void VisibilityNotifier2D::set_rect(const Rect2 &p_rect) {
 			item_rect_changed();
 		}
 	}
-
-	_change_notify("rect");
 }
 
 Rect2 VisibilityNotifier2D::get_rect() const {
@@ -363,6 +361,4 @@ VisibilityEnabler2D::VisibilityEnabler2D() {
 	}
 	enabler[ENABLER_PARENT_PROCESS] = false;
 	enabler[ENABLER_PARENT_PHYSICS_PROCESS] = false;
-
-	visible = false;
 }

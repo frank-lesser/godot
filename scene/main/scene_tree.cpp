@@ -90,10 +90,7 @@ void SceneTreeTimer::release_connections() {
 	}
 }
 
-SceneTreeTimer::SceneTreeTimer() {
-	time_left = 0;
-	process_pause = true;
-}
+SceneTreeTimer::SceneTreeTimer() {}
 
 void SceneTree::tree_changed() {
 	tree_version++;
@@ -409,6 +406,7 @@ bool SceneTree::physics_process(float p_time) {
 	emit_signal("physics_frame");
 
 	_notify_group_pause("physics_process_internal", Node::NOTIFICATION_INTERNAL_PHYSICS_PROCESS);
+	call_group_flags(GROUP_CALL_REALTIME, "_viewports", "_process_picking");
 	_notify_group_pause("physics_process", Node::NOTIFICATION_PHYSICS_PROCESS);
 	_flush_ugc();
 	MessageQueue::get_singleton()->flush(); //small little hack

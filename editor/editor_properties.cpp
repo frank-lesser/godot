@@ -1267,16 +1267,20 @@ void EditorPropertyRect2::setup(double p_min, double p_max, double p_step, bool 
 
 EditorPropertyRect2::EditorPropertyRect2(bool p_force_wide) {
 	bool horizontal = p_force_wide || bool(EDITOR_GET("interface/inspector/horizontal_vector_types_editing"));
-
+	bool grid = false;
 	BoxContainer *bc;
 
 	if (p_force_wide) {
 		bc = memnew(HBoxContainer);
 		add_child(bc);
 	} else if (horizontal) {
-		bc = memnew(HBoxContainer);
+		bc = memnew(VBoxContainer);
 		add_child(bc);
 		set_bottom_editor(bc);
+
+		bc->add_child(memnew(HBoxContainer));
+		bc->add_child(memnew(HBoxContainer));
+		grid = true;
 	} else {
 		bc = memnew(VBoxContainer);
 		add_child(bc);
@@ -1287,7 +1291,13 @@ EditorPropertyRect2::EditorPropertyRect2(bool p_force_wide) {
 		spin[i] = memnew(EditorSpinSlider);
 		spin[i]->set_label(desc[i]);
 		spin[i]->set_flat(true);
-		bc->add_child(spin[i]);
+
+		if (grid) {
+			bc->get_child(i / 2)->add_child(spin[i]);
+		} else {
+			bc->add_child(spin[i]);
+		}
+
 		add_focusable(spin[i]);
 		spin[i]->connect("value_changed", callable_mp(this, &EditorPropertyRect2::_value_changed), varray(desc[i]));
 		if (horizontal) {
@@ -1530,16 +1540,20 @@ void EditorPropertyRect2i::setup(int p_min, int p_max, bool p_no_slider) {
 
 EditorPropertyRect2i::EditorPropertyRect2i(bool p_force_wide) {
 	bool horizontal = p_force_wide || bool(EDITOR_GET("interface/inspector/horizontal_vector_types_editing"));
-
+	bool grid = false;
 	BoxContainer *bc;
 
 	if (p_force_wide) {
 		bc = memnew(HBoxContainer);
 		add_child(bc);
 	} else if (horizontal) {
-		bc = memnew(HBoxContainer);
+		bc = memnew(VBoxContainer);
 		add_child(bc);
 		set_bottom_editor(bc);
+
+		bc->add_child(memnew(HBoxContainer));
+		bc->add_child(memnew(HBoxContainer));
+		grid = true;
 	} else {
 		bc = memnew(VBoxContainer);
 		add_child(bc);
@@ -1550,7 +1564,13 @@ EditorPropertyRect2i::EditorPropertyRect2i(bool p_force_wide) {
 		spin[i] = memnew(EditorSpinSlider);
 		spin[i]->set_label(desc[i]);
 		spin[i]->set_flat(true);
-		bc->add_child(spin[i]);
+
+		if (grid) {
+			bc->get_child(i / 2)->add_child(spin[i]);
+		} else {
+			bc->add_child(spin[i]);
+		}
+
 		add_focusable(spin[i]);
 		spin[i]->connect("value_changed", callable_mp(this, &EditorPropertyRect2i::_value_changed), varray(desc[i]));
 		if (horizontal) {
@@ -2839,6 +2859,41 @@ void EditorPropertyResource::_fold_other_editors(Object *p_self) {
 	}
 }
 
+void EditorPropertyResource::_update_property_bg() {
+	if (!is_inside_tree()) {
+		return;
+	}
+
+	updating_theme = true;
+	if (sub_inspector != nullptr) {
+		int count_subinspectors = 0;
+		Node *n = get_parent();
+		while (n) {
+			EditorInspector *ei = Object::cast_to<EditorInspector>(n);
+			if (ei && ei->is_sub_inspector()) {
+				count_subinspectors++;
+			}
+			n = n->get_parent();
+		}
+		count_subinspectors = MIN(15, count_subinspectors);
+
+		add_theme_color_override("property_color", get_theme_color("sub_inspector_property_color", "Editor"));
+		add_theme_style_override("bg_selected", get_theme_stylebox("sub_inspector_property_bg_selected" + itos(count_subinspectors), "Editor"));
+		add_theme_style_override("bg", get_theme_stylebox("sub_inspector_property_bg" + itos(count_subinspectors), "Editor"));
+
+		add_theme_constant_override("font_offset", get_theme_constant("sub_inspector_font_offset", "Editor"));
+		add_theme_constant_override("vseparation", 0);
+	} else {
+		add_theme_color_override("property_color", get_theme_color("property_color", "EditorProperty"));
+		add_theme_style_override("bg_selected", get_theme_stylebox("bg_selected", "EditorProperty"));
+		add_theme_style_override("bg", get_theme_stylebox("bg", "EditorProperty"));
+		add_theme_constant_override("vseparation", get_theme_constant("vseparation", "EditorProperty"));
+		add_theme_constant_override("font_offset", get_theme_constant("font_offset", "EditorProperty"));
+	}
+
+	updating_theme = false;
+	update();
+}
 void EditorPropertyResource::update_property() {
 	RES res = get_edited_object()->get(get_edited_property());
 
@@ -2887,13 +2942,14 @@ void EditorPropertyResource::update_property() {
 					}
 					opened_editor = true;
 				}
+
+				_update_property_bg();
 			}
 
 			if (res.ptr() != sub_inspector->get_edited_object()) {
 				sub_inspector->edit(res.ptr());
 			}
 
-			sub_inspector->refresh();
 		} else {
 			if (sub_inspector) {
 				set_bottom_editor(nullptr);
@@ -2904,6 +2960,7 @@ void EditorPropertyResource::update_property() {
 					EditorNode::get_singleton()->hide_top_editors();
 					opened_editor = false;
 				}
+				_update_property_bg();
 			}
 		}
 	}
@@ -2957,8 +3014,12 @@ void EditorPropertyResource::setup(const String &p_base_type) {
 
 void EditorPropertyResource::_notification(int p_what) {
 	if (p_what == NOTIFICATION_ENTER_TREE || p_what == NOTIFICATION_THEME_CHANGED) {
+		if (updating_theme) {
+			return;
+		}
 		Ref<Texture2D> t = get_theme_icon("select_arrow", "Tree");
 		edit->set_icon(t);
+		_update_property_bg();
 	}
 
 	if (p_what == NOTIFICATION_DRAG_BEGIN) {
