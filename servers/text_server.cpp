@@ -219,6 +219,11 @@ void TextServer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("create_font_system", "name", "base_size"), &TextServer::create_font_system, DEFVAL(16));
 	ClassDB::bind_method(D_METHOD("create_font_resource", "filename", "base_size"), &TextServer::create_font_resource, DEFVAL(16));
 	ClassDB::bind_method(D_METHOD("create_font_memory", "data", "type", "base_size"), &TextServer::_create_font_memory, DEFVAL(16));
+	ClassDB::bind_method(D_METHOD("create_font_bitmap", "height", "ascent", "base_size"), &TextServer::create_font_bitmap);
+
+	ClassDB::bind_method(D_METHOD("font_bitmap_add_texture", "font", "texture"), &TextServer::font_bitmap_add_texture);
+	ClassDB::bind_method(D_METHOD("font_bitmap_add_char", "font", "char", "texture_idx", "rect", "align", "advance"), &TextServer::font_bitmap_add_char);
+	ClassDB::bind_method(D_METHOD("font_bitmap_add_kerning_pair", "font", "A", "B", "kerning"), &TextServer::font_bitmap_add_kerning_pair);
 
 	ClassDB::bind_method(D_METHOD("font_get_height", "font", "size"), &TextServer::font_get_height);
 	ClassDB::bind_method(D_METHOD("font_get_ascent", "font", "size"), &TextServer::font_get_ascent);
@@ -226,6 +231,12 @@ void TextServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("font_get_underline_position", "font", "size"), &TextServer::font_get_underline_position);
 	ClassDB::bind_method(D_METHOD("font_get_underline_thickness", "font", "size"), &TextServer::font_get_underline_thickness);
+
+	ClassDB::bind_method(D_METHOD("font_get_spacing_space", "font"), &TextServer::font_get_spacing_space);
+	ClassDB::bind_method(D_METHOD("font_set_spacing_space", "font", "value"), &TextServer::font_set_spacing_space);
+
+	ClassDB::bind_method(D_METHOD("font_get_spacing_glyph", "font"), &TextServer::font_get_spacing_glyph);
+	ClassDB::bind_method(D_METHOD("font_set_spacing_glyph", "font", "value"), &TextServer::font_set_spacing_glyph);
 
 	ClassDB::bind_method(D_METHOD("font_set_antialiased", "font", "antialiased"), &TextServer::font_set_antialiased);
 	ClassDB::bind_method(D_METHOD("font_get_antialiased", "font"), &TextServer::font_get_antialiased);
@@ -284,7 +295,7 @@ void TextServer::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("create_shaped_text", "direction", "orientation"), &TextServer::create_shaped_text, DEFVAL(DIRECTION_AUTO), DEFVAL(ORIENTATION_HORIZONTAL));
 
-	ClassDB::bind_method(D_METHOD("shaped_text_clear"), &TextServer::shaped_text_clear);
+	ClassDB::bind_method(D_METHOD("shaped_text_clear", "rid"), &TextServer::shaped_text_clear);
 
 	ClassDB::bind_method(D_METHOD("shaped_text_set_direction", "shaped", "direction"), &TextServer::shaped_text_set_direction, DEFVAL(DIRECTION_AUTO));
 	ClassDB::bind_method(D_METHOD("shaped_text_get_direction", "shaped"), &TextServer::shaped_text_get_direction);

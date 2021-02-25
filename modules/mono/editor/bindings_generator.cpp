@@ -39,6 +39,7 @@
 #include "core/os/file_access.h"
 #include "core/os/os.h"
 #include "core/string/ucaps.h"
+#include "main/main.h"
 
 #include "../glue/cs_glue_version.gen.h"
 #include "../godotsharp_defs.h"
@@ -783,6 +784,72 @@ void BindingsGenerator::_generate_method_icalls(const TypeInterface &p_itype) {
 	}
 }
 
+void BindingsGenerator::_generate_array_extensions(StringBuilder &p_output) {
+	p_output.append("using System;\n\n");
+	p_output.append("namespace " BINDINGS_NAMESPACE "\n" OPEN_BLOCK);
+	// The class where we put the extensions doesn't matter, so just use "GD".
+	p_output.append(INDENT1 "public static partial class " BINDINGS_GLOBAL_SCOPE_CLASS "\n" INDENT1 "{");
+
+#define ARRAY_IS_EMPTY(m_type)                                                                          \
+	p_output.append("\n" INDENT2 "/// <summary>\n");                                                    \
+	p_output.append(INDENT2 "/// Returns true if this " #m_type " array is empty or doesn't exist.\n"); \
+	p_output.append(INDENT2 "/// </summary>\n");                                                        \
+	p_output.append(INDENT2 "/// <param name=\"instance\">The " #m_type " array check.</param>\n");     \
+	p_output.append(INDENT2 "/// <returns>Whether or not the array is empty.</returns>\n");             \
+	p_output.append(INDENT2 "public static bool IsEmpty(this " #m_type "[] instance)\n");               \
+	p_output.append(INDENT2 OPEN_BLOCK);                                                                \
+	p_output.append(INDENT3 "return instance == null || instance.Length == 0;\n");                      \
+	p_output.append(INDENT2 CLOSE_BLOCK);
+
+#define ARRAY_JOIN(m_type)                                                                                          \
+	p_output.append("\n" INDENT2 "/// <summary>\n");                                                                \
+	p_output.append(INDENT2 "/// Converts this " #m_type " array to a string delimited by the given string.\n");    \
+	p_output.append(INDENT2 "/// </summary>\n");                                                                    \
+	p_output.append(INDENT2 "/// <param name=\"instance\">The " #m_type " array to convert.</param>\n");            \
+	p_output.append(INDENT2 "/// <param name=\"delimiter\">The delimiter to use between items.</param>\n");         \
+	p_output.append(INDENT2 "/// <returns>A single string with all items.</returns>\n");                            \
+	p_output.append(INDENT2 "public static string Join(this " #m_type "[] instance, string delimiter = \", \")\n"); \
+	p_output.append(INDENT2 OPEN_BLOCK);                                                                            \
+	p_output.append(INDENT3 "return String.Join(delimiter, instance);\n");                                          \
+	p_output.append(INDENT2 CLOSE_BLOCK);
+
+#define ARRAY_STRINGIFY(m_type)                                                                          \
+	p_output.append("\n" INDENT2 "/// <summary>\n");                                                     \
+	p_output.append(INDENT2 "/// Converts this " #m_type " array to a string with brackets.\n");         \
+	p_output.append(INDENT2 "/// </summary>\n");                                                         \
+	p_output.append(INDENT2 "/// <param name=\"instance\">The " #m_type " array to convert.</param>\n"); \
+	p_output.append(INDENT2 "/// <returns>A single string with all items.</returns>\n");                 \
+	p_output.append(INDENT2 "public static string Stringify(this " #m_type "[] instance)\n");            \
+	p_output.append(INDENT2 OPEN_BLOCK);                                                                 \
+	p_output.append(INDENT3 "return \"[\" + instance.Join() + \"]\";\n");                                \
+	p_output.append(INDENT2 CLOSE_BLOCK);
+
+#define ARRAY_ALL(m_type)  \
+	ARRAY_IS_EMPTY(m_type) \
+	ARRAY_JOIN(m_type)     \
+	ARRAY_STRINGIFY(m_type)
+
+	ARRAY_ALL(byte);
+	ARRAY_ALL(int);
+	ARRAY_ALL(long);
+	ARRAY_ALL(float);
+	ARRAY_ALL(double);
+	ARRAY_ALL(string);
+	ARRAY_ALL(Color);
+	ARRAY_ALL(Vector2);
+	ARRAY_ALL(Vector2i);
+	ARRAY_ALL(Vector3);
+	ARRAY_ALL(Vector3i);
+
+#undef ARRAY_ALL
+#undef ARRAY_IS_EMPTY
+#undef ARRAY_JOIN
+#undef ARRAY_STRINGIFY
+
+	p_output.append(INDENT1 CLOSE_BLOCK); // End of GD class.
+	p_output.append(CLOSE_BLOCK); // End of namespace.
+}
+
 void BindingsGenerator::_generate_global_constants(StringBuilder &p_output) {
 	// Constants (in partial GD class)
 
@@ -919,6 +986,19 @@ Error BindingsGenerator::generate_cs_core_project(const String &p_proj_dir) {
 		_generate_global_constants(constants_source);
 		String output_file = path::join(base_gen_dir, BINDINGS_GLOBAL_SCOPE_CLASS "_constants.cs");
 		Error save_err = _save_file(output_file, constants_source);
+		if (save_err != OK) {
+			return save_err;
+		}
+
+		compile_items.push_back(output_file);
+	}
+
+	// Generate source file for array extensions
+	{
+		StringBuilder extensions_source;
+		_generate_array_extensions(extensions_source);
+		String output_file = path::join(base_gen_dir, BINDINGS_GLOBAL_SCOPE_CLASS "_extensions.cs");
+		Error save_err = _save_file(output_file, extensions_source);
 		if (save_err != OK) {
 			return save_err;
 		}
@@ -1479,6 +1559,12 @@ Error BindingsGenerator::_generate_cs_property(const BindingsGenerator::TypeInte
 	ERR_FAIL_COND_V_MSG(prop_itype->is_singleton, ERR_BUG,
 			"Property type is a singleton: '" + p_itype.name + "." + String(p_iprop.cname) + "'.");
 
+	if (p_itype.api_type == ClassDB::API_CORE) {
+		ERR_FAIL_COND_V_MSG(prop_itype->api_type == ClassDB::API_EDITOR, ERR_BUG,
+				"Property '" + p_itype.name + "." + String(p_iprop.cname) + "' has type '" + prop_itype->name +
+						"' from the editor API. Core API cannot have dependencies on the editor API.");
+	}
+
 	if (p_iprop.prop_doc && p_iprop.prop_doc->description.size()) {
 		String xml_summary = bbcode_to_xml(fix_doc_description(p_iprop.prop_doc->description), &p_itype);
 		Vector<String> summary_lines = xml_summary.length() ? xml_summary.split("\n") : Vector<String>();
@@ -1575,6 +1661,12 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 	ERR_FAIL_COND_V_MSG(return_type->is_singleton, ERR_BUG,
 			"Method return type is a singleton: '" + p_itype.name + "." + p_imethod.name + "'.");
 
+	if (p_itype.api_type == ClassDB::API_CORE) {
+		ERR_FAIL_COND_V_MSG(return_type->api_type == ClassDB::API_EDITOR, ERR_BUG,
+				"Method '" + p_itype.name + "." + p_imethod.name + "' has return type '" + return_type->name +
+						"' from the editor API. Core API cannot have dependencies on the editor API.");
+	}
+
 	String method_bind_field = "__method_bind_" + itos(p_method_bind_count);
 
 	String arguments_sig;
@@ -1592,6 +1684,12 @@ Error BindingsGenerator::_generate_cs_method(const BindingsGenerator::TypeInterf
 
 		ERR_FAIL_COND_V_MSG(arg_type->is_singleton, ERR_BUG,
 				"Argument type is a singleton: '" + iarg.name + "' of method '" + p_itype.name + "." + p_imethod.name + "'.");
+
+		if (p_itype.api_type == ClassDB::API_CORE) {
+			ERR_FAIL_COND_V_MSG(arg_type->api_type == ClassDB::API_EDITOR, ERR_BUG,
+					"Argument '" + iarg.name + "' of method '" + p_itype.name + "." + p_imethod.name + "' has type '" +
+							arg_type->name + "' from the editor API. Core API cannot have dependencies on the editor API.");
+		}
 
 		if (iarg.default_argument.size()) {
 			CRASH_COND_MSG(!_arg_default_value_is_assignable_to_type(iarg.def_param_value, *arg_type),
@@ -1806,7 +1904,13 @@ Error BindingsGenerator::_generate_cs_signal(const BindingsGenerator::TypeInterf
 		const TypeInterface *arg_type = _get_type_or_placeholder(iarg.type);
 
 		ERR_FAIL_COND_V_MSG(arg_type->is_singleton, ERR_BUG,
-				"Argument type is a singleton: '" + iarg.name + "' of signal" + p_itype.name + "." + p_isignal.name + "'.");
+				"Argument type is a singleton: '" + iarg.name + "' of signal '" + p_itype.name + "." + p_isignal.name + "'.");
+
+		if (p_itype.api_type == ClassDB::API_CORE) {
+			ERR_FAIL_COND_V_MSG(arg_type->api_type == ClassDB::API_EDITOR, ERR_BUG,
+					"Argument '" + iarg.name + "' of signal '" + p_itype.name + "." + p_isignal.name + "' has type '" +
+							arg_type->name + "' from the editor API. Core API cannot have dependencies on the editor API.");
+		}
 
 		// Add the current arguments to the signature
 
@@ -3546,6 +3650,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 
 		if (!bindings_generator.initialized) {
 			ERR_PRINT("Failed to initialize the bindings generator");
+			Main::cleanup(true);
 			::exit(0);
 		}
 
@@ -3572,6 +3677,7 @@ void BindingsGenerator::handle_cmdline_args(const List<String> &p_cmdline_args) 
 		}
 
 		// Exit once done
+		Main::cleanup(true);
 		::exit(0);
 	}
 }

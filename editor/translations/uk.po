@@ -20,7 +20,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Ukrainian (Godot Engine)\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-01-16 01:29+0000\n"
+"PO-Revision-Date: 2021-02-21 10:51+0000\n"
 "Last-Translator: Yuri Chornoivan <yurchor@ukr.net>\n"
 "Language-Team: Ukrainian <https://hosted.weblate.org/projects/godot-engine/"
 "godot/uk/>\n"
@@ -30,7 +30,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=3; plural=n%10==1 && n%100!=11 ? 0 : n%10>=2 && n"
 "%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2;\n"
-"X-Generator: Weblate 4.5-dev\n"
+"X-Generator: Weblate 4.5\n"
 
 #: core/math/expression.cpp modules/gdscript/gdscript_functions.cpp
 #: modules/visual_script/visual_script_builtin_funcs.cpp
@@ -666,7 +666,7 @@ msgstr "Виберіть доріжки для копіювання"
 #: editor/plugins/animation_player_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp editor/property_editor.cpp
-#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
+#: editor/scene_tree_dock.cpp scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Copy"
 msgstr "Копіювати"
 
@@ -2548,7 +2548,8 @@ msgstr ""
 "налаштування."
 
 #: editor/editor_node.cpp
-msgid "Unable to find script field for addon plugin at: 'res://addons/%s'."
+#, fuzzy
+msgid "Unable to find script field for addon plugin at: '%s'."
 msgstr ""
 "Не вдалося знайти поле скрипт для доповнення плагіну в: 'res://addons/%s'."
 
@@ -2984,14 +2985,6 @@ msgid "Help"
 msgstr "Довідка"
 
 #: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/script_text_editor.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
-#: editor/plugins/visual_shader_editor_plugin.cpp editor/project_manager.cpp
-#: editor/project_settings_editor.cpp editor/settings_config_dialog.cpp
-msgid "Search"
-msgstr "Пошук"
-
-#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/shader_editor_plugin.cpp
 msgid "Online Docs"
 msgstr "Онлайн документація"
@@ -3155,6 +3148,24 @@ msgstr "Об'єднати з існуючим"
 #: editor/editor_node.cpp
 msgid "Open & Run a Script"
 msgstr "Відкрити і запустити скрипт"
+
+#: editor/editor_node.cpp
+msgid ""
+"The following files are newer on disk.\n"
+"What action should be taken?"
+msgstr ""
+"На диску зберігаються новіші версії вказаних нижче файлів.\n"
+"Що слід зробити?"
+
+#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp
+msgid "Reload"
+msgstr "Перезавантажити"
+
+#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp
+msgid "Resave"
+msgstr "Перезаписати"
 
 #: editor/editor_node.cpp
 msgid "New Inherited"
@@ -3368,7 +3379,7 @@ msgstr "Зробити унікальним"
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 #: editor/plugins/tile_map_editor_plugin.cpp editor/property_editor.cpp
-#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
+#: editor/scene_tree_dock.cpp scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Paste"
 msgstr "Вставити"
 
@@ -5045,7 +5056,8 @@ msgid "Got:"
 msgstr "Отримав:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-msgid "Failed sha256 hash check"
+#, fuzzy
+msgid "Failed SHA-256 hash check"
 msgstr "Помилка перевірки хешування sha256"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
@@ -6977,6 +6989,14 @@ msgstr "Закрити документацію"
 msgid "Run"
 msgstr "Запустити"
 
+#: editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/script_text_editor.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp editor/project_manager.cpp
+#: editor/project_settings_editor.cpp editor/settings_config_dialog.cpp
+msgid "Search"
+msgstr "Пошук"
+
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Step Into"
 msgstr "Крок в"
@@ -7029,16 +7049,6 @@ msgid ""
 msgstr ""
 "Такі файли на диску новіші.\n"
 "Що робити?:"
-
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp
-msgid "Reload"
-msgstr "Перезавантажити"
-
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp
-msgid "Resave"
-msgstr "Перезаписати"
 
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Debugger"
@@ -7136,8 +7146,8 @@ msgstr "Точки зупину"
 msgid "Go To"
 msgstr "Перейти"
 
-#: editor/plugins/script_text_editor.cpp scene/gui/line_edit.cpp
-#: scene/gui/text_edit.cpp
+#: editor/plugins/script_text_editor.cpp editor/scene_tree_dock.cpp
+#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Cut"
 msgstr "Вирізати"
 
@@ -7360,9 +7370,8 @@ msgid "Yaw"
 msgstr "Відхилення"
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Size"
-msgstr "Розмір: "
+msgstr "Розмір"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Objects Drawn"
@@ -10056,6 +10065,10 @@ msgid "Projects"
 msgstr "Проєкти"
 
 #: editor/project_manager.cpp
+msgid "Loading, please wait..."
+msgstr "Завантаження. Будь ласка, зачекайте..."
+
+#: editor/project_manager.cpp
 msgid "Last Modified"
 msgstr "Востаннє змінено"
 
@@ -10676,6 +10689,16 @@ msgid "Instance Child Scene"
 msgstr "Створити екземпляр дочірньої сцени"
 
 #: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Can't paste root node into the same scene."
+msgstr "Не можна працювати із вузлами зі сторонньої сцени!"
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Paste Node(s)"
+msgstr "Вставити вузли"
+
+#: editor/scene_tree_dock.cpp
 msgid "Detach Script"
 msgstr "Від'єднати скрипт"
 
@@ -10800,6 +10823,11 @@ msgstr "Не можна працювати з вузлами, спадкоємц
 #: editor/scene_tree_dock.cpp
 msgid "Attach Script"
 msgstr "Долучити скрипт"
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Cut Node(s)"
+msgstr "Вирізати вузли"
 
 #: editor/scene_tree_dock.cpp
 msgid "Remove Node(s)"

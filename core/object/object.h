@@ -37,6 +37,7 @@
 #include "core/templates/hash_map.h"
 #include "core/templates/list.h"
 #include "core/templates/map.h"
+#include "core/templates/safe_refcount.h"
 #include "core/templates/set.h"
 #include "core/templates/vmap.h"
 #include "core/variant/callable_bind.h"
@@ -125,6 +126,7 @@ enum PropertyUsageFlags {
 	PROPERTY_USAGE_KEYING_INCREMENTS = 1 << 25, // Used in inspector to increment property when keyed in animation player
 	PROPERTY_USAGE_DEFERRED_SET_RESOURCE = 1 << 26, // when loading, the resource for this property can be set at the end of loading
 	PROPERTY_USAGE_EDITOR_INSTANTIATE_OBJECT = 1 << 27, // For Object properties, instantiate them when creating in editor.
+	PROPERTY_USAGE_EDITOR_BASIC_SETTING = 1 << 28, //for project or editor settings, show when basic settings are selected
 
 	PROPERTY_USAGE_DEFAULT = PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_NETWORK,
 	PROPERTY_USAGE_DEFAULT_INTL = PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_EDITOR | PROPERTY_USAGE_NETWORK | PROPERTY_USAGE_INTERNATIONALIZED,
@@ -485,7 +487,7 @@ private:
 
 	friend class Reference;
 	bool type_is_reference = false;
-	uint32_t instance_binding_count = 0;
+	SafeNumeric<uint32_t> instance_binding_count;
 	void *_script_instance_bindings[MAX_SCRIPT_INSTANCE_BINDINGS];
 
 	Object(bool p_reference);

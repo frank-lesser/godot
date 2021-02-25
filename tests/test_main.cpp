@@ -33,6 +33,7 @@
 #include "core/templates/list.h"
 
 #include "test_aabb.h"
+#include "test_array.h"
 #include "test_astar.h"
 #include "test_basis.h"
 #include "test_class_db.h"
@@ -65,11 +66,13 @@
 #include "test_random_number_generator.h"
 #include "test_rect2.h"
 #include "test_render.h"
+#include "test_resource.h"
 #include "test_shader_lang.h"
 #include "test_string.h"
 #include "test_text_server.h"
 #include "test_validate_testing.h"
 #include "test_variant.h"
+#include "test_xml_parser.h"
 
 #include "modules/modules_tests.gen.h"
 

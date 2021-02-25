@@ -18,7 +18,7 @@
 # Jose Maria Martinez <josemar1992@hotmail.com>, 2018.
 # Juan Quiroga <juanquiroga9@gmail.com>, 2017.
 # Kiji Pixel <raccoon.fella@gmail.com>, 2017.
-# Lisandro Lorea <lisandrolorea@gmail.com>, 2016-2017, 2019, 2020.
+# Lisandro Lorea <lisandrolorea@gmail.com>, 2016-2017, 2019, 2020, 2021.
 # Lonsfor <lotharw@protonmail.com>, 2017-2018.
 # Mario Nachbaur <manachbaur@gmail.com>, 2018.
 # Oscar Carballal <oscar.carballal@protonmail.com>, 2017-2018.
@@ -58,12 +58,13 @@
 # Ricardo Pérez <ricpelo@gmail.com>, 2021.
 # A <kaieltroll@gmail.com>, 2021.
 # Lucasdelpiero <lucasdelpiero98@gmail.com>, 2021.
+# SteamGoblin <SteamGoblin860@gmail.com>, 2021.
 msgid ""
 msgstr ""
 "Project-Id-Version: Godot Engine editor\n"
 "POT-Creation-Date: \n"
-"PO-Revision-Date: 2021-01-16 01:29+0000\n"
-"Last-Translator: Javier Ocampos <xavier.ocampos@gmail.com>\n"
+"PO-Revision-Date: 2021-02-15 10:51+0000\n"
+"Last-Translator: SteamGoblin <SteamGoblin860@gmail.com>\n"
 "Language-Team: Spanish <https://hosted.weblate.org/projects/godot-engine/"
 "godot/es/>\n"
 "Language: es\n"
@@ -707,7 +708,7 @@ msgstr "Selecciona las Pistas a Copiar"
 #: editor/plugins/animation_player_editor_plugin.cpp
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp editor/property_editor.cpp
-#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
+#: editor/scene_tree_dock.cpp scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Copy"
 msgstr "Copiar"
 
@@ -2599,7 +2600,8 @@ msgstr ""
 "configuración de '%s'."
 
 #: editor/editor_node.cpp
-msgid "Unable to find script field for addon plugin at: 'res://addons/%s'."
+#, fuzzy
+msgid "Unable to find script field for addon plugin at: '%s'."
 msgstr ""
 "No se pudo encontrar el campo del script para el plugin addon en: 'res://"
 "addons/%s'."
@@ -3039,14 +3041,6 @@ msgid "Help"
 msgstr "Ayuda"
 
 #: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/script_text_editor.cpp
-#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
-#: editor/plugins/visual_shader_editor_plugin.cpp editor/project_manager.cpp
-#: editor/project_settings_editor.cpp editor/settings_config_dialog.cpp
-msgid "Search"
-msgstr "Buscar"
-
-#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
 #: editor/plugins/shader_editor_plugin.cpp
 msgid "Online Docs"
 msgstr "Documentación Online"
@@ -3212,6 +3206,25 @@ msgstr "Combinar Con Existentes"
 #: editor/editor_node.cpp
 msgid "Open & Run a Script"
 msgstr "Abrir y Ejecutar un Script"
+
+#: editor/editor_node.cpp
+#, fuzzy
+msgid ""
+"The following files are newer on disk.\n"
+"What action should be taken?"
+msgstr ""
+"Los siguientes archivos son nuevos en disco.\n"
+"¿Qué es lo que quieres hacer?:"
+
+#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp
+msgid "Reload"
+msgstr "Recargar"
+
+#: editor/editor_node.cpp editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/shader_editor_plugin.cpp
+msgid "Resave"
+msgstr "Volver a Guardar"
 
 #: editor/editor_node.cpp
 msgid "New Inherited"
@@ -3425,7 +3438,7 @@ msgstr "Hacer Único"
 #: editor/plugins/script_text_editor.cpp
 #: editor/plugins/sprite_frames_editor_plugin.cpp
 #: editor/plugins/tile_map_editor_plugin.cpp editor/property_editor.cpp
-#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
+#: editor/scene_tree_dock.cpp scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Paste"
 msgstr "Pegar"
 
@@ -5106,7 +5119,8 @@ msgid "Got:"
 msgstr "Tiene:"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
-msgid "Failed sha256 hash check"
+#, fuzzy
+msgid "Failed SHA-256 hash check"
 msgstr "Fallo en la comprobación del hash sha256"
 
 #: editor/plugins/asset_library_editor_plugin.cpp
@@ -7047,6 +7061,14 @@ msgstr "Cerrar Documentación"
 msgid "Run"
 msgstr "Ejecutar"
 
+#: editor/plugins/script_editor_plugin.cpp
+#: editor/plugins/script_text_editor.cpp
+#: editor/plugins/shader_editor_plugin.cpp editor/plugins/text_editor.cpp
+#: editor/plugins/visual_shader_editor_plugin.cpp editor/project_manager.cpp
+#: editor/project_settings_editor.cpp editor/settings_config_dialog.cpp
+msgid "Search"
+msgstr "Buscar"
+
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Step Into"
 msgstr "Entrar En"
@@ -7099,16 +7121,6 @@ msgid ""
 msgstr ""
 "Los siguientes archivos son nuevos en disco.\n"
 "¿Qué es lo que quieres hacer?:"
-
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp
-msgid "Reload"
-msgstr "Recargar"
-
-#: editor/plugins/script_editor_plugin.cpp
-#: editor/plugins/shader_editor_plugin.cpp
-msgid "Resave"
-msgstr "Volver a Guardar"
 
 #: editor/plugins/script_editor_plugin.cpp editor/script_editor_debugger.cpp
 msgid "Debugger"
@@ -7205,8 +7217,8 @@ msgstr "Breakpoints"
 msgid "Go To"
 msgstr "Ir A"
 
-#: editor/plugins/script_text_editor.cpp scene/gui/line_edit.cpp
-#: scene/gui/text_edit.cpp
+#: editor/plugins/script_text_editor.cpp editor/scene_tree_dock.cpp
+#: scene/gui/line_edit.cpp scene/gui/text_edit.cpp
 msgid "Cut"
 msgstr "Cortar"
 
@@ -7426,12 +7438,11 @@ msgstr "Altura"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Yaw"
-msgstr "Yaw"
+msgstr "Guiñada"
 
 #: editor/plugins/spatial_editor_plugin.cpp
-#, fuzzy
 msgid "Size"
-msgstr "Tamaño: "
+msgstr "Tamaño"
 
 #: editor/plugins/spatial_editor_plugin.cpp
 msgid "Objects Drawn"
@@ -10126,6 +10137,11 @@ msgid "Projects"
 msgstr "Proyectos"
 
 #: editor/project_manager.cpp
+#, fuzzy
+msgid "Loading, please wait..."
+msgstr "Obteniendo mirrors, por favor espera..."
+
+#: editor/project_manager.cpp
 msgid "Last Modified"
 msgstr "Ultima Modificación"
 
@@ -10746,6 +10762,16 @@ msgid "Instance Child Scene"
 msgstr "Instanciar Escena Hija"
 
 #: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Can't paste root node into the same scene."
+msgstr "¡No se puede operar sobre los nodos de una escena externa!"
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Paste Node(s)"
+msgstr "Pegar Nodos"
+
+#: editor/scene_tree_dock.cpp
 msgid "Detach Script"
 msgstr "Sustraer Script"
 
@@ -10871,6 +10897,11 @@ msgstr "¡No se puede operar sobre los nodos heredados por la escena actual!"
 #: editor/scene_tree_dock.cpp
 msgid "Attach Script"
 msgstr "Añadir Script"
+
+#: editor/scene_tree_dock.cpp
+#, fuzzy
+msgid "Cut Node(s)"
+msgstr "Cortar Nodos"
 
 #: editor/scene_tree_dock.cpp
 msgid "Remove Node(s)"
@@ -12772,7 +12803,7 @@ msgstr "ARVROrigin requiere un nodo hijo ARVRCamera."
 
 #: scene/3d/baked_lightmap.cpp
 msgid "Finding meshes and lights"
-msgstr "Encontrar mallas y luces"
+msgstr "Encontrando mallas y luces"
 
 #: scene/3d/baked_lightmap.cpp
 msgid "Preparing geometry (%d/%d)"

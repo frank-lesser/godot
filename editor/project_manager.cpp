@@ -474,15 +474,15 @@ private:
 					}
 					ProjectSettings::CustomMap initial_settings;
 					if (rasterizer_button_group->get_pressed_button()->get_meta("driver_name") == "Vulkan") {
-						initial_settings["rendering/quality/driver/driver_name"] = "Vulkan";
+						initial_settings["rendering/driver/driver_name"] = "Vulkan";
 					} else {
-						initial_settings["rendering/quality/driver/driver_name"] = "GLES2";
-						initial_settings["rendering/vram_compression/import_etc2"] = false;
-						initial_settings["rendering/vram_compression/import_etc"] = true;
+						initial_settings["rendering/driver/driver_name"] = "GLES2";
+						initial_settings["rendering/textures/vram_compression/import_etc2"] = false;
+						initial_settings["rendering/textures/vram_compression/import_etc"] = true;
 					}
 					initial_settings["application/config/name"] = project_name->get_text();
 					initial_settings["application/config/icon"] = "res://icon.png";
-					initial_settings["rendering/environment/default_environment"] = "res://default_env.tres";
+					initial_settings["rendering/environment/defaults/default_environment"] = "res://default_env.tres";
 
 					if (ProjectSettings::get_singleton()->save_custom(dir.plus_file("project.godot"), initial_settings, Vector<String>(), false) != OK) {
 						set_message(TTR("Couldn't create project.godot in project path."), MESSAGE_ERROR);
@@ -2383,6 +2383,10 @@ ProjectManager::ProjectManager() {
 				if (DisplayServer::get_singleton()->screen_get_dpi(screen) >= 192 && DisplayServer::get_singleton()->screen_get_size(screen).y >= 1400) {
 					// hiDPI display.
 					scale = 2.0;
+				} else if (DisplayServer::get_singleton()->screen_get_size(screen).y >= 1700) {
+					// Likely a hiDPI display, but we aren't certain due to the returned DPI.
+					// Use an intermediate scale to handle this situation.
+					scale = 1.5;
 				} else if (DisplayServer::get_singleton()->screen_get_size(screen).y <= 800) {
 					// Small loDPI display. Use a smaller display scale so that editor elements fit more easily.
 					// Icons won't look great, but this is better than having editor elements overflow from its window.

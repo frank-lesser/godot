@@ -40,6 +40,7 @@
 #include "core/os/os.h"
 #include "core/os/semaphore.h"
 #include "core/os/thread.h"
+#include "core/templates/safe_refcount.h"
 
 class _ResourceLoader : public Object {
 	GDCLASS(_ResourceLoader, Object);
@@ -210,8 +211,8 @@ public:
 	uint64_t get_static_memory_usage() const;
 	uint64_t get_static_memory_peak_usage() const;
 
-	void delay_usec(uint32_t p_usec) const;
-	void delay_msec(uint32_t p_msec) const;
+	void delay_usec(int p_usec) const;
+	void delay_msec(int p_msec) const;
 	uint32_t get_ticks_msec() const;
 	uint64_t get_ticks_usec() const;
 
@@ -246,11 +247,6 @@ public:
 	bool request_permission(const String &p_name);
 	bool request_permissions();
 	Vector<String> get_granted_permissions() const;
-
-	int get_tablet_driver_count() const;
-	String get_tablet_driver_name(int p_driver) const;
-	String get_current_tablet_driver() const;
-	void set_current_tablet_driver(const String &p_driver);
 
 	static _OS *get_singleton() { return singleton; }
 
@@ -559,7 +555,7 @@ class _Thread : public Reference {
 protected:
 	Variant ret;
 	Variant userdata;
-	volatile bool active = false;
+	SafeFlag active;
 	Object *target_instance = nullptr;
 	StringName target_method;
 	Thread thread;

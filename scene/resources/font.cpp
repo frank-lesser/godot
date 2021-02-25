@@ -39,6 +39,11 @@
 void FontData::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("load_resource", "filename", "base_size"), &FontData::load_resource, DEFVAL(16));
 	ClassDB::bind_method(D_METHOD("load_memory", "data", "type", "base_size"), &FontData::_load_memory, DEFVAL(16));
+	ClassDB::bind_method(D_METHOD("new_bitmap", "height", "ascent", "base_size"), &FontData::new_bitmap);
+
+	ClassDB::bind_method(D_METHOD("bitmap_add_texture", "texture"), &FontData::bitmap_add_texture);
+	ClassDB::bind_method(D_METHOD("bitmap_add_char", "char", "texture_idx", "rect", "align", "advance"), &FontData::bitmap_add_char);
+	ClassDB::bind_method(D_METHOD("bitmap_add_kerning_pair", "A", "B", "kerning"), &FontData::bitmap_add_kerning_pair);
 
 	ClassDB::bind_method(D_METHOD("set_data_path", "path"), &FontData::set_data_path);
 	ClassDB::bind_method(D_METHOD("get_data_path"), &FontData::get_data_path);
@@ -49,6 +54,9 @@ void FontData::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_underline_position", "size"), &FontData::get_underline_position);
 	ClassDB::bind_method(D_METHOD("get_underline_thickness", "size"), &FontData::get_underline_thickness);
+
+	ClassDB::bind_method(D_METHOD("get_spacing", "type"), &FontData::get_spacing);
+	ClassDB::bind_method(D_METHOD("set_spacing", "type", "value"), &FontData::set_spacing);
 
 	ClassDB::bind_method(D_METHOD("set_antialiased", "antialiased"), &FontData::set_antialiased);
 	ClassDB::bind_method(D_METHOD("get_antialiased"), &FontData::get_antialiased);
@@ -100,6 +108,13 @@ void FontData::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "distance_field_hint"), "set_distance_field_hint", "get_distance_field_hint");
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "hinting", PROPERTY_HINT_ENUM, "None,Light,Normal"), "set_hinting", "get_hinting");
+
+	ADD_GROUP("Extra Spacing", "extra_spacing");
+	ADD_PROPERTYI(PropertyInfo(Variant::INT, "extra_spacing_glyph"), "set_spacing", "get_spacing", SPACING_GLYPH);
+	ADD_PROPERTYI(PropertyInfo(Variant::INT, "extra_spacing_space"), "set_spacing", "get_spacing", SPACING_SPACE);
+
+	BIND_ENUM_CONSTANT(SPACING_GLYPH);
+	BIND_ENUM_CONSTANT(SPACING_SPACE);
 }
 
 bool FontData::_set(const StringName &p_name, const Variant &p_value) {
@@ -219,6 +234,34 @@ void FontData::load_memory(const uint8_t *p_data, size_t p_size, const String &p
 	emit_changed();
 }
 
+void FontData::new_bitmap(float p_height, float p_ascent, int p_base_size) {
+	if (rid != RID()) {
+		TS->free(rid);
+	}
+	rid = TS->create_font_bitmap(p_height, p_ascent, p_base_size);
+	path = TTR("(Bitmap: " + String::num_int64(rid.get_id(), 16, true) + ")");
+	base_size = TS->font_get_base_size(rid);
+	emit_changed();
+}
+
+void FontData::bitmap_add_texture(const Ref<Texture> &p_texture) {
+	if (rid != RID()) {
+		TS->font_bitmap_add_texture(rid, p_texture);
+	}
+}
+
+void FontData::bitmap_add_char(char32_t p_char, int p_texture_idx, const Rect2 &p_rect, const Size2 &p_align, float p_advance) {
+	if (rid != RID()) {
+		TS->font_bitmap_add_char(rid, p_char, p_texture_idx, p_rect, p_align, p_advance);
+	}
+}
+
+void FontData::bitmap_add_kerning_pair(char32_t p_A, char32_t p_B, int p_kerning) {
+	if (rid != RID()) {
+		TS->font_bitmap_add_kerning_pair(rid, p_A, p_B, p_kerning);
+	}
+}
+
 void FontData::set_data_path(const String &p_path) {
 	load_resource(p_path, base_size);
 }
@@ -287,6 +330,27 @@ double FontData::get_variation(const String &p_name) const {
 		return 0;
 	}
 	return TS->font_get_variation(rid, p_name);
+}
+
+int FontData::get_spacing(int p_type) const {
+	if (rid == RID()) {
+		return 0;
+	}
+	if (p_type == SPACING_GLYPH) {
+		return TS->font_get_spacing_glyph(rid);
+	} else {
+		return TS->font_get_spacing_space(rid);
+	}
+}
+
+void FontData::set_spacing(int p_type, int p_value) {
+	ERR_FAIL_COND(rid == RID());
+	if (p_type == SPACING_GLYPH) {
+		TS->font_set_spacing_glyph(rid, p_value);
+	} else {
+		TS->font_set_spacing_space(rid, p_value);
+	}
+	emit_changed();
 }
 
 void FontData::set_antialiased(bool p_antialiased) {
@@ -797,6 +861,8 @@ Size2 Font::get_multiline_string_size(const String &p_text, float p_width, int p
 }
 
 void Font::draw_string(RID p_canvas_item, const Point2 &p_pos, const String &p_text, HAlign p_align, float p_width, int p_size, const Color &p_modulate, int p_outline_size, const Color &p_outline_modulate, uint8_t p_flags) const {
+	ERR_FAIL_COND(data.is_empty());
+
 	uint64_t hash = p_text.hash64();
 	hash = hash_djb2_one_64(p_size, hash);
 
@@ -827,6 +893,8 @@ void Font::draw_string(RID p_canvas_item, const Point2 &p_pos, const String &p_t
 }
 
 void Font::draw_multiline_string(RID p_canvas_item, const Point2 &p_pos, const String &p_text, HAlign p_align, float p_width, int p_max_lines, int p_size, const Color &p_modulate, int p_outline_size, const Color &p_outline_modulate, uint8_t p_flags) const {
+	ERR_FAIL_COND(data.is_empty());
+
 	uint64_t hash = p_text.hash64();
 	hash = hash_djb2_one_64(p_size, hash);
 

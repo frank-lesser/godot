@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  editor_sub_scene.h                                                   */
+/*  test_xml_parser.h                                                    */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,44 +28,47 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef EDITOR_SUB_SCENE_H
-#define EDITOR_SUB_SCENE_H
+#ifndef TEST_XML_PARSER_H
+#define TEST_XML_PARSER_H
 
-#include "editor/editor_file_dialog.h"
-#include "scene/gui/dialogs.h"
-#include "scene/gui/tree.h"
+#include <inttypes.h>
 
-class EditorSubScene : public ConfirmationDialog {
-	GDCLASS(EditorSubScene, ConfirmationDialog);
+#include "core/io/xml_parser.h"
+#include "core/string/ustring.h"
 
-	List<Node *> selection;
-	LineEdit *path;
-	Tree *tree;
-	Node *scene;
-	bool is_root;
+#include "tests/test_macros.h"
 
-	EditorFileDialog *file_dialog;
+namespace TestXMLParser {
+TEST_CASE("[XMLParser] End-to-end") {
+	String source = "<?xml version = \"1.0\" encoding=\"UTF-8\" ?>\
+<top attr=\"attr value\">\
+  Text&lt;&#65;&#x42;&gt;\
+</top>";
+	Vector<uint8_t> buff = source.to_utf8_buffer();
 
-	void _fill_tree(Node *p_node, TreeItem *p_parent);
-	void _selected_changed();
-	void _item_multi_selected(Object *p_object, int p_cell, bool p_selected);
-	void _item_activated();
-	void _remove_selection_child(Node *p_node);
-	void _reown(Node *p_node, List<Node *> *p_to_reown);
+	XMLParser parser;
+	parser.open_buffer(buff);
 
-	void ok_pressed() override;
+	// <?xml ...?> gets parsed as NODE_UNKNOWN
+	CHECK(parser.read() == OK);
+	CHECK(parser.get_node_type() == XMLParser::NodeType::NODE_UNKNOWN);
 
-protected:
-	void _notification(int p_what);
-	static void _bind_methods();
-	void _path_browse();
-	void _path_selected(const String &p_path);
-	void _path_changed(const String &p_path);
+	CHECK(parser.read() == OK);
+	CHECK(parser.get_node_type() == XMLParser::NodeType::NODE_ELEMENT);
+	CHECK(parser.get_node_name() == "top");
+	CHECK(parser.has_attribute("attr"));
+	CHECK(parser.get_attribute_value("attr") == "attr value");
 
-public:
-	void move(Node *p_new_parent, Node *p_new_owner);
-	void clear();
-	EditorSubScene();
-};
+	CHECK(parser.read() == OK);
+	CHECK(parser.get_node_type() == XMLParser::NodeType::NODE_TEXT);
+	CHECK(parser.get_node_data().lstrip(" \t") == "Text<AB>");
 
-#endif // EDITOR_SUB_SCENE_H
+	CHECK(parser.read() == OK);
+	CHECK(parser.get_node_type() == XMLParser::NodeType::NODE_ELEMENT_END);
+	CHECK(parser.get_node_name() == "top");
+
+	parser.close();
+}
+} // namespace TestXMLParser
+
+#endif // TEST_XML_PARSER_H

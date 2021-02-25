@@ -236,6 +236,8 @@ bool SceneTreeEditor::_add_nodes(Node *p_node, TreeItem *p_parent, bool p_scroll
 		item->set_text(0, node_name);
 		item->set_selectable(0, marked_selectable);
 		item->set_custom_color(0, get_theme_color("accent_color", "Editor"));
+	} else if (!p_node->can_process()) {
+		item->set_custom_color(0, get_theme_color("disabled_font_color", "Editor"));
 	} else if (!marked_selectable && !marked_children_selectable) {
 		Node *node = p_node;
 		while (node) {
@@ -585,6 +587,11 @@ void SceneTreeEditor::_test_update_tree() {
 	tree_dirty = true;
 }
 
+void SceneTreeEditor::_tree_process_mode_changed() {
+	MessageQueue::get_singleton()->push_call(this, "_update_tree");
+	tree_dirty = true;
+}
+
 void SceneTreeEditor::_tree_changed() {
 	if (EditorNode::get_singleton()->is_exiting()) {
 		return; //speed up exit
@@ -655,6 +662,7 @@ void SceneTreeEditor::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_ENTER_TREE: {
 			get_tree()->connect("tree_changed", callable_mp(this, &SceneTreeEditor::_tree_changed));
+			get_tree()->connect("tree_process_mode_changed", callable_mp(this, &SceneTreeEditor::_tree_process_mode_changed));
 			get_tree()->connect("node_removed", callable_mp(this, &SceneTreeEditor::_node_removed));
 			get_tree()->connect("node_renamed", callable_mp(this, &SceneTreeEditor::_node_renamed));
 			get_tree()->connect("node_configuration_warning_changed", callable_mp(this, &SceneTreeEditor::_warning_changed));
@@ -665,6 +673,7 @@ void SceneTreeEditor::_notification(int p_what) {
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
 			get_tree()->disconnect("tree_changed", callable_mp(this, &SceneTreeEditor::_tree_changed));
+			get_tree()->disconnect("tree_process_mode_changed", callable_mp(this, &SceneTreeEditor::_tree_process_mode_changed));
 			get_tree()->disconnect("node_removed", callable_mp(this, &SceneTreeEditor::_node_removed));
 			get_tree()->disconnect("node_renamed", callable_mp(this, &SceneTreeEditor::_node_renamed));
 			tree->disconnect("item_collapsed", callable_mp(this, &SceneTreeEditor::_cell_collapsed));
@@ -1110,7 +1119,7 @@ void SceneTreeEditor::set_connecting_signal(bool p_enable) {
 }
 
 void SceneTreeEditor::_bind_methods() {
-	ClassDB::bind_method("_update_tree", &SceneTreeEditor::_update_tree); // Still used by some connect_compat.
+	ClassDB::bind_method(D_METHOD("_update_tree", "scroll_to_selected"), &SceneTreeEditor::_update_tree, DEFVAL(false)); // Still used by some connect_compat.
 	ClassDB::bind_method("_rename_node", &SceneTreeEditor::_rename_node);
 	ClassDB::bind_method("_test_update_tree", &SceneTreeEditor::_test_update_tree);
 
@@ -1194,7 +1203,7 @@ SceneTreeEditor::SceneTreeEditor(bool p_label, bool p_can_rename, bool p_can_ope
 	blocked = 0;
 
 	update_timer = memnew(Timer);
-	update_timer->connect("timeout", callable_mp(this, &SceneTreeEditor::_update_tree));
+	update_timer->connect("timeout", callable_mp(this, &SceneTreeEditor::_update_tree), varray(false));
 	update_timer->set_one_shot(true);
 	update_timer->set_wait_time(0.5);
 	add_child(update_timer);

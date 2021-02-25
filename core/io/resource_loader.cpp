@@ -174,6 +174,10 @@ void ResourceFormatLoader::_bind_methods() {
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::STRING, "get_resource_type", PropertyInfo(Variant::STRING, "path")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo("get_dependencies", PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::STRING, "add_types")));
 	ClassDB::add_virtual_method(get_class_static(), MethodInfo(Variant::INT, "rename_dependencies", PropertyInfo(Variant::STRING, "path"), PropertyInfo(Variant::STRING, "renames")));
+
+	BIND_ENUM_CONSTANT(CACHE_MODE_IGNORE);
+	BIND_ENUM_CONSTANT(CACHE_MODE_REUSE);
+	BIND_ENUM_CONSTANT(CACHE_MODE_REPLACE);
 }
 
 ///////////////////////////////////
@@ -968,11 +972,11 @@ void ResourceLoader::reload_translation_remaps() {
 }
 
 void ResourceLoader::load_translation_remaps() {
-	if (!ProjectSettings::get_singleton()->has_setting("locale/translation_remaps")) {
+	if (!ProjectSettings::get_singleton()->has_setting("internationalization/locale/translation_remaps")) {
 		return;
 	}
 
-	Dictionary remaps = ProjectSettings::get_singleton()->get("locale/translation_remaps");
+	Dictionary remaps = ProjectSettings::get_singleton()->get("internationalization/locale/translation_remaps");
 	List<Variant> keys;
 	remaps.get_key_list(&keys);
 	for (List<Variant>::Element *E = keys.front(); E; E = E->next()) {

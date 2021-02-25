@@ -373,8 +373,8 @@ private:
 	void set_line_as_center_visible(int p_line, int p_wrap_index = 0);
 	void set_line_as_last_visible(int p_line, int p_wrap_index = 0);
 	int get_first_visible_line() const;
-	int get_last_visible_line() const;
-	int get_last_visible_line_wrap_index() const;
+	int get_last_full_visible_line() const;
+	int get_last_full_visible_line_wrap_index() const;
 	double get_visible_rows_offset() const;
 	double get_v_scroll_offset() const;
 
@@ -408,6 +408,7 @@ private:
 	int _get_control_height() const;
 
 	Point2 _get_local_mouse_pos() const;
+	int _get_menu_action_accelerator(const String &p_action);
 
 	void _reset_caret_blink_timer();
 	void _toggle_draw_caret();
@@ -441,6 +442,26 @@ private:
 	int _calculate_spaces_till_next_left_indent(int column);
 	int _calculate_spaces_till_next_right_indent(int column);
 
+	// Methods used in shortcuts
+	void _swap_current_input_direction();
+	void _new_line(bool p_split_current = true, bool p_above = false);
+	void _indent_right();
+	void _indent_left();
+	void _move_cursor_left(bool p_select, bool p_move_by_word = false);
+	void _move_cursor_right(bool p_select, bool p_move_by_word = false);
+	void _move_cursor_up(bool p_select);
+	void _move_cursor_down(bool p_select);
+	void _move_cursor_to_line_start(bool p_select);
+	void _move_cursor_to_line_end(bool p_select);
+	void _move_cursor_page_up(bool p_select);
+	void _move_cursor_page_down(bool p_select);
+	void _backspace(bool p_word = false, bool p_all_to_left = false);
+	void _delete(bool p_word = false, bool p_all_to_right = false);
+	void _delete_selection();
+	void _move_cursor_document_start(bool p_select);
+	void _move_cursor_document_end(bool p_select);
+	void _handle_unicode_character(uint32_t unicode, bool p_had_selection, bool p_update_auto_complete);
+
 protected:
 	struct Cache {
 		Ref<Texture2D> tab_icon;
@@ -451,6 +472,8 @@ protected:
 		Ref<StyleBox> style_readonly;
 		Ref<Font> font;
 		int font_size = 16;
+		int outline_size = 0;
+		Color outline_color;
 		Color completion_background_color;
 		Color completion_selected_color;
 		Color completion_existing_color;
@@ -637,8 +660,8 @@ public:
 	int get_row_height() const;
 	void backspace_at_cursor();
 
-	void indent_left();
-	void indent_right();
+	void indent_selected_lines_left();
+	void indent_selected_lines_right();
 	int get_indent_level(int p_line) const;
 	bool is_line_comment(int p_line) const;
 

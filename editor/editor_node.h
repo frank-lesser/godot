@@ -31,6 +31,7 @@
 #ifndef EDITOR_NODE_H
 #define EDITOR_NODE_H
 
+#include "core/templates/safe_refcount.h"
 #include "editor/editor_data.h"
 #include "editor/editor_export.h"
 #include "editor/editor_folding.h"
@@ -111,7 +112,7 @@ public:
 		Thread execute_output_thread;
 		Mutex execute_output_mutex;
 		int exitcode = 0;
-		volatile bool done = false;
+		SafeFlag done;
 	};
 
 private:
@@ -128,7 +129,6 @@ private:
 		FILE_SAVE_ALL_SCENES,
 		FILE_SAVE_AND_RUN,
 		FILE_SHOW_IN_FILESYSTEM,
-		FILE_IMPORT_SUBSCENE,
 		FILE_EXPORT_PROJECT,
 		FILE_EXPORT_MESH_LIBRARY,
 		FILE_INSTALL_ANDROID_SOURCE,
@@ -312,6 +312,9 @@ private:
 
 	EditorSettingsDialog *settings_config_dialog;
 	ProjectSettingsEditor *project_settings;
+	bool settings_changed = true; //make it update settings on first frame
+	void _update_from_settings();
+
 	PopupMenu *vcs_actions_menu;
 	EditorFileDialog *file;
 	ExportTemplateManager *export_template_manager;
@@ -716,8 +719,6 @@ public:
 	void save_resource(const Ref<Resource> &p_resource);
 	void save_resource_as(const Ref<Resource> &p_resource, const String &p_at_path = String());
 
-	void merge_from_scene() { _menu_option_confirm(FILE_IMPORT_SUBSCENE, false); }
-
 	void show_about() { _menu_option_confirm(HELP_ABOUT, false); }
 
 	static bool has_unsaved_changes() { return singleton->unsaved_cache; }
@@ -846,6 +847,8 @@ public:
 	void save_all_scenes();
 	void save_scene_list(Vector<String> p_scene_filenames);
 	void restart_editor();
+
+	void notify_settings_changed();
 
 	void dim_editor(bool p_dimming, bool p_force_dim = false);
 	bool is_editor_dimmed() const;

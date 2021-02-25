@@ -439,14 +439,14 @@ bool Control::is_layout_rtl() const {
 		} else if (parent_window) {
 			return parent_window->is_layout_rtl();
 		} else {
-			if (GLOBAL_GET("display/window/force_right_to_left_layout_direction")) {
+			if (GLOBAL_GET("internationalization/rendering/force_right_to_left_layout_direction")) {
 				return true;
 			}
 			String locale = TranslationServer::get_singleton()->get_tool_locale();
 			return TS->is_locale_right_to_left(locale);
 		}
 	} else if (data.layout_dir == LAYOUT_DIRECTION_LOCALE) {
-		if (GLOBAL_GET("display/window/force_right_to_left_layout_direction")) {
+		if (GLOBAL_GET("internationalization/rendering/force_right_to_left_layout_direction")) {
 			return true;
 		}
 		String locale = TranslationServer::get_singleton()->get_tool_locale();
@@ -454,6 +454,10 @@ bool Control::is_layout_rtl() const {
 	} else {
 		return (data.layout_dir == LAYOUT_DIRECTION_RTL);
 	}
+}
+
+void Control::_clear_size_warning() {
+	data.size_warning = false;
 }
 
 //moved theme configuration here, so controls can set up even if still not inside active scene
@@ -503,7 +507,9 @@ void Control::_notification(int p_notification) {
 		} break;
 		case NOTIFICATION_EXIT_TREE: {
 			get_viewport()->_gui_remove_control(this);
-
+		} break;
+		case NOTIFICATION_READY: {
+			connect("ready", callable_mp(this, &Control::_clear_size_warning), varray(), CONNECT_DEFERRED | CONNECT_ONESHOT);
 		} break;
 
 		case NOTIFICATION_ENTER_CANVAS: {
@@ -1702,6 +1708,11 @@ void Control::set_rect(const Rect2 &p_rect) {
 }
 
 void Control::_set_size(const Size2 &p_size) {
+#ifdef DEBUG_ENABLED
+	if (data.size_warning) {
+		WARN_PRINT("Adjusting the size of Control nodes before they are fully initialized is unreliable. Consider deferring it with set_deferred().");
+	}
+#endif
 	set_size(p_size);
 }
 
