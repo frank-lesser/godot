@@ -59,6 +59,7 @@ private:
 
 protected:
 	static void _bind_methods();
+	void _validate_property(PropertyInfo &property) const override;
 
 public:
 	virtual RID get_rid() const override;

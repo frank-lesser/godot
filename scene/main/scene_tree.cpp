@@ -54,6 +54,7 @@
 #include "window.h"
 
 #include <stdio.h>
+#include <stdlib.h>
 
 void SceneTreeTimer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_time_left", "time"), &SceneTreeTimer::set_time_left);
@@ -534,12 +535,7 @@ void SceneTree::finalize() {
 }
 
 void SceneTree::quit(int p_exit_code) {
-	if (p_exit_code >= 0) {
-		// Override the exit code if a positive argument is given (the default is `-1`).
-		// This is a shorthand for calling `set_exit_code()` on the OS singleton then quitting.
-		OS::get_singleton()->set_exit_code(p_exit_code);
-	}
-
+	OS::get_singleton()->set_exit_code(p_exit_code);
 	_quit = true;
 }
 
@@ -1205,7 +1201,7 @@ void SceneTree::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("get_node_count"), &SceneTree::get_node_count);
 	ClassDB::bind_method(D_METHOD("get_frame"), &SceneTree::get_frame);
-	ClassDB::bind_method(D_METHOD("quit", "exit_code"), &SceneTree::quit, DEFVAL(-1));
+	ClassDB::bind_method(D_METHOD("quit", "exit_code"), &SceneTree::quit, DEFVAL(EXIT_SUCCESS));
 
 	ClassDB::bind_method(D_METHOD("queue_delete", "obj"), &SceneTree::queue_delete);
 
@@ -1349,6 +1345,8 @@ SceneTree::SceneTree() {
 	debug_navigation_disabled_color = GLOBAL_DEF("debug/shapes/navigation/disabled_geometry_color", Color(1.0, 0.7, 0.1, 0.4));
 	collision_debug_contacts = GLOBAL_DEF("debug/shapes/collision/max_contacts_displayed", 10000);
 	ProjectSettings::get_singleton()->set_custom_property_info("debug/shapes/collision/max_contacts_displayed", PropertyInfo(Variant::INT, "debug/shapes/collision/max_contacts_displayed", PROPERTY_HINT_RANGE, "0,20000,1")); // No negative
+
+	GLOBAL_DEF("debug/shapes/collision/draw_2d_outlines", true);
 
 	// Create with mainloop.
 

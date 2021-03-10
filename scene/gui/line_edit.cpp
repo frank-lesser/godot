@@ -255,11 +255,30 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 				selection.creating = true;
 
 			} else {
-				if (b->is_doubleclick() && selecting_enabled) {
-					selection.enabled = true;
-					selection.begin = 0;
-					selection.end = text.length();
-					selection.doubleclick = true;
+				if (selecting_enabled) {
+					if (!b->is_doubleclick() && (OS::get_singleton()->get_ticks_msec() - selection.last_dblclk) < 600) {
+						// Triple-click select all.
+						selection.enabled = true;
+						selection.begin = 0;
+						selection.end = text.length();
+						selection.doubleclick = true;
+						selection.last_dblclk = 0;
+						cursor_pos = selection.begin;
+					} else if (b->is_doubleclick()) {
+						// Double-click select word.
+						Vector<Vector2i> words = TS->shaped_text_get_word_breaks(text_rid);
+						for (int i = 0; i < words.size(); i++) {
+							if (words[i].x < cursor_pos && words[i].y > cursor_pos) {
+								selection.enabled = true;
+								selection.begin = words[i].x;
+								selection.end = words[i].y;
+								selection.doubleclick = true;
+								selection.last_dblclk = OS::get_singleton()->get_ticks_msec();
+								cursor_pos = selection.end;
+								break;
+							}
+						}
+					}
 				}
 
 				selection.drag_attempt = false;
@@ -1135,6 +1154,8 @@ void LineEdit::cursor_set_blink_enabled(const bool p_enabled) {
 	}
 
 	draw_caret = true;
+
+	notify_property_list_changed();
 }
 
 bool LineEdit::cursor_get_force_displayed() const {
@@ -2054,6 +2075,12 @@ void LineEdit::_get_property_list(List<PropertyInfo> *p_list) const {
 		p_list->push_back(PropertyInfo(Variant::FLOAT, "opentype_features/" + name));
 	}
 	p_list->push_back(PropertyInfo(Variant::NIL, "opentype_features/_new", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_EDITOR));
+}
+
+void LineEdit::_validate_property(PropertyInfo &property) const {
+	if (!caret_blink_enabled && property.name == "caret_blink_speed") {
+		property.usage = PROPERTY_USAGE_NOEDITOR;
+	}
 }
 
 void LineEdit::_bind_methods() {

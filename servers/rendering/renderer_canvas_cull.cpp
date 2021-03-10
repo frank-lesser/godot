@@ -148,6 +148,8 @@ void RendererCanvasCull::_cull_canvas_item(Item *p_canvas_item, const Transform2
 		} else {
 			ci->final_clip_rect = global_rect;
 		}
+		ci->final_clip_rect.position = ci->final_clip_rect.position.round();
+		ci->final_clip_rect.size = ci->final_clip_rect.size.round();
 		ci->final_clip_owner = ci;
 
 	} else {
@@ -525,11 +527,11 @@ void RendererCanvasCull::canvas_item_add_line(RID p_item, const Point2 &p_from, 
 	Item::CommandPrimitive *line = canvas_item->alloc_command<Item::CommandPrimitive>();
 	ERR_FAIL_COND(!line);
 	if (p_width > 1.001) {
-		Vector2 t = (p_from - p_to).orthogonal().normalized();
-		line->points[0] = p_from + t * p_width;
-		line->points[1] = p_from - t * p_width;
-		line->points[2] = p_to - t * p_width;
-		line->points[3] = p_to + t * p_width;
+		Vector2 t = (p_from - p_to).orthogonal().normalized() * p_width * 0.5;
+		line->points[0] = p_from + t;
+		line->points[1] = p_from - t;
+		line->points[2] = p_to - t;
+		line->points[3] = p_to + t;
 		line->point_count = 4;
 	} else {
 		line->point_count = 2;

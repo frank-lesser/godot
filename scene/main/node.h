@@ -173,7 +173,6 @@ private:
 	Array _get_node_and_resource(const NodePath &p_path);
 
 	void _duplicate_signals(const Node *p_original, Node *p_copy) const;
-	void _duplicate_and_reown(Node *p_new_parent, const Map<Node *, Node *> &p_reown_map) const;
 	Node *_duplicate(int p_flags, Map<const Node *, Node *> *r_duplimap = nullptr) const;
 
 	TypedArray<Node> _get_children() const;
@@ -190,12 +189,6 @@ private:
 	void _propagate_pause_notification(bool p_enable);
 
 	_FORCE_INLINE_ bool _can_process(bool p_paused) const;
-
-#ifdef TOOLS_ENABLED
-	friend class SceneTreeEditor;
-#endif
-	static String invalid_character;
-	static bool _validate_node_name(String &p_name);
 
 protected:
 	void _block() { data.blocked++; }
@@ -366,7 +359,6 @@ public:
 	bool is_processing_unhandled_key_input() const;
 
 	Node *duplicate(int p_flags = DUPLICATE_GROUPS | DUPLICATE_SIGNALS | DUPLICATE_SCRIPTS) const;
-	Node *duplicate_and_reown(const Map<Node *, Node *> &p_reown_map) const;
 #ifdef TOOLS_ENABLED
 	Node *duplicate_from_editor(Map<const Node *, Node *> &r_duplimap) const;
 	Node *duplicate_from_editor(Map<const Node *, Node *> &r_duplimap, const Map<RES, RES> &p_resource_remap) const;
