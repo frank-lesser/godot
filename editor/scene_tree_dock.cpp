@@ -63,7 +63,7 @@ void SceneTreeDock::_quick_open() {
 void SceneTreeDock::_input(Ref<InputEvent> p_event) {
 	Ref<InputEventMouseButton> mb = p_event;
 
-	if (mb.is_valid() && !mb->is_pressed() && mb->get_button_index() == BUTTON_LEFT) {
+	if (mb.is_valid() && !mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_LEFT) {
 		restore_script_editor_on_drag = false; //lost chance
 	}
 }
@@ -685,7 +685,6 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			editor_data->get_undo_redo().add_do_method(editor_selection, "clear");
 
 			Node *dupsingle = nullptr;
-			List<Node *> editable_children;
 
 			selection.sort_custom<Node::Comparator>();
 
@@ -700,10 +699,6 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 
 				Map<const Node *, Node *> duplimap;
 				Node *dup = node->duplicate_from_editor(duplimap);
-
-				if (EditorNode::get_singleton()->get_edited_scene()->is_editable_instance(node)) {
-					editable_children.push_back(dup);
-				}
 
 				ERR_CONTINUE(!dup);
 
@@ -739,11 +734,6 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			if (dupsingle) {
 				editor->push_item(dupsingle);
 			}
-
-			for (List<Node *>::Element *E = editable_children.back(); E; E = E->prev()) {
-				_toggle_editable_children(E->get());
-			}
-
 		} break;
 		case TOOL_REPARENT: {
 			if (!profile_allow_editing) {
@@ -907,7 +897,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			Node *scene = editor_data->get_edited_scene_root();
 
 			if (!scene) {
-				accept->set_text(TTR("This operation can't be done without a scene."));
+				accept->set_text(TTR("Saving the branch as a scene requires having a scene open in the editor."));
 				accept->popup_centered();
 				break;
 			}
@@ -915,7 +905,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			List<Node *> selection = editor_selection->get_selected_node_list();
 
 			if (selection.size() != 1) {
-				accept->set_text(TTR("This operation requires a single selected node."));
+				accept->set_text(vformat(TTR("Saving the branch as a scene requires selecting only one node, but you have selected %d nodes."), selection.size()));
 				accept->popup_centered();
 				break;
 			}
@@ -923,13 +913,13 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 			Node *tocopy = selection.front()->get();
 
 			if (tocopy == scene) {
-				accept->set_text(TTR("Can not perform with the root node."));
+				accept->set_text(TTR("Can't save the root node branch as an instanced scene.\nTo create an editable copy of the current scene, duplicate it using the FileSystem dock context menu\nor create an inherited scene using Scene > New Inherited Scene... instead."));
 				accept->popup_centered();
 				break;
 			}
 
 			if (tocopy != editor_data->get_edited_scene_root() && tocopy->get_filename() != "") {
-				accept->set_text(TTR("This operation can't be done on instanced scenes."));
+				accept->set_text(TTR("Can't save the branch of an already instanced scene.\nTo create a variation of a scene, you can make an inherited scene based on the instanced scene using Scene > New Inherited Scene... instead."));
 				accept->popup_centered();
 				break;
 			}

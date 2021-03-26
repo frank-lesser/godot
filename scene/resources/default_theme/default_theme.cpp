@@ -348,9 +348,13 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	theme->set_stylebox("focus", "CheckBox", cbx_focus);
 
 	theme->set_icon("checked", "CheckBox", make_icon(checked_png));
+	theme->set_icon("checked_disabled", "CheckBox", make_icon(checked_disabled_png));
 	theme->set_icon("unchecked", "CheckBox", make_icon(unchecked_png));
+	theme->set_icon("unchecked_disabled", "CheckBox", make_icon(unchecked_disabled_png));
 	theme->set_icon("radio_checked", "CheckBox", make_icon(radio_checked_png));
+	theme->set_icon("radio_checked_disabled", "CheckBox", make_icon(radio_checked_disabled_png));
 	theme->set_icon("radio_unchecked", "CheckBox", make_icon(radio_unchecked_png));
+	theme->set_icon("radio_unchecked_disabled", "CheckBox", make_icon(radio_unchecked_disabled_png));
 
 	theme->set_font("font", "CheckBox", Ref<Font>());
 	theme->set_font_size("font_size", "CheckBox", -1);
@@ -628,6 +632,8 @@ void fill_default_theme(Ref<Theme> &theme, const Ref<Font> &default_font, const 
 	// File Dialog
 
 	theme->set_icon("parent_folder", "FileDialog", make_icon(icon_parent_folder_png));
+	theme->set_icon("back_folder", "FileDialog", make_icon(arrow_left_png));
+	theme->set_icon("forward_folder", "FileDialog", make_icon(arrow_right_png));
 	theme->set_icon("reload", "FileDialog", make_icon(icon_reload_png));
 	theme->set_icon("toggle_hidden", "FileDialog", make_icon(icon_visibility_png));
 

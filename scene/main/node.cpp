@@ -428,7 +428,7 @@ void Node::set_process_mode(ProcessMode p_mode) {
 	_propagate_process_owner(data.process_owner, pause_notification);
 #ifdef TOOLS_ENABLED
 	// This is required for the editor to update the visibility of disabled nodes
-	// Its very expensive during runtime to change, so editor-only
+	// It's very expensive during runtime to change, so editor-only
 	if (Engine::get_singleton()->is_editor_hint()) {
 		get_tree()->emit_signal("tree_process_mode_changed");
 	}
@@ -1130,7 +1130,7 @@ String increase_numeric_string(const String &s) {
 
 void Node::_generate_serial_child_name(const Node *p_child, StringName &name) const {
 	if (name == StringName()) {
-		//no name and a new nade is needed, create one.
+		//no name and a new name is needed, create one.
 
 		name = p_child->get_class();
 		// Adjust casing according to project setting. The current type name is expected to be in PascalCase.
@@ -1156,7 +1156,7 @@ void Node::_generate_serial_child_name(const Node *p_child, StringName &name) co
 		bool exists = false;
 
 		for (int i = 0; i < cc; i++) {
-			if (children_ptr[i] == p_child) { //exclude self in renaming if its already a child
+			if (children_ptr[i] == p_child) { //exclude self in renaming if it's already a child
 				continue;
 			}
 			if (children_ptr[i]->data.name == name) {
@@ -1945,7 +1945,7 @@ void Node::set_editable_instance(Node *p_node, bool p_editable) {
 	if (!p_editable) {
 		p_node->data.editable_instance = false;
 		// Avoid this flag being needlessly saved;
-		// also give more visual feedback if editable children is re-enabled
+		// also give more visual feedback if editable children are re-enabled
 		set_display_folded(false);
 	} else {
 		p_node->data.editable_instance = true;
@@ -2051,19 +2051,26 @@ Node *Node::_duplicate(int p_flags, Map<const Node *, Node *> *r_duplimap) const
 		// Since nodes in the instanced hierarchy won't be duplicated explicitly, we need to make an inventory
 		// of all the nodes in the tree of the instanced scene in order to transfer the values of the properties
 
+		Vector<const Node *> instance_roots;
+		instance_roots.push_back(this);
+
 		for (List<const Node *>::Element *N = node_tree.front(); N; N = N->next()) {
 			for (int i = 0; i < N->get()->get_child_count(); ++i) {
 				Node *descendant = N->get()->get_child(i);
 				// Skip nodes not really belonging to the instanced hierarchy; they'll be processed normally later
 				// but remember non-instanced nodes that are hidden below instanced ones
-				if (descendant->data.owner != this) {
-					if (descendant->get_parent() && descendant->get_parent() != this && descendant->get_parent()->data.owner == this && descendant->data.owner != descendant->get_parent()) {
+				if (!instance_roots.has(descendant->get_owner())) {
+					if (descendant->get_parent() && descendant->get_parent() != this && descendant->data.owner != descendant->get_parent()) {
 						hidden_roots.push_back(descendant);
 					}
 					continue;
 				}
 
 				node_tree.push_back(descendant);
+
+				if (descendant->get_filename() != "" && instance_roots.has(descendant->get_owner())) {
+					instance_roots.push_back(descendant);
+				}
 			}
 		}
 	}

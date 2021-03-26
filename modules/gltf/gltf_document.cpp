@@ -63,7 +63,6 @@
 #ifdef MODULE_GRIDMAP_ENABLED
 #include "modules/gridmap/grid_map.h"
 #endif // MODULE_GRIDMAP_ENABLED
-#include "modules/regex/regex.h"
 #include "scene/2d/node_2d.h"
 #include "scene/3d/bone_attachment_3d.h"
 #include "scene/3d/camera_3d.h"
@@ -505,25 +504,11 @@ String GLTFDocument::_gen_unique_animation_name(Ref<GLTFState> state, const Stri
 	return name;
 }
 
-String GLTFDocument::_sanitize_bone_name(const String &name) {
-	String p_name = name.camelcase_to_underscore(true);
-
-	RegEx pattern_nocolon(":");
-	p_name = pattern_nocolon.sub(p_name, "_", true);
-
-	RegEx pattern_noslash("/");
-	p_name = pattern_noslash.sub(p_name, "_", true);
-
-	RegEx pattern_nospace(" +");
-	p_name = pattern_nospace.sub(p_name, "_", true);
-
-	RegEx pattern_multiple("_+");
-	p_name = pattern_multiple.sub(p_name, "_", true);
-
-	RegEx pattern_padded("0+(\\d+)");
-	p_name = pattern_padded.sub(p_name, "$1", true);
-
-	return p_name;
+String GLTFDocument::_sanitize_bone_name(const String &p_name) {
+	String name = p_name;
+	name = name.replace(":", "_");
+	name = name.replace("/", "_");
+	return name;
 }
 
 String GLTFDocument::_gen_unique_bone_name(Ref<GLTFState> state, const GLTFSkeletonIndex skel_i, const String &p_name) {
@@ -569,10 +554,10 @@ Error GLTFDocument::_parse_scenes(Ref<GLTFState> state) {
 			state->root_nodes.push_back(nodes[j]);
 		}
 
-		if (s.has("name") && s["name"] != "") {
+		if (s.has("name") && !String(s["name"]).is_empty() && !((String)s["name"]).begins_with("Scene")) {
 			state->scene_name = _gen_unique_name(state, s["name"]);
 		} else {
-			state->scene_name = _gen_unique_name(state, "Scene");
+			state->scene_name = _gen_unique_name(state, state->filename);
 		}
 	}
 
@@ -2464,6 +2449,12 @@ Error GLTFDocument::_parse_meshes(Ref<GLTFState> state) {
 		const Dictionary &extras = d.has("extras") ? (Dictionary)d["extras"] : Dictionary();
 		Ref<EditorSceneImporterMesh> import_mesh;
 		import_mesh.instance();
+		String mesh_name = "mesh";
+		if (d.has("name") && !String(d["name"]).is_empty()) {
+			mesh_name = d["name"];
+		}
+		import_mesh->set_name(_gen_unique_name(state, vformat("%s_%s", state->scene_name, mesh_name)));
+
 		for (int j = 0; j < primitives.size(); j++) {
 			Dictionary p = primitives[j];
 
@@ -3358,8 +3349,10 @@ Error GLTFDocument::_parse_materials(Ref<GLTFState> state) {
 
 		Ref<StandardMaterial3D> material;
 		material.instance();
-		if (d.has("name")) {
+		if (d.has("name") && !String(d["name"]).is_empty()) {
 			material->set_name(d["name"]);
+		} else {
+			material->set_name(vformat("material_%s", itos(i)));
 		}
 		material->set_flag(BaseMaterial3D::FLAG_ALBEDO_FROM_VERTEX_COLOR, true);
 		Dictionary pbr_spec_gloss_extensions;
@@ -3896,8 +3889,10 @@ Error GLTFDocument::_parse_skins(Ref<GLTFState> state) {
 			state->nodes.write[node]->joint = true;
 		}
 
-		if (d.has("name")) {
+		if (d.has("name") && !String(d["name"]).is_empty()) {
 			skin->set_name(d["name"]);
+		} else {
+			skin->set_name(vformat("skin_%s", itos(i)));
 		}
 
 		if (d.has("skeleton")) {
@@ -5648,8 +5643,8 @@ void GLTFDocument::_import_animation(Ref<GLTFState> state, AnimationPlayer *ap, 
 			animation->track_set_path(track_idx, node_path);
 			//first determine animation length
 
-			const float increment = 1.0 / float(bake_fps);
-			float time = 0.0;
+			const double increment = 1.0 / bake_fps;
+			double time = 0.0;
 
 			Vector3 base_pos;
 			Quat base_rot;
@@ -5739,8 +5734,8 @@ void GLTFDocument::_import_animation(Ref<GLTFState> state, AnimationPlayer *ap, 
 				}
 			} else {
 				// CATMULLROMSPLINE or CUBIC_SPLINE have to be baked, apologies.
-				const float increment = 1.0 / float(bake_fps);
-				float time = 0.0;
+				const double increment = 1.0 / bake_fps;
+				double time = 0.0;
 				bool last = false;
 				while (true) {
 					_interpolate_track<float>(track.weight_tracks[i].times, track.weight_tracks[i].values, time, gltf_interp);
@@ -6370,6 +6365,9 @@ Error GLTFDocument::parse(Ref<GLTFState> state, String p_path, bool p_read_binar
 			return FAILED;
 	}
 	f->close();
+
+	// get file's name, use for scene name if none
+	state->filename = p_path.get_file().get_slice(".", 0);
 
 	ERR_FAIL_COND_V(!state->json.has("asset"), Error::FAILED);
 

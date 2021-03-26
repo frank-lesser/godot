@@ -898,6 +898,9 @@ GDScriptTokenizer::Token GDScriptTokenizer::string() {
 					_advance();
 					_advance();
 					break;
+				} else {
+					// Not a multiline string termination, add consumed quote.
+					result += quote_char;
 				}
 			} else {
 				// Ended single-line string.
@@ -1169,7 +1172,7 @@ GDScriptTokenizer::Token GDScriptTokenizer::scan() {
 	if (pending_newline) {
 		pending_newline = false;
 		if (!multiline_mode) {
-			// Don't return newline tokens on multine mode.
+			// Don't return newline tokens on multiline mode.
 			return last_newline;
 		}
 	}

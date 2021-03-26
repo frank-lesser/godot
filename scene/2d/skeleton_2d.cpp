@@ -119,11 +119,11 @@ void Bone2D::apply_rest() {
 	set_transform(rest);
 }
 
-void Bone2D::set_default_length(float p_length) {
+void Bone2D::set_default_length(real_t p_length) {
 	default_length = p_length;
 }
 
-float Bone2D::get_default_length() const {
+real_t Bone2D::get_default_length() const {
 	return default_length;
 }
 
@@ -184,7 +184,7 @@ void Skeleton2D::_update_bone_setup() {
 	bone_setup_dirty = false;
 	RS::get_singleton()->skeleton_allocate_data(skeleton, bones.size(), true);
 
-	bones.sort(); //sorty so they are always in the same order/index
+	bones.sort(); //sorting so that they are always in the same order/index
 
 	for (int i = 0; i < bones.size(); i++) {
 		bones.write[i].rest_inverse = bones[i].bone->get_skeleton_rest().affine_inverse(); //bind pose

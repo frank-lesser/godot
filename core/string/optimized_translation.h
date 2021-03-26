@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  resource_importer_csv.cpp                                            */
+/*  optimized_translation.h                                              */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,49 +28,62 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#include "resource_importer_csv.h"
+#ifndef OPTIMIZED_TRANSLATION_H
+#define OPTIMIZED_TRANSLATION_H
 
-#include "core/io/resource_saver.h"
-#include "core/os/file_access.h"
+#include "core/string/translation.h"
 
-String ResourceImporterCSV::get_importer_name() const {
-	return "csv";
-}
+class OptimizedTranslation : public Translation {
+	GDCLASS(OptimizedTranslation, Translation);
 
-String ResourceImporterCSV::get_visible_name() const {
-	return "CSV";
-}
+	//this translation uses a sort of modified perfect hash algorithm
+	//it requires hashing strings twice and then does a binary search,
+	//so it's slower, but at the same time it has an extreemly high chance
+	//of catching untranslated strings
 
-void ResourceImporterCSV::get_recognized_extensions(List<String> *p_extensions) const {
-	p_extensions->push_back("csv");
-}
+	//load/store friendly types
+	Vector<int> hash_table;
+	Vector<int> bucket_table;
+	Vector<uint8_t> strings;
 
-String ResourceImporterCSV::get_save_extension() const {
-	return ""; //does not save a single resource
-}
+	struct Bucket {
+		int size;
+		uint32_t func;
 
-String ResourceImporterCSV::get_resource_type() const {
-	return "TextFile";
-}
+		struct Elem {
+			uint32_t key;
+			uint32_t str_offset;
+			uint32_t comp_size;
+			uint32_t uncomp_size;
+		};
 
-bool ResourceImporterCSV::get_option_visibility(const String &p_option, const Map<StringName, Variant> &p_options) const {
-	return true;
-}
+		Elem elem[1];
+	};
 
-int ResourceImporterCSV::get_preset_count() const {
-	return 0;
-}
+	_FORCE_INLINE_ uint32_t hash(uint32_t d, const char *p_str) const {
+		if (d == 0) {
+			d = 0x1000193;
+		}
+		while (*p_str) {
+			d = (d * 0x1000193) ^ uint32_t(*p_str);
+			p_str++;
+		}
 
-String ResourceImporterCSV::get_preset_name(int p_idx) const {
-	return "";
-}
+		return d;
+	}
 
-void ResourceImporterCSV::get_import_options(List<ImportOption> *r_options, int p_preset) const {
-}
+protected:
+	bool _set(const StringName &p_name, const Variant &p_value);
+	bool _get(const StringName &p_name, Variant &r_ret) const;
+	void _get_property_list(List<PropertyInfo> *p_list) const;
+	static void _bind_methods();
 
-Error ResourceImporterCSV::import(const String &p_source_file, const String &p_save_path, const Map<StringName, Variant> &p_options, List<String> *r_platform_variants, List<String> *r_gen_files, Variant *r_metadata) {
-	return OK;
-}
+public:
+	virtual StringName get_message(const StringName &p_src_text, const StringName &p_context = "") const override; //overridable for other implementations
+	virtual StringName get_plural_message(const StringName &p_src_text, const StringName &p_plural_text, int p_n, const StringName &p_context = "") const override;
+	void generate(const Ref<Translation> &p_from);
 
-ResourceImporterCSV::ResourceImporterCSV() {
-}
+	OptimizedTranslation() {}
+};
+
+#endif // OPTIMIZED_TRANSLATION_H

@@ -222,7 +222,7 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 			// Ignore mouse clicks in IME input mode.
 			return;
 		}
-		if (b->is_pressed() && b->get_button_index() == BUTTON_RIGHT && context_menu_enabled) {
+		if (b->is_pressed() && b->get_button_index() == MOUSE_BUTTON_RIGHT && context_menu_enabled) {
 			menu->set_position(get_screen_transform().xform(get_local_mouse_position()));
 			menu->set_size(Vector2(1, 1));
 			_generate_context_menu();
@@ -232,7 +232,7 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 			return;
 		}
 
-		if (b->get_button_index() != BUTTON_LEFT) {
+		if (b->get_button_index() != MOUSE_BUTTON_LEFT) {
 			return;
 		}
 
@@ -327,7 +327,7 @@ void LineEdit::_gui_input(Ref<InputEvent> p_event) {
 			}
 		}
 
-		if (m->get_button_mask() & BUTTON_LEFT) {
+		if (m->get_button_mask() & MOUSE_BUTTON_LEFT) {
 			if (selection.creating) {
 				set_cursor_at_pixel_pos(m->get_position().x);
 				selection_fill_at_cursor();
@@ -809,7 +809,7 @@ void LineEdit::_notification(int p_what) {
 					}
 				} else {
 					{
-						// IME intermidiet text range.
+						// IME intermediate text range.
 						Vector<Vector2> sel = TS->shaped_text_get_selection(text_rid, cursor_pos, cursor_pos + ime_text.length());
 						for (int i = 0; i < sel.size(); i++) {
 							Rect2 rect = Rect2(sel[i].x + ofs.x, ofs.y, sel[i].y - sel[i].x, text_height);
@@ -848,7 +848,7 @@ void LineEdit::_notification(int p_what) {
 			}
 
 			if (has_focus()) {
-				if (get_viewport()->get_window_id() != DisplayServer::INVALID_WINDOW_ID) {
+				if (get_viewport()->get_window_id() != DisplayServer::INVALID_WINDOW_ID && DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_IME)) {
 					DisplayServer::get_singleton()->window_set_ime_active(true, get_viewport()->get_window_id());
 					DisplayServer::get_singleton()->window_set_ime_position(get_global_position() + Point2(using_placeholder ? 0 : x_ofs, y_ofs + TS->shaped_text_get_size(text_rid).y), get_viewport()->get_window_id());
 				}
@@ -865,7 +865,7 @@ void LineEdit::_notification(int p_what) {
 				}
 			}
 
-			if (get_viewport()->get_window_id() != DisplayServer::INVALID_WINDOW_ID) {
+			if (get_viewport()->get_window_id() != DisplayServer::INVALID_WINDOW_ID && DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_IME)) {
 				DisplayServer::get_singleton()->window_set_ime_active(true, get_viewport()->get_window_id());
 				Point2 cursor_pos = Point2(get_cursor_position(), 1) * get_minimum_size().height;
 				DisplayServer::get_singleton()->window_set_ime_position(get_global_position() + cursor_pos, get_viewport()->get_window_id());
@@ -878,7 +878,7 @@ void LineEdit::_notification(int p_what) {
 				caret_blink_timer->stop();
 			}
 
-			if (get_viewport()->get_window_id() != DisplayServer::INVALID_WINDOW_ID) {
+			if (get_viewport()->get_window_id() != DisplayServer::INVALID_WINDOW_ID && DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_IME)) {
 				DisplayServer::get_singleton()->window_set_ime_position(Point2(), get_viewport()->get_window_id());
 				DisplayServer::get_singleton()->window_set_ime_active(false, get_viewport()->get_window_id());
 			}
@@ -1436,7 +1436,7 @@ void LineEdit::set_cursor_position(int p_pos) {
 		ofs_max -= r_icon->get_width();
 	}
 
-	// Note: Use too coordinates to fit IME input range.
+	// Note: Use two coordinates to fit IME input range.
 	Vector2i primary_catret_offset = get_cursor_pixel_pos();
 
 	if (MIN(primary_catret_offset.x, primary_catret_offset.y) <= x_ofs) {
