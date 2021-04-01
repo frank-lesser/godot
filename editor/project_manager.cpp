@@ -100,6 +100,7 @@ private:
 	FileDialog *fdialog_install;
 	String zip_path;
 	String zip_title;
+	String zip_root;
 	AcceptDialog *dialog_error;
 	String fav_dir;
 
@@ -200,7 +201,9 @@ private:
 						char fname[16384];
 						ret = unzGetCurrentFileInfo(pkg, &info, fname, 16384, nullptr, 0, nullptr, 0);
 
-						if (String(fname).ends_with("project.godot")) {
+						String fname_str = String(fname);
+						if (fname_str.ends_with("project.godot")) {
+							zip_root = fname_str.substr(0, fname_str.rfind("project.godot"));
 							break;
 						}
 
@@ -533,44 +536,34 @@ private:
 
 						String path = fname;
 
-						int depth = 1; //stuff from github comes with tag
-						bool skip = false;
-						while (depth > 0) {
-							int pp = path.find("/");
-							if (pp == -1) {
-								skip = true;
-								break;
-							}
-							path = path.substr(pp + 1, path.length());
-							depth--;
-						}
-
-						if (skip || path == String()) {
+						if (path == String() || path == zip_root || !zip_root.is_subsequence_of(path)) {
 							//
 						} else if (path.ends_with("/")) { // a dir
 
 							path = path.substr(0, path.length() - 1);
+							String rel_path = path.substr(zip_root.length());
 
 							DirAccess *da = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
-							da->make_dir(dir.plus_file(path));
+							da->make_dir(dir.plus_file(rel_path));
 							memdelete(da);
 
 						} else {
 							Vector<uint8_t> data;
 							data.resize(info.uncompressed_size);
+							String rel_path = path.substr(zip_root.length());
 
 							//read
 							unzOpenCurrentFile(pkg);
 							unzReadCurrentFile(pkg, data.ptrw(), data.size());
 							unzCloseCurrentFile(pkg);
 
-							FileAccess *f = FileAccess::open(dir.plus_file(path), FileAccess::WRITE);
+							FileAccess *f = FileAccess::open(dir.plus_file(rel_path), FileAccess::WRITE);
 
 							if (f) {
 								f->store_buffer(data.ptr(), data.size());
 								memdelete(f);
 							} else {
-								failed_files.push_back(path);
+								failed_files.push_back(rel_path);
 							}
 						}
 
@@ -2425,8 +2418,10 @@ ProjectManager::ProjectManager() {
 		// Define a minimum window size to prevent UI elements from overlapping or being cut off
 		DisplayServer::get_singleton()->window_set_min_size(Size2(750, 420) * EDSCALE);
 
-		// TODO: Resize windows on hiDPI displays on Windows and Linux and remove the line below
-		DisplayServer::get_singleton()->window_set_size(DisplayServer::get_singleton()->window_get_size() * MAX(1, EDSCALE));
+		// TODO: Resize windows on hiDPI displays on Windows and Linux and remove the lines below
+		float scale_factor = MAX(1, EDSCALE);
+		Vector2i window_size = DisplayServer::get_singleton()->window_get_size();
+		DisplayServer::get_singleton()->window_set_size(Vector2i(window_size.x * scale_factor, window_size.y * scale_factor));
 	}
 
 	// TRANSLATORS: This refers to the application where users manage their Godot projects.

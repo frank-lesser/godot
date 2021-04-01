@@ -34,6 +34,7 @@
 #include "core/config/project_settings.h"
 #include "core/string/ustring.h"
 #include "core/version.h"
+#include "servers/rendering/rendering_device.h"
 
 #include "vk_enum_string_helper.h"
 
@@ -163,6 +164,35 @@ VKAPI_ATTR VkBool32 VKAPI_CALL VulkanContext::_debug_messenger_callback(
 	return VK_FALSE;
 }
 
+VKAPI_ATTR VkBool32 VKAPI_CALL VulkanContext::_debug_report_callback(
+		VkDebugReportFlagsEXT flags,
+		VkDebugReportObjectTypeEXT objectType,
+		uint64_t object,
+		size_t location,
+		int32_t messageCode,
+		const char *pLayerPrefix,
+		const char *pMessage,
+		void *pUserData) {
+	String debugMessage = String("Vulkan Debug Report: object - ") +
+						  String::num_int64(object) + "\n" + pMessage;
+
+	switch (flags) {
+		case VK_DEBUG_REPORT_DEBUG_BIT_EXT:
+		case VK_DEBUG_REPORT_INFORMATION_BIT_EXT:
+			print_line(debugMessage);
+			break;
+		case VK_DEBUG_REPORT_WARNING_BIT_EXT:
+		case VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT:
+			WARN_PRINT(debugMessage);
+			break;
+		case VK_DEBUG_REPORT_ERROR_BIT_EXT:
+			ERR_PRINT(debugMessage);
+			break;
+	}
+
+	return VK_FALSE;
+}
+
 VkBool32 VulkanContext::_check_layers(uint32_t check_count, const char **check_names, uint32_t layer_count, VkLayerProperties *layers) {
 	for (uint32_t i = 0; i < check_count; i++) {
 		VkBool32 found = 0;
@@ -234,12 +264,46 @@ Error VulkanContext::_create_validation_layers() {
 	return OK;
 }
 
+typedef VkResult(VKAPI_PTR *_vkEnumerateInstanceVersion)(uint32_t *);
+
+Error VulkanContext::_obtain_vulkan_version() {
+	// https://www.khronos.org/registry/vulkan/specs/1.2-extensions/man/html/VkApplicationInfo.html#_description
+	// for Vulkan 1.0 vkEnumerateInstanceVersion is not available, including not in the loader we compile against on Android.
+	_vkEnumerateInstanceVersion func = (_vkEnumerateInstanceVersion)vkGetInstanceProcAddr(nullptr, "vkEnumerateInstanceVersion");
+	if (func != nullptr) {
+		uint32_t api_version;
+		VkResult res = func(&api_version);
+		if (res == VK_SUCCESS) {
+			vulkan_major = VK_VERSION_MAJOR(api_version);
+			vulkan_minor = VK_VERSION_MINOR(api_version);
+			uint32_t vulkan_patch = VK_VERSION_PATCH(api_version);
+
+			print_line("Vulkan API " + itos(vulkan_major) + "." + itos(vulkan_minor) + "." + itos(vulkan_patch));
+		} else {
+			// according to the documentation this shouldn't fail with anything except a memory allocation error
+			// in which case we're in deep trouble anyway
+			ERR_FAIL_V(ERR_CANT_CREATE);
+		}
+	} else {
+		print_line("vkEnumerateInstanceVersion not available, assuming Vulkan 1.0");
+	}
+
+	// we don't go above 1.2
+	if ((vulkan_major > 1) || (vulkan_major == 1 && vulkan_minor > 2)) {
+		vulkan_major = 1;
+		vulkan_minor = 2;
+	}
+
+	return OK;
+}
+
 Error VulkanContext::_initialize_extensions() {
 	uint32_t instance_extension_count = 0;
 
 	enabled_extension_count = 0;
 	enabled_layer_count = 0;
 	enabled_debug_utils = false;
+	enabled_debug_report = false;
 	/* Look for instance extensions */
 	VkBool32 surfaceExtFound = 0;
 	VkBool32 platformSurfaceExtFound = 0;
@@ -268,6 +332,7 @@ Error VulkanContext::_initialize_extensions() {
 			if (!strcmp(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, instance_extensions[i].extensionName)) {
 				if (use_validation_layers) {
 					extension_names[enabled_extension_count++] = VK_EXT_DEBUG_REPORT_EXTENSION_NAME;
+					enabled_debug_report = true;
 				}
 			}
 			if (!strcmp(VK_EXT_DEBUG_UTILS_EXTENSION_NAME, instance_extensions[i].extensionName)) {
@@ -289,12 +354,200 @@ Error VulkanContext::_initialize_extensions() {
 	return OK;
 }
 
+typedef void(VKAPI_PTR *_vkGetPhysicalDeviceProperties2)(VkPhysicalDevice, VkPhysicalDeviceProperties2 *);
+
+uint32_t VulkanContext::SubgroupCapabilities::supported_stages_flags_rd() const {
+	uint32_t flags = 0;
+
+	if (supportedStages & VK_SHADER_STAGE_VERTEX_BIT) {
+		flags += RenderingDevice::ShaderStage::SHADER_STAGE_VERTEX_BIT;
+	}
+	if (supportedStages & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) {
+		flags += RenderingDevice::ShaderStage::SHADER_STAGE_TESSELATION_CONTROL_BIT;
+	}
+	if (supportedStages & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) {
+		flags += RenderingDevice::ShaderStage::SHADER_STAGE_TESSELATION_EVALUATION_BIT;
+	}
+	// if (supportedStages & VK_SHADER_STAGE_GEOMETRY_BIT) {
+	// 	flags += RenderingDevice::ShaderStage::SHADER_STAGE_GEOMETRY_BIT;
+	// }
+	if (supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT) {
+		flags += RenderingDevice::ShaderStage::SHADER_STAGE_FRAGMENT_BIT;
+	}
+	if (supportedStages & VK_SHADER_STAGE_COMPUTE_BIT) {
+		flags += RenderingDevice::ShaderStage::SHADER_STAGE_COMPUTE_BIT;
+	}
+
+	return flags;
+}
+
+String VulkanContext::SubgroupCapabilities::supported_stages_desc() const {
+	String res;
+
+	if (supportedStages & VK_SHADER_STAGE_VERTEX_BIT) {
+		res += ", STAGE_VERTEX";
+	}
+	if (supportedStages & VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT) {
+		res += ", STAGE_TESSELLATION_CONTROL";
+	}
+	if (supportedStages & VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT) {
+		res += ", STAGE_TESSELLATION_EVALUATION";
+	}
+	if (supportedStages & VK_SHADER_STAGE_GEOMETRY_BIT) {
+		res += ", STAGE_GEOMETRY";
+	}
+	if (supportedStages & VK_SHADER_STAGE_FRAGMENT_BIT) {
+		res += ", STAGE_FRAGMENT";
+	}
+	if (supportedStages & VK_SHADER_STAGE_COMPUTE_BIT) {
+		res += ", STAGE_COMPUTE";
+	}
+
+	/* these are not defined on Android GRMBL */
+	if (supportedStages & 0x00000100 /* VK_SHADER_STAGE_RAYGEN_BIT_KHR */) {
+		res += ", STAGE_RAYGEN_KHR";
+	}
+	if (supportedStages & 0x00000200 /* VK_SHADER_STAGE_ANY_HIT_BIT_KHR */) {
+		res += ", STAGE_ANY_HIT_KHR";
+	}
+	if (supportedStages & 0x00000400 /* VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR */) {
+		res += ", STAGE_CLOSEST_HIT_KHR";
+	}
+	if (supportedStages & 0x00000800 /* VK_SHADER_STAGE_MISS_BIT_KHR */) {
+		res += ", STAGE_MISS_KHR";
+	}
+	if (supportedStages & 0x00001000 /* VK_SHADER_STAGE_INTERSECTION_BIT_KHR */) {
+		res += ", STAGE_INTERSECTION_KHR";
+	}
+	if (supportedStages & 0x00002000 /* VK_SHADER_STAGE_CALLABLE_BIT_KHR */) {
+		res += ", STAGE_CALLABLE_KHR";
+	}
+	if (supportedStages & 0x00000040 /* VK_SHADER_STAGE_TASK_BIT_NV */) {
+		res += ", STAGE_TASK_NV";
+	}
+	if (supportedStages & 0x00000080 /* VK_SHADER_STAGE_MESH_BIT_NV */) {
+		res += ", STAGE_MESH_NV";
+	}
+
+	return res.substr(2); // remove first ", "
+}
+
+uint32_t VulkanContext::SubgroupCapabilities::supported_operations_flags_rd() const {
+	uint32_t flags = 0;
+
+	if (supportedOperations & VK_SUBGROUP_FEATURE_BASIC_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_BASIC_BIT;
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_VOTE_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_VOTE_BIT;
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_ARITHMETIC_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_ARITHMETIC_BIT;
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_BALLOT_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_BALLOT_BIT;
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_SHUFFLE_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_SHUFFLE_BIT;
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_SHUFFLE_RELATIVE_BIT;
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_CLUSTERED_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_CLUSTERED_BIT;
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_QUAD_BIT) {
+		flags += RenderingDevice::SubgroupOperations::SUBGROUP_QUAD_BIT;
+	}
+
+	return flags;
+}
+
+String VulkanContext::SubgroupCapabilities::supported_operations_desc() const {
+	String res;
+
+	if (supportedOperations & VK_SUBGROUP_FEATURE_BASIC_BIT) {
+		res += ", FEATURE_BASIC";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_VOTE_BIT) {
+		res += ", FEATURE_VOTE";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_ARITHMETIC_BIT) {
+		res += ", FEATURE_ARITHMETIC";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_BALLOT_BIT) {
+		res += ", FEATURE_BALLOT";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_SHUFFLE_BIT) {
+		res += ", FEATURE_SHUFFLE";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_SHUFFLE_RELATIVE_BIT) {
+		res += ", FEATURE_SHUFFLE_RELATIVE";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_CLUSTERED_BIT) {
+		res += ", FEATURE_CLUSTERED";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_QUAD_BIT) {
+		res += ", FEATURE_QUAD";
+	}
+	if (supportedOperations & VK_SUBGROUP_FEATURE_PARTITIONED_BIT_NV) {
+		res += ", FEATURE_PARTITIONED_NV";
+	}
+
+	return res.substr(2); // remove first ", "
+}
+
+Error VulkanContext::_check_capabilities() {
+	// check subgroups
+	// https://www.khronos.org/blog/vulkan-subgroup-tutorial
+	// for Vulkan 1.0 vkGetPhysicalDeviceProperties2 is not available, including not in the loader we compile against on Android.
+	_vkGetPhysicalDeviceProperties2 func = (_vkGetPhysicalDeviceProperties2)vkGetInstanceProcAddr(inst, "vkGetPhysicalDeviceProperties2");
+	if (func != nullptr) {
+		VkPhysicalDeviceSubgroupProperties subgroupProperties;
+		subgroupProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SUBGROUP_PROPERTIES;
+		subgroupProperties.pNext = NULL;
+
+		VkPhysicalDeviceProperties2 physicalDeviceProperties;
+		physicalDeviceProperties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+		physicalDeviceProperties.pNext = &subgroupProperties;
+
+		func(gpu, &physicalDeviceProperties);
+
+		subgroup_capabilities.size = subgroupProperties.subgroupSize;
+		subgroup_capabilities.supportedStages = subgroupProperties.supportedStages;
+		subgroup_capabilities.supportedOperations = subgroupProperties.supportedOperations;
+		// Note: quadOperationsInAllStages will be true if:
+		// - supportedStages has VK_SHADER_STAGE_ALL_GRAPHICS + VK_SHADER_STAGE_COMPUTE_BIT
+		// - supportedOperations has VK_SUBGROUP_FEATURE_QUAD_BIT
+		subgroup_capabilities.quadOperationsInAllStages = subgroupProperties.quadOperationsInAllStages;
+
+		// only output this when debugging?
+		print_line("- Vulkan subgroup size " + itos(subgroup_capabilities.size));
+		print_line("- Vulkan subgroup stages " + subgroup_capabilities.supported_stages_desc());
+		print_line("- Vulkan subgroup supported ops " + subgroup_capabilities.supported_operations_desc());
+		if (subgroup_capabilities.quadOperationsInAllStages) {
+			print_line("- Vulkan subgroup quad operations in all stages");
+		}
+	} else {
+		subgroup_capabilities.size = 0;
+		subgroup_capabilities.supportedStages = 0;
+		subgroup_capabilities.supportedOperations = 0;
+		subgroup_capabilities.quadOperationsInAllStages = false;
+	}
+
+	return OK;
+}
+
 Error VulkanContext::_create_physical_device() {
+	/* obtain version */
+	_obtain_vulkan_version();
+
 	/* Look for validation layers */
 	if (use_validation_layers) {
 		_create_validation_layers();
 	}
 
+	/* initialise extensions */
 	{
 		Error err = _initialize_extensions();
 		if (err != OK) {
@@ -312,7 +565,7 @@ Error VulkanContext::_create_physical_device() {
 		/*applicationVersion*/ 0,
 		/*pEngineName*/ namecs.get_data(),
 		/*engineVersion*/ 0,
-		/*apiVersion*/ VK_API_VERSION_1_0,
+		/*apiVersion*/ VK_MAKE_VERSION(vulkan_major, vulkan_minor, 0)
 	};
 	VkInstanceCreateInfo inst_info = {
 		/*sType*/ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -331,6 +584,7 @@ Error VulkanContext::_create_physical_device() {
 	   * function to register the final callback.
 	   */
 	VkDebugUtilsMessengerCreateInfoEXT dbg_messenger_create_info;
+	VkDebugReportCallbackCreateInfoEXT dbg_report_callback_create_info{};
 	if (enabled_debug_utils) {
 		// VK_EXT_debug_utils style
 		dbg_messenger_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
@@ -344,6 +598,16 @@ Error VulkanContext::_create_physical_device() {
 		dbg_messenger_create_info.pfnUserCallback = _debug_messenger_callback;
 		dbg_messenger_create_info.pUserData = this;
 		inst_info.pNext = &dbg_messenger_create_info;
+	} else if (enabled_debug_report) {
+		dbg_report_callback_create_info.sType = VK_STRUCTURE_TYPE_DEBUG_REPORT_CALLBACK_CREATE_INFO_EXT;
+		dbg_report_callback_create_info.flags = VK_DEBUG_REPORT_INFORMATION_BIT_EXT |
+												VK_DEBUG_REPORT_WARNING_BIT_EXT |
+												VK_DEBUG_REPORT_PERFORMANCE_WARNING_BIT_EXT |
+												VK_DEBUG_REPORT_ERROR_BIT_EXT |
+												VK_DEBUG_REPORT_DEBUG_BIT_EXT;
+		dbg_report_callback_create_info.pfnCallback = _debug_report_callback;
+		dbg_report_callback_create_info.pUserData = this;
+		inst_info.pNext = &dbg_report_callback_create_info;
 	}
 
 	uint32_t gpu_count;
@@ -532,6 +796,33 @@ Error VulkanContext::_create_physical_device() {
 				ERR_FAIL_V(ERR_CANT_CREATE);
 				break;
 		}
+	} else if (enabled_debug_report) {
+		CreateDebugReportCallbackEXT = (PFN_vkCreateDebugReportCallbackEXT)vkGetInstanceProcAddr(inst, "vkCreateDebugReportCallbackEXT");
+		DebugReportMessageEXT = (PFN_vkDebugReportMessageEXT)vkGetInstanceProcAddr(inst, "vkDebugReportMessageEXT");
+		DestroyDebugReportCallbackEXT = (PFN_vkDestroyDebugReportCallbackEXT)vkGetInstanceProcAddr(inst, "vkDestroyDebugReportCallbackEXT");
+
+		if (nullptr == CreateDebugReportCallbackEXT || nullptr == DebugReportMessageEXT || nullptr == DestroyDebugReportCallbackEXT) {
+			ERR_FAIL_V_MSG(ERR_CANT_CREATE,
+					"GetProcAddr: Failed to init VK_EXT_debug_report\n"
+					"GetProcAddr: Failure");
+		}
+
+		err = CreateDebugReportCallbackEXT(inst, &dbg_report_callback_create_info, nullptr, &dbg_debug_report);
+		switch (err) {
+			case VK_SUCCESS:
+				break;
+			case VK_ERROR_OUT_OF_HOST_MEMORY:
+				ERR_FAIL_V_MSG(ERR_CANT_CREATE,
+						"CreateDebugReportCallbackEXT: out of host memory\n"
+						"CreateDebugReportCallbackEXT Failure");
+				break;
+			default:
+				ERR_FAIL_V_MSG(ERR_CANT_CREATE,
+						"CreateDebugReportCallbackEXT: unknown failure\n"
+						"CreateDebugReportCallbackEXT Failure");
+				ERR_FAIL_V(ERR_CANT_CREATE);
+				break;
+		}
 	}
 
 	/* Call with NULL data to get count */
@@ -560,6 +851,14 @@ Error VulkanContext::_create_physical_device() {
 	GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfaceFormatsKHR);
 	GET_INSTANCE_PROC_ADDR(inst, GetPhysicalDeviceSurfacePresentModesKHR);
 	GET_INSTANCE_PROC_ADDR(inst, GetSwapchainImagesKHR);
+
+	// get info about what our vulkan driver is capable off
+	{
+		Error res = _check_capabilities();
+		if (res != OK) {
+			return res;
+		}
+	}
 
 	return OK;
 }
@@ -1707,6 +2006,9 @@ VulkanContext::~VulkanContext() {
 		}
 		if (inst_initialized && enabled_debug_utils) {
 			DestroyDebugUtilsMessengerEXT(inst, dbg_messenger, nullptr);
+		}
+		if (inst_initialized && dbg_debug_report != VK_NULL_HANDLE) {
+			DestroyDebugReportCallbackEXT(inst, dbg_debug_report, nullptr);
 		}
 		vkDestroyDevice(device, nullptr);
 	}

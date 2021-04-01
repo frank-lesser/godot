@@ -1,5 +1,5 @@
 /*************************************************************************/
-/*  noise_texture.h                                                      */
+/*  test_path_3d.h                                                       */
 /*************************************************************************/
 /*                       This file is part of:                           */
 /*                           GODOT ENGINE                                */
@@ -28,76 +28,58 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
-#ifndef NOISE_TEXTURE_H
-#define NOISE_TEXTURE_H
+#ifndef TEST_PATH_3D_H
+#define TEST_PATH_3D_H
 
-#include "open_simplex_noise.h"
+#include "scene/3d/path_3d.h"
+#include "scene/resources/curve.h"
 
-#include "core/io/image.h"
-#include "core/object/reference.h"
-#include "editor/editor_node.h"
-#include "editor/editor_plugin.h"
-#include "editor/property_editor.h"
+#include "tests/test_macros.h"
 
-class NoiseTexture : public Texture2D {
-	GDCLASS(NoiseTexture, Texture2D);
+namespace TestPath3D {
 
-private:
-	Ref<Image> image;
+TEST_CASE("[Path3D] Initialization") {
+	SUBCASE("Path should be empty right after initialization") {
+		Path3D *test_path = memnew(Path3D);
+		CHECK(test_path->get_curve() == nullptr);
+		memdelete(test_path);
+	}
+}
 
-	Thread noise_thread;
+TEST_CASE("[Path3D] Curve setter and getter") {
+	SUBCASE("Curve passed to the class should remain the same") {
+		Path3D *test_path = memnew(Path3D);
+		const Ref<Curve3D> &curve = memnew(Curve3D);
 
-	bool first_time = true;
-	bool update_queued = false;
-	bool regen_queued = false;
+		test_path->set_curve(curve);
+		CHECK(test_path->get_curve() == curve);
+		memdelete(test_path);
+	}
+	SUBCASE("Curve passed many times to the class should remain the same") {
+		Path3D *test_path = memnew(Path3D);
+		const Ref<Curve3D> &curve = memnew(Curve3D);
 
-	mutable RID texture;
-	uint32_t flags = 0;
+		test_path->set_curve(curve);
+		test_path->set_curve(curve);
+		test_path->set_curve(curve);
+		CHECK(test_path->get_curve() == curve);
+		memdelete(test_path);
+	}
+	SUBCASE("Curve rewrite testing") {
+		Path3D *test_path = memnew(Path3D);
+		const Ref<Curve3D> &curve1 = memnew(Curve3D);
+		const Ref<Curve3D> &curve2 = memnew(Curve3D);
 
-	Ref<OpenSimplexNoise> noise;
-	Vector2i size = Vector2i(512, 512);
-	bool seamless = false;
-	bool as_normal_map = false;
-	float bump_strength = 8.0;
+		test_path->set_curve(curve1);
+		test_path->set_curve(curve2);
+		CHECK_MESSAGE(test_path->get_curve() != curve1,
+				"After rewrite, second curve should be in class");
+		CHECK_MESSAGE(test_path->get_curve() == curve2,
+				"After rewrite, second curve should be in class");
+		memdelete(test_path);
+	}
+}
 
-	void _thread_done(const Ref<Image> &p_image);
-	static void _thread_function(void *p_ud);
+} // namespace TestPath3D
 
-	void _queue_update();
-	Ref<Image> _generate_texture();
-	void _update_texture();
-	void _set_texture_image(const Ref<Image> &p_image);
-
-protected:
-	static void _bind_methods();
-	virtual void _validate_property(PropertyInfo &property) const override;
-
-public:
-	void set_noise(Ref<OpenSimplexNoise> p_noise);
-	Ref<OpenSimplexNoise> get_noise();
-
-	void set_width(int p_width);
-	void set_height(int p_height);
-
-	void set_seamless(bool p_seamless);
-	bool get_seamless();
-
-	void set_as_normal_map(bool p_as_normal_map);
-	bool is_normal_map();
-
-	void set_bump_strength(float p_bump_strength);
-	float get_bump_strength();
-
-	int get_width() const override;
-	int get_height() const override;
-
-	virtual RID get_rid() const override;
-	virtual bool has_alpha() const override { return false; }
-
-	virtual Ref<Image> get_image() const override;
-
-	NoiseTexture();
-	virtual ~NoiseTexture();
-};
-
-#endif // NOISE_TEXTURE_H
+#endif // TEST_PATH_3D
