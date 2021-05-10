@@ -406,6 +406,9 @@ void ItemList::remove_item(int p_idx) {
 	ERR_FAIL_INDEX(p_idx, items.size());
 
 	items.remove(p_idx);
+	if (current == p_idx) {
+		current = -1;
+	}
 	update();
 	shape_changed = true;
 	defer_select_single = -1;
@@ -530,6 +533,8 @@ Size2 ItemList::Item::get_icon_size() const {
 }
 
 void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
+	ERR_FAIL_COND(p_event.is_null());
+
 	double prev_scroll = scroll_bar->get_value();
 
 	Ref<InputEventMouseMotion> mm = p_event;
@@ -598,7 +603,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 					emit_signal("item_rmb_selected", i, get_local_mouse_position());
 				}
 			} else {
-				if (!mb->is_doubleclick() && !mb->get_command() && select_mode == SELECT_MULTI && items[i].selectable && !items[i].disabled && items[i].selected && mb->get_button_index() == MOUSE_BUTTON_LEFT) {
+				if (!mb->is_double_click() && !mb->get_command() && select_mode == SELECT_MULTI && items[i].selectable && !items[i].disabled && items[i].selected && mb->get_button_index() == MOUSE_BUTTON_LEFT) {
 					defer_select_single = i;
 					return;
 				}
@@ -620,7 +625,7 @@ void ItemList::_gui_input(const Ref<InputEvent> &p_event) {
 
 					if (mb->get_button_index() == MOUSE_BUTTON_RIGHT) {
 						emit_signal("item_rmb_selected", i, get_local_mouse_position());
-					} else if (/*select_mode==SELECT_SINGLE &&*/ mb->is_doubleclick()) {
+					} else if (/*select_mode==SELECT_SINGLE &&*/ mb->is_double_click()) {
 						emit_signal("item_activated", i);
 					}
 				}

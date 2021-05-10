@@ -1388,7 +1388,7 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 				}
 			}
 
-			if ((select_mode == SELECT_ROW && selected_item == p_item) || p_item->cells[i].selected) {
+			if ((select_mode == SELECT_ROW && selected_item == p_item) || p_item->cells[i].selected || !p_item->has_meta("__focus_rect")) {
 				Rect2i r(cell_rect.position, cell_rect.size);
 
 				p_item->set_meta("__focus_rect", Rect2(r.position, r.size));
@@ -1672,7 +1672,7 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 
 				float line_width = 1.0;
 #ifdef TOOLS_ENABLED
-				line_width *= EDSCALE;
+				line_width *= Math::round(EDSCALE);
 #endif
 
 				Point2i parent_pos = Point2i(parent_ofs - cache.arrow->get_width() / 2, p_pos.y + label_h / 2 + cache.arrow->get_height() / 2) - cache.offset + p_draw_ofs;
@@ -1866,7 +1866,7 @@ void Tree::_range_click_timeout() {
 	}
 }
 
-int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool p_doubleclick, TreeItem *p_item, int p_button, const Ref<InputEventWithModifiers> &p_mod) {
+int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool p_double_click, TreeItem *p_item, int p_button, const Ref<InputEventWithModifiers> &p_mod) {
 	int item_h = compute_item_height(p_item) + cache.vseparation;
 
 	bool skip = (p_item == root && hide_root);
@@ -1963,7 +1963,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool
 		if (p_button == MOUSE_BUTTON_LEFT || (p_button == MOUSE_BUTTON_RIGHT && allow_rmb_select)) {
 			/* process selection */
 
-			if (p_doubleclick && (!c.editable || c.mode == TreeItem::CELL_MODE_CUSTOM || c.mode == TreeItem::CELL_MODE_ICON /*|| c.mode==TreeItem::CELL_MODE_CHECK*/)) { //it's confusing for check
+			if (p_double_click && (!c.editable || c.mode == TreeItem::CELL_MODE_CUSTOM || c.mode == TreeItem::CELL_MODE_ICON /*|| c.mode==TreeItem::CELL_MODE_CHECK*/)) { //it's confusing for check
 
 				propagate_mouse_activated = true;
 
@@ -2167,7 +2167,7 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, bool
 			TreeItem *c = p_item->children;
 
 			while (c) {
-				int child_h = propagate_mouse_event(new_pos, x_ofs, y_ofs, p_doubleclick, c, p_button, p_mod);
+				int child_h = propagate_mouse_event(new_pos, x_ofs, y_ofs, p_double_click, c, p_button, p_mod);
 
 				if (child_h < 0) {
 					return -1; // break, stop propagating, no need to anymore
@@ -2402,6 +2402,8 @@ void Tree::_go_down() {
 }
 
 void Tree::_gui_input(Ref<InputEvent> p_event) {
+	ERR_FAIL_COND(p_event.is_null());
+
 	Ref<InputEventKey> k = p_event;
 
 	bool is_command = k.is_valid() && k->get_command();
@@ -2844,7 +2846,7 @@ void Tree::_gui_input(Ref<InputEvent> p_event) {
 				propagate_mouse_activated = false;
 
 				blocked++;
-				propagate_mouse_event(pos + cache.offset, 0, 0, b->is_doubleclick(), root, b->get_button_index(), b);
+				propagate_mouse_event(pos + cache.offset, 0, 0, b->is_double_click(), root, b->get_button_index(), b);
 				blocked--;
 
 				if (pressing_for_editor) {
@@ -3011,6 +3013,10 @@ bool Tree::edit_selected() {
 	return false;
 }
 
+bool Tree::is_editing() {
+	return popup_editor->is_visible();
+}
+
 Size2 Tree::get_internal_min_size() const {
 	Size2i size = cache.bg->get_offset();
 	if (root) {
@@ -3172,7 +3178,6 @@ void Tree::_notification(int p_what) {
 		RID ci = get_canvas_item();
 
 		Ref<StyleBox> bg = cache.bg;
-		Ref<StyleBox> bg_focus = get_theme_stylebox("bg_focus");
 		Color font_outline_color = get_theme_color("font_outline_color");
 		int outline_size = get_theme_constant("outline_size");
 
@@ -3181,11 +3186,6 @@ void Tree::_notification(int p_what) {
 		Size2 draw_size = get_size() - bg->get_minimum_size();
 
 		bg->draw(ci, Rect2(Point2(), get_size()));
-		if (has_focus()) {
-			RenderingServer::get_singleton()->canvas_item_add_clip_ignore(ci, true);
-			bg_focus->draw(ci, Rect2(Point2(), get_size()));
-			RenderingServer::get_singleton()->canvas_item_add_clip_ignore(ci, false);
-		}
 
 		int tbh = _get_title_button_height();
 
@@ -3218,6 +3218,15 @@ void Tree::_notification(int p_what) {
 				}
 				columns[i].text_buf->draw(ci, text_pos, cache.title_button_color);
 			}
+		}
+
+		// Draw the background focus outline last, so that it is drawn in front of the section headings.
+		// Otherwise, section heading backgrounds can appear to be in front of the focus outline when scrolling.
+		if (has_focus()) {
+			RenderingServer::get_singleton()->canvas_item_add_clip_ignore(ci, true);
+			const Ref<StyleBox> bg_focus = get_theme_stylebox("bg_focus");
+			bg_focus->draw(ci, Rect2(Point2(), get_size()));
+			RenderingServer::get_singleton()->canvas_item_add_clip_ignore(ci, false);
 		}
 	}
 
@@ -4260,7 +4269,7 @@ void Tree::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("item_custom_button_pressed"));
 	ADD_SIGNAL(MethodInfo("item_double_clicked"));
 	ADD_SIGNAL(MethodInfo("item_collapsed", PropertyInfo(Variant::OBJECT, "item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem")));
-	//ADD_SIGNAL( MethodInfo("item_doubleclicked" ) );
+	//ADD_SIGNAL( MethodInfo("item_double_clicked" ) );
 	ADD_SIGNAL(MethodInfo("button_pressed", PropertyInfo(Variant::OBJECT, "item", PROPERTY_HINT_RESOURCE_TYPE, "TreeItem"), PropertyInfo(Variant::INT, "column"), PropertyInfo(Variant::INT, "id")));
 	ADD_SIGNAL(MethodInfo("custom_popup_edited", PropertyInfo(Variant::BOOL, "arrow_clicked")));
 	ADD_SIGNAL(MethodInfo("item_activated"));

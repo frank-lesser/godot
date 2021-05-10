@@ -69,35 +69,23 @@ static String _disassemble_address(const GDScript *p_script, const GDScriptFunct
 	int addr = p_address & GDScriptFunction::ADDR_MASK;
 
 	switch (p_address >> GDScriptFunction::ADDR_BITS) {
-		case GDScriptFunction::ADDR_TYPE_SELF: {
-			return "self";
-		} break;
-		case GDScriptFunction::ADDR_TYPE_CLASS: {
-			return "class";
-		} break;
 		case GDScriptFunction::ADDR_TYPE_MEMBER: {
 			return "member(" + p_script->debug_get_member_by_index(addr) + ")";
 		} break;
-		case GDScriptFunction::ADDR_TYPE_CLASS_CONSTANT: {
-			return "class_const(" + p_function.get_global_name(addr) + ")";
-		} break;
-		case GDScriptFunction::ADDR_TYPE_LOCAL_CONSTANT: {
+		case GDScriptFunction::ADDR_TYPE_CONSTANT: {
 			return "const(" + _get_variant_string(p_function.get_constant(addr)) + ")";
 		} break;
 		case GDScriptFunction::ADDR_TYPE_STACK: {
-			return "stack(" + itos(addr) + ")";
-		} break;
-		case GDScriptFunction::ADDR_TYPE_STACK_VARIABLE: {
-			return "var_stack(" + itos(addr) + ")";
-		} break;
-		case GDScriptFunction::ADDR_TYPE_GLOBAL: {
-			return "global(" + _get_variant_string(GDScriptLanguage::get_singleton()->get_global_array()[addr]) + ")";
-		} break;
-		case GDScriptFunction::ADDR_TYPE_NAMED_GLOBAL: {
-			return "named_global(" + p_function.get_global_name(addr) + ")";
-		} break;
-		case GDScriptFunction::ADDR_TYPE_NIL: {
-			return "nil";
+			switch (addr) {
+				case GDScriptFunction::ADDR_STACK_SELF:
+					return "self";
+				case GDScriptFunction::ADDR_STACK_CLASS:
+					return "class";
+				case GDScriptFunction::ADDR_STACK_NIL:
+					return "nil";
+				default:
+					return "stack(" + itos(addr) + ")";
+			}
 		} break;
 	}
 
@@ -393,8 +381,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 
 				text += Variant::get_type_name(t) + "(";
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(i + 1);
 				}
 				text += ")";
@@ -410,8 +399,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 
 				text += "<unkown type>(";
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(i + 1);
 				}
 				text += ")";
@@ -425,8 +415,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += " = [";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 
@@ -458,8 +449,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += " = [";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 
@@ -474,8 +466,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += " = {";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i * 2 + 0);
 					text += ": ";
 					text += DADDR(1 + i * 2 + 1);
@@ -509,8 +502,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -539,8 +533,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -559,8 +554,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -636,8 +632,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -654,8 +651,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -672,8 +670,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -690,8 +689,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -708,8 +708,9 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "(";
 
 				for (int i = 0; i < argc; i++) {
-					if (i > 0)
+					if (i > 0) {
 						text += ", ";
+					}
 					text += DADDR(1 + i);
 				}
 				text += ")";
@@ -720,13 +721,32 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += "await ";
 				text += DADDR(1);
 
-				incr += 2;
+				incr = 2;
 			} break;
 			case OPCODE_AWAIT_RESUME: {
 				text += "await resume ";
 				text += DADDR(1);
 
 				incr = 2;
+			} break;
+			case OPCODE_CREATE_LAMBDA: {
+				int captures_count = _code_ptr[ip + 1 + instr_var_args];
+				GDScriptFunction *lambda = _lambdas_ptr[_code_ptr[ip + 2 + instr_var_args]];
+
+				text += DADDR(1 + captures_count);
+				text += "create lambda from ";
+				text += lambda->name.operator String();
+				text += "function, captures (";
+
+				for (int i = 0; i < captures_count; i++) {
+					if (i > 0) {
+						text += ", ";
+					}
+					text += DADDR(1 + i);
+				}
+				text += ")";
+
+				incr = 3 + captures_count;
 			} break;
 			case OPCODE_JUMP: {
 				text += "jump ";
@@ -760,6 +780,39 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				text += DADDR(1);
 
 				incr = 2;
+			} break;
+			case OPCODE_RETURN_TYPED_BUILTIN: {
+				text += "return typed builtin (";
+				text += Variant::get_type_name((Variant::Type)_code_ptr[ip + 2]);
+				text += ") ";
+				text += DADDR(1);
+
+				incr += 3;
+			} break;
+			case OPCODE_RETURN_TYPED_ARRAY: {
+				text += "return typed array ";
+				text += DADDR(1);
+
+				incr += 5;
+			} break;
+			case OPCODE_RETURN_TYPED_NATIVE: {
+				text += "return typed native (";
+				text += DADDR(2);
+				text += ") ";
+				text += DADDR(1);
+
+				incr += 3;
+			} break;
+			case OPCODE_RETURN_TYPED_SCRIPT: {
+				Variant script = _constants_ptr[_code_ptr[ip + 2]];
+				Script *sc = Object::cast_to<Script>(script.operator Object *());
+
+				text += "return typed script (";
+				text += sc->get_path();
+				text += ") ";
+				text += DADDR(1);
+
+				incr += 3;
 			} break;
 
 #define DISASSEMBLE_ITERATE(m_type)      \
@@ -839,6 +892,14 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 				incr += 5;
 			} break;
 				DISASSEMBLE_ITERATE_TYPES(DISASSEMBLE_ITERATE);
+			case OPCODE_STORE_NAMED_GLOBAL: {
+				text += "store named global ";
+				text += DADDR(1);
+				text += " = ";
+				text += String(_global_names_ptr[_code_ptr[ip + 2]]);
+
+				incr += 3;
+			} break;
 			case OPCODE_LINE: {
 				int line = _code_ptr[ip + 1] - 1;
 				if (line >= 0 && line < p_code_lines.size()) {
@@ -852,6 +913,51 @@ void GDScriptFunction::disassemble(const Vector<String> &p_code_lines) const {
 
 				incr += 2;
 			} break;
+
+#define DISASSEMBLE_TYPE_ADJUST(m_v_type) \
+	case OPCODE_TYPE_ADJUST_##m_v_type: { \
+		text += "type adjust (";          \
+		text += #m_v_type;                \
+		text += ") ";                     \
+		text += DADDR(1);                 \
+		incr += 2;                        \
+	} break
+
+				DISASSEMBLE_TYPE_ADJUST(BOOL);
+				DISASSEMBLE_TYPE_ADJUST(INT);
+				DISASSEMBLE_TYPE_ADJUST(FLOAT);
+				DISASSEMBLE_TYPE_ADJUST(STRING);
+				DISASSEMBLE_TYPE_ADJUST(VECTOR2);
+				DISASSEMBLE_TYPE_ADJUST(VECTOR2I);
+				DISASSEMBLE_TYPE_ADJUST(RECT2);
+				DISASSEMBLE_TYPE_ADJUST(RECT2I);
+				DISASSEMBLE_TYPE_ADJUST(VECTOR3);
+				DISASSEMBLE_TYPE_ADJUST(VECTOR3I);
+				DISASSEMBLE_TYPE_ADJUST(TRANSFORM2D);
+				DISASSEMBLE_TYPE_ADJUST(PLANE);
+				DISASSEMBLE_TYPE_ADJUST(QUAT);
+				DISASSEMBLE_TYPE_ADJUST(AABB);
+				DISASSEMBLE_TYPE_ADJUST(BASIS);
+				DISASSEMBLE_TYPE_ADJUST(TRANSFORM);
+				DISASSEMBLE_TYPE_ADJUST(COLOR);
+				DISASSEMBLE_TYPE_ADJUST(STRING_NAME);
+				DISASSEMBLE_TYPE_ADJUST(NODE_PATH);
+				DISASSEMBLE_TYPE_ADJUST(RID);
+				DISASSEMBLE_TYPE_ADJUST(OBJECT);
+				DISASSEMBLE_TYPE_ADJUST(CALLABLE);
+				DISASSEMBLE_TYPE_ADJUST(SIGNAL);
+				DISASSEMBLE_TYPE_ADJUST(DICTIONARY);
+				DISASSEMBLE_TYPE_ADJUST(ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_BYTE_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_INT32_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_INT64_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_FLOAT32_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_FLOAT64_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_STRING_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_VECTOR2_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_VECTOR3_ARRAY);
+				DISASSEMBLE_TYPE_ADJUST(PACKED_COLOR_ARRAY);
+
 			case OPCODE_ASSERT: {
 				text += "assert (";
 				text += DADDR(1);

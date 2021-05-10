@@ -2183,7 +2183,7 @@ Ref<Theme> Control::get_theme() const {
 
 void Control::set_tooltip(const String &p_tooltip) {
 	data.tooltip = p_tooltip;
-	update_configuration_warning();
+	update_configuration_warnings();
 }
 
 String Control::get_tooltip(const Point2 &p_pos) const {
@@ -2468,7 +2468,7 @@ int Control::get_v_size_flags() const {
 void Control::set_mouse_filter(MouseFilter p_filter) {
 	ERR_FAIL_INDEX(p_filter, 3);
 	data.mouse_filter = p_filter;
-	update_configuration_warning();
+	update_configuration_warnings();
 }
 
 Control::MouseFilter Control::get_mouse_filter() const {
@@ -2688,15 +2688,15 @@ void Control::get_argument_options(const StringName &p_function, int p_idx, List
 	if (p_idx == 0) {
 		List<StringName> sn;
 		String pf = p_function;
-		if (pf == "add_color_override" || pf == "has_color" || pf == "has_color_override" || pf == "get_color") {
+		if (pf == "add_theme_color_override" || pf == "has_theme_color" || pf == "has_theme_color_override" || pf == "get_theme_color") {
 			Theme::get_default()->get_color_list(get_class(), &sn);
-		} else if (pf == "add_style_override" || pf == "has_style" || pf == "has_style_override" || pf == "get_style") {
+		} else if (pf == "add_theme_style_override" || pf == "has_theme_style" || pf == "has_theme_style_override" || pf == "get_theme_style") {
 			Theme::get_default()->get_stylebox_list(get_class(), &sn);
-		} else if (pf == "add_font_override" || pf == "has_font" || pf == "has_font_override" || pf == "get_font") {
+		} else if (pf == "add_theme_font_override" || pf == "has_theme_font" || pf == "has_theme_font_override" || pf == "get_theme_font") {
 			Theme::get_default()->get_font_list(get_class(), &sn);
-		} else if (pf == "add_font_size_override" || pf == "has_font_size" || pf == "has_font_size_override" || pf == "get_font_size") {
+		} else if (pf == "add_theme_font_size_override" || pf == "has_theme_font_size" || pf == "has_theme_font_size_override" || pf == "get_theme_font_size") {
 			Theme::get_default()->get_font_size_list(get_class(), &sn);
-		} else if (pf == "add_constant_override" || pf == "has_constant" || pf == "has_constant_override" || pf == "get_constant") {
+		} else if (pf == "add_theme_constant_override" || pf == "has_theme_constant" || pf == "has_theme_constant_override" || pf == "get_theme_constant") {
 			Theme::get_default()->get_constant_list(get_class(), &sn);
 		}
 
@@ -2707,17 +2707,14 @@ void Control::get_argument_options(const StringName &p_function, int p_idx, List
 	}
 }
 
-String Control::get_configuration_warning() const {
-	String warning = CanvasItem::get_configuration_warning();
+TypedArray<String> Control::get_configuration_warnings() const {
+	TypedArray<String> warnings = Node::get_configuration_warnings();
 
 	if (data.mouse_filter == MOUSE_FILTER_IGNORE && data.tooltip != "") {
-		if (!warning.is_empty()) {
-			warning += "\n\n";
-		}
-		warning += TTR("The Hint Tooltip won't be displayed as the control's Mouse Filter is set to \"Ignore\". To solve this, set the Mouse Filter to \"Stop\" or \"Pass\".");
+		warnings.push_back(TTR("The Hint Tooltip won't be displayed as the control's Mouse Filter is set to \"Ignore\". To solve this, set the Mouse Filter to \"Stop\" or \"Pass\"."));
 	}
 
-	return warning;
+	return warnings;
 }
 
 void Control::set_clip_contents(bool p_clip) {

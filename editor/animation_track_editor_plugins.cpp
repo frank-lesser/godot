@@ -1024,7 +1024,7 @@ void AnimationTrackEditTypeAudio::drop_data(const Point2 &p_point, const Variant
 
 			get_undo_redo()->create_action(TTR("Add Audio Track Clip"));
 			get_undo_redo()->add_do_method(get_animation().ptr(), "audio_track_insert_key", get_track(), ofs, stream);
-			get_undo_redo()->add_undo_method(get_animation().ptr(), "track_remove_key_at_position", get_track(), ofs);
+			get_undo_redo()->add_undo_method(get_animation().ptr(), "track_remove_key_at_time", get_track(), ofs);
 			get_undo_redo()->commit_action();
 
 			update();
@@ -1036,6 +1036,8 @@ void AnimationTrackEditTypeAudio::drop_data(const Point2 &p_point, const Variant
 }
 
 void AnimationTrackEditTypeAudio::_gui_input(const Ref<InputEvent> &p_event) {
+	ERR_FAIL_COND(p_event.is_null());
+
 	Ref<InputEventMouseMotion> mm = p_event;
 	if (!len_resizing && mm.is_valid()) {
 		bool use_hsize_cursor = false;

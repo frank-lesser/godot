@@ -141,9 +141,14 @@ void ShaderTextEditor::_load_theme_settings() {
 	List<String> keywords;
 	ShaderLanguage::get_keyword_list(&keywords);
 	const Color keyword_color = EDITOR_GET("text_editor/highlighting/keyword_color");
+	const Color control_flow_keyword_color = EDITOR_GET("text_editor/highlighting/control_flow_keyword_color");
 
 	for (List<String>::Element *E = keywords.front(); E; E = E->next()) {
-		syntax_highlighter->add_keyword_color(E->get(), keyword_color);
+		if (ShaderLanguage::is_control_flow_keyword(E->get())) {
+			syntax_highlighter->add_keyword_color(E->get(), control_flow_keyword_color);
+		} else {
+			syntax_highlighter->add_keyword_color(E->get(), keyword_color);
+		}
 	}
 
 	// Colorize built-ins like `COLOR` differently to make them easier
@@ -205,7 +210,7 @@ void ShaderTextEditor::_code_complete_script(const String &p_code, List<ScriptCo
 	ShaderLanguage sl;
 	String calltip;
 
-	sl.complete(p_code, ShaderTypes::get_singleton()->get_functions(RenderingServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_modes(RenderingServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_types(), _get_global_variable_type, r_options, calltip);
+	sl.complete(p_code, ShaderTypes::get_singleton()->get_functions(RenderingServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_modes(RenderingServer::ShaderMode(shader->get_mode())), ShaderLanguage::VaryingFunctionNames(), ShaderTypes::get_singleton()->get_types(), _get_global_variable_type, r_options, calltip);
 
 	get_text_editor()->set_code_hint(calltip);
 }
@@ -219,7 +224,7 @@ void ShaderTextEditor::_validate_script() {
 
 	ShaderLanguage sl;
 
-	Error err = sl.compile(code, ShaderTypes::get_singleton()->get_functions(RenderingServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_modes(RenderingServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_types(), _get_global_variable_type);
+	Error err = sl.compile(code, ShaderTypes::get_singleton()->get_functions(RenderingServer::ShaderMode(shader->get_mode())), ShaderTypes::get_singleton()->get_modes(RenderingServer::ShaderMode(shader->get_mode())), ShaderLanguage::VaryingFunctionNames(), ShaderTypes::get_singleton()->get_types(), _get_global_variable_type);
 
 	if (err != OK) {
 		String error_text = "error(" + itos(sl.get_error_line()) + "): " + sl.get_error_text();

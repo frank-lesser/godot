@@ -109,6 +109,8 @@ void FindReplaceBar::_notification(int p_what) {
 }
 
 void FindReplaceBar::_unhandled_input(const Ref<InputEvent> &p_event) {
+	ERR_FAIL_COND(p_event.is_null());
+
 	Ref<InputEventKey> k = p_event;
 	if (!k.is_valid() || !k->is_pressed()) {
 		return;
@@ -140,7 +142,7 @@ bool FindReplaceBar::_search(uint32_t p_flags, int p_from_line, int p_from_col) 
 	bool found = text_editor->search(text, p_flags, p_from_line, p_from_col, line, col);
 
 	if (found) {
-		if (!preserve_cursor) {
+		if (!preserve_cursor && !is_selection_only()) {
 			text_editor->unfold_line(line);
 			text_editor->cursor_set_line(line, false);
 			text_editor->cursor_set_column(col + text.length(), false);
@@ -486,10 +488,10 @@ void FindReplaceBar::_show_search(bool p_focus_replace, bool p_show_only) {
 	if (!get_search_text().is_empty()) {
 		if (p_focus_replace) {
 			replace_text->select_all();
-			replace_text->set_cursor_position(replace_text->get_text().length());
+			replace_text->set_caret_column(replace_text->get_text().length());
 		} else {
 			search_text->select_all();
-			search_text->set_cursor_position(search_text->get_text().length());
+			search_text->set_caret_column(search_text->get_text().length());
 		}
 
 		results_count = -1;
@@ -691,6 +693,8 @@ FindReplaceBar::FindReplaceBar() {
 // This function should be used to handle shortcuts that could otherwise
 // be handled too late if they weren't handled here.
 void CodeTextEditor::_input(const Ref<InputEvent> &event) {
+	ERR_FAIL_COND(event.is_null());
+
 	const Ref<InputEventKey> key_event = event;
 	if (!key_event.is_valid() || !key_event->is_pressed() || !text_editor->has_focus()) {
 		return;

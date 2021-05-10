@@ -237,6 +237,45 @@
 				[b]Note:[/b] On large arrays, this method will be slower if the removed element is close to the beginning of the array (index 0). This is because all elements placed after the removed element have to be reindexed.
 			</description>
 		</method>
+		<method name="fill">
+			<return type="void">
+			</return>
+			<argument index="0" name="value" type="Variant">
+			</argument>
+			<description>
+				Assigns the given value to all elements in the array. This can typically be used together with [method resize] to create an array with a given size and initialized elements:
+				[codeblocks]
+				[gdscript]
+				var array = []
+				array.resize(10)
+				array.fill(0) # Initialize the 10 elements to 0.
+				[/gdscript]
+				[csharp]
+				var array = new Godot.Collections.Array{};
+				array.Resize(10);
+				array.Fill(0); // Initialize the 10 elements to 0.
+				[/csharp]
+				[/codeblocks]
+			</description>
+		</method>
+		<method name="filter" qualifiers="const">
+			<return type="Array">
+			</return>
+			<argument index="0" name="method" type="Callable">
+			</argument>
+			<description>
+				Calls the provided [Callable] on each element in the array and returns a new array with the elements for which the method returned [code]true[/code].
+				The callable's method should take one [Variant] parameter (the current array element) and return a boolean value.
+				[codeblock]
+				func _ready():
+				    print([1, 2, 3].filter(remove_1)) # Prints [2, 3].
+				    print([1, 2, 3].filter(func(number): return number != 1)) # Same as above, but using lambda function.
+
+				func remove_1(number):
+				    return number != 1
+				[/codeblock]
+			</description>
+		</method>
 		<method name="find" qualifiers="const">
 			<return type="int">
 			</return>
@@ -328,18 +367,29 @@
 				[b]Note:[/b] On large arrays, this method will be slower if the inserted element is close to the beginning of the array (index 0). This is because all elements placed after the newly inserted element have to be reindexed.
 			</description>
 		</method>
-		<method name="invert">
-			<return type="void">
-			</return>
-			<description>
-				Reverses the order of the elements in the array.
-			</description>
-		</method>
 		<method name="is_empty" qualifiers="const">
 			<return type="bool">
 			</return>
 			<description>
 				Returns [code]true[/code] if the array is empty.
+			</description>
+		</method>
+		<method name="map" qualifiers="const">
+			<return type="Array">
+			</return>
+			<argument index="0" name="method" type="Callable">
+			</argument>
+			<description>
+				Calls the provided [Callable] for each element in the array and returns a new array filled with values returned by the method.
+				The callable's method should take one [Variant] parameter (the current array element) and can return any [Variant].
+				[codeblock]
+				func _ready():
+				    print([1, 2, 3].map(negate)) # Prints [-1, -2, -3].
+				    print([1, 2, 3].map(func(number): return -number)) # Same as above, but using lambda function.
+
+				func negate(number):
+				    return -number
+				[/codeblock]
 			</description>
 		</method>
 		<method name="max" qualifiers="const">
@@ -454,6 +504,26 @@
 				[b]Note:[/b] On large arrays, this method is much slower than [method push_back] as it will reindex all the array's elements every time it's called. The larger the array, the slower [method push_front] will be.
 			</description>
 		</method>
+		<method name="reduce" qualifiers="const">
+			<return type="Variant">
+			</return>
+			<argument index="0" name="method" type="Callable">
+			</argument>
+			<argument index="1" name="accum" type="Variant" default="null">
+			</argument>
+			<description>
+				Calls the provided [Callable] for each element in array and accumulates the result in [code]accum[/code].
+				The callable's method takes two arguments: the current value of [code]accum[/code] and the current array element. If [code]accum[/code] is [code]null[/code] (default value), the iteration will start from the second element, with the first one used as initial value of [code]accum[/code].
+				[codeblock]
+				func _ready():
+				    print([1, 2, 3].reduce(sum, 10)) # Prints 16.
+				    print([1, 2, 3].reduce(func(accum, number): return accum + number, 10)) # Same as above, but using lambda function.
+
+				func sum(accum, number):
+				    return accum + number
+				[/codeblock]
+			</description>
+		</method>
 		<method name="remove">
 			<return type="void">
 			</return>
@@ -472,6 +542,13 @@
 			</argument>
 			<description>
 				Resizes the array to contain a different number of elements. If the array size is smaller, elements are cleared, if bigger, new elements are [code]null[/code].
+			</description>
+		</method>
+		<method name="reverse">
+			<return type="void">
+			</return>
+			<description>
+				Reverses the order of the elements in the array.
 			</description>
 		</method>
 		<method name="rfind" qualifiers="const">

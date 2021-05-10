@@ -2,7 +2,7 @@
 
 #version 450
 
-VERSION_DEFINES
+#VERSION_DEFINES
 
 /* Do not use subgroups here, seems there is not much advantage and causes glitches
 #if defined(has_GL_KHR_shader_subgroup_ballot) && defined(has_GL_KHR_shader_subgroup_arithmetic)
@@ -26,6 +26,7 @@ layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
 #endif
 
 #include "cluster_data_inc.glsl"
+#include "light_data_inc.glsl"
 
 #define M_PI 3.14159265359
 

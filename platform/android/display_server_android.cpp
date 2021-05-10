@@ -61,7 +61,6 @@ bool DisplayServerAndroid::has_feature(Feature p_feature) const {
 		//case FEATURE_MOUSE_WARP:
 		//case FEATURE_NATIVE_DIALOG:
 		//case FEATURE_NATIVE_ICON:
-		//case FEATURE_NATIVE_VIDEO:
 		//case FEATURE_WINDOW_TRANSPARENCY:
 		case FEATURE_CLIPBOARD:
 		case FEATURE_KEEP_SCREEN_ON:
@@ -778,7 +777,7 @@ void DisplayServerAndroid::process_double_tap(int event_android_button_mask, Poi
 	ev->set_pressed(event_button_mask != 0);
 	ev->set_button_index(_button_index_from_mask(event_button_mask));
 	ev->set_button_mask(event_button_mask);
-	ev->set_doubleclick(true);
+	ev->set_double_click(true);
 	Input::get_singleton()->accumulate_input_event(ev);
 }
 

@@ -102,10 +102,9 @@ void ProjectSettingsEditor::_add_setting() {
 	String setting = _get_setting_name();
 
 	// Initialize the property with the default value for the given type.
-	// The type list starts at 1 (as we exclude Nil), so add 1 to the selected value.
 	Callable::CallError ce;
 	Variant value;
-	Variant::construct(Variant::Type(type->get_selected() + 1), value, nullptr, 0, ce);
+	Variant::construct(Variant::Type(type->get_selected_id()), value, nullptr, 0, ce);
 
 	undo_redo->create_action(TTR("Add Project Setting"));
 	undo_redo->add_do_property(ps, setting, value);
@@ -584,7 +583,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 			// There's no point in adding Nil types, and Object types
 			// can't be serialized correctly in the project settings.
 			if (i != Variant::NIL && i != Variant::OBJECT) {
-				type->add_item(Variant::get_type_name(Variant::Type(i)));
+				type->add_item(Variant::get_type_name(Variant::Type(i)), i);
 			}
 		}
 
@@ -650,8 +649,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	action_map->connect("action_removed", callable_mp(this, &ProjectSettingsEditor::_action_removed));
 	action_map->connect("action_renamed", callable_mp(this, &ProjectSettingsEditor::_action_renamed));
 	action_map->connect("action_reordered", callable_mp(this, &ProjectSettingsEditor::_action_reordered));
-	action_map->set_toggle_editable_label(TTR("Show Built-in Actions"));
-	action_map->set_show_uneditable(false);
 	tab_container->add_child(action_map);
 
 	localization_editor = memnew(LocalizationEditor);

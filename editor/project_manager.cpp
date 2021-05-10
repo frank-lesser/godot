@@ -296,7 +296,7 @@ private:
 		String sp = _test_path();
 		if (sp != "") {
 			// If the project name is empty or default, infer the project name from the selected folder name
-			if (project_name->get_text() == "" || project_name->get_text() == TTR("New Game Project")) {
+			if (project_name->get_text().strip_edges() == "" || project_name->get_text().strip_edges() == TTR("New Game Project")) {
 				sp = sp.replace("\\", "/");
 				int lidx = sp.rfind("/");
 
@@ -380,16 +380,17 @@ private:
 	}
 
 	void _create_folder() {
-		if (project_name->get_text() == "" || created_folder_path != "" || project_name->get_text().ends_with(".") || project_name->get_text().ends_with(" ")) {
-			set_message(TTR("Invalid Project Name."), MESSAGE_WARNING);
+		const String project_name_no_edges = project_name->get_text().strip_edges();
+		if (project_name_no_edges == "" || created_folder_path != "" || project_name_no_edges.ends_with(".")) {
+			set_message(TTR("Invalid project name."), MESSAGE_WARNING);
 			return;
 		}
 
 		DirAccess *d = DirAccess::create(DirAccess::ACCESS_FILESYSTEM);
 		if (d->change_dir(project_path->get_text()) == OK) {
-			if (!d->dir_exists(project_name->get_text())) {
-				if (d->make_dir(project_name->get_text()) == OK) {
-					d->change_dir(project_name->get_text());
+			if (!d->dir_exists(project_name_no_edges)) {
+				if (d->make_dir(project_name_no_edges) == OK) {
+					d->change_dir(project_name_no_edges);
 					String dir_str = d->get_current_dir();
 					project_path->set_text(dir_str);
 					_path_text_changed(dir_str);
@@ -415,7 +416,7 @@ private:
 
 		_test_path();
 
-		if (p_text == "") {
+		if (p_text.strip_edges() == "") {
 			set_message(TTR("It would be a good idea to name your project."), MESSAGE_ERROR);
 		}
 	}
@@ -442,7 +443,7 @@ private:
 				set_message(vformat(TTR("Couldn't load project.godot in project path (error %d). It may be missing or corrupted."), err), MESSAGE_ERROR);
 			} else {
 				ProjectSettings::CustomMap edited_settings;
-				edited_settings["application/config/name"] = project_name->get_text();
+				edited_settings["application/config/name"] = project_name->get_text().strip_edges();
 
 				if (current->save_custom(dir2.plus_file("project.godot"), edited_settings, Vector<String>(), true) != OK) {
 					set_message(TTR("Couldn't edit project.godot in project path."), MESSAGE_ERROR);
@@ -483,7 +484,7 @@ private:
 						initial_settings["rendering/textures/vram_compression/import_etc2"] = false;
 						initial_settings["rendering/textures/vram_compression/import_etc"] = true;
 					}
-					initial_settings["application/config/name"] = project_name->get_text();
+					initial_settings["application/config/name"] = project_name->get_text().strip_edges();
 					initial_settings["application/config/icon"] = "res://icon.png";
 					initial_settings["rendering/environment/defaults/default_environment"] = "res://default_env.tres";
 
@@ -1031,7 +1032,7 @@ public:
 	int get_project_count() const;
 	void select_project(int p_index);
 	void select_first_visible_project();
-	void erase_selected_projects();
+	void erase_selected_projects(bool p_delete_project_contents);
 	Vector<Item> get_selected_projects() const;
 	const Set<String> &get_selected_project_keys() const;
 	void ensure_project_visible(int p_index);
@@ -1686,7 +1687,7 @@ void ProjectList::toggle_select(int p_index) {
 	item.control->update();
 }
 
-void ProjectList::erase_selected_projects() {
+void ProjectList::erase_selected_projects(bool p_delete_project_contents) {
 	if (_selected_project_keys.size() == 0) {
 		return;
 	}
@@ -1696,6 +1697,10 @@ void ProjectList::erase_selected_projects() {
 		if (_selected_project_keys.has(item.project_key) && item.control->is_visible()) {
 			EditorSettings::get_singleton()->erase("projects/" + item.project_key);
 			EditorSettings::get_singleton()->erase("favorite_projects/" + item.project_key);
+
+			if (p_delete_project_contents) {
+				OS::get_singleton()->move_to_trash(item.path);
+			}
 
 			memdelete(item.control);
 			_projects.remove(i);
@@ -1757,7 +1762,7 @@ void ProjectList::_panel_input(const Ref<InputEvent> &p_ev, Node *p_hb) {
 
 		emit_signal(SIGNAL_SELECTION_CHANGED);
 
-		if (!mb->get_control() && mb->is_doubleclick()) {
+		if (!mb->get_control() && mb->is_double_click()) {
 			emit_signal(SIGNAL_PROJECT_ASK_OPEN);
 		}
 	}
@@ -1847,6 +1852,9 @@ void ProjectManager::_notification(int p_what) {
 		case NOTIFICATION_WM_CLOSE_REQUEST: {
 			_dim_window();
 		} break;
+		case NOTIFICATION_WM_ABOUT: {
+			_show_about();
+		} break;
 	}
 }
 
@@ -1882,6 +1890,8 @@ void ProjectManager::_update_project_buttons() {
 }
 
 void ProjectManager::_unhandled_key_input(const Ref<InputEvent> &p_ev) {
+	ERR_FAIL_COND(p_ev.is_null());
+
 	Ref<InputEventKey> k = p_ev;
 
 	if (k.is_valid()) {
@@ -2215,7 +2225,7 @@ void ProjectManager::_rename_project() {
 }
 
 void ProjectManager::_erase_project_confirm() {
-	_project_list->erase_selected_projects();
+	_project_list->erase_selected_projects(delete_project_contents->is_pressed());
 	_update_project_buttons();
 }
 
@@ -2233,18 +2243,23 @@ void ProjectManager::_erase_project() {
 
 	String confirm_message;
 	if (selected_list.size() >= 2) {
-		confirm_message = vformat(TTR("Remove %d projects from the list?\nThe project folders' contents won't be modified."), selected_list.size());
+		confirm_message = vformat(TTR("Remove %d projects from the list?"), selected_list.size());
 	} else {
-		confirm_message = TTR("Remove this project from the list?\nThe project folder's contents won't be modified.");
+		confirm_message = TTR("Remove this project from the list?");
 	}
 
-	erase_ask->set_text(confirm_message);
+	erase_ask_label->set_text(confirm_message);
+	delete_project_contents->set_pressed(false);
 	erase_ask->popup_centered();
 }
 
 void ProjectManager::_erase_missing_projects() {
 	erase_missing_ask->set_text(TTR("Remove all missing projects from the list?\nThe project folders' contents won't be modified."));
 	erase_missing_ask->popup_centered();
+}
+
+void ProjectManager::_show_about() {
+	about->popup_centered(Size2(780, 500) * EDSCALE);
 }
 
 void ProjectManager::_language_selected(int p_id) {
@@ -2331,6 +2346,17 @@ void ProjectManager::_on_order_option_changed(int p_idx) {
 	}
 }
 
+void ProjectManager::_on_tab_changed(int p_tab) {
+	if (p_tab == 0) { // Projects
+		// Automatically grab focus when the user moves from the Templates tab
+		// back to the Projects tab.
+		search_box->grab_focus();
+	}
+
+	// The Templates tab's search field is focused on display in the asset
+	// library editor plugin code.
+}
+
 void ProjectManager::_on_search_term_changed(const String &p_term) {
 	_project_list->set_search_term(p_term);
 	_project_list->sort_projects();
@@ -2345,11 +2371,16 @@ void ProjectManager::_on_search_term_changed(const String &p_term) {
 void ProjectManager::_bind_methods() {
 	ClassDB::bind_method("_unhandled_key_input", &ProjectManager::_unhandled_key_input);
 	ClassDB::bind_method("_update_project_buttons", &ProjectManager::_update_project_buttons);
+	ClassDB::bind_method("_version_button_pressed", &ProjectManager::_version_button_pressed);
 }
 
 void ProjectManager::_open_asset_library() {
 	asset_library->disable_community_support();
 	tabs->set_current_tab(1);
+}
+
+void ProjectManager::_version_button_pressed() {
+	DisplayServer::get_singleton()->clipboard_set(version_btn->get_text());
 }
 
 ProjectManager::ProjectManager() {
@@ -2425,12 +2456,7 @@ ProjectManager::ProjectManager() {
 	}
 
 	// TRANSLATORS: This refers to the application where users manage their Godot projects.
-	if (TS->is_locale_right_to_left(TranslationServer::get_singleton()->get_tool_locale())) {
-		// For RTL languages, embed translated part of the title (using control characters) to ensure correct order.
-		DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + String::chr(0x202B) + TTR("Project Manager") + String::chr(0x202C) + String::chr(0x200E) + " - " + String::chr(0xA9) + " 2007-2021 Juan Linietsky, Ariel Manzur & Godot Contributors");
-	} else {
-		DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + TTR("Project Manager") + " - " + String::chr(0xA9) + " 2007-2021 Juan Linietsky, Ariel Manzur & Godot Contributors");
-	}
+	DisplayServer::get_singleton()->window_set_title(VERSION_NAME + String(" - ") + TTR("Project Manager"));
 
 	FileDialog::set_default_show_hidden_files(EditorSettings::get_singleton()->get("filesystem/file_dialog/show_hidden_files"));
 
@@ -2456,6 +2482,7 @@ ProjectManager::ProjectManager() {
 	center_box->add_child(tabs);
 	tabs->set_anchors_and_offsets_preset(Control::PRESET_WIDE);
 	tabs->set_tab_align(TabContainer::ALIGN_LEFT);
+	tabs->connect("tab_changed", callable_mp(this, &ProjectManager::_on_tab_changed));
 
 	HBoxContainer *projects_hb = memnew(HBoxContainer);
 	projects_hb->set_name(TTR("Projects"));
@@ -2472,8 +2499,8 @@ ProjectManager::ProjectManager() {
 		search_tree_vb->add_child(hb);
 
 		search_box = memnew(LineEdit);
-		search_box->set_placeholder(TTR("Search"));
-		search_box->set_tooltip(TTR("The search box filters projects by name and last path component.\nTo filter projects by name and full path, the query must contain at least one `/` character."));
+		search_box->set_placeholder(TTR("Filter projects"));
+		search_box->set_tooltip(TTR("This field filters projects by name and last path component.\nTo filter projects by name and full path, the query must contain at least one `/` character."));
 		search_box->connect("text_changed", callable_mp(this, &ProjectManager::_on_search_term_changed));
 		search_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 		hb->add_child(search_box);
@@ -2563,6 +2590,13 @@ ProjectManager::ProjectManager() {
 		erase_missing_btn->set_text(TTR("Remove Missing"));
 		erase_missing_btn->connect("pressed", callable_mp(this, &ProjectManager::_erase_missing_projects));
 		tree_vb->add_child(erase_missing_btn);
+
+		tree_vb->add_spacer();
+
+		about_btn = memnew(Button);
+		about_btn->set_text(TTR("About"));
+		about_btn->connect("pressed", callable_mp(this, &ProjectManager::_show_about));
+		tree_vb->add_child(about_btn);
 	}
 
 	{
@@ -2572,15 +2606,30 @@ ProjectManager::ProjectManager() {
 		settings_hb->set_h_grow_direction(Control::GROW_DIRECTION_BEGIN);
 		settings_hb->set_anchors_and_offsets_preset(Control::PRESET_TOP_RIGHT);
 
-		Label *version_label = memnew(Label);
+		// A VBoxContainer that contains a dummy Control node to adjust the LinkButton's vertical position.
+		VBoxContainer *spacer_vb = memnew(VBoxContainer);
+		settings_hb->add_child(spacer_vb);
+
+		Control *v_spacer = memnew(Control);
+		spacer_vb->add_child(v_spacer);
+
+		version_btn = memnew(LinkButton);
 		String hash = String(VERSION_HASH);
 		if (hash.length() != 0) {
 			hash = "." + hash.left(9);
 		}
-		version_label->set_text("v" VERSION_FULL_BUILD "" + hash);
-		version_label->set_self_modulate(Color(1, 1, 1, 0.6));
-		version_label->set_align(Label::ALIGN_CENTER);
-		settings_hb->add_child(version_label);
+		version_btn->set_text("v" VERSION_FULL_BUILD + hash);
+		// Fade the version label to be less prominent, but still readable.
+		version_btn->set_self_modulate(Color(1, 1, 1, 0.6));
+		version_btn->set_underline_mode(LinkButton::UNDERLINE_MODE_ON_HOVER);
+		version_btn->set_tooltip(TTR("Click to copy."));
+		version_btn->connect("pressed", callable_mp(this, &ProjectManager::_version_button_pressed));
+		spacer_vb->add_child(version_btn);
+
+		// Add a small horizontal spacer between the version and language buttons
+		// to distinguish them.
+		Control *h_spacer = memnew(Control);
+		settings_hb->add_child(h_spacer);
 
 		language_btn = memnew(OptionButton);
 		language_btn->set_flat(true);
@@ -2651,6 +2700,16 @@ ProjectManager::ProjectManager() {
 		erase_ask->get_ok_button()->connect("pressed", callable_mp(this, &ProjectManager::_erase_project_confirm));
 		add_child(erase_ask);
 
+		VBoxContainer *erase_ask_vb = memnew(VBoxContainer);
+		erase_ask->add_child(erase_ask_vb);
+
+		erase_ask_label = memnew(Label);
+		erase_ask_vb->add_child(erase_ask_label);
+
+		delete_project_contents = memnew(CheckBox);
+		delete_project_contents->set_text(TTR("Also delete project contents (no undo!)"));
+		erase_ask_vb->add_child(delete_project_contents);
+
 		multi_open_ask = memnew(ConfirmationDialog);
 		multi_open_ask->get_ok_button()->set_text(TTR("Edit"));
 		multi_open_ask->get_ok_button()->connect("pressed", callable_mp(this, &ProjectManager::_open_selected_projects));
@@ -2686,6 +2745,9 @@ ProjectManager::ProjectManager() {
 		open_templates->get_ok_button()->set_text(TTR("Open Asset Library"));
 		open_templates->connect("confirmed", callable_mp(this, &ProjectManager::_open_asset_library));
 		add_child(open_templates);
+
+		about = memnew(EditorAbout);
+		add_child(about);
 	}
 
 	_load_recent_projects();

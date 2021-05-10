@@ -1469,6 +1469,8 @@ Control::CursorShape RichTextLabel::get_cursor_shape(const Point2 &p_pos) const 
 }
 
 void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
+	ERR_FAIL_COND(p_event.is_null());
+
 	Ref<InputEventMouseButton> b = p_event;
 
 	if (b.is_valid()) {
@@ -1480,7 +1482,7 @@ void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
 		}
 
 		if (b->get_button_index() == MOUSE_BUTTON_LEFT) {
-			if (b->is_pressed() && !b->is_doubleclick()) {
+			if (b->is_pressed() && !b->is_double_click()) {
 				scroll_updated = false;
 				ItemFrame *c_frame = nullptr;
 				int c_line = 0;
@@ -1512,8 +1514,8 @@ void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
 						}
 					}
 				}
-			} else if (b->is_pressed() && b->is_doubleclick() && selection.enabled) {
-				//doubleclick: select word
+			} else if (b->is_pressed() && b->is_double_click() && selection.enabled) {
+				//double_click: select word
 
 				ItemFrame *c_frame = nullptr;
 				int c_line = 0;
@@ -1547,7 +1549,7 @@ void RichTextLabel::_gui_input(Ref<InputEvent> p_event) {
 			} else if (!b->is_pressed()) {
 				selection.click_item = nullptr;
 
-				if (!b->is_doubleclick() && !scroll_updated) {
+				if (!b->is_double_click() && !scroll_updated) {
 					Item *c_item = nullptr;
 
 					bool outside = true;
@@ -2608,6 +2610,14 @@ void RichTextLabel::pop() {
 		current_frame = static_cast<ItemFrame *>(current)->parent_frame;
 	}
 	current = current->parent;
+}
+
+// Creates a new line without adding an ItemNewline to the previous line.
+// Useful when wanting to calling remove_line and add a new line immediately after.
+void RichTextLabel::increment_line_count() {
+	_validate_line_caches(main);
+	current_frame->lines.resize(current_frame->lines.size() + 1);
+	_invalidate_current_line(current_frame);
 }
 
 void RichTextLabel::clear() {

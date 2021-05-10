@@ -203,8 +203,8 @@ class AnimatedSprite3D : public SpriteBase3D {
 
 	float timeout = 0.0;
 
-	bool hflip = 1;
-	bool vflip = 1;
+	bool hflip = true;
+	bool vflip = true;
 
 	Color modulate;
 
@@ -236,7 +236,7 @@ public:
 
 	virtual Rect2 get_item_rect() const override;
 
-	virtual String get_configuration_warning() const override;
+	TypedArray<String> get_configuration_warnings() const override;
 	AnimatedSprite3D();
 };
 

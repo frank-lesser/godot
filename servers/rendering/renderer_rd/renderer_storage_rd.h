@@ -660,6 +660,11 @@ private:
 		float time;
 		float delta;
 
+		uint32_t frame;
+		uint32_t pad0;
+		uint32_t pad1;
+		uint32_t pad2;
+
 		uint32_t random_seed;
 		uint32_t attractor_count;
 		uint32_t collider_count;
@@ -691,23 +696,29 @@ private:
 	};
 
 	struct Particles {
-		bool inactive;
-		float inactive_time;
-		bool emitting;
-		bool one_shot;
-		int amount;
-		float lifetime;
-		float pre_process_time;
-		float explosiveness;
-		float randomness;
-		bool restart_request;
-		AABB custom_aabb;
-		bool use_local_coords;
+		bool inactive = true;
+		float inactive_time = 0.0;
+		bool emitting = false;
+		bool one_shot = false;
+		int amount = 0;
+		float lifetime = 1.0;
+		float pre_process_time = 0.0;
+		float explosiveness = 0.0;
+		float randomness = 0.0;
+		bool restart_request = false;
+		AABB custom_aabb = AABB(Vector3(-4, -4, -4), Vector3(8, 8, 8));
+		bool use_local_coords = true;
 		RID process_material;
+		uint32_t frame_counter = 0;
+		RS::ParticlesTransformAlign transform_align = RS::PARTICLES_TRANSFORM_ALIGN_DISABLED;
 
-		RS::ParticlesDrawOrder draw_order;
+		RS::ParticlesDrawOrder draw_order = RS::PARTICLES_DRAW_ORDER_INDEX;
 
 		Vector<RID> draw_passes;
+		Vector<Transform> trail_bind_poses;
+		bool trail_bind_poses_dirty = false;
+		RID trail_bind_pose_buffer;
+		RID trail_bind_pose_uniform_set;
 
 		RID particle_buffer;
 		RID particle_instance_buffer;
@@ -730,21 +741,22 @@ private:
 
 		RID sub_emitter;
 
-		float phase;
-		float prev_phase;
-		uint64_t prev_ticks;
-		uint32_t random_seed;
+		float phase = 0.0;
+		float prev_phase = 0.0;
+		uint64_t prev_ticks = 0;
+		uint32_t random_seed = 0;
 
-		uint32_t cycle_number;
+		uint32_t cycle_number = 0;
 
-		float speed_scale;
+		float speed_scale = 1.0;
 
-		int fixed_fps;
-		bool fractional_delta;
-		float frame_remainder;
-		float collision_base_size;
+		int fixed_fps = 30;
+		bool interpolate = true;
+		bool fractional_delta = false;
+		float frame_remainder = 0;
+		float collision_base_size = 0.01;
 
-		bool clear;
+		bool clear = true;
 
 		bool force_sub_emit = false;
 
@@ -757,39 +769,21 @@ private:
 
 		Set<RID> collisions;
 
-		Particles() :
-				inactive(true),
-				inactive_time(0.0),
-				emitting(false),
-				one_shot(false),
-				amount(0),
-				lifetime(1.0),
-				pre_process_time(0.0),
-				explosiveness(0.0),
-				randomness(0.0),
-				restart_request(false),
-				custom_aabb(AABB(Vector3(-4, -4, -4), Vector3(8, 8, 8))),
-				use_local_coords(true),
-				draw_order(RS::PARTICLES_DRAW_ORDER_INDEX),
-				prev_ticks(0),
-				random_seed(0),
-				cycle_number(0),
-				speed_scale(1.0),
-				fixed_fps(0),
-				fractional_delta(false),
-				frame_remainder(0),
-				collision_base_size(0.01),
-				clear(true) {
-		}
-
 		Dependency dependency;
 
-		ParticlesFrameParams frame_params;
+		float trail_length = 1.0;
+		bool trails_enabled = false;
+		LocalVector<ParticlesFrameParams> frame_history;
+		LocalVector<ParticlesFrameParams> trail_params;
+
+		Particles() {
+		}
 	};
 
 	void _particles_process(Particles *p_particles, float p_delta);
 	void _particles_allocate_emission_buffer(Particles *particles);
 	void _particles_free_data(Particles *particles);
+	void _particles_update_buffers(Particles *particles);
 
 	struct ParticlesShader {
 		struct PushConstant {
@@ -801,7 +795,7 @@ private:
 			uint32_t use_fractional_delta;
 			uint32_t sub_emitter_mode;
 			uint32_t can_emit;
-			uint32_t pad;
+			uint32_t trail_pass;
 		};
 
 		ParticlesShaderRD shader;
@@ -816,6 +810,14 @@ private:
 		struct CopyPushConstant {
 			float sort_direction[3];
 			uint32_t total_particles;
+
+			uint32_t trail_size;
+			uint32_t trail_total;
+			float frame_delta;
+			float frame_remainder;
+
+			float align_up[3];
+			uint32_t align_mode;
 		};
 
 		enum {
@@ -828,6 +830,8 @@ private:
 		ParticlesCopyShaderRD copy_shader;
 		RID copy_shader_version;
 		RID copy_pipelines[COPY_MODE_MAX];
+
+		LocalVector<float> pose_update_buffer;
 
 	} particles_shader;
 
@@ -2101,10 +2105,17 @@ public:
 	void particles_set_use_local_coordinates(RID p_particles, bool p_enable);
 	void particles_set_process_material(RID p_particles, RID p_material);
 	void particles_set_fixed_fps(RID p_particles, int p_fps);
+	void particles_set_interpolate(RID p_particles, bool p_enable);
 	void particles_set_fractional_delta(RID p_particles, bool p_enable);
 	void particles_set_collision_base_size(RID p_particles, float p_size);
+	void particles_set_transform_align(RID p_particles, RS::ParticlesTransformAlign p_transform_align);
+
+	void particles_set_trails(RID p_particles, bool p_enable, float p_length);
+	void particles_set_trail_bind_poses(RID p_particles, const Vector<Transform> &p_bind_poses);
+
 	void particles_restart(RID p_particles);
 	void particles_emit(RID p_particles, const Transform &p_transform, const Vector3 &p_velocity, const Color &p_color, const Color &p_custom, uint32_t p_emit_flags);
+
 	void particles_set_subemitter(RID p_particles, RID p_subemitter_particles);
 
 	void particles_set_draw_order(RID p_particles, RS::ParticlesDrawOrder p_order);
@@ -2122,15 +2133,21 @@ public:
 	int particles_get_draw_passes(RID p_particles) const;
 	RID particles_get_draw_pass_mesh(RID p_particles, int p_pass) const;
 
-	void particles_set_view_axis(RID p_particles, const Vector3 &p_axis);
+	void particles_set_view_axis(RID p_particles, const Vector3 &p_axis, const Vector3 &p_up_axis);
 
 	virtual bool particles_is_inactive(RID p_particles) const;
 
-	_FORCE_INLINE_ uint32_t particles_get_amount(RID p_particles) {
+	_FORCE_INLINE_ uint32_t particles_get_amount(RID p_particles, uint32_t &r_trail_divisor) {
 		Particles *particles = particles_owner.getornull(p_particles);
 		ERR_FAIL_COND_V(!particles, 0);
 
-		return particles->amount;
+		if (particles->trails_enabled && particles->trail_bind_poses.size() > 1) {
+			r_trail_divisor = particles->trail_bind_poses.size();
+		} else {
+			r_trail_divisor = 1;
+		}
+
+		return particles->amount * r_trail_divisor;
 	}
 
 	_FORCE_INLINE_ uint32_t particles_is_using_local_coords(RID p_particles) {
@@ -2144,6 +2161,8 @@ public:
 		Particles *particles = particles_owner.getornull(p_particles);
 		ERR_FAIL_COND_V(!particles, RID());
 		if (particles->particles_transforms_buffer_uniform_set.is_null()) {
+			_particles_update_buffers(particles);
+
 			Vector<RD::Uniform> uniforms;
 
 			{

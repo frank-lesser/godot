@@ -680,17 +680,17 @@ void FileSystemDock::_sort_file_info_list(List<FileSystemDock::FileInfo> &r_file
 			break;
 		case FILE_SORT_TYPE_REVERSE:
 			r_file_list.sort_custom<FileInfoTypeComparator>();
-			r_file_list.invert();
+			r_file_list.reverse();
 			break;
 		case FILE_SORT_MODIFIED_TIME:
 			r_file_list.sort_custom<FileInfoModifiedTimeComparator>();
 			break;
 		case FILE_SORT_MODIFIED_TIME_REVERSE:
 			r_file_list.sort_custom<FileInfoModifiedTimeComparator>();
-			r_file_list.invert();
+			r_file_list.reverse();
 			break;
 		case FILE_SORT_NAME_REVERSE:
-			r_file_list.invert();
+			r_file_list.reverse();
 			break;
 		default: // FILE_SORT_NAME
 			break;
@@ -1465,6 +1465,10 @@ void FileSystemDock::_folder_removed(String p_folder) {
 	}
 
 	current_path->set_text(path);
+	EditorFileSystemDirectory *efd = EditorFileSystem::get_singleton()->get_filesystem_path(path);
+	if (efd) {
+		efd->force_update();
+	}
 }
 
 void FileSystemDock::_rename_operation_confirm() {
@@ -2621,8 +2625,9 @@ void FileSystemDock::_get_imported_files(const String &p_path, Vector<String> &f
 }
 
 void FileSystemDock::_update_import_dock() {
-	if (!import_dock_needs_update)
+	if (!import_dock_needs_update) {
 		return;
+	}
 
 	// List selected.
 	Vector<String> selected;
@@ -2633,8 +2638,9 @@ void FileSystemDock::_update_import_dock() {
 	} else {
 		// Use the file list.
 		for (int i = 0; i < files->get_item_count(); i++) {
-			if (!files->is_selected(i))
+			if (!files->is_selected(i)) {
 				continue;
+			}
 
 			selected.push_back(files->get_item_metadata(i));
 		}
@@ -2800,7 +2806,6 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	toolbar_hbc->add_child(current_path);
 
 	button_reload = memnew(Button);
-	button_reload->set_flat(true);
 	button_reload->connect("pressed", callable_mp(this, &FileSystemDock::_rescan));
 	button_reload->set_focus_mode(FOCUS_NONE);
 	button_reload->set_tooltip(TTR("Re-Scan Filesystem"));
@@ -2808,7 +2813,6 @@ FileSystemDock::FileSystemDock(EditorNode *p_editor) {
 	toolbar_hbc->add_child(button_reload);
 
 	button_toggle_display_mode = memnew(Button);
-	button_toggle_display_mode->set_flat(true);
 	button_toggle_display_mode->set_toggle_mode(true);
 	button_toggle_display_mode->connect("toggled", callable_mp(this, &FileSystemDock::_toggle_split_mode));
 	button_toggle_display_mode->set_focus_mode(FOCUS_NONE);

@@ -738,7 +738,12 @@ static void _list_available_types(bool p_inherit_only, GDScriptParser::Completio
 
 static void _find_identifiers_in_suite(const GDScriptParser::SuiteNode *p_suite, Map<String, ScriptCodeCompletionOption> &r_result) {
 	for (int i = 0; i < p_suite->locals.size(); i++) {
-		ScriptCodeCompletionOption option(p_suite->locals[i].name, ScriptCodeCompletionOption::KIND_VARIABLE);
+		ScriptCodeCompletionOption option;
+		if (p_suite->locals[i].type == GDScriptParser::SuiteNode::Local::CONSTANT) {
+			option = ScriptCodeCompletionOption(p_suite->locals[i].name, ScriptCodeCompletionOption::KIND_CONSTANT);
+		} else {
+			option = ScriptCodeCompletionOption(p_suite->locals[i].name, ScriptCodeCompletionOption::KIND_VARIABLE);
+		}
 		r_result.insert(option.display, option);
 	}
 	if (p_suite->parent_block) {
@@ -1037,7 +1042,7 @@ static void _find_identifiers(GDScriptParser::CompletionContext &p_context, bool
 	static const char *_keywords[] = {
 		"false", "PI", "TAU", "INF", "NAN", "self", "true", "breakpoint", "tool", "super",
 		"break", "continue", "pass", "return",
-		0
+		nullptr
 	};
 
 	const char **kw = _keywords;
@@ -1050,7 +1055,7 @@ static void _find_identifiers(GDScriptParser::CompletionContext &p_context, bool
 	static const char *_keywords_with_space[] = {
 		"and", "in", "not", "or", "as", "class", "extends", "is", "func", "signal", "await",
 		"const", "enum", "static", "var", "if", "elif", "else", "for", "match", "while",
-		0
+		nullptr
 	};
 
 	const char **kws = _keywords_with_space;
@@ -1063,7 +1068,7 @@ static void _find_identifiers(GDScriptParser::CompletionContext &p_context, bool
 
 	static const char *_keywords_with_args[] = {
 		"assert", "preload",
-		0
+		nullptr
 	};
 
 	const char **kwa = _keywords_with_args;
@@ -1745,8 +1750,8 @@ static bool _guess_identifier_type(GDScriptParser::CompletionContext &p_context,
 								return true;
 							}
 						}
-						base_type = base_type.class_type->base_type;
 					}
+					base_type = base_type.class_type->base_type;
 					break;
 				case GDScriptParser::DataType::NATIVE: {
 					if (id_type.is_set() && !id_type.is_variant()) {
@@ -2892,7 +2897,7 @@ static Error _lookup_symbol_from_base(const GDScriptParser::DataType &p_base, co
 					v = v_ref;
 				} else {
 					Callable::CallError err;
-					Variant::construct(base_type.builtin_type, v, NULL, 0, err);
+					Variant::construct(base_type.builtin_type, v, nullptr, 0, err);
 					if (err.error != Callable::CallError::CALL_OK) {
 						break;
 					}
@@ -2993,6 +2998,7 @@ Error GDScriptLanguage::lookup_code(const String &p_code, const String &p_symbol
 			is_function = true;
 			[[fallthrough]];
 		}
+		case GDScriptParser::COMPLETION_CALL_ARGUMENTS:
 		case GDScriptParser::COMPLETION_IDENTIFIER: {
 			GDScriptParser::DataType base_type;
 			if (context.current_class) {
@@ -3070,7 +3076,7 @@ Error GDScriptLanguage::lookup_code(const String &p_code, const String &p_symbol
 						// We cannot determine the exact nature of the identifier here
 						// Otherwise these codes would work
 						StringName enumName = ClassDB::get_integer_constant_enum("@GlobalScope", p_symbol, true);
-						if (enumName != NULL) {
+						if (enumName != nullptr) {
 							r_result.type = ScriptLanguage::LookupResult::RESULT_CLASS_ENUM;
 							r_result.class_name = "@GlobalScope";
 							r_result.class_member = enumName;

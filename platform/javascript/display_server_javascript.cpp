@@ -215,14 +215,14 @@ EM_BOOL DisplayServerJavaScript::mouse_button_callback(int p_event_type, const E
 				display->last_click_ms = 0;
 				display->last_click_pos = Point2(-100, -100);
 				display->last_click_button_index = -1;
-				ev->set_doubleclick(true);
+				ev->set_double_click(true);
 			}
 
 		} else {
 			display->last_click_button_index = ev->get_button_index();
 		}
 
-		if (!ev->is_doubleclick()) {
+		if (!ev->is_double_click()) {
 			display->last_click_ms += diff;
 			display->last_click_pos = ev->get_position();
 		}
@@ -399,7 +399,7 @@ void DisplayServerJavaScript::cursor_set_custom_image(const RES &p_cursor, Curso
 		godot_js_display_cursor_set_custom_shape(godot2dom_cursor(p_shape), png.ptr(), len, p_hotspot.x, p_hotspot.y);
 
 	} else {
-		godot_js_display_cursor_set_custom_shape(godot2dom_cursor(p_shape), NULL, 0, 0, 0);
+		godot_js_display_cursor_set_custom_shape(godot2dom_cursor(p_shape), nullptr, 0, 0, 0);
 	}
 
 	cursor_set_shape(cursor_shape);
@@ -771,8 +771,8 @@ DisplayServerJavaScript::DisplayServerJavaScript(const String &p_rendering_drive
 #define SET_EM_CALLBACK(target, ev, cb)                                  \
 	result = emscripten_set_##ev##_callback(target, nullptr, true, &cb); \
 	EM_CHECK(ev)
-#define SET_EM_WINDOW_CALLBACK(ev, cb)                                                         \
-	result = emscripten_set_##ev##_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, NULL, false, &cb); \
+#define SET_EM_WINDOW_CALLBACK(ev, cb)                                                            \
+	result = emscripten_set_##ev##_callback(EMSCRIPTEN_EVENT_TARGET_WINDOW, nullptr, false, &cb); \
 	EM_CHECK(ev)
 	// These callbacks from Emscripten's html5.h suffice to access most
 	// JavaScript APIs.
@@ -827,7 +827,6 @@ bool DisplayServerJavaScript::has_feature(Feature p_feature) const {
 		//case FEATURE_MOUSE_WARP:
 		//case FEATURE_NATIVE_DIALOG:
 		//case FEATURE_NATIVE_ICON:
-		//case FEATURE_NATIVE_VIDEO:
 		//case FEATURE_WINDOW_TRANSPARENCY:
 		//case FEATURE_KEEP_SCREEN_ON:
 		//case FEATURE_ORIENTATION:

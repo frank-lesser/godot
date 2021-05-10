@@ -1973,7 +1973,7 @@ void TextEdit::backspace_at_cursor() {
 		}
 	}
 
-	cursor_set_line(prev_line, true, true);
+	cursor_set_line(prev_line, false, true);
 	cursor_set_column(prev_column);
 }
 
@@ -2054,6 +2054,7 @@ void TextEdit::indent_selected_lines_left() {
 	if (is_selection_active() && get_selection_to_column() == 0) {
 		end_line--;
 	}
+	String first_line_text = get_line(start_line);
 	String last_line_text = get_line(end_line);
 
 	for (int i = start_line; i <= end_line; i++) {
@@ -2078,10 +2079,17 @@ void TextEdit::indent_selected_lines_left() {
 		}
 	}
 
-	// Fix selection and cursor being off by one on the last line.
-	if (is_selection_active() && last_line_text != get_line(end_line)) {
-		select(selection.from_line, selection.from_column - removed_characters,
-				selection.to_line, initial_selection_end_column - removed_characters);
+	if (is_selection_active()) {
+		// Fix selection being off by one on the first line.
+		if (first_line_text != get_line(start_line)) {
+			select(selection.from_line, selection.from_column - removed_characters,
+					selection.to_line, initial_selection_end_column);
+		}
+		// Fix selection being off by one on the last line.
+		if (last_line_text != get_line(end_line)) {
+			select(selection.from_line, selection.from_column,
+					selection.to_line, initial_selection_end_column - removed_characters);
+		}
 	}
 	cursor_set_column(initial_cursor_column - removed_characters, false);
 	end_complex_operation();
@@ -2207,7 +2215,7 @@ void TextEdit::_new_line(bool p_split_current_line, bool p_above) {
 	if (!p_split_current_line) {
 		if (p_above) {
 			if (cursor.line > 0) {
-				cursor_set_line(cursor.line - 1);
+				cursor_set_line(cursor.line - 1, false);
 				cursor_set_column(text[cursor.line].length());
 			} else {
 				cursor_set_column(0);
@@ -2223,7 +2231,7 @@ void TextEdit::_new_line(bool p_split_current_line, bool p_above) {
 	if (first_line) {
 		cursor_set_line(0);
 	} else if (brace_indent) {
-		cursor_set_line(cursor.line - 1);
+		cursor_set_line(cursor.line - 1, false);
 		cursor_set_column(text[cursor.line].length());
 	}
 	end_complex_operation();
@@ -2573,7 +2581,7 @@ void TextEdit::_backspace(bool p_word, bool p_all_to_left) {
 
 		_remove_text(line, column, cursor.line, cursor.column);
 
-		cursor_set_line(line);
+		cursor_set_line(line, false);
 		cursor_set_column(column);
 	} else {
 		// One character.
@@ -2640,7 +2648,7 @@ void TextEdit::_delete_selection() {
 		selection.active = false;
 		update();
 		_remove_text(selection.from_line, selection.from_column, selection.to_line, selection.to_column);
-		cursor_set_line(selection.from_line, true, false);
+		cursor_set_line(selection.from_line, false, false);
 		cursor_set_column(selection.from_column);
 		update();
 	}
@@ -2854,6 +2862,8 @@ void TextEdit::_get_minimap_mouse_row(const Point2i &p_mouse, int &r_row) const 
 }
 
 void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
+	ERR_FAIL_COND(p_gui_input.is_null());
+
 	double prev_v_scroll = v_scroll->get_value();
 	double prev_h_scroll = h_scroll->get_value();
 
@@ -2893,7 +2903,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 				completion_current = completion_options[completion_index];
 				update();
-				if (mb->is_doubleclick()) {
+				if (mb->is_double_click()) {
 					_confirm_completion();
 				}
 			}
@@ -3016,12 +3026,12 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 					selection.selecting_column = col;
 				}
 
-				if (!mb->is_doubleclick() && (OS::get_singleton()->get_ticks_msec() - last_dblclk) < 600 && cursor.line == prev_line) {
+				if (!mb->is_double_click() && (OS::get_singleton()->get_ticks_msec() - last_dblclk) < 600 && cursor.line == prev_line) {
 					// Triple-click select line.
 					selection.selecting_mode = SelectionMode::SELECTION_MODE_LINE;
 					_update_selection_mode_line();
 					last_dblclk = 0;
-				} else if (mb->is_doubleclick() && text[cursor.line].length()) {
+				} else if (mb->is_double_click() && text[cursor.line].length()) {
 					// Double-click select word.
 					selection.selecting_mode = SelectionMode::SELECTION_MODE_WORD;
 					_update_selection_mode_word();
@@ -3259,7 +3269,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				accept_event();
 				return;
 			}
-			if (k->is_action("ui_accept", true) || k->is_action("ui_text_completion_accept", true)) {
+			if (k->is_action("ui_text_completion_accept", true)) {
 				_confirm_completion();
 				accept_event();
 				return;
@@ -3849,7 +3859,7 @@ void TextEdit::_insert_text_at_cursor(const String &p_text) {
 	int new_column, new_line;
 	_insert_text(cursor.line, cursor.column, p_text, &new_line, &new_column);
 	_update_scrollbars();
-	cursor_set_line(new_line);
+	cursor_set_line(new_line, false);
 	cursor_set_column(new_column);
 
 	update();
@@ -4423,7 +4433,7 @@ int TextEdit::get_column_x_offset_for_line(int p_char, int p_line) const {
 
 void TextEdit::insert_text_at_cursor(const String &p_text) {
 	if (selection.active) {
-		cursor_set_line(selection.from_line);
+		cursor_set_line(selection.from_line, false);
 		cursor_set_column(selection.from_column);
 
 		_remove_text(selection.from_line, selection.from_column, selection.to_line, selection.to_column);
@@ -4440,7 +4450,7 @@ Control::CursorShape TextEdit::get_cursor_shape(const Point2 &p_pos) const {
 		return CURSOR_POINTING_HAND;
 	}
 
-	if ((completion_active && completion_rect.has_point(p_pos))) {
+	if ((completion_active && completion_rect.has_point(p_pos)) || (is_readonly() && (!is_selecting_enabled() || text.size() == 0))) {
 		return CURSOR_ARROW;
 	}
 
@@ -5040,7 +5050,7 @@ void TextEdit::cut() {
 		DisplayServer::get_singleton()->clipboard_set(clipboard);
 
 		_remove_text(selection.from_line, selection.from_column, selection.to_line, selection.to_column);
-		cursor_set_line(selection.from_line); // Set afterwards else it causes the view to be offset.
+		cursor_set_line(selection.from_line, false); // Set afterwards else it causes the view to be offset.
 		cursor_set_column(selection.from_column);
 
 		selection.active = false;
@@ -5076,7 +5086,7 @@ void TextEdit::paste() {
 		selection.active = false;
 		selection.selecting_mode = SelectionMode::SELECTION_MODE_NONE;
 		_remove_text(selection.from_line, selection.from_column, selection.to_line, selection.to_column);
-		cursor_set_line(selection.from_line);
+		cursor_set_line(selection.from_line, false);
 		cursor_set_column(selection.from_column);
 
 	} else if (!cut_copy_line.is_empty() && cut_copy_line == clipboard) {
@@ -5815,11 +5825,11 @@ void TextEdit::undo() {
 
 	_update_scrollbars();
 	if (undo_stack_pos->get().type == TextOperation::TYPE_REMOVE) {
-		cursor_set_line(undo_stack_pos->get().to_line);
+		cursor_set_line(undo_stack_pos->get().to_line, false);
 		cursor_set_column(undo_stack_pos->get().to_column);
 		_cancel_code_hint();
 	} else {
-		cursor_set_line(undo_stack_pos->get().from_line);
+		cursor_set_line(undo_stack_pos->get().from_line, false);
 		cursor_set_column(undo_stack_pos->get().from_column);
 	}
 	update();
@@ -5854,7 +5864,7 @@ void TextEdit::redo() {
 	}
 
 	_update_scrollbars();
-	cursor_set_line(undo_stack_pos->get().to_line);
+	cursor_set_line(undo_stack_pos->get().to_line, false);
 	cursor_set_column(undo_stack_pos->get().to_column);
 	undo_stack_pos = undo_stack_pos->next();
 	update();

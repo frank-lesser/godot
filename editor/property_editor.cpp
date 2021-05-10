@@ -832,6 +832,9 @@ bool CustomPropertyEditor::edit(Object *p_owner, const String &p_name, Variant::
 				} else if (default_color_mode == 2) {
 					color_picker->set_raw_mode(true);
 				}
+
+				int picker_shape = EDITOR_GET("interface/inspector/default_color_picker_shape");
+				color_picker->set_picker_shape((ColorPicker::PickerShapeType)picker_shape);
 			}
 
 			color_picker->show();
@@ -1820,7 +1823,6 @@ CustomPropertyEditor::CustomPropertyEditor() {
 		Vector<Variant> binds;
 		binds.push_back(i);
 		action_buttons[i]->connect("pressed", callable_mp(this, &CustomPropertyEditor::_action_pressed), binds);
-		action_buttons[i]->set_flat(true);
 	}
 
 	color_picker = nullptr;

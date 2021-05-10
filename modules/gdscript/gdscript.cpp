@@ -45,6 +45,10 @@
 #include "gdscript_parser.h"
 #include "gdscript_warning.h"
 
+#ifdef TESTS_ENABLED
+#include "tests/gdscript_test_runner.h"
+#endif
+
 ///////////////////////////
 
 GDScriptNativeClass::GDScriptNativeClass(const StringName &p_name) {
@@ -276,7 +280,7 @@ void GDScript::_get_script_property_list(List<PropertyInfo> *r_list, bool p_incl
 		}
 
 		msort.sort();
-		msort.invert();
+		msort.reverse();
 		for (int i = 0; i < msort.size(); i++) {
 			props.push_front(sptr->member_info[msort[i].name]);
 		}
@@ -1502,7 +1506,7 @@ void GDScriptInstance::get_property_list(List<PropertyInfo> *p_properties) const
 		}
 
 		msort.sort();
-		msort.invert();
+		msort.reverse();
 		for (int i = 0; i < msort.size(); i++) {
 			props.push_front(sptr->member_info[msort[i].name]);
 		}
@@ -1766,6 +1770,10 @@ void GDScriptLanguage::init() {
 	for (List<Engine::Singleton>::Element *E = singletons.front(); E; E = E->next()) {
 		_add_global(E->get().name, E->get().ptr);
 	}
+
+#ifdef TESTS_ENABLED
+	GDScriptTests::GDScriptTestRunner::handle_cmdline();
+#endif
 }
 
 String GDScriptLanguage::get_type() const {
@@ -2127,6 +2135,19 @@ void GDScriptLanguage::get_reserved_words(List<String> *p_words) const {
 	}
 }
 
+bool GDScriptLanguage::is_control_flow_keyword(String p_keyword) const {
+	return p_keyword == "break" ||
+		   p_keyword == "continue" ||
+		   p_keyword == "elif" ||
+		   p_keyword == "else" ||
+		   p_keyword == "if" ||
+		   p_keyword == "for" ||
+		   p_keyword == "match" ||
+		   p_keyword == "pass" ||
+		   p_keyword == "return" ||
+		   p_keyword == "while";
+}
+
 bool GDScriptLanguage::handles_global_class_type(const String &p_type) const {
 	return p_type == "GDScript";
 }
@@ -2301,7 +2322,7 @@ GDScriptLanguage::~GDScriptLanguage() {
 		script->unreference();
 	}
 
-	singleton = NULL;
+	singleton = nullptr;
 }
 
 void GDScriptLanguage::add_orphan_subclass(const String &p_qualified_name, const ObjectID &p_subclass) {

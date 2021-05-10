@@ -40,6 +40,7 @@
 #include "editor/inspector_dock.h"
 #include "editor/property_editor.h"
 #include "editor/scene_tree_dock.h"
+#include "scene/gui/link_button.h"
 
 typedef void (*EditorNodeInitCallback)();
 typedef void (*EditorPluginInitializeCallback)();
@@ -134,7 +135,6 @@ private:
 		FILE_EXPORT_MESH_LIBRARY,
 		FILE_INSTALL_ANDROID_SOURCE,
 		FILE_EXPLORE_ANDROID_BUILD_TEMPLATES,
-		FILE_EXPORT_TILESET,
 		FILE_SAVE_OPTIMIZED,
 		FILE_OPEN_RECENT,
 		FILE_OPEN_OLD_SCENE,
@@ -424,7 +424,7 @@ private:
 	HBoxContainer *bottom_panel_hb;
 	HBoxContainer *bottom_panel_hb_editors;
 	VBoxContainer *bottom_panel_vb;
-	Label *version_label;
+	LinkButton *version_btn;
 	Button *bottom_panel_raise;
 
 	Tree *disk_changed_list;
@@ -477,6 +477,7 @@ private:
 	void _close_messages();
 	void _show_messages();
 	void _vp_resized();
+	void _version_button_pressed();
 
 	int _save_external_resources();
 

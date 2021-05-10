@@ -85,11 +85,11 @@ void SoftBodyRenderingServerHandler::commit_changes() {
 }
 
 void SoftBodyRenderingServerHandler::set_vertex(int p_vertex_id, const void *p_vector3) {
-	copymem(&write_buffer[p_vertex_id * stride + offset_vertices], p_vector3, sizeof(float) * 3);
+	memcpy(&write_buffer[p_vertex_id * stride + offset_vertices], p_vector3, sizeof(float) * 3);
 }
 
 void SoftBodyRenderingServerHandler::set_normal(int p_vertex_id, const void *p_vector3) {
-	copymem(&write_buffer[p_vertex_id * stride + offset_normal], p_vector3, sizeof(float) * 3);
+	memcpy(&write_buffer[p_vertex_id * stride + offset_normal], p_vector3, sizeof(float) * 3);
 }
 
 void SoftBodyRenderingServerHandler::set_aabb(const AABB &p_aabb) {
@@ -249,7 +249,7 @@ void SoftBody3D::_softbody_changed() {
 	prepare_physics_server();
 	_reset_points_offsets();
 #ifdef TOOLS_ENABLED
-	update_configuration_warning();
+	update_configuration_warnings();
 #endif
 }
 
@@ -301,7 +301,7 @@ void SoftBody3D::_notification(int p_what) {
 
 	if (p_what == NOTIFICATION_LOCAL_TRANSFORM_CHANGED) {
 		if (Engine::get_singleton()->is_editor_hint()) {
-			update_configuration_warning();
+			update_configuration_warnings();
 		}
 	}
 
@@ -366,27 +366,19 @@ void SoftBody3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "ray_pickable"), "set_ray_pickable", "is_ray_pickable");
 }
 
-String SoftBody3D::get_configuration_warning() const {
-	String warning = MeshInstance3D::get_configuration_warning();
+TypedArray<String> SoftBody3D::get_configuration_warnings() const {
+	TypedArray<String> warnings = Node::get_configuration_warnings();
 
 	if (get_mesh().is_null()) {
-		if (!warning.is_empty()) {
-			warning += "\n\n";
-		}
-
-		warning += TTR("This body will be ignored until you set a mesh.");
+		warnings.push_back(TTR("This body will be ignored until you set a mesh."));
 	}
 
 	Transform t = get_transform();
 	if ((ABS(t.basis.get_axis(0).length() - 1.0) > 0.05 || ABS(t.basis.get_axis(1).length() - 1.0) > 0.05 || ABS(t.basis.get_axis(2).length() - 1.0) > 0.05)) {
-		if (!warning.is_empty()) {
-			warning += "\n\n";
-		}
-
-		warning += TTR("Size changes to SoftBody3D will be overridden by the physics engine when running.\nChange the size in children collision shapes instead.");
+		warnings.push_back(TTR("Size changes to SoftBody3D will be overridden by the physics engine when running.\nChange the size in children collision shapes instead."));
 	}
 
-	return warning;
+	return warnings;
 }
 
 void SoftBody3D::_update_physics_server() {
@@ -460,7 +452,7 @@ void SoftBody3D::become_mesh_owner() {
 		mesh_owner = true;
 
 		Vector<Ref<Material>> copy_materials;
-		copy_materials.append_array(materials);
+		copy_materials.append_array(surface_override_materials);
 
 		ERR_FAIL_COND(!mesh->get_surface_count());
 
@@ -480,7 +472,7 @@ void SoftBody3D::become_mesh_owner() {
 		set_mesh(soft_mesh);
 
 		for (int i = copy_materials.size() - 1; 0 <= i; --i) {
-			set_surface_material(i, copy_materials[i]);
+			set_surface_override_material(i, copy_materials[i]);
 		}
 	}
 }
@@ -504,6 +496,7 @@ uint32_t SoftBody3D::get_collision_layer() const {
 }
 
 void SoftBody3D::set_collision_mask_bit(int p_bit, bool p_value) {
+	ERR_FAIL_INDEX_MSG(p_bit, 32, "Collision mask bit must be between 0 and 31 inclusive.");
 	uint32_t mask = get_collision_mask();
 	if (p_value) {
 		mask |= 1 << p_bit;
@@ -514,10 +507,12 @@ void SoftBody3D::set_collision_mask_bit(int p_bit, bool p_value) {
 }
 
 bool SoftBody3D::get_collision_mask_bit(int p_bit) const {
+	ERR_FAIL_INDEX_V_MSG(p_bit, 32, false, "Collision mask bit must be between 0 and 31 inclusive.");
 	return get_collision_mask() & (1 << p_bit);
 }
 
 void SoftBody3D::set_collision_layer_bit(int p_bit, bool p_value) {
+	ERR_FAIL_INDEX_MSG(p_bit, 32, "Collision layer bit must be between 0 and 31 inclusive.");
 	uint32_t layer = get_collision_layer();
 	if (p_value) {
 		layer |= 1 << p_bit;
@@ -528,6 +523,7 @@ void SoftBody3D::set_collision_layer_bit(int p_bit, bool p_value) {
 }
 
 bool SoftBody3D::get_collision_layer_bit(int p_bit) const {
+	ERR_FAIL_INDEX_V_MSG(p_bit, 32, false, "Collision layer bit must be between 0 and 31 inclusive.");
 	return get_collision_layer() & (1 << p_bit);
 }
 
