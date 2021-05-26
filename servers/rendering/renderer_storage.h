@@ -484,6 +484,7 @@ public:
 
 	virtual RID particles_allocate() = 0;
 	virtual void particles_initialize(RID p_rid) = 0;
+	virtual void particles_set_mode(RID p_particles, RS::ParticlesMode p_mode) = 0;
 
 	virtual void particles_set_emitting(RID p_particles, bool p_emitting) = 0;
 	virtual bool particles_get_emitting(RID p_particles) = 0;
@@ -532,6 +533,8 @@ public:
 
 	virtual void particles_add_collision(RID p_particles, RID p_particles_collision_instance) = 0;
 	virtual void particles_remove_collision(RID p_particles, RID p_particles_collision_instance) = 0;
+
+	virtual void particles_set_canvas_sdf_collision(RID p_particles, bool p_enable, const Transform2D &p_xform, const Rect2 &p_to_screen, RID p_texture) = 0;
 
 	virtual void update_particles() = 0;
 
@@ -602,6 +605,7 @@ public:
 
 	virtual void render_target_set_sdf_size_and_scale(RID p_render_target, RS::ViewportSDFOversize p_size, RS::ViewportSDFScale p_scale) = 0;
 	virtual Rect2i render_target_get_sdf_rect(RID p_render_target) const = 0;
+	virtual void render_target_mark_sdf_enabled(RID p_render_target, bool p_enabled) = 0;
 
 	virtual RS::InstanceType get_base_type(RID p_rid) const = 0;
 	virtual bool free(RID p_rid) = 0;

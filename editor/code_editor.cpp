@@ -726,7 +726,7 @@ void CodeTextEditor::_text_editor_gui_input(const Ref<InputEvent> &p_event) {
 	Ref<InputEventMouseButton> mb = p_event;
 
 	if (mb.is_valid()) {
-		if (mb->is_pressed() && mb->get_command()) {
+		if (mb->is_pressed() && mb->is_command_pressed()) {
 			if (mb->get_button_index() == MOUSE_BUTTON_WHEEL_UP) {
 				_zoom_in();
 			} else if (mb->get_button_index() == MOUSE_BUTTON_WHEEL_DOWN) {
@@ -1012,7 +1012,7 @@ void CodeTextEditor::convert_indent_to_spaces() {
 				if (cursor_line == i && cursor_column > j) {
 					cursor_column += indent_size - 1;
 				}
-				line = line.left(j) + indent + line.right(j + 1);
+				line = line.left(j) + indent + line.substr(j + 1);
 			}
 			j++;
 		}
@@ -1056,7 +1056,7 @@ void CodeTextEditor::convert_indent_to_tabs() {
 					if (cursor_line == i && cursor_column > j) {
 						cursor_column -= indent_size;
 					}
-					line = line.left(j - indent_size) + "\t" + line.right(j + 1);
+					line = line.left(j - indent_size) + "\t" + line.substr(j + 1);
 					j = 0;
 					space_count = -1;
 				}
@@ -1114,7 +1114,7 @@ void CodeTextEditor::convert_case(CaseStyle p_case) {
 			new_line = text_editor->get_line(i).left(begin_col) + new_line;
 		}
 		if (i == end) {
-			new_line = new_line + text_editor->get_line(i).right(end_col);
+			new_line = new_line + text_editor->get_line(i).substr(end_col);
 		}
 		text_editor->set_line(i, new_line);
 	}
@@ -1474,6 +1474,34 @@ void CodeTextEditor::goto_error() {
 	}
 }
 
+void CodeTextEditor::_update_text_editor_theme() {
+	text_editor->add_theme_color_override("background_color", EDITOR_GET("text_editor/highlighting/background_color"));
+	text_editor->add_theme_color_override("completion_background_color", EDITOR_GET("text_editor/highlighting/completion_background_color"));
+	text_editor->add_theme_color_override("completion_selected_color", EDITOR_GET("text_editor/highlighting/completion_selected_color"));
+	text_editor->add_theme_color_override("completion_existing_color", EDITOR_GET("text_editor/highlighting/completion_existing_color"));
+	text_editor->add_theme_color_override("completion_scroll_color", EDITOR_GET("text_editor/highlighting/completion_scroll_color"));
+	text_editor->add_theme_color_override("completion_font_color", EDITOR_GET("text_editor/highlighting/completion_font_color"));
+	text_editor->add_theme_color_override("font_color", EDITOR_GET("text_editor/highlighting/text_color"));
+	text_editor->add_theme_color_override("line_number_color", EDITOR_GET("text_editor/highlighting/line_number_color"));
+	text_editor->add_theme_color_override("caret_color", EDITOR_GET("text_editor/highlighting/caret_color"));
+	text_editor->add_theme_color_override("caret_background_color", EDITOR_GET("text_editor/highlighting/caret_background_color"));
+	text_editor->add_theme_color_override("font_selected_color", EDITOR_GET("text_editor/highlighting/text_selected_color"));
+	text_editor->add_theme_color_override("selection_color", EDITOR_GET("text_editor/highlighting/selection_color"));
+	text_editor->add_theme_color_override("brace_mismatch_color", EDITOR_GET("text_editor/highlighting/brace_mismatch_color"));
+	text_editor->add_theme_color_override("current_line_color", EDITOR_GET("text_editor/highlighting/current_line_color"));
+	text_editor->add_theme_color_override("line_length_guideline_color", EDITOR_GET("text_editor/highlighting/line_length_guideline_color"));
+	text_editor->add_theme_color_override("word_highlighted_color", EDITOR_GET("text_editor/highlighting/word_highlighted_color"));
+	text_editor->add_theme_color_override("bookmark_color", EDITOR_GET("text_editor/highlighting/bookmark_color"));
+	text_editor->add_theme_color_override("breakpoint_color", EDITOR_GET("text_editor/highlighting/breakpoint_color"));
+	text_editor->add_theme_color_override("executing_line_color", EDITOR_GET("text_editor/highlighting/executing_line_color"));
+	text_editor->add_theme_color_override("code_folding_color", EDITOR_GET("text_editor/highlighting/code_folding_color"));
+	text_editor->add_theme_color_override("search_result_color", EDITOR_GET("text_editor/highlighting/search_result_color"));
+	text_editor->add_theme_color_override("search_result_border_color", EDITOR_GET("text_editor/highlighting/search_result_border_color"));
+	text_editor->add_theme_constant_override("line_spacing", EDITOR_DEF("text_editor/theme/line_spacing", 6));
+	emit_signal("load_theme_settings");
+	_load_theme_settings();
+}
+
 void CodeTextEditor::_update_font() {
 	text_editor->add_theme_font_override("font", get_theme_font("source", "EditorFonts"));
 	text_editor->add_theme_font_size_override("font_size", get_theme_font_size("source_size", "EditorFonts"));
@@ -1497,6 +1525,7 @@ void CodeTextEditor::_update_font() {
 }
 
 void CodeTextEditor::_on_settings_change() {
+	_update_text_editor_theme();
 	_update_font();
 
 	font_size = EditorSettings::get_singleton()->get("interface/editor/code_font_size");
@@ -1583,14 +1612,11 @@ void CodeTextEditor::_error_pressed(const Ref<InputEvent> &p_event) {
 
 void CodeTextEditor::_notification(int p_what) {
 	switch (p_what) {
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			_load_theme_settings();
-			emit_signal("load_theme_settings");
-		} break;
 		case NOTIFICATION_THEME_CHANGED: {
 			if (toggle_scripts_button->is_visible()) {
 				update_toggle_scripts_button();
 			}
+			_update_text_editor_theme();
 			_update_font();
 		} break;
 		case NOTIFICATION_ENTER_TREE: {

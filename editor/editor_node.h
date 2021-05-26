@@ -196,6 +196,7 @@ private:
 		HELP_SEND_DOCS_FEEDBACK,
 		HELP_COMMUNITY,
 		HELP_ABOUT,
+		HELP_SUPPORT_GODOT_DEVELOPMENT,
 
 		SET_VIDEO_DRIVER_SAVE_AND_RESTART,
 
@@ -460,6 +461,7 @@ private:
 	void _update_file_menu_closed();
 
 	void _on_plugin_ready(Object *p_script, const String &p_activate_name);
+	void _remove_plugin_from_enabled(const String &p_name);
 
 	void _fs_changed();
 	void _resources_reimported(const Vector<String> &p_resources);

@@ -253,7 +253,6 @@ void TextEdit::Text::set(int p_line, const String &p_text, const Vector<Vector2i
 void TextEdit::Text::insert(int p_at, const String &p_text, const Vector<Vector2i> &p_bidi_override) {
 	Line line;
 	line.gutters.resize(gutter_count);
-	line.marked = false;
 	line.hidden = false;
 	line.data = p_text;
 	line.bidi_override = p_bidi_override;
@@ -867,6 +866,8 @@ void TextEdit::_notification(int p_what) {
 
 					Dictionary color_map = _get_line_syntax_highlighting(minimap_line);
 
+					Color line_background_color = text.get_line_background_color(minimap_line);
+					line_background_color.a *= 0.6;
 					Color current_color = cache.font_color;
 					if (readonly) {
 						current_color = cache.font_readonly_color;
@@ -900,6 +901,12 @@ void TextEdit::_notification(int p_what) {
 								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - (xmargin_end + 2) - cache.minimap_width, i * 3, cache.minimap_width, 2), cache.current_line_color);
 							} else {
 								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2((xmargin_end + 2), i * 3, cache.minimap_width, 2), cache.current_line_color);
+							}
+						} else if (line_background_color != Color(0, 0, 0, 0)) {
+							if (rtl) {
+								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - (xmargin_end + 2) - cache.minimap_width, i * 3, cache.minimap_width, 2), line_background_color);
+							} else {
+								RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2((xmargin_end + 2), i * 3, cache.minimap_width, 2), line_background_color);
 							}
 						}
 
@@ -1048,11 +1055,11 @@ void TextEdit::_notification(int p_what) {
 						break;
 					}
 
-					if (text.is_marked(line)) {
+					if (text.get_line_background_color(line) != Color(0, 0, 0, 0)) {
 						if (rtl) {
-							RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - ofs_x - xmargin_end, ofs_y, xmargin_end - xmargin_beg, row_height), cache.mark_color);
+							RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(size.width - ofs_x - xmargin_end, ofs_y, xmargin_end - xmargin_beg, row_height), text.get_line_background_color(line));
 						} else {
-							RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y, xmargin_end - xmargin_beg, row_height), cache.mark_color);
+							RenderingServer::get_singleton()->canvas_item_add_rect(ci, Rect2(xmargin_beg + ofs_x, ofs_y, xmargin_end - xmargin_beg, row_height), text.get_line_background_color(line));
 						}
 					}
 
@@ -2914,17 +2921,25 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 		}
 
 		if (mb->is_pressed()) {
-			if (mb->get_button_index() == MOUSE_BUTTON_WHEEL_UP && !mb->get_command()) {
-				if (mb->get_shift()) {
+			if (mb->get_button_index() == MOUSE_BUTTON_WHEEL_UP && !mb->is_command_pressed()) {
+				if (mb->is_shift_pressed()) {
 					h_scroll->set_value(h_scroll->get_value() - (100 * mb->get_factor()));
+				} else if (mb->is_alt_pressed()) {
+					// Scroll 5 times as fast as normal (like in Visual Studio Code).
+					_scroll_up(15 * mb->get_factor());
 				} else if (v_scroll->is_visible()) {
+					// Scroll 3 lines.
 					_scroll_up(3 * mb->get_factor());
 				}
 			}
-			if (mb->get_button_index() == MOUSE_BUTTON_WHEEL_DOWN && !mb->get_command()) {
-				if (mb->get_shift()) {
+			if (mb->get_button_index() == MOUSE_BUTTON_WHEEL_DOWN && !mb->is_command_pressed()) {
+				if (mb->is_shift_pressed()) {
 					h_scroll->set_value(h_scroll->get_value() + (100 * mb->get_factor()));
+				} else if (mb->is_alt_pressed()) {
+					// Scroll 5 times as fast as normal (like in Visual Studio Code).
+					_scroll_down(15 * mb->get_factor());
 				} else if (v_scroll->is_visible()) {
+					// Scroll 3 lines.
 					_scroll_down(3 * mb->get_factor());
 				}
 			}
@@ -2977,7 +2992,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 				cursor_set_line(row, false, false);
 				cursor_set_column(col);
 
-				if (mb->get_shift() && (cursor.column != prev_col || cursor.line != prev_line)) {
+				if (mb->is_shift_pressed() && (cursor.column != prev_col || cursor.line != prev_line)) {
 					if (!selection.active) {
 						selection.active = true;
 						selection.selecting_mode = SelectionMode::SELECTION_MODE_POINTER;
@@ -3073,7 +3088,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			}
 		} else {
 			if (mb->get_button_index() == MOUSE_BUTTON_LEFT) {
-				if (mb->get_command() && highlighted_word != String()) {
+				if (mb->is_command_pressed() && highlighted_word != String()) {
 					int row, col;
 					_get_mouse_pos(Point2i(mpos.x, mpos.y), row, col);
 
@@ -3116,7 +3131,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			mpos.x = get_size().x - mpos.x;
 		}
 		if (select_identifiers_enabled) {
-			if (!dragging_minimap && !dragging_selection && mm->get_command() && mm->get_button_mask() == 0) {
+			if (!dragging_minimap && !dragging_selection && mm->is_command_pressed() && mm->get_button_mask() == 0) {
 				String new_word = get_word_at_pos(mpos);
 				if (new_word != highlighted_word) {
 					emit_signal("symbol_validate", new_word);
@@ -3165,7 +3180,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 #ifdef OSX_ENABLED
 		if (k->get_keycode() == KEY_META) {
 #else
-		if (k->get_keycode() == KEY_CONTROL) {
+		if (k->get_keycode() == KEY_CTRL) {
 #endif
 			if (select_identifiers_enabled) {
 				if (k->is_pressed() && !dragging_minimap && !dragging_selection) {
@@ -3183,7 +3198,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 		}
 
 		// If a modifier has been pressed, and nothing else, return.
-		if (k->get_keycode() == KEY_CONTROL || k->get_keycode() == KEY_ALT || k->get_keycode() == KEY_SHIFT || k->get_keycode() == KEY_META) {
+		if (k->get_keycode() == KEY_CTRL || k->get_keycode() == KEY_ALT || k->get_keycode() == KEY_SHIFT || k->get_keycode() == KEY_META) {
 			return;
 		}
 
@@ -3191,7 +3206,7 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 
 		// Allow unicode handling if:
 		// * No Modifiers are pressed (except shift)
-		bool allow_unicode_handling = !(k->get_command() || k->get_control() || k->get_alt() || k->get_metakey());
+		bool allow_unicode_handling = !(k->is_command_pressed() || k->is_ctrl_pressed() || k->is_alt_pressed() || k->is_meta_pressed());
 
 		// Save here for insert mode, just in case it is cleared in the following section.
 		bool had_selection = selection.active;
@@ -3366,10 +3381,15 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 			return;
 		}
 
-		// SELECT ALL, CUT, COPY, PASTE.
+		// SELECT ALL, SELECT WORD UNDER CARET, CUT, COPY, PASTE.
 
 		if (k->is_action("ui_text_select_all", true)) {
 			select_all();
+			accept_event();
+			return;
+		}
+		if (k->is_action("ui_text_select_word_under_caret", true)) {
+			select_word_under_caret();
 			accept_event();
 			return;
 		}
@@ -3436,9 +3456,9 @@ void TextEdit::_gui_input(const Ref<InputEvent> &p_gui_input) {
 		// CURSOR MOVEMENT
 
 		k = k->duplicate();
-		bool shift_pressed = k->get_shift();
+		bool shift_pressed = k->is_shift_pressed();
 		// Remove shift or else actions will not match. Use above variable for selection.
-		k->set_shift(false);
+		k->set_shift_pressed(false);
 
 		// CURSOR MOVEMENT - LEFT, RIGHT.
 		if (k->is_action("ui_text_caret_word_left", true)) {
@@ -4781,7 +4801,6 @@ void TextEdit::_update_caches() {
 	cache.font_selected_color = get_theme_color("font_selected_color");
 	cache.font_readonly_color = get_theme_color("font_readonly_color");
 	cache.selection_color = get_theme_color("selection_color");
-	cache.mark_color = get_theme_color("mark_color");
 	cache.current_line_color = get_theme_color("current_line_color");
 	cache.line_length_guideline_color = get_theme_color("line_length_guideline_color");
 	cache.code_folding_color = get_theme_color("code_folding_color");
@@ -5011,6 +5030,18 @@ bool TextEdit::is_line_gutter_clickable(int p_line, int p_gutter) const {
 	return text.is_line_gutter_clickable(p_line, p_gutter);
 }
 
+// Line style
+void TextEdit::set_line_background_color(int p_line, const Color &p_color) {
+	ERR_FAIL_INDEX(p_line, text.size());
+	text.set_line_background_color(p_line, p_color);
+	update();
+}
+
+Color TextEdit::get_line_background_color(int p_line) {
+	ERR_FAIL_INDEX_V(p_line, text.size(), Color());
+	return text.get_line_background_color(p_line);
+}
+
 void TextEdit::add_keyword(const String &p_keyword) {
 	keywords.insert(p_keyword);
 }
@@ -5121,6 +5152,39 @@ void TextEdit::select_all() {
 	cursor_set_line(selection.to_line, false);
 	cursor_set_column(selection.to_column, false);
 	update();
+}
+
+void TextEdit::select_word_under_caret() {
+	if (!selecting_enabled) {
+		return;
+	}
+
+	if (text.size() == 1 && text[0].length() == 0) {
+		return;
+	}
+
+	if (selection.active) {
+		// Allow toggling selection by pressing the shortcut a second time.
+		// This is also usable as a general-purpose "deselect" shortcut after
+		// selecting anything.
+		deselect();
+		return;
+	}
+
+	int begin = 0;
+	int end = 0;
+	const Vector<Vector2i> words = TS->shaped_text_get_word_breaks(text.get_line_data(cursor.line)->get_rid());
+	for (int i = 0; i < words.size(); i++) {
+		if (words[i].x <= cursor.column && words[i].y >= cursor.column) {
+			begin = words[i].x;
+			end = words[i].y;
+			break;
+		}
+	}
+
+	select(cursor.line, begin, cursor.line, end);
+	// Move the cursor to the end of the word for easier editing.
+	cursor_set_column(end, false);
 }
 
 void TextEdit::deselect() {
@@ -5427,12 +5491,6 @@ void TextEdit::_cursor_changed_emit() {
 void TextEdit::_text_changed_emit() {
 	emit_signal("text_changed");
 	text_changed_dirty = false;
-}
-
-void TextEdit::set_line_as_marked(int p_line, bool p_marked) {
-	ERR_FAIL_INDEX(p_line, text.size());
-	text.set_marked(p_line, p_marked);
-	update();
 }
 
 void TextEdit::set_line_as_hidden(int p_line, bool p_hidden) {
@@ -6845,6 +6903,7 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_line_count"), &TextEdit::get_line_count);
 	ClassDB::bind_method(D_METHOD("get_text"), &TextEdit::get_text);
 	ClassDB::bind_method(D_METHOD("get_line", "line"), &TextEdit::get_line);
+	ClassDB::bind_method(D_METHOD("get_visible_line_count"), &TextEdit::get_total_visible_rows);
 	ClassDB::bind_method(D_METHOD("set_line", "line", "new_text"), &TextEdit::set_line);
 
 	ClassDB::bind_method(D_METHOD("set_structured_text_bidi_override", "parser"), &TextEdit::set_structured_text_bidi_override);
@@ -6971,6 +7030,10 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_line_gutter_clickable", "line", "gutter", "clickable"), &TextEdit::set_line_gutter_clickable);
 	ClassDB::bind_method(D_METHOD("is_line_gutter_clickable", "line", "gutter"), &TextEdit::is_line_gutter_clickable);
 
+	// Line style
+	ClassDB::bind_method(D_METHOD("set_line_background_color", "line", "color"), &TextEdit::set_line_background_color);
+	ClassDB::bind_method(D_METHOD("get_line_background_color", "line"), &TextEdit::get_line_background_color);
+
 	ClassDB::bind_method(D_METHOD("set_highlight_current_line", "enabled"), &TextEdit::set_highlight_current_line);
 	ClassDB::bind_method(D_METHOD("is_highlight_current_line_enabled"), &TextEdit::is_highlight_current_line_enabled);
 
@@ -6992,7 +7055,7 @@ void TextEdit::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_minimap_width"), &TextEdit::get_minimap_width);
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "text", PROPERTY_HINT_MULTILINE_TEXT), "set_text", "get_text");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "text_direction", PROPERTY_HINT_ENUM, "Auto,LTR,RTL,Inherited"), "set_text_direction", "get_text_direction");
+	ADD_PROPERTY(PropertyInfo(Variant::INT, "text_direction", PROPERTY_HINT_ENUM, "Auto,Left-to-Right,Right-to-Left,Inherited"), "set_text_direction", "get_text_direction");
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "language"), "set_language", "get_language");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "draw_control_chars"), "set_draw_control_chars", "get_draw_control_chars");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "readonly"), "set_readonly", "is_readonly");

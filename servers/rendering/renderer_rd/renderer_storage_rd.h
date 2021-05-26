@@ -580,6 +580,7 @@ private:
 
 		RID buffer; //storage buffer
 		RID uniform_set_3d;
+		RID uniform_set_2d;
 
 		bool dirty = false;
 		MultiMesh *dirty_list = nullptr;
@@ -637,7 +638,9 @@ private:
 			COLLISION_TYPE_SPHERE,
 			COLLISION_TYPE_BOX,
 			COLLISION_TYPE_SDF,
-			COLLISION_TYPE_HEIGHT_FIELD
+			COLLISION_TYPE_HEIGHT_FIELD,
+			COLLISION_TYPE_2D_SDF,
+
 		};
 
 		struct Collider {
@@ -696,6 +699,7 @@ private:
 	};
 
 	struct Particles {
+		RS::ParticlesMode mode = RS::PARTICLES_MODE_3D;
 		bool inactive = true;
 		float inactive_time = 0.0;
 		bool emitting = false;
@@ -708,6 +712,13 @@ private:
 		bool restart_request = false;
 		AABB custom_aabb = AABB(Vector3(-4, -4, -4), Vector3(8, 8, 8));
 		bool use_local_coords = true;
+		bool has_collision_cache = false;
+
+		bool has_sdf_collision = false;
+		Transform2D sdf_collision_transform;
+		Rect2 sdf_collision_to_screen;
+		RID sdf_collision_texture;
+
 		RID process_material;
 		uint32_t frame_counter = 0;
 		RS::ParticlesTransformAlign transform_align = RS::PARTICLES_TRANSFORM_ALIGN_DISABLED;
@@ -818,10 +829,16 @@ private:
 
 			float align_up[3];
 			uint32_t align_mode;
+
+			uint32_t order_by_lifetime;
+			uint32_t lifetime_split;
+			uint32_t lifetime_reverse;
+			uint32_t pad;
 		};
 
 		enum {
 			COPY_MODE_FILL_INSTANCES,
+			COPY_MODE_FILL_INSTANCES_2D,
 			COPY_MODE_FILL_SORT_BUFFER,
 			COPY_MODE_FILL_INSTANCES_WITH_SORT_BUFFER,
 			COPY_MODE_MAX,
@@ -840,6 +857,7 @@ private:
 	struct ParticlesShaderData : public ShaderData {
 		bool valid;
 		RID version;
+		bool uses_collision = false;
 
 		//PipelineCacheRD pipelines[SKY_VERSION_MAX];
 		Map<StringName, ShaderLanguage::ShaderNode::Uniform> uniforms;
@@ -1116,6 +1134,8 @@ private:
 		Image::Format image_format = Image::FORMAT_L8;
 
 		bool flags[RENDER_TARGET_FLAG_MAX];
+
+		bool sdf_enabled = false;
 
 		RID backbuffer; //used for effects
 		RID backbuffer_fb;
@@ -1699,6 +1719,21 @@ public:
 		return multimesh->uniform_set_3d;
 	}
 
+	_FORCE_INLINE_ RID multimesh_get_2d_uniform_set(RID p_multimesh, RID p_shader, uint32_t p_set) const {
+		MultiMesh *multimesh = multimesh_owner.getornull(p_multimesh);
+		if (!multimesh->uniform_set_2d.is_valid()) {
+			Vector<RD::Uniform> uniforms;
+			RD::Uniform u;
+			u.uniform_type = RD::UNIFORM_TYPE_STORAGE_BUFFER;
+			u.binding = 0;
+			u.ids.push_back(multimesh->buffer);
+			uniforms.push_back(u);
+			multimesh->uniform_set_2d = RD::get_singleton()->uniform_set_create(uniforms, p_shader, p_set);
+		}
+
+		return multimesh->uniform_set_2d;
+	}
+
 	/* IMMEDIATE API */
 
 	RID immediate_allocate() { return RID(); }
@@ -2093,6 +2128,7 @@ public:
 	RID particles_allocate();
 	void particles_initialize(RID p_particles_collision);
 
+	void particles_set_mode(RID p_particles, RS::ParticlesMode p_mode);
 	void particles_set_emitting(RID p_particles, bool p_emitting);
 	void particles_set_amount(RID p_particles, int p_amount);
 	void particles_set_lifetime(RID p_particles, float p_lifetime);
@@ -2137,6 +2173,12 @@ public:
 
 	virtual bool particles_is_inactive(RID p_particles) const;
 
+	_FORCE_INLINE_ RS::ParticlesMode particles_get_mode(RID p_particles) {
+		Particles *particles = particles_owner.getornull(p_particles);
+		ERR_FAIL_COND_V(!particles, RS::PARTICLES_MODE_2D);
+		return particles->mode;
+	}
+
 	_FORCE_INLINE_ uint32_t particles_get_amount(RID p_particles, uint32_t &r_trail_divisor) {
 		Particles *particles = particles_owner.getornull(p_particles);
 		ERR_FAIL_COND_V(!particles, 0);
@@ -2148,6 +2190,13 @@ public:
 		}
 
 		return particles->amount * r_trail_divisor;
+	}
+
+	_FORCE_INLINE_ bool particles_has_collision(RID p_particles) {
+		Particles *particles = particles_owner.getornull(p_particles);
+		ERR_FAIL_COND_V(!particles, 0);
+
+		return particles->has_collision_cache;
 	}
 
 	_FORCE_INLINE_ uint32_t particles_is_using_local_coords(RID p_particles) {
@@ -2181,6 +2230,7 @@ public:
 
 	virtual void particles_add_collision(RID p_particles, RID p_particles_collision_instance);
 	virtual void particles_remove_collision(RID p_particles, RID p_particles_collision_instance);
+	virtual void particles_set_canvas_sdf_collision(RID p_particles, bool p_enable, const Transform2D &p_xform, const Rect2 &p_to_screen, RID p_texture);
 
 	/* PARTICLES COLLISION */
 
@@ -2255,6 +2305,8 @@ public:
 	RID render_target_get_sdf_framebuffer(RID p_render_target);
 	void render_target_sdf_process(RID p_render_target);
 	virtual Rect2i render_target_get_sdf_rect(RID p_render_target) const;
+	void render_target_mark_sdf_enabled(RID p_render_target, bool p_enabled);
+	bool render_target_is_sdf_enabled(RID p_render_target) const;
 
 	Size2 render_target_get_size(RID p_render_target);
 	RID render_target_get_rd_framebuffer(RID p_render_target);

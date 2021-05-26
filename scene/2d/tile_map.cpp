@@ -64,13 +64,13 @@ int TileMapPattern::get_cell_source_id(const Vector2i &p_coords) const {
 }
 
 Vector2i TileMapPattern::get_cell_atlas_coords(const Vector2i &p_coords) const {
-	ERR_FAIL_COND_V(!pattern.has(p_coords), TileSetAtlasSource::INVALID_ATLAS_COORDS);
+	ERR_FAIL_COND_V(!pattern.has(p_coords), TileSetSource::INVALID_ATLAS_COORDS);
 
 	return pattern[p_coords].get_atlas_coords();
 }
 
 int TileMapPattern::get_cell_alternative_tile(const Vector2i &p_coords) const {
-	ERR_FAIL_COND_V(!pattern.has(p_coords), TileSetAtlasSource::INVALID_TILE_ALTERNATIVE);
+	ERR_FAIL_COND_V(!pattern.has(p_coords), TileSetSource::INVALID_TILE_ALTERNATIVE);
 
 	return pattern[p_coords].alternative_tile;
 }
@@ -113,7 +113,7 @@ void TileMapPattern::clear() {
 };
 
 void TileMapPattern::_bind_methods() {
-	ClassDB::bind_method(D_METHOD("set_cell", "coords", "source_id", "atlas_coords", "alternative_tile"), &TileMapPattern::set_cell, DEFVAL(-1), DEFVAL(TileSetAtlasSource::INVALID_ATLAS_COORDS), DEFVAL(TileSetAtlasSource::INVALID_TILE_ALTERNATIVE));
+	ClassDB::bind_method(D_METHOD("set_cell", "coords", "source_id", "atlas_coords", "alternative_tile"), &TileMapPattern::set_cell, DEFVAL(-1), DEFVAL(TileSetSource::INVALID_ATLAS_COORDS), DEFVAL(TileSetSource::INVALID_TILE_ALTERNATIVE));
 	ClassDB::bind_method(D_METHOD("has_cell", "coords"), &TileMapPattern::has_cell);
 	ClassDB::bind_method(D_METHOD("remove_cell", "coords"), &TileMapPattern::remove_cell);
 	ClassDB::bind_method(D_METHOD("get_cell_source_id", "coords"), &TileMapPattern::get_cell_source_id);
@@ -520,12 +520,12 @@ void TileMap::set_cell(const Vector2i &p_coords, int p_source_id, const Vector2i
 	Vector2i atlas_coords = p_atlas_coords;
 	int alternative_tile = p_alternative_tile;
 
-	if ((source_id == -1 || atlas_coords == TileSetAtlasSource::INVALID_ATLAS_COORDS || alternative_tile == TileSetAtlasSource::INVALID_TILE_ALTERNATIVE) &&
-			(source_id != -1 || atlas_coords != TileSetAtlasSource::INVALID_ATLAS_COORDS || alternative_tile != TileSetAtlasSource::INVALID_TILE_ALTERNATIVE)) {
+	if ((source_id == -1 || atlas_coords == TileSetSource::INVALID_ATLAS_COORDS || alternative_tile == TileSetSource::INVALID_TILE_ALTERNATIVE) &&
+			(source_id != -1 || atlas_coords != TileSetSource::INVALID_ATLAS_COORDS || alternative_tile != TileSetSource::INVALID_TILE_ALTERNATIVE)) {
 		WARN_PRINT("Setting a cell a cell as empty requires both source_id, atlas_coord and alternative_tile to be set to their respective \"invalid\" values. Values were thus changes accordingly.");
 		source_id = -1;
-		atlas_coords = TileSetAtlasSource::INVALID_ATLAS_COORDS;
-		alternative_tile = TileSetAtlasSource::INVALID_TILE_ALTERNATIVE;
+		atlas_coords = TileSetSource::INVALID_ATLAS_COORDS;
+		alternative_tile = TileSetSource::INVALID_TILE_ALTERNATIVE;
 	}
 
 	if (!E && source_id == -1) {
@@ -602,7 +602,7 @@ Vector2i TileMap::get_cell_atlas_coords(const Vector2i &p_coords) const {
 	const Map<Vector2i, TileMapCell>::Element *E = tile_map.find(p_coords);
 
 	if (!E) {
-		return TileSetAtlasSource::INVALID_ATLAS_COORDS;
+		return TileSetSource::INVALID_ATLAS_COORDS;
 	}
 
 	return E->get().get_atlas_coords();
@@ -613,7 +613,7 @@ int TileMap::get_cell_alternative_tile(const Vector2i &p_coords) const {
 	const Map<Vector2i, TileMapCell>::Element *E = tile_map.find(p_coords);
 
 	if (!E) {
-		return TileSetAtlasSource::INVALID_TILE_ALTERNATIVE;
+		return TileSetSource::INVALID_TILE_ALTERNATIVE;
 	}
 
 	return E->get().alternative_tile;
@@ -721,7 +721,7 @@ void TileMap::fix_invalid_tiles() {
 	for (Map<Vector2i, TileMapCell>::Element *E = tile_map.front(); E; E = E->next()) {
 		TileSetSource *source = *tile_set->get_source(E->get().source_id);
 		if (!source || !source->has_tile(E->get().get_atlas_coords()) || !source->has_alternative_tile(E->get().get_atlas_coords(), E->get().alternative_tile)) {
-			set_cell(E->key(), -1, TileSetAtlasSource::INVALID_ATLAS_COORDS, TileSetAtlasSource::INVALID_TILE_ALTERNATIVE);
+			set_cell(E->key(), -1, TileSetSource::INVALID_ATLAS_COORDS, TileSetSource::INVALID_TILE_ALTERNATIVE);
 		}
 	}
 }
@@ -777,6 +777,11 @@ void TileMap::_set_tile_data(const Vector<int> &p_data) {
 	int offset = (format >= FORMAT_2) ? 3 : 2;
 
 	clear();
+
+#ifdef DISABLE_DEPRECATED
+	ERR_FAIL_COND_MSG(format != FORMAT_3, vformat("Cannot handle deprecated TileMap data format version %d. This Godot version was compiled with no support for deprecated data.", format));
+#endif
+
 	for (int i = 0; i < c; i += offset) {
 		const uint8_t *ptr = (const uint8_t *)&r[i];
 		uint8_t local[12];
@@ -806,6 +811,7 @@ void TileMap::_set_tile_data(const Vector<int> &p_data) {
 			uint16_t alternative_tile = decode_uint16(&local[10]);
 			set_cell(Vector2i(x, y), source_id, Vector2i(atlas_coords_x, atlas_coords_y), alternative_tile);
 		} else {
+#ifndef DISABLE_DEPRECATED
 			uint32_t v = decode_uint32(&local[4]);
 			v &= (1 << 29) - 1;
 
@@ -828,6 +834,7 @@ void TileMap::_set_tile_data(const Vector<int> &p_data) {
 			}
 
 			set_cell(Vector2i(x, y), v, Vector2i(coord_x, coord_y), compatibility_alternative_tile);
+#endif
 		}
 	}
 }
@@ -902,7 +909,7 @@ void TileMap::_get_property_list(List<PropertyInfo> *p_list) const {
 	p_list->push_back(p);
 }
 
-Vector2 TileMap::map_to_world(const Vector2 &p_pos) const {
+Vector2 TileMap::map_to_world(const Vector2i &p_pos) const {
 	// SHOULD RETURN THE CENTER OF THE TILE
 	ERR_FAIL_COND_V(!tile_set.is_valid(), Vector2());
 
@@ -980,7 +987,7 @@ Vector2 TileMap::map_to_world(const Vector2 &p_pos) const {
 }
 
 Vector2i TileMap::world_to_map(const Vector2 &p_pos) const {
-	ERR_FAIL_COND_V(!tile_set.is_valid(), Vector2());
+	ERR_FAIL_COND_V(!tile_set.is_valid(), Vector2i());
 
 	Vector2 ret = p_pos;
 	ret /= tile_set->get_tile_size();
@@ -1143,7 +1150,7 @@ Vector2i TileMap::world_to_map(const Vector2 &p_pos) const {
 	} else {
 		ret = (ret + Vector2(0.00005, 0.00005)).floor();
 	}
-	return ret;
+	return Vector2i(ret);
 }
 
 bool TileMap::is_existing_neighbor(TileSet::CellNeighbor p_cell_neighbor) const {
@@ -1716,7 +1723,7 @@ void TileMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_quadrant_size", "size"), &TileMap::set_quadrant_size);
 	ClassDB::bind_method(D_METHOD("get_quadrant_size"), &TileMap::get_quadrant_size);
 
-	ClassDB::bind_method(D_METHOD("set_cell", "coords", "source_id", "atlas_coords", "alternative_tile"), &TileMap::set_cell, DEFVAL(-1), DEFVAL(TileSetAtlasSource::INVALID_ATLAS_COORDS), DEFVAL(TileSetAtlasSource::INVALID_TILE_ALTERNATIVE));
+	ClassDB::bind_method(D_METHOD("set_cell", "coords", "source_id", "atlas_coords", "alternative_tile"), &TileMap::set_cell, DEFVAL(-1), DEFVAL(TileSetSource::INVALID_ATLAS_COORDS), DEFVAL(TileSetSource::INVALID_TILE_ALTERNATIVE));
 	ClassDB::bind_method(D_METHOD("get_cell_source_id", "coords"), &TileMap::get_cell_source_id);
 	ClassDB::bind_method(D_METHOD("get_cell_atlas_coords", "coords"), &TileMap::get_cell_atlas_coords);
 	ClassDB::bind_method(D_METHOD("get_cell_alternative_tile", "coords"), &TileMap::get_cell_alternative_tile);

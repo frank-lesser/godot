@@ -129,12 +129,6 @@ uint32_t GDScriptByteCodeGenerator::add_temporary(const GDScriptDataType &p_type
 		int idx = temporaries.size();
 		pool.push_back(idx);
 		temporaries.push_back(new_temp);
-
-		// First time using this, so adjust to the proper type.
-		if (temp_type != Variant::NIL) {
-			Address addr(Address::TEMPORARY, idx, p_type);
-			write_type_adjust(addr, temp_type);
-		}
 	}
 	int slot = pool.front()->get();
 	pool.pop_front();
@@ -189,8 +183,12 @@ GDScriptFunction *GDScriptByteCodeGenerator::write_end() {
 	append(GDScriptFunction::OPCODE_END, 0);
 
 	for (int i = 0; i < temporaries.size(); i++) {
+		int stack_index = i + max_locals + RESERVED_STACK;
 		for (int j = 0; j < temporaries[i].bytecode_indices.size(); j++) {
-			opcodes.write[temporaries[i].bytecode_indices[j]] = (i + max_locals + RESERVED_STACK) | (GDScriptFunction::ADDR_TYPE_STACK << GDScriptFunction::ADDR_BITS);
+			opcodes.write[temporaries[i].bytecode_indices[j]] = stack_index | (GDScriptFunction::ADDR_TYPE_STACK << GDScriptFunction::ADDR_BITS);
+		}
+		if (temporaries[i].type != Variant::NIL) {
+			function->temporary_slots[stack_index] = temporaries[i].type;
 		}
 	}
 
@@ -1012,6 +1010,56 @@ void GDScriptByteCodeGenerator::write_call_builtin_type(const Address &p_target,
 		append(p_arguments[i]);
 	}
 	append(p_base);
+	append(p_target);
+	append(p_arguments.size());
+	append(Variant::get_validated_builtin_method(p_type, p_method));
+}
+
+void GDScriptByteCodeGenerator::write_call_builtin_type_static(const Address &p_target, Variant::Type p_type, const StringName &p_method, const Vector<Address> &p_arguments) {
+	bool is_validated = false;
+
+	// Check if all types are correct.
+	if (Variant::is_builtin_method_vararg(p_type, p_method)) {
+		is_validated = true; // Vararg works fine with any argument, since they can be any type.
+	} else if (p_arguments.size() == Variant::get_builtin_method_argument_count(p_type, p_method)) {
+		bool all_types_exact = true;
+		for (int i = 0; i < p_arguments.size(); i++) {
+			if (!IS_BUILTIN_TYPE(p_arguments[i], Variant::get_builtin_method_argument_type(p_type, p_method, i))) {
+				all_types_exact = false;
+				break;
+			}
+		}
+
+		is_validated = all_types_exact;
+	}
+
+	if (!is_validated) {
+		// Perform regular call.
+		append(GDScriptFunction::OPCODE_CALL_BUILTIN_STATIC, p_arguments.size() + 1);
+		for (int i = 0; i < p_arguments.size(); i++) {
+			append(p_arguments[i]);
+		}
+		append(p_target);
+		append(p_type);
+		append(p_method);
+		append(p_arguments.size());
+		return;
+	}
+
+	if (p_target.mode == Address::TEMPORARY) {
+		Variant::Type result_type = Variant::get_builtin_method_return_type(p_type, p_method);
+		Variant::Type temp_type = temporaries[p_target.address].type;
+		if (result_type != temp_type) {
+			write_type_adjust(p_target, result_type);
+		}
+	}
+
+	append(GDScriptFunction::OPCODE_CALL_BUILTIN_TYPE_VALIDATED, 2 + p_arguments.size());
+
+	for (int i = 0; i < p_arguments.size(); i++) {
+		append(p_arguments[i]);
+	}
+	append(Address()); // No base since it's static.
 	append(p_target);
 	append(p_arguments.size());
 	append(Variant::get_validated_builtin_method(p_type, p_method));

@@ -84,6 +84,55 @@ void ColorPicker::_notification(int p_what) {
 	}
 }
 
+Ref<Shader> ColorPicker::wheel_shader;
+Ref<Shader> ColorPicker::circle_shader;
+
+void ColorPicker::init_shaders() {
+	wheel_shader.instance();
+	wheel_shader->set_code(
+			"shader_type canvas_item;"
+			"void fragment() {"
+			"	float x = UV.x - 0.5;"
+			"	float y = UV.y - 0.5;"
+			"	float a = atan(y, x);"
+			"	x += 0.001;"
+			"	y += 0.001;"
+			"	float b = float(sqrt(x * x + y * y) < 0.5) * float(sqrt(x * x + y * y) > 0.42);"
+			"	x -= 0.002;"
+			"	float b2 = float(sqrt(x * x + y * y) < 0.5) * float(sqrt(x * x + y * y) > 0.42);"
+			"	y -= 0.002;"
+			"	float b3 = float(sqrt(x * x + y * y) < 0.5) * float(sqrt(x * x + y * y) > 0.42);"
+			"	x += 0.002;"
+			"	float b4 = float(sqrt(x * x + y * y) < 0.5) * float(sqrt(x * x + y * y) > 0.42);"
+			"	COLOR = vec4(clamp((abs(fract(((a - TAU) / TAU) + vec3(3.0, 2.0, 1.0) / 3.0) * 6.0 - 3.0) - 1.0), 0.0, 1.0), (b + b2 + b3 + b4) / 4.00);"
+			"}");
+
+	circle_shader.instance();
+	circle_shader->set_code(
+			"shader_type canvas_item;"
+			"uniform float v = 1.0;"
+			"void fragment() {"
+			"	float x = UV.x - 0.5;"
+			"	float y = UV.y - 0.5;"
+			"	float a = atan(y, x);"
+			"	x += 0.001;"
+			"	y += 0.001;"
+			"	float b = float(sqrt(x * x + y * y) < 0.5);"
+			"	x -= 0.002;"
+			"	float b2 = float(sqrt(x * x + y * y) < 0.5);"
+			"	y -= 0.002;"
+			"	float b3 = float(sqrt(x * x + y * y) < 0.5);"
+			"	x += 0.002;"
+			"	float b4 = float(sqrt(x * x + y * y) < 0.5);"
+			"	COLOR = vec4(mix(vec3(1.0), clamp(abs(fract(vec3((a - TAU) / TAU) + vec3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - vec3(3.0)) - vec3(1.0), 0.0, 1.0), ((float(sqrt(x * x + y * y)) * 2.0)) / 1.0) * vec3(v), (b + b2 + b3 + b4) / 4.00);"
+			"}");
+}
+
+void ColorPicker::finish_shaders() {
+	wheel_shader.unref();
+	circle_shader.unref();
+}
+
 void ColorPicker::set_focus_on_line_edit() {
 	c_text->call_deferred("grab_focus");
 }
@@ -468,6 +517,19 @@ void ColorPicker::_update_text_value() {
 
 	text_type->set_visible(visible);
 	c_text->set_visible(visible);
+}
+
+void ColorPicker::_sample_input(const Ref<InputEvent> &p_event) {
+	const Ref<InputEventMouseButton> mb = p_event;
+	if (mb.is_valid() && mb->is_pressed() && mb->get_button_index() == MOUSE_BUTTON_LEFT) {
+		const Rect2 rect_old = Rect2(Point2(), Size2(sample->get_size().width * 0.5, sample->get_size().height * 0.95));
+		if (rect_old.has_point(mb->get_position())) {
+			// Revert to the old color when left-clicking the old color sample.
+			color = old_color;
+			_update_color();
+			emit_signal("color_changed", color);
+		}
+	}
 }
 
 void ColorPicker::_sample_draw() {
@@ -1067,6 +1129,7 @@ ColorPicker::ColorPicker() :
 
 	hb_smpl->add_child(sample);
 	sample->set_h_size_flags(SIZE_EXPAND_FILL);
+	sample->connect("gui_input", callable_mp(this, &ColorPicker::_sample_input));
 	sample->connect("draw", callable_mp(this, &ColorPicker::_sample_draw));
 
 	btn_pick->set_flat(true);
@@ -1151,14 +1214,8 @@ ColorPicker::ColorPicker() :
 	hb_edit->add_child(wheel_edit);
 
 	wheel_mat.instance();
-	circle_mat.instance();
-
-	Ref<Shader> wheel_shader(memnew(Shader));
-	wheel_shader->set_code("shader_type canvas_item;const float TAU=6.28318530718;void fragment(){float x=UV.x-0.5;float y=UV.y-0.5;float a=atan(y,x);x+=0.001;y+=0.001;float b=float(sqrt(x*x+y*y)<0.5)*float(sqrt(x*x+y*y)>0.42);x-=0.002;float b2=float(sqrt(x*x+y*y)<0.5)*float(sqrt(x*x+y*y)>0.42);y-=0.002;float b3=float(sqrt(x*x+y*y)<0.5)*float(sqrt(x*x+y*y)>0.42);x+=0.002;float b4=float(sqrt(x*x+y*y)<0.5)*float(sqrt(x*x+y*y)>0.42);COLOR=vec4(clamp((abs(fract(((a-TAU)/TAU)+vec3(3.0,2.0,1.0)/3.0)*6.0-3.0)-1.0),0.0,1.0),(b+b2+b3+b4)/4.00);}");
 	wheel_mat->set_shader(wheel_shader);
-
-	Ref<Shader> circle_shader(memnew(Shader));
-	circle_shader->set_code("shader_type canvas_item;const float TAU=6.28318530718;uniform float v=1.0;void fragment(){float x=UV.x-0.5;float y=UV.y-0.5;float a=atan(y,x);x+=0.001;y+=0.001;float b=float(sqrt(x*x+y*y)<0.5);x-=0.002;float b2=float(sqrt(x*x+y*y)<0.5);y-=0.002;float b3=float(sqrt(x*x+y*y)<0.5);x+=0.002;float b4=float(sqrt(x*x+y*y)<0.5);COLOR=vec4(mix(vec3(1.0),clamp(abs(fract(vec3((a-TAU)/TAU)+vec3(1.0,2.0/3.0,1.0/3.0))*6.0-vec3(3.0))-vec3(1.0),0.0,1.0),((float(sqrt(x*x+y*y))*2.0))/1.0)*vec3(v),(b+b2+b3+b4)/4.00);}");
+	circle_mat.instance();
 	circle_mat->set_shader(circle_shader);
 
 	MarginContainer *wheel_margin(memnew(MarginContainer));
@@ -1210,7 +1267,9 @@ ColorPicker::ColorPicker() :
 
 void ColorPickerButton::_about_to_popup() {
 	set_pressed(true);
-	picker->set_old_color(color);
+	if (picker) {
+		picker->set_old_color(color);
+	}
 }
 
 void ColorPickerButton::_color_changed(const Color &p_color) {

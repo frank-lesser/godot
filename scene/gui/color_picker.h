@@ -56,6 +56,9 @@ public:
 	};
 
 private:
+	static Ref<Shader> wheel_shader;
+	static Ref<Shader> circle_shader;
+
 	Control *screen = nullptr;
 	Control *uv_edit = memnew(Control);
 	Control *w_edit = memnew(Control);
@@ -108,6 +111,7 @@ private:
 	void _update_presets();
 	void _update_text_value();
 	void _text_type_toggled();
+	void _sample_input(const Ref<InputEvent> &p_event);
 	void _sample_draw();
 	void _hsv_draw(int p_which, Control *c);
 	void _slider_draw(int p_which);
@@ -127,6 +131,9 @@ protected:
 	static void _bind_methods();
 
 public:
+	static void init_shaders();
+	static void finish_shaders();
+
 	void set_edit_alpha(bool p_show);
 	bool is_editing_alpha() const;
 

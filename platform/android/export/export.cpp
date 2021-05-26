@@ -847,7 +847,8 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 		int version_code = p_preset->get("version/code");
 		String package_name = p_preset->get("package/unique_name");
 
-		const int screen_orientation = _get_android_orientation_value(_get_screen_orientation());
+		const int screen_orientation =
+				_get_android_orientation_value(DisplayServer::ScreenOrientation(int(GLOBAL_GET("display/window/handheld/orientation"))));
 
 		bool screen_support_small = p_preset->get("screen/support_small");
 		bool screen_support_normal = p_preset->get("screen/support_normal");
@@ -855,6 +856,8 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 		bool screen_support_xlarge = p_preset->get("screen/support_xlarge");
 
 		int xr_mode_index = p_preset->get("xr_features/xr_mode");
+
+		bool backup_allowed = p_preset->get("user_data_backup/allow");
 
 		Vector<String> perms;
 		// Write permissions into the perms variable.
@@ -946,6 +949,10 @@ class EditorExportPlatformAndroid : public EditorExportPlatform {
 							} else {
 								string_table.write[attr_value] = version_name;
 							}
+						}
+
+						if (tname == "application" && attrname == "allowBackup") {
+							encode_uint32(backup_allowed, &p_manifest.write[iofs + 16]);
 						}
 
 						if (tname == "instrumentation" && attrname == "targetPackage") {
@@ -1682,6 +1689,8 @@ public:
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "screen/support_normal"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "screen/support_large"), true));
 		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "screen/support_xlarge"), true));
+
+		r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "user_data_backup/allow"), false));
 
 		r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "command_line/extra_args"), ""));
 

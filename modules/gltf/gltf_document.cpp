@@ -233,7 +233,7 @@ Error GLTFDocument::_parse_json(const String &p_path, Ref<GLTFState> state) {
 	}
 
 	Vector<uint8_t> array;
-	array.resize(f->get_len());
+	array.resize(f->get_length());
 	f->get_buffer(array.ptrw(), array.size());
 	String text;
 	text.parse_utf8((const char *)array.ptr(), array.size());
@@ -664,7 +664,7 @@ static Vector<uint8_t> _parse_base64_uri(const String &uri) {
 	int start = uri.find(",");
 	ERR_FAIL_COND_V(start == -1, Vector<uint8_t>());
 
-	CharString substr = uri.right(start + 1).ascii();
+	CharString substr = uri.substr(start + 1).ascii();
 
 	int strlen = substr.length();
 
@@ -3031,8 +3031,11 @@ Error GLTFDocument::_parse_images(Ref<GLTFState> state, const String &p_base_pat
 			}
 		}
 
-		ERR_FAIL_COND_V_MSG(img.is_null(), ERR_FILE_CORRUPT,
-				vformat("glTF: Couldn't load image index '%d' with its given mimetype: %s.", i, mimetype));
+		if (img.is_null()) {
+			ERR_PRINT(vformat("glTF: Couldn't load image index '%d' with its given mimetype: %s.", i, mimetype));
+			state->images.push_back(Ref<Texture2D>());
+			continue;
+		}
 
 		Ref<ImageTexture> t;
 		t.instance();
@@ -4385,6 +4388,9 @@ bool GLTFDocument::_skins_are_same(const Ref<Skin> skin_a, const Ref<Skin> skin_
 
 	for (int i = 0; i < skin_a->get_bind_count(); ++i) {
 		if (skin_a->get_bind_bone(i) != skin_b->get_bind_bone(i)) {
+			return false;
+		}
+		if (skin_a->get_bind_name(i) != skin_b->get_bind_name(i)) {
 			return false;
 		}
 
@@ -5975,13 +5981,15 @@ void GLTFDocument::_process_mesh_instances(Ref<GLTFState> state, Node *scene_roo
 			const GLTFSkinIndex skin_i = node->skin;
 
 			Map<GLTFNodeIndex, Node *>::Element *mi_element = state->scene_nodes.find(node_i);
+			ERR_CONTINUE_MSG(mi_element == nullptr, vformat("Unable to find node %d", node_i));
+
 			EditorSceneImporterMeshNode3D *mi = Object::cast_to<EditorSceneImporterMeshNode3D>(mi_element->get());
-			ERR_FAIL_COND(mi == nullptr);
+			ERR_CONTINUE_MSG(mi == nullptr, vformat("Unable to cast node %d of type %s to EditorSceneImporterMeshNode3D", node_i, mi_element->get()->get_class_name()));
 
 			const GLTFSkeletonIndex skel_i = state->skins.write[node->skin]->skeleton;
 			Ref<GLTFSkeleton> gltf_skeleton = state->skeletons.write[skel_i];
 			Skeleton3D *skeleton = gltf_skeleton->godot_skeleton;
-			ERR_FAIL_COND(skeleton == nullptr);
+			ERR_CONTINUE_MSG(skeleton == nullptr, vformat("Unable to find Skeleton for node %d skin %d", node_i, skin_i));
 
 			mi->get_parent()->remove_child(mi);
 			skeleton->add_child(mi);

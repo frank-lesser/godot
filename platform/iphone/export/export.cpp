@@ -378,11 +378,6 @@ void EditorExportPlatformIOS::get_export_options(List<ExportOption> *r_options) 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "privacy/microphone_usage_description", PROPERTY_HINT_PLACEHOLDER_TEXT, "Provide a message if you need to use the microphone"), ""));
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "privacy/photolibrary_usage_description", PROPERTY_HINT_PLACEHOLDER_TEXT, "Provide a message if you need access to the photo library"), ""));
 
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "orientation/portrait"), true));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "orientation/landscape_left"), true));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "orientation/landscape_right"), true));
-	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "orientation/portrait_upside_down"), true));
-
 	r_options->push_back(ExportOption(PropertyInfo(Variant::BOOL, "icons/generate_missing"), false));
 
 	r_options->push_back(ExportOption(PropertyInfo(Variant::STRING, "required_icons/iphone_120x120", PROPERTY_HINT_FILE, "*.png"), "")); // Home screen on iPhone/iPod Touch with retina display
@@ -453,6 +448,8 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			strnew += lines[i].replace("$copyright", p_preset->get("application/copyright")) + "\n";
 		} else if (lines[i].find("$team_id") != -1) {
 			strnew += lines[i].replace("$team_id", p_preset->get("application/app_store_team_id")) + "\n";
+		} else if (lines[i].find("$default_build_config") != -1) {
+			strnew += lines[i].replace("$default_build_config", p_debug ? "Debug" : "Release") + "\n";
 		} else if (lines[i].find("$export_method") != -1) {
 			int export_method = p_preset->get(p_debug ? "application/export_method_debug" : "application/export_method_release");
 			strnew += lines[i].replace("$export_method", export_method_string[export_method]) + "\n";
@@ -501,18 +498,39 @@ void EditorExportPlatformIOS::_fix_config_file(const Ref<EditorExportPreset> &p_
 			strnew += lines[i].replace("$required_device_capabilities", capabilities);
 		} else if (lines[i].find("$interface_orientations") != -1) {
 			String orientations;
+			const DisplayServer::ScreenOrientation screen_orientation =
+					DisplayServer::ScreenOrientation(int(GLOBAL_GET("display/window/handheld/orientation")));
 
-			if ((bool)p_preset->get("orientation/portrait")) {
-				orientations += "<string>UIInterfaceOrientationPortrait</string>\n";
-			}
-			if ((bool)p_preset->get("orientation/landscape_left")) {
-				orientations += "<string>UIInterfaceOrientationLandscapeLeft</string>\n";
-			}
-			if ((bool)p_preset->get("orientation/landscape_right")) {
-				orientations += "<string>UIInterfaceOrientationLandscapeRight</string>\n";
-			}
-			if ((bool)p_preset->get("orientation/portrait_upside_down")) {
-				orientations += "<string>UIInterfaceOrientationPortraitUpsideDown</string>\n";
+			switch (screen_orientation) {
+				case DisplayServer::SCREEN_LANDSCAPE:
+					orientations += "<string>UIInterfaceOrientationLandscapeLeft</string>\n";
+					break;
+				case DisplayServer::SCREEN_PORTRAIT:
+					orientations += "<string>UIInterfaceOrientationPortrait</string>\n";
+					break;
+				case DisplayServer::SCREEN_REVERSE_LANDSCAPE:
+					orientations += "<string>UIInterfaceOrientationLandscapeRight</string>\n";
+					break;
+				case DisplayServer::SCREEN_REVERSE_PORTRAIT:
+					orientations += "<string>UIInterfaceOrientationPortraitUpsideDown</string>\n";
+					break;
+				case DisplayServer::SCREEN_SENSOR_LANDSCAPE:
+					// Allow both landscape orientations depending on sensor direction.
+					orientations += "<string>UIInterfaceOrientationLandscapeLeft</string>\n";
+					orientations += "<string>UIInterfaceOrientationLandscapeRight</string>\n";
+					break;
+				case DisplayServer::SCREEN_SENSOR_PORTRAIT:
+					// Allow both portrait orientations depending on sensor direction.
+					orientations += "<string>UIInterfaceOrientationPortrait</string>\n";
+					orientations += "<string>UIInterfaceOrientationPortraitUpsideDown</string>\n";
+					break;
+				case DisplayServer::SCREEN_SENSOR:
+					// Allow all screen orientations depending on sensor direction.
+					orientations += "<string>UIInterfaceOrientationLandscapeLeft</string>\n";
+					orientations += "<string>UIInterfaceOrientationLandscapeRight</string>\n";
+					orientations += "<string>UIInterfaceOrientationPortrait</string>\n";
+					orientations += "<string>UIInterfaceOrientationPortraitUpsideDown</string>\n";
+					break;
 			}
 
 			strnew += lines[i].replace("$interface_orientations", orientations);

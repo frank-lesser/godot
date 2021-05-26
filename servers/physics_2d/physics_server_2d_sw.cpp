@@ -30,8 +30,7 @@
 
 #include "physics_server_2d_sw.h"
 
-#include "broad_phase_2d_basic.h"
-#include "broad_phase_2d_hash_grid.h"
+#include "broad_phase_2d_bvh.h"
 #include "collision_solver_2d_sw.h"
 #include "core/config/project_settings.h"
 #include "core/debugger/engine_debugger.h"
@@ -1238,6 +1237,10 @@ void PhysicsServer2DSW::set_active(bool p_active) {
 	active = p_active;
 };
 
+void PhysicsServer2DSW::set_collision_iterations(int p_iterations) {
+	iterations = p_iterations;
+};
+
 void PhysicsServer2DSW::init() {
 	doing_sync = false;
 	last_step = 0.001;
@@ -1356,8 +1359,7 @@ PhysicsServer2DSW *PhysicsServer2DSW::singletonsw = nullptr;
 
 PhysicsServer2DSW::PhysicsServer2DSW(bool p_using_threads) {
 	singletonsw = this;
-	BroadPhase2DSW::create_func = BroadPhase2DHashGrid::_create;
-	//BroadPhase2DSW::create_func=BroadPhase2DBasic::_create;
+	BroadPhase2DSW::create_func = BroadPhase2DBVH::_create;
 
 	active = true;
 	island_count = 0;

@@ -199,6 +199,7 @@ class VisualShaderNode : public Resource {
 	Map<int, Variant> default_input_values;
 	Map<int, bool> connected_input_ports;
 	Map<int, int> connected_output_ports;
+	Map<int, bool> expanded_output_ports;
 
 protected:
 	bool simple_decl = true;
@@ -245,6 +246,13 @@ public:
 	void set_input_port_connected(int p_port, bool p_connected);
 	virtual bool is_generate_input_var(int p_port) const;
 
+	virtual bool is_output_port_expandable(int p_port) const;
+	void _set_output_ports_expanded(const Array &p_data);
+	Array _get_output_ports_expanded() const;
+	void _set_output_port_expanded(int p_port, bool p_expanded);
+	bool _is_output_port_expanded(int p_port) const;
+	int get_expanded_output_port_count() const;
+
 	virtual bool is_code_generated() const;
 	virtual bool is_show_prop_names() const;
 	virtual bool is_use_prop_slots() const;
@@ -255,7 +263,8 @@ public:
 	virtual String generate_global(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const;
 	virtual String generate_global_per_node(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const;
 	virtual String generate_global_per_func(Shader::Mode p_mode, VisualShader::Type p_type, int p_id) const;
-	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const = 0; //if no output is connected, the output var passed will be empty. if no input is connected and input is NIL, the input var passed will be empty
+	// If no output is connected, the output var passed will be empty. If no input is connected and input is NIL, the input var passed will be empty.
+	virtual String generate_code(Shader::Mode p_mode, VisualShader::Type p_type, int p_id, const String *p_input_vars, const String *p_output_vars, bool p_for_preview = false) const = 0;
 
 	virtual String get_warning(Shader::Mode p_mode, VisualShader::Type p_type) const;
 
@@ -610,8 +619,8 @@ public:
 	int get_free_input_port_id() const;
 	int get_free_output_port_id() const;
 
-	void set_control(Control *p_control, int p_index);
-	Control *get_control(int p_index);
+	void set_ctrl_pressed(Control *p_control, int p_index);
+	Control *is_ctrl_pressed(int p_index);
 
 	void set_editable(bool p_enabled);
 	bool is_editable() const;

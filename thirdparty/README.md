@@ -8,13 +8,12 @@ readability.
 ## basis_universal
 
 - Upstream: https://github.com/BinomialLLC/basis_universal
-- Version: git (895ee8ee7e04f22267f8d16d46de04d5a01d63ac, 2020)
+- Version: git (ba1c3e40f1d434ebaf9a167b44e9b11d2bf0f765, 2021)
 - License: Apache 2.0
 
 Files extracted from upstream source:
 
-- `.cpp` and `.h` files in root folder except for `basisu_tool.cpp` (contains `main` and can cause link error)
-- `.cpp`, `.h` and `.inc` files in `transcoder/`, keeping folder structure
+- `encoder/` and `transcoder/` folders
 - `LICENSE`
 
 
@@ -62,10 +61,10 @@ Files extracted from upstream source:
 Extracted from .zip provided. Extracted license and header only.
 
 
-## embree-aarch64
+## embree
 
-- Upstream: https://github.com/lighttransport/embree-aarch64
-- Version: 3.12.1 (6ef362f99af80c9dfe8dd2bfc582d9067897edc6, 2020)
+- Upstream: https://github.com/embree/embree
+- Version: 3.13.0 (7c53133eb21424f7f0ae1e25bf357e358feaf6ab, 2021)
 - License: Apache 2.0
 
 Files extracted from upstream:
@@ -73,8 +72,8 @@ Files extracted from upstream:
 - All cpp files listed in `modules/raycast/godot_update_embree.py`
 - All header files in the directories listed in `modules/raycast/godot_update_embree.py`
 
-The `modules/raycast/godot_update_embree.py`script can be used to pull the 
-relevant files from the latest Embree-aarch64 release and apply some automatic changes.
+The `modules/raycast/godot_update_embree.py` script can be used to pull the
+relevant files from the latest Embree release and apply some automatic changes.
 
 Some changes have been made in order to remove exceptions and fix minor build errors.
 They are marked with `// -- GODOT start --` and `// -- GODOT end --`
@@ -137,6 +136,10 @@ Files extracted from upstream source:
 - `DroidSans*.ttf`:
   * Upstream: https://android.googlesource.com/platform/frameworks/base/+/master/data/fonts/
   * Version: ? (pre-2014 commit when DroidSansJapanese.ttf was obsoleted)
+  * License: Apache 2.0
+- `OpenSans_SemiBold.ttf`:
+  * Upstream: https://fonts.google.com/specimen/Open+Sans
+  * Version: 1.10 (downloaded from Google Fonts in February 2021)
   * License: Apache 2.0
 - `Tamsyn*.png`:
   * Upstream: http://www.fial.com/~scott/tamsyn-font/
@@ -371,6 +374,9 @@ Files extracted from upstream repository:
 
 - All files in `src/`.
 - `LICENSE.md`.
+
+An [experimental upstream feature](https://github.com/zeux/meshoptimizer/tree/simplify-attr),
+has been backported, see patch in `patches` directory.
 
 
 ## miniupnpc

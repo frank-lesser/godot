@@ -33,6 +33,7 @@
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
+#include "core/math/math_defs.h"
 #include "renderer_compositor_rd.h"
 #include "servers/rendering/shader_language.h"
 
@@ -3873,6 +3874,18 @@ void RendererStorageRD::particles_initialize(RID p_rid) {
 	particles_owner.initialize_rid(p_rid, Particles());
 }
 
+void RendererStorageRD::particles_set_mode(RID p_particles, RS::ParticlesMode p_mode) {
+	Particles *particles = particles_owner.getornull(p_particles);
+	ERR_FAIL_COND(!particles);
+	if (particles->mode == p_mode) {
+		return;
+	}
+
+	_particles_free_data(particles);
+
+	particles->mode = p_mode;
+}
+
 void RendererStorageRD::particles_set_emitting(RID p_particles, bool p_emitting) {
 	Particles *particles = particles_owner.getornull(p_particles);
 	ERR_FAIL_COND(!particles);
@@ -4293,6 +4306,15 @@ void RendererStorageRD::particles_remove_collision(RID p_particles, RID p_partic
 	particles->collisions.erase(p_particles_collision_instance);
 }
 
+void RendererStorageRD::particles_set_canvas_sdf_collision(RID p_particles, bool p_enable, const Transform2D &p_xform, const Rect2 &p_to_screen, RID p_texture) {
+	Particles *particles = particles_owner.getornull(p_particles);
+	ERR_FAIL_COND(!particles);
+	particles->has_sdf_collision = p_enable;
+	particles->sdf_collision_transform = p_xform;
+	particles->sdf_collision_to_screen = p_to_screen;
+	particles->sdf_collision_texture = p_texture;
+}
+
 void RendererStorageRD::_particles_process(Particles *p_particles, float p_delta) {
 	if (p_particles->particles_material_uniform_set.is_null() || !RD::get_singleton()->uniform_set_is_valid(p_particles->particles_material_uniform_set)) {
 		Vector<RD::Uniform> uniforms;
@@ -4398,6 +4420,50 @@ void RendererStorageRD::_particles_process(Particles *p_particles, float p_delta
 		if (p_particles->use_local_coords) {
 			to_particles = p_particles->emission_transform.affine_inverse();
 		}
+
+		if (p_particles->has_sdf_collision && RD::get_singleton()->texture_is_valid(p_particles->sdf_collision_texture)) {
+			//2D collision
+
+			Transform2D xform = p_particles->sdf_collision_transform; //will use dotproduct manually so invert beforehand
+			Transform2D revert = xform.affine_inverse();
+			frame_params.collider_count = 1;
+			frame_params.colliders[0].transform[0] = xform.elements[0][0];
+			frame_params.colliders[0].transform[1] = xform.elements[0][1];
+			frame_params.colliders[0].transform[2] = 0;
+			frame_params.colliders[0].transform[3] = xform.elements[2][0];
+
+			frame_params.colliders[0].transform[4] = xform.elements[1][0];
+			frame_params.colliders[0].transform[5] = xform.elements[1][1];
+			frame_params.colliders[0].transform[6] = 0;
+			frame_params.colliders[0].transform[7] = xform.elements[2][1];
+
+			frame_params.colliders[0].transform[8] = revert.elements[0][0];
+			frame_params.colliders[0].transform[9] = revert.elements[0][1];
+			frame_params.colliders[0].transform[10] = 0;
+			frame_params.colliders[0].transform[11] = revert.elements[2][0];
+
+			frame_params.colliders[0].transform[12] = revert.elements[1][0];
+			frame_params.colliders[0].transform[13] = revert.elements[1][1];
+			frame_params.colliders[0].transform[14] = 0;
+			frame_params.colliders[0].transform[15] = revert.elements[2][1];
+
+			frame_params.colliders[0].extents[0] = p_particles->sdf_collision_to_screen.size.x;
+			frame_params.colliders[0].extents[1] = p_particles->sdf_collision_to_screen.size.y;
+			frame_params.colliders[0].extents[2] = p_particles->sdf_collision_to_screen.position.x;
+			frame_params.colliders[0].scale = p_particles->sdf_collision_to_screen.position.y;
+			frame_params.colliders[0].texture_index = 0;
+			frame_params.colliders[0].type = ParticlesFrameParams::COLLISION_TYPE_2D_SDF;
+
+			collision_heightmap_texture = p_particles->sdf_collision_texture;
+
+			//replace in all other history frames where used because parameters are no longer valid if screen moves
+			for (uint32_t i = 1; i < p_particles->frame_history.size(); i++) {
+				if (p_particles->frame_history[i].collider_count > 0 && p_particles->frame_history[i].colliders[0].type == ParticlesFrameParams::COLLISION_TYPE_2D_SDF) {
+					p_particles->frame_history[i].colliders[0] = frame_params.colliders[0];
+				}
+			}
+		}
+
 		uint32_t collision_3d_textures_used = 0;
 		for (const Set<RID>::Element *E = p_particles->collisions.front(); E; E = E->next()) {
 			ParticlesCollisionInstance *pci = particles_collision_instance_owner.getornull(E->get());
@@ -4645,6 +4711,8 @@ void RendererStorageRD::_particles_process(Particles *p_particles, float p_delta
 
 	ERR_FAIL_COND(!m);
 
+	p_particles->has_collision_cache = m->shader_data->uses_collision;
+
 	//todo should maybe compute all particle systems together?
 	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
 	RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, m->shader_data->pipeline);
@@ -4728,6 +4796,11 @@ void RendererStorageRD::particles_set_view_axis(RID p_particles, const Vector3 &
 		copy_push_constant.trail_total = 1;
 		copy_push_constant.frame_delta = 0.0;
 	}
+
+	copy_push_constant.order_by_lifetime = (particles->draw_order == RS::PARTICLES_DRAW_ORDER_LIFETIME || particles->draw_order == RS::PARTICLES_DRAW_ORDER_REVERSE_LIFETIME);
+	copy_push_constant.lifetime_split = MIN(particles->amount * particles->phase, particles->amount - 1);
+	copy_push_constant.lifetime_reverse = particles->draw_order == RS::PARTICLES_DRAW_ORDER_REVERSE_LIFETIME;
+
 	copy_push_constant.frame_remainder = particles->interpolate ? particles->frame_remainder : 0.0;
 	copy_push_constant.total_particles = particles->amount;
 
@@ -4765,7 +4838,7 @@ void RendererStorageRD::particles_set_view_axis(RID p_particles, const Vector3 &
 	copy_push_constant.total_particles *= copy_push_constant.total_particles;
 
 	RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
-	RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, particles_shader.copy_pipelines[do_sort ? ParticlesShader::COPY_MODE_FILL_INSTANCES_WITH_SORT_BUFFER : ParticlesShader::COPY_MODE_FILL_INSTANCES]);
+	RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, particles_shader.copy_pipelines[do_sort ? ParticlesShader::COPY_MODE_FILL_INSTANCES_WITH_SORT_BUFFER : (particles->mode == RS::PARTICLES_MODE_2D ? ParticlesShader::COPY_MODE_FILL_INSTANCES_2D : ParticlesShader::COPY_MODE_FILL_INSTANCES)]);
 	RD::get_singleton()->compute_list_bind_uniform_set(compute_list, particles->particles_copy_uniform_set, 0);
 	if (do_sort) {
 		RD::get_singleton()->compute_list_bind_uniform_set(compute_list, particles->particles_sort_uniform_set, 1);
@@ -4785,8 +4858,12 @@ void RendererStorageRD::_particles_update_buffers(Particles *particles) {
 		if (particles->trails_enabled && particles->trail_bind_poses.size() > 1) {
 			total_amount *= particles->trail_bind_poses.size();
 		}
+
+		uint32_t xform_size = particles->mode == RS::PARTICLES_MODE_2D ? 2 : 3;
+
 		particles->particle_buffer = RD::get_singleton()->storage_buffer_create(sizeof(ParticleData) * total_amount);
-		particles->particle_instance_buffer = RD::get_singleton()->storage_buffer_create(sizeof(float) * 4 * (3 + 1 + 1) * total_amount);
+
+		particles->particle_instance_buffer = RD::get_singleton()->storage_buffer_create(sizeof(float) * 4 * (xform_size + 1 + 1) * total_amount);
 		//needs to clear it
 
 		{
@@ -5003,8 +5080,12 @@ void RendererStorageRD::update_particles() {
 				copy_push_constant.frame_delta = 0.0;
 			}
 
+			copy_push_constant.order_by_lifetime = (particles->draw_order == RS::PARTICLES_DRAW_ORDER_LIFETIME || particles->draw_order == RS::PARTICLES_DRAW_ORDER_REVERSE_LIFETIME);
+			copy_push_constant.lifetime_split = MIN(particles->amount * particles->phase, particles->amount - 1);
+			copy_push_constant.lifetime_reverse = particles->draw_order == RS::PARTICLES_DRAW_ORDER_REVERSE_LIFETIME;
+
 			RD::ComputeListID compute_list = RD::get_singleton()->compute_list_begin();
-			RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, particles_shader.copy_pipelines[ParticlesShader::COPY_MODE_FILL_INSTANCES]);
+			RD::get_singleton()->compute_list_bind_compute_pipeline(compute_list, particles_shader.copy_pipelines[particles->mode == RS::PARTICLES_MODE_2D ? ParticlesShader::COPY_MODE_FILL_INSTANCES_2D : ParticlesShader::COPY_MODE_FILL_INSTANCES]);
 			RD::get_singleton()->compute_list_bind_uniform_set(compute_list, particles->particles_copy_uniform_set, 0);
 			RD::get_singleton()->compute_list_bind_uniform_set(compute_list, particles->trail_bind_pose_uniform_set, 2);
 			RD::get_singleton()->compute_list_set_push_constant(compute_list, &copy_push_constant, sizeof(ParticlesShader::CopyPushConstant));
@@ -5033,6 +5114,7 @@ void RendererStorageRD::ParticlesShaderData::set_code(const String &p_code) {
 	valid = false;
 	ubo_size = 0;
 	uniforms.clear();
+	uses_collision = false;
 
 	if (code == String()) {
 		return; //just invalid, but no error
@@ -5051,6 +5133,8 @@ void RendererStorageRD::ParticlesShaderData::set_code(const String &p_code) {
 
 	actions.usage_flag_pointers["TIME"] = &uses_time;
 */
+
+	actions.usage_flag_pointers["COLLIDED"] = &uses_collision;
 
 	actions.uniforms = &uniforms;
 
@@ -7117,6 +7201,20 @@ Rect2i RendererStorageRD::render_target_get_sdf_rect(RID p_render_target) const 
 	return _render_target_get_sdf_rect(rt);
 }
 
+void RendererStorageRD::render_target_mark_sdf_enabled(RID p_render_target, bool p_enabled) {
+	RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND(!rt);
+
+	rt->sdf_enabled = p_enabled;
+}
+
+bool RendererStorageRD::render_target_is_sdf_enabled(RID p_render_target) const {
+	const RenderTarget *rt = render_target_owner.getornull(p_render_target);
+	ERR_FAIL_COND_V(!rt, false);
+
+	return rt->sdf_enabled;
+}
+
 RID RendererStorageRD::render_target_get_sdf_texture(RID p_render_target) {
 	RenderTarget *rt = render_target_owner.getornull(p_render_target);
 	ERR_FAIL_COND_V(!rt, RID());
@@ -7184,7 +7282,7 @@ void RendererStorageRD::_render_target_allocate_sdf(RenderTarget *rt) {
 	rt->process_size.x = MAX(rt->process_size.x, 1);
 	rt->process_size.y = MAX(rt->process_size.y, 1);
 
-	tformat.format = RD::DATA_FORMAT_R16G16_UINT;
+	tformat.format = RD::DATA_FORMAT_R16G16_SINT;
 	tformat.width = rt->process_size.width;
 	tformat.height = rt->process_size.height;
 	tformat.usage_bits = RD::TEXTURE_USAGE_STORAGE_BIT;
@@ -7192,7 +7290,7 @@ void RendererStorageRD::_render_target_allocate_sdf(RenderTarget *rt) {
 	rt->sdf_buffer_process[0] = RD::get_singleton()->texture_create(tformat, RD::TextureView());
 	rt->sdf_buffer_process[1] = RD::get_singleton()->texture_create(tformat, RD::TextureView());
 
-	tformat.format = RD::DATA_FORMAT_R16_UNORM;
+	tformat.format = RD::DATA_FORMAT_R16_SNORM;
 	tformat.usage_bits = RD::TEXTURE_USAGE_SAMPLING_BIT | RD::TEXTURE_USAGE_STORAGE_BIT;
 
 	rt->sdf_buffer_read = RD::get_singleton()->texture_create(tformat, RD::TextureView());
@@ -9128,6 +9226,9 @@ RendererStorageRD::RendererStorageRD() {
 		actions.renames["CUSTOM"] = "PARTICLE.custom";
 		actions.renames["TRANSFORM"] = "PARTICLE.xform";
 		actions.renames["TIME"] = "FRAME.time";
+		actions.renames["PI"] = _MKSTR(Math_PI);
+		actions.renames["TAU"] = _MKSTR(Math_TAU);
+		actions.renames["E"] = _MKSTR(Math_E);
 		actions.renames["LIFETIME"] = "params.lifetime";
 		actions.renames["DELTA"] = "local_delta";
 		actions.renames["NUMBER"] = "particle_number";
@@ -9220,6 +9321,7 @@ RendererStorageRD::RendererStorageRD() {
 	{
 		Vector<String> copy_modes;
 		copy_modes.push_back("\n#define MODE_FILL_INSTANCES\n");
+		copy_modes.push_back("\n#define MODE_FILL_INSTANCES\n#define MODE_2D\n");
 		copy_modes.push_back("\n#define MODE_FILL_SORT_BUFFER\n#define USE_SORT_BUFFER\n");
 		copy_modes.push_back("\n#define MODE_FILL_INSTANCES\n#define USE_SORT_BUFFER\n");
 

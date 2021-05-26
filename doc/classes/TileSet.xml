@@ -20,7 +20,7 @@
 		<method name="add_source">
 			<return type="int">
 			</return>
-			<argument index="0" name="atlas_source_id_override" type="TileSetAtlasSource">
+			<argument index="0" name="atlas_source_id_override" type="TileSetSource">
 			</argument>
 			<argument index="1" name="arg1" type="int" default="-1">
 			</argument>
@@ -298,12 +298,15 @@
 	</members>
 	<constants>
 		<constant name="TILE_SHAPE_SQUARE" value="0" enum="TileShape">
+			Orthogonal orientation mode.
 		</constant>
 		<constant name="TILE_SHAPE_ISOMETRIC" value="1" enum="TileShape">
+			Isometric orientation mode.
 		</constant>
 		<constant name="TILE_SHAPE_HALF_OFFSET_SQUARE" value="2" enum="TileShape">
 		</constant>
 		<constant name="TILE_SHAPE_HEXAGON" value="3" enum="TileShape">
+			Hexagon orientation mode.
 		</constant>
 		<constant name="TILE_LAYOUT_STACKED" value="0" enum="TileLayout">
 		</constant>
