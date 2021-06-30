@@ -56,7 +56,7 @@ class EditorPropertyText : public EditorProperty {
 	bool updating;
 	bool string_name;
 	void _text_changed(const String &p_string);
-	void _text_entered(const String &p_string);
+	void _text_submitted(const String &p_string);
 
 protected:
 	static void _bind_methods();
@@ -465,8 +465,8 @@ public:
 	EditorPropertyPlane(bool p_force_wide = false);
 };
 
-class EditorPropertyQuat : public EditorProperty {
-	GDCLASS(EditorPropertyQuat, EditorProperty);
+class EditorPropertyQuaternion : public EditorProperty {
+	GDCLASS(EditorPropertyQuaternion, EditorProperty);
 	EditorSpinSlider *spin[4];
 	bool setting;
 	void _value_changed(double p_val, const String &p_name);
@@ -478,7 +478,7 @@ protected:
 public:
 	virtual void update_property() override;
 	void setup(double p_min, double p_max, double p_step, bool p_no_slider);
-	EditorPropertyQuat();
+	EditorPropertyQuaternion();
 };
 
 class EditorPropertyAABB : public EditorProperty {
@@ -529,8 +529,8 @@ public:
 	EditorPropertyBasis();
 };
 
-class EditorPropertyTransform : public EditorProperty {
-	GDCLASS(EditorPropertyTransform, EditorProperty);
+class EditorPropertyTransform3D : public EditorProperty {
+	GDCLASS(EditorPropertyTransform3D, EditorProperty);
 	EditorSpinSlider *spin[12];
 	bool setting;
 	void _value_changed(double p_val, const String &p_name);
@@ -541,9 +541,9 @@ protected:
 
 public:
 	virtual void update_property() override;
-	virtual void update_using_transform(Transform p_transform);
+	virtual void update_using_transform(Transform3D p_transform);
 	void setup(double p_min, double p_max, double p_step, bool p_no_slider);
-	EditorPropertyTransform();
+	EditorPropertyTransform3D();
 };
 
 class EditorPropertyColor : public EditorProperty {
@@ -649,6 +649,8 @@ public:
 	virtual void parse_begin(Object *p_object) override;
 	virtual bool parse_property(Object *p_object, Variant::Type p_type, const String &p_path, PropertyHint p_hint, const String &p_hint_text, int p_usage, bool p_wide = false) override;
 	virtual void parse_end() override;
+
+	static EditorProperty *get_editor_for_property(Object *p_object, Variant::Type p_type, const String &p_path, PropertyHint p_hint, const String &p_hint_text, int p_usage, bool p_wide = false);
 };
 
 #endif // EDITOR_PROPERTIES_H

@@ -130,9 +130,9 @@ public:
 		DEBUG_DRAW_OVERDRAW,
 		DEBUG_DRAW_WIREFRAME,
 		DEBUG_DRAW_NORMAL_BUFFER,
-		DEBUG_DRAW_GI_PROBE_ALBEDO,
-		DEBUG_DRAW_GI_PROBE_LIGHTING,
-		DEBUG_DRAW_GI_PROBE_EMISSION,
+		DEBUG_DRAW_VOXEL_GI_ALBEDO,
+		DEBUG_DRAW_VOXEL_GI_LIGHTING,
+		DEBUG_DRAW_VOXEL_GI_EMISSION,
 		DEBUG_DRAW_SHADOW_ATLAS,
 		DEBUG_DRAW_DIRECTIONAL_SHADOW_ATLAS,
 		DEBUG_DRAW_SCENE_LUMINANCE,
@@ -193,7 +193,7 @@ private:
 	Set<Listener3D *> listeners;
 
 	struct CameraOverrideData {
-		Transform transform;
+		Transform3D transform;
 		enum Projection {
 			PROJECTION_PERSPECTIVE,
 			PROJECTION_ORTHOGONAL
@@ -254,8 +254,8 @@ private:
 	List<Ref<InputEvent>> physics_picking_events;
 	ObjectID physics_object_capture;
 	ObjectID physics_object_over;
-	Transform physics_last_object_transform;
-	Transform physics_last_camera_transform;
+	Transform3D physics_last_object_transform;
+	Transform3D physics_last_camera_transform;
 	ObjectID physics_last_id;
 	bool physics_has_last_mousepos = false;
 	Vector2 physics_last_mousepos = Vector2(Math_INF, Math_INF);
@@ -287,6 +287,8 @@ private:
 
 	void _update_listener();
 	void _update_listener_2d();
+
+	bool disable_3d = false;
 
 	void _propagate_enter_world(Node *p_node);
 	void _propagate_exit_world(Node *p_node);
@@ -397,8 +399,6 @@ private:
 
 	void _gui_input_event(Ref<InputEvent> p_event);
 
-	void update_worlds();
-
 	_FORCE_INLINE_ Transform2D _get_input_pre_xform() const;
 
 	Ref<InputEvent> _make_input_local(const Ref<InputEvent> &ev);
@@ -493,8 +493,8 @@ public:
 	void enable_camera_override(bool p_enable);
 	bool is_camera_override_enabled() const;
 
-	void set_camera_override_transform(const Transform &p_transform);
-	Transform get_camera_override_transform() const;
+	void set_camera_override_transform(const Transform3D &p_transform);
+	Transform3D get_camera_override_transform() const;
 
 	void set_camera_override_perspective(float p_fovy_degrees, float p_z_near, float p_z_far);
 	void set_camera_override_orthogonal(float p_size, float p_z_near, float p_z_far);
@@ -504,6 +504,9 @@ public:
 
 	void set_as_audio_listener_2d(bool p_enable);
 	bool is_audio_listener_2d() const;
+
+	void set_disable_3d(bool p_disable);
+	bool is_3d_disabled() const;
 
 	void update_canvas_items();
 

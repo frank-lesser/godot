@@ -866,9 +866,9 @@ void CylinderMesh::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_rings", "rings"), &CylinderMesh::set_rings);
 	ClassDB::bind_method(D_METHOD("get_rings"), &CylinderMesh::get_rings);
 
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "top_radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_top_radius", "get_top_radius");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "bottom_radius", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_bottom_radius", "get_bottom_radius");
-	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "height", PROPERTY_HINT_RANGE, "0.001,100.0,0.001,or_greater"), "set_height", "get_height");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "top_radius", PROPERTY_HINT_RANGE, "0,100,0.001,or_greater"), "set_top_radius", "get_top_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "bottom_radius", PROPERTY_HINT_RANGE, "0,100,0.001,or_greater"), "set_bottom_radius", "get_bottom_radius");
+	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "height", PROPERTY_HINT_RANGE, "0.001,100,0.001,or_greater"), "set_height", "get_height");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "radial_segments", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_radial_segments", "get_radial_segments");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "rings", PROPERTY_HINT_RANGE, "1,100,1,or_greater"), "set_rings", "get_rings");
 }
@@ -1607,10 +1607,10 @@ int TubeTrailMesh::get_builtin_bind_pose_count() const {
 	return sections + 1;
 }
 
-Transform TubeTrailMesh::get_builtin_bind_pose(int p_index) const {
+Transform3D TubeTrailMesh::get_builtin_bind_pose(int p_index) const {
 	float depth = section_length * sections;
 
-	Transform xform;
+	Transform3D xform;
 	xform.origin.y = depth / 2.0 - section_length * float(p_index);
 	xform.origin.y = -xform.origin.y; //bind is an inverse transform, so negate y
 
@@ -1931,10 +1931,10 @@ int RibbonTrailMesh::get_builtin_bind_pose_count() const {
 	return sections + 1;
 }
 
-Transform RibbonTrailMesh::get_builtin_bind_pose(int p_index) const {
+Transform3D RibbonTrailMesh::get_builtin_bind_pose(int p_index) const {
 	float depth = section_length * sections;
 
-	Transform xform;
+	Transform3D xform;
 	xform.origin.y = depth / 2.0 - section_length * float(p_index);
 	xform.origin.y = -xform.origin.y; //bind is an inverse transform, so negate y
 

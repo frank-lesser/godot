@@ -32,8 +32,8 @@
 
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
+#include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
-#include "core/os/file_access.h"
 #include "core/os/keyboard.h"
 #include "core/os/os.h"
 #include "editor/debugger/editor_debugger_node.h"
@@ -71,7 +71,7 @@ Array EditorSyntaxHighlighter::_get_supported_languages() const {
 
 Ref<EditorSyntaxHighlighter> EditorSyntaxHighlighter::_create() const {
 	Ref<EditorSyntaxHighlighter> syntax_highlighter;
-	syntax_highlighter.instance();
+	syntax_highlighter.instantiate();
 	if (get_script_instance()) {
 		syntax_highlighter->set_script(get_script_instance()->get_script());
 	}
@@ -201,7 +201,7 @@ void EditorStandardSyntaxHighlighter::_update_cache() {
 
 Ref<EditorSyntaxHighlighter> EditorStandardSyntaxHighlighter::_create() const {
 	Ref<EditorStandardSyntaxHighlighter> syntax_highlighter;
-	syntax_highlighter.instance();
+	syntax_highlighter.instantiate();
 	return syntax_highlighter;
 }
 
@@ -209,7 +209,7 @@ Ref<EditorSyntaxHighlighter> EditorStandardSyntaxHighlighter::_create() const {
 
 Ref<EditorSyntaxHighlighter> EditorPlainTextSyntaxHighlighter::_create() const {
 	Ref<EditorPlainTextSyntaxHighlighter> syntax_highlighter;
-	syntax_highlighter.instance();
+	syntax_highlighter.instantiate();
 	return syntax_highlighter;
 }
 
@@ -230,7 +230,7 @@ void ScriptEditorBase::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("search_in_files_requested", PropertyInfo(Variant::STRING, "text")));
 	ADD_SIGNAL(MethodInfo("replace_in_files_requested", PropertyInfo(Variant::STRING, "text")));
 
-	BIND_VMETHOD(MethodInfo("add_syntax_highlighter", PropertyInfo(Variant::OBJECT, "highlighter")));
+	BIND_VMETHOD(MethodInfo("_add_syntax_highlighter", PropertyInfo(Variant::OBJECT, "highlighter")));
 }
 
 static bool _is_built_in_script(Script *p_script) {
@@ -760,6 +760,7 @@ void ScriptEditor::_close_tab(int p_idx, bool p_save, bool p_history_back) {
 	_update_members_overview_visibility();
 	_update_help_overview_visibility();
 	_save_layout();
+	_update_find_replace_bar();
 }
 
 void ScriptEditor::_close_current_tab(bool p_save) {
@@ -829,6 +830,7 @@ void ScriptEditor::_close_all_tabs() {
 
 		_close_current_tab(false);
 	}
+	_update_find_replace_bar();
 }
 
 void ScriptEditor::_ask_close_current_unsaved_tab(ScriptEditorBase *current) {
@@ -1504,8 +1506,10 @@ void ScriptEditor::_notification(int p_what) {
 
 			recent_scripts->set_as_minsize();
 
-			_update_script_colors();
-			_update_script_names();
+			if (is_inside_tree()) {
+				_update_script_colors();
+				_update_script_names();
+			}
 		} break;
 
 		case NOTIFICATION_READY: {
@@ -1627,7 +1631,7 @@ void ScriptEditor::_help_overview_selected(int p_idx) {
 }
 
 void ScriptEditor::_script_selected(int p_idx) {
-	grab_focus_block = !Input::get_singleton()->is_mouse_button_pressed(1); //amazing hack, simply amazing
+	grab_focus_block = !Input::get_singleton()->is_mouse_button_pressed(MOUSE_BUTTON_LEFT); //amazing hack, simply amazing
 
 	_go_to_tab(script_list->get_item_metadata(p_idx));
 	grab_focus_block = false;
@@ -1644,6 +1648,7 @@ void ScriptEditor::ensure_select_current() {
 			}
 		}
 	}
+	_update_find_replace_bar();
 
 	_update_selected_editor_menu();
 }
@@ -2449,7 +2454,9 @@ void ScriptEditor::_add_callback(Object *p_obj, const String &p_function, const 
 		script_list->select(script_list->find_metadata(i));
 
 		// Save the current script so the changes can be picked up by an external editor.
-		save_current_script();
+		if (!_is_built_in_script(script.ptr())) { // But only if it's not built-in script.
+			save_current_script();
+		}
 
 		break;
 	}
@@ -2510,6 +2517,16 @@ void ScriptEditor::_file_removed(const String &p_removed_file) {
 			// The script is deleted with no undo, so just close the tab.
 			_close_tab(i, false, false);
 		}
+	}
+}
+
+void ScriptEditor::_update_find_replace_bar() {
+	ScriptEditorBase *se = _get_current_editor();
+	if (se) {
+		se->set_find_replace_bar(find_replace_bar);
+	} else {
+		find_replace_bar->set_text_edit(nullptr);
+		find_replace_bar->hide();
 	}
 }
 
@@ -2764,6 +2781,8 @@ void ScriptEditor::_script_list_gui_input(const Ref<InputEvent> &ev) {
 			case MOUSE_BUTTON_RIGHT: {
 				_make_script_list_context_menu();
 			} break;
+			default:
+				break;
 		}
 	}
 }
@@ -3186,7 +3205,7 @@ void ScriptEditor::_on_find_in_files_result_selected(String fpath, int line_numb
 	if (ResourceLoader::exists(fpath)) {
 		RES res = ResourceLoader::load(fpath);
 
-		if (fpath.get_extension() == "shader") {
+		if (fpath.get_extension() == "gdshader") {
 			ShaderEditorPlugin *shader_editor = Object::cast_to<ShaderEditorPlugin>(EditorNode::get_singleton()->get_editor_data().get_editor("Shader"));
 			shader_editor->edit(res.ptr());
 			shader_editor->make_visible(true);
@@ -3269,9 +3288,9 @@ void ScriptEditor::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("register_syntax_highlighter", "syntax_highlighter"), &ScriptEditor::register_syntax_highlighter);
 	ClassDB::bind_method(D_METHOD("unregister_syntax_highlighter", "syntax_highlighter"), &ScriptEditor::unregister_syntax_highlighter);
 
-	ClassDB::bind_method(D_METHOD("get_drag_data_fw", "point", "from"), &ScriptEditor::get_drag_data_fw);
-	ClassDB::bind_method(D_METHOD("can_drop_data_fw", "point", "data", "from"), &ScriptEditor::can_drop_data_fw);
-	ClassDB::bind_method(D_METHOD("drop_data_fw", "point", "data", "from"), &ScriptEditor::drop_data_fw);
+	ClassDB::bind_method(D_METHOD("_get_drag_data_fw", "point", "from"), &ScriptEditor::get_drag_data_fw);
+	ClassDB::bind_method(D_METHOD("_can_drop_data_fw", "point", "data", "from"), &ScriptEditor::can_drop_data_fw);
+	ClassDB::bind_method(D_METHOD("_drop_data_fw", "point", "data", "from"), &ScriptEditor::drop_data_fw);
 
 	ClassDB::bind_method(D_METHOD("goto_line", "line_number"), &ScriptEditor::_goto_script_line2);
 	ClassDB::bind_method(D_METHOD("get_current_script"), &ScriptEditor::_get_current_script);
@@ -3375,11 +3394,19 @@ ScriptEditor::ScriptEditor(EditorNode *p_editor) {
 	help_overview->set_custom_minimum_size(Size2(0, 60) * EDSCALE); //need to give a bit of limit to avoid it from disappearing
 	help_overview->set_v_size_flags(SIZE_EXPAND_FILL);
 
+	VBoxContainer *code_editor_container = memnew(VBoxContainer);
+	script_split->add_child(code_editor_container);
+
 	tab_container = memnew(TabContainer);
 	tab_container->set_tabs_visible(false);
 	tab_container->set_custom_minimum_size(Size2(200, 0) * EDSCALE);
-	script_split->add_child(tab_container);
+	code_editor_container->add_child(tab_container);
 	tab_container->set_h_size_flags(SIZE_EXPAND_FILL);
+	tab_container->set_v_size_flags(SIZE_EXPAND_FILL);
+
+	find_replace_bar = memnew(FindReplaceBar);
+	code_editor_container->add_child(find_replace_bar);
+	find_replace_bar->hide();
 
 	ED_SHORTCUT("script_editor/window_sort", TTR("Sort"));
 	ED_SHORTCUT("script_editor/window_move_up", TTR("Move Up"), KEY_MASK_SHIFT | KEY_MASK_ALT | KEY_UP);

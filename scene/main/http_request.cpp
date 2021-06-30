@@ -322,7 +322,8 @@ bool HTTPRequest::_update_connection() {
 			} else {
 				// Did not request yet, do request
 
-				Error err = client->request_raw(method, request_string, headers, request_data);
+				int size = request_data.size();
+				Error err = client->request(method, request_string, headers, size > 0 ? request_data.ptr() : nullptr, size);
 				if (err != OK) {
 					call_deferred("_request_done", RESULT_CONNECTION_ERROR, 0, PackedStringArray(), PackedByteArray());
 					return true;
@@ -375,17 +376,19 @@ bool HTTPRequest::_update_connection() {
 			}
 
 			PackedByteArray chunk = client->read_response_body_chunk();
-			downloaded.add(chunk.size());
 
-			if (file) {
-				const uint8_t *r = chunk.ptr();
-				file->store_buffer(r, chunk.size());
-				if (file->get_error() != OK) {
-					call_deferred("_request_done", RESULT_DOWNLOAD_FILE_WRITE_ERROR, response_code, response_headers, PackedByteArray());
-					return true;
+			if (chunk.size()) {
+				downloaded.add(chunk.size());
+				if (file) {
+					const uint8_t *r = chunk.ptr();
+					file->store_buffer(r, chunk.size());
+					if (file->get_error() != OK) {
+						call_deferred("_request_done", RESULT_DOWNLOAD_FILE_WRITE_ERROR, response_code, response_headers, PackedByteArray());
+						return true;
+					}
+				} else {
+					body.append_array(chunk);
 				}
-			} else {
-				body.append_array(chunk);
 			}
 
 			if (body_size_limit >= 0 && downloaded.get() > body_size_limit) {
@@ -625,7 +628,7 @@ void HTTPRequest::_bind_methods() {
 }
 
 HTTPRequest::HTTPRequest() {
-	client.instance();
+	client = Ref<HTTPClient>(HTTPClient::create());
 	timer = memnew(Timer);
 	timer->set_one_shot(true);
 	timer->connect("timeout", callable_mp(this, &HTTPRequest::_timeout));
